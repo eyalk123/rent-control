@@ -1,0 +1,245 @@
+import type { Property, Renter } from '@/src/types';
+
+// Set to true to use in-memory mock data when no backend is available
+export const USE_MOCK_API = true;
+
+const seedProperties: Property[] = [
+  {
+    id: 1,
+    owner_id: 1,
+    address: '123 Main St',
+    city: 'Austin',
+    zip_code: '78701',
+    type: 'House',
+    sq_ft: 2200,
+    purchase_price: 450000,
+    image_url: null,
+    renters: null,
+  },
+  {
+    id: 2,
+    owner_id: 1,
+    address: '456 Oak Avenue',
+    city: 'Austin',
+    zip_code: '78702',
+    type: 'Apartment',
+    sq_ft: 1200,
+    purchase_price: 280000,
+    image_url: null,
+    renters: null,
+  },
+  {
+    id: 3,
+    owner_id: 1,
+    address: '789 Elm Street',
+    city: 'Austin',
+    zip_code: '78703',
+    type: 'Condo',
+    sq_ft: 950,
+    purchase_price: 320000,
+    image_url: null,
+    renters: null,
+  },
+  {
+    id: 4,
+    owner_id: 1,
+    address: '321 Pine Road',
+    city: 'Round Rock',
+    zip_code: '78664',
+    type: 'House',
+    sq_ft: 1800,
+    purchase_price: 380000,
+    image_url: null,
+    renters: null,
+  },
+  {
+    id: 5,
+    owner_id: 1,
+    address: '555 Cedar Lane',
+    city: 'Austin',
+    zip_code: '78704',
+    type: 'Townhouse',
+    sq_ft: 1500,
+    purchase_price: 410000,
+    image_url: null,
+    renters: null,
+  },
+];
+
+const seedRenters: Renter[] = [
+  {
+    id: 1,
+    property_id: 1,
+    first_name: 'Sarah',
+    last_name: 'Johnson',
+    phone: '512-555-0101',
+    email: 'sarah.johnson@email.com',
+    monthly_rent: 2200,
+    lease_start: '2024-01-15',
+    lease_end: '2025-01-14',
+    property: null,
+  },
+  {
+    id: 2,
+    property_id: 1,
+    first_name: 'Michael',
+    last_name: 'Chen',
+    phone: '512-555-0102',
+    email: 'michael.chen@email.com',
+    monthly_rent: 1900,
+    lease_start: '2024-03-01',
+    lease_end: '2025-02-28',
+    property: null,
+  },
+  {
+    id: 3,
+    property_id: 2,
+    first_name: 'Emily',
+    last_name: 'Davis',
+    phone: '512-555-0103',
+    email: 'emily.davis@email.com',
+    monthly_rent: 1650,
+    lease_start: '2024-02-01',
+    lease_end: '2025-01-31',
+    property: null,
+  },
+  {
+    id: 4,
+    property_id: 3,
+    first_name: 'James',
+    last_name: 'Wilson',
+    phone: '512-555-0104',
+    email: 'james.wilson@email.com',
+    monthly_rent: 2100,
+    lease_start: '2024-04-15',
+    lease_end: '2025-04-14',
+    property: null,
+  },
+  {
+    id: 5,
+    property_id: null,
+    first_name: 'Lisa',
+    last_name: 'Martinez',
+    phone: '512-555-0105',
+    email: 'lisa.martinez@email.com',
+    monthly_rent: 0,
+    lease_start: '',
+    lease_end: '',
+    property: null,
+  },
+  {
+    id: 6,
+    property_id: 4,
+    first_name: 'Robert',
+    last_name: 'Thompson',
+    phone: '512-555-0106',
+    email: 'robert.thompson@email.com',
+    monthly_rent: 1950,
+    lease_start: '2024-05-01',
+    lease_end: '2025-04-30',
+    property: null,
+  },
+];
+
+let mockProperties: Property[] = [...seedProperties];
+let mockRenters: Renter[] = [...seedRenters];
+let nextPropertyId = 6;
+let nextRenterId = 7;
+
+export const mockPropertiesApi = {
+  getProperties: async (): Promise<Property[]> => {
+    return mockProperties.map((p) => ({
+      ...p,
+      renters: mockRenters.filter((r) => r.property_id === p.id).map((r) => ({
+        ...r,
+        property: p,
+      })),
+    }));
+  },
+  getPropertyById: async (id: number): Promise<Property> => {
+    const p = mockProperties.find((x) => x.id === id);
+    if (!p) throw new Error('Property not found');
+    const renters = mockRenters.filter((r) => r.property_id === id).map((r) => ({
+      ...r,
+      property: p,
+    }));
+    return { ...p, renters };
+  },
+  createProperty: async (data: Partial<Property>): Promise<Property> => {
+    const newProp: Property = {
+      id: nextPropertyId++,
+      owner_id: 0,
+      address: data.address ?? '',
+      city: data.city ?? '',
+      zip_code: data.zip_code ?? '',
+      type: data.type ?? '',
+      sq_ft: data.sq_ft ?? 0,
+      purchase_price: data.purchase_price ?? 0,
+      image_url: data.image_url ?? null,
+      renters: [],
+    };
+    mockProperties.push(newProp);
+    return { ...newProp };
+  },
+  updateProperty: async (id: number, data: Partial<Property>): Promise<Property> => {
+    const idx = mockProperties.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error('Property not found');
+    const { renters: _r, ...rest } = data as Partial<Property> & { renters?: unknown };
+    mockProperties[idx] = { ...mockProperties[idx], ...rest };
+    return mockPropertiesApi.getPropertyById(id);
+  },
+  deleteProperty: async (id: number): Promise<void> => {
+    mockProperties = mockProperties.filter((x) => x.id !== id);
+    mockRenters = mockRenters.map((r) =>
+      r.property_id === id ? { ...r, property_id: null, property: null } : r
+    );
+  },
+  uploadPropertyImage: async (id: number, _formData: FormData): Promise<Property> => {
+    const idx = mockProperties.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error('Property not found');
+    mockProperties[idx] = { ...mockProperties[idx], image_url: 'https://placehold.co/400x300' };
+    return { ...mockProperties[idx] };
+  },
+};
+
+export const mockRentersApi = {
+  getRenters: async (): Promise<Renter[]> => {
+    return mockRenters.map((r) => ({
+      ...r,
+      property: mockProperties.find((p) => p.id === r.property_id) ?? null,
+    }));
+  },
+  getRenterById: async (id: number): Promise<Renter> => {
+    const r = mockRenters.find((x) => x.id === id);
+    if (!r) throw new Error('Renter not found');
+    return {
+      ...r,
+      property: mockProperties.find((p) => p.id === r.property_id) ?? null,
+    };
+  },
+  createRenter: async (data: Partial<Renter>): Promise<Renter> => {
+    const newRenter: Renter = {
+      id: nextRenterId++,
+      property_id: data.property_id ?? null,
+      first_name: data.first_name ?? '',
+      last_name: data.last_name ?? '',
+      phone: data.phone ?? '',
+      email: data.email ?? '',
+      monthly_rent: data.monthly_rent ?? 0,
+      lease_start: data.lease_start ?? '',
+      lease_end: data.lease_end ?? '',
+      property: null,
+    };
+    mockRenters.push(newRenter);
+    return mockRentersApi.getRenterById(newRenter.id);
+  },
+  updateRenter: async (id: number, data: Partial<Renter>): Promise<Renter> => {
+    const idx = mockRenters.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error('Renter not found');
+    mockRenters[idx] = { ...mockRenters[idx], ...data };
+    return mockRentersApi.getRenterById(id);
+  },
+  deleteRenter: async (id: number): Promise<void> => {
+    mockRenters = mockRenters.filter((x) => x.id !== id);
+  },
+};
