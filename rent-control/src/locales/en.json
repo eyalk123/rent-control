@@ -1,0 +1,138 @@
+{
+  "tabs": {
+    "properties": "Properties",
+    "renters": "Renters",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "language": "Language",
+    "languageEn": "English",
+    "languageHe": "Hebrew"
+  },
+  "restart": {
+    "title": "Restart Required",
+    "message": "Please restart the app for the layout direction change to take effect."
+  },
+  "screens": {
+    "properties": "Properties",
+    "propertyDetails": "Property Details",
+    "addProperty": "Add Property",
+    "editProperty": "Edit Property",
+    "renters": "Renters",
+    "renterDetails": "Renter Details",
+    "addRenter": "Add Renter",
+    "editRenter": "Edit Renter"
+  },
+  "property": {
+    "basicInfo": "Basic Information",
+    "leaseInfo": "Lease Details",
+    "address": "Address",
+    "city": "City",
+    "zipCode": "Zip Code",
+    "type": "Property Type",
+    "typePlaceholder": "e.g. Apartment, House",
+    "sqFt": "Square Feet",
+    "purchasePrice": "Purchase Price",
+    "typeLabel": "Type",
+    "sqFtLabel": "Sq Ft",
+    "typeApartment": "Apartment",
+    "typeHouse": "House",
+    "typeCommercial": "Commercial",
+    "occupancy": {
+      "occupied": "Occupied",
+      "vacant": "Vacant"
+    },
+    "renters": "Renters",
+    "noRenters": "No renters assigned",
+    "lease": "Lease",
+    "editProperty": "Edit Property",
+    "saveProperty": "Save Property",
+    "addProperty": "Add Property",
+    "updateProperty": "Update Property",
+    "selectImage": "Select Image",
+    "changeImage": "Change Image",
+    "atAGlance": "At a Glance",
+    "uploadProfilePicture": "Upload Profile Picture"
+  },
+  "renter": {
+    "basicInfo": "Basic Information",
+    "leaseInfo": "Lease Information",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone",
+    "email": "Email",
+    "monthlyRent": "Monthly Rent",
+    "leaseStart": "Lease Start (YYYY-MM-DD)",
+    "leaseEnd": "Lease End (YYYY-MM-DD)",
+    "leaseStartPlaceholder": "e.g. 2024-01-01",
+    "leaseEndPlaceholder": "e.g. 2025-01-01",
+    "property": "Property",
+    "unassigned": "Unassigned",
+    "editRenter": "Edit Renter",
+    "createRenter": "Create Renter",
+    "addRenter": "Add Renter",
+    "updateRenter": "Update Renter",
+    "call": "Call",
+    "sms": "SMS",
+    "email": "Email",
+    "status": {
+      "active": "Active",
+      "paid": "Paid",
+      "pending": "Pending",
+      "overdue": "Overdue"
+    }
+  },
+  "empty": {
+    "noProperties": "No properties yet. Tap + to add one.",
+    "noRenters": "No renters yet. Tap + to add one.",
+    "noSearchResults": "No renters match your search.",
+    "noPropertySearchResults": "No properties match your search."
+  },
+  "search": {
+    "placeholder": "Search renters",
+    "placeholderProperties": "Search properties, addresses..."
+  },
+  "filters": {
+    "all": "All",
+    "residential": "Residential",
+    "commercial": "Commercial",
+    "active": "Active",
+    "pending": "Pending",
+    "delinquent": "Delinquent"
+  },
+  "validation": {
+    "title": "Validation",
+    "addressRequired": "Address is required.",
+    "cityRequired": "City is required.",
+    "zipRequired": "Zip code is required.",
+    "typeRequired": "Property type is required.",
+    "sqFtRequired": "Valid square footage is required.",
+    "priceRequired": "Valid purchase price is required.",
+    "firstNameRequired": "First name is required.",
+    "lastNameRequired": "Last name is required.",
+    "phoneRequired": "Phone is required.",
+    "emailRequired": "Email is required.",
+    "rentRequired": "Valid monthly rent is required.",
+    "leaseStartRequired": "Lease start date is required.",
+    "leaseEndRequired": "Lease end date is required."
+  },
+  "error": {
+    "title": "Error",
+    "savePropertyFailed": "Failed to save property",
+    "saveRenterFailed": "Failed to save renter",
+    "loadFailed": "Failed to load",
+    "invalidPropertyId": "Invalid property ID",
+    "invalidRenterId": "Invalid renter ID",
+    "propertyNotFound": "Property not found",
+    "renterNotFound": "Renter not found"
+  },
+  "permission": {
+    "title": "Permission required",
+    "photoLibrary": "Please grant photo library access to upload images."
+  }
+}

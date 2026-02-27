@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import type { Renter } from '@/src/types';
 import { getRenters } from '@/src/api/renters';
+import { getApiErrorMessage } from '@/src/api/client';
 
 export interface RenterContextType {
   renters: Renter[];
@@ -29,7 +30,7 @@ export function RenterProvider({ children }: { children: React.ReactNode }) {
       const data = await getRenters();
       setRenters(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load renters');
+      setError(getApiErrorMessage(err, 'Failed to load renters'));
       setRenters([]);
     } finally {
       setLoading(false);

@@ -1,6 +1,6 @@
 import apiClient from './client';
 import { USE_MOCK_API, mockRentersApi } from './mock';
-import type { Renter } from '@/src/types';
+import type { Renter, RenterCreate, RenterUpdate } from '@/src/types';
 
 export async function getRenters(): Promise<Renter[]> {
   if (USE_MOCK_API) return mockRentersApi.getRenters();
@@ -14,18 +14,62 @@ export async function getRenterById(id: number): Promise<Renter> {
   return response.data;
 }
 
-export async function createRenter(data: Partial<Renter>): Promise<Renter> {
+function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
+  const {
+    property_id,
+    first_name,
+    last_name,
+    phone,
+    email,
+    monthly_rent,
+    lease_start,
+    lease_end,
+  } = data;
+  return {
+    property_id: property_id ?? null,
+    first_name,
+    last_name,
+    phone,
+    email,
+    monthly_rent,
+    lease_start,
+    lease_end,
+  };
+}
+
+function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
+  const allowed = [
+    'property_id',
+    'first_name',
+    'last_name',
+    'phone',
+    'email',
+    'monthly_rent',
+    'lease_start',
+    'lease_end',
+  ];
+  const out: Record<string, unknown> = {};
+  for (const key of allowed) {
+    const val = data[key as keyof RenterUpdate];
+    if (val !== undefined) out[key] = val;
+  }
+  return out;
+}
+
+export async function createRenter(data: RenterCreate): Promise<Renter> {
   if (USE_MOCK_API) return mockRentersApi.createRenter(data);
-  const response = await apiClient.post<Renter>('/renters', data);
+  const payload = sanitizeRenterCreate(data);
+  const response = await apiClient.post<Renter>('/renters', payload);
   return response.data;
 }
 
 export async function updateRenter(
   id: number,
-  data: Partial<Renter>
+  data: RenterUpdate
 ): Promise<Renter> {
   if (USE_MOCK_API) return mockRentersApi.updateRenter(id, data);
-  const response = await apiClient.patch<Renter>(`/renters/${id}`, data);
+  const payload = sanitizeRenterUpdate(data);
+  const response = await apiClient.patch<Renter>(`/renters/${id}`, payload);
   return response.data;
 }
 

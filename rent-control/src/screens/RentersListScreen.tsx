@@ -1,106 +1,179 @@
 import React, { useMemo, useState } from 'react';
-import {
-  FlatList,
-  StyleSheet,
-  View,
-  TouchableOpacity,
-} from 'react-native';
-import { FAB, Searchbar, List } from 'react-native-paper';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FAB, Searchbar, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRenterContext } from '@/src/context';
-import { LoadingOverlay, EmptyState } from '@/src/components';
+import {
+  LoadingOverlay,
+  EmptyState,
+  ScreenContainer,
+  RenterCard,
+} from '@/src/components';
+import { spacing } from '@/src/theme';
+
+type RenterFilter = 'all' | 'active' | 'pending';
 
 export function RentersListScreen() {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { renters, loading, error } = useRenterContext();
+  const { renters, loading, error, refreshRenters } = useRenterContext();
   const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState<RenterFilter>('all');
+  const [refreshing, setRefreshing] = useState(false);
 
   const filteredRenters = useMemo(() => {
-    if (!searchQuery.trim()) return renters;
-    const q = searchQuery.toLowerCase().trim();
-    return renters.filter((renter) => {
-      const fullName = `${renter.first_name} ${renter.last_name}`.toLowerCase();
-      const address = (renter.property?.address ?? '').toLowerCase();
-      return fullName.includes(q) || address.includes(q);
-    });
-  }, [renters, searchQuery]);
+    let list = renters;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter((renter) => {
+        const fullName = `${renter.first_name} ${renter.last_name}`.toLowerCase();
+        const address = (renter.property?.address ?? '').toLowerCase();
+        return fullName.includes(q) || address.includes(q);
+      });
+    }
+    if (filter === 'active') {
+      list = list.filter((r) => r.property_id != null);
+    } else if (filter === 'pending') {
+      list = list.filter((r) => r.property_id == null);
+    }
+    return list;
+  }, [renters, searchQuery, filter]);
 
   const handleRenterPress = (id: number) => {
     router.push(`/(tabs)/renters/${id}` as any);
   };
 
   const handleAddPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push('/(tabs)/renters/add' as any);
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshRenters();
+    setRefreshing(false);
+  };
+
   if (loading && renters.length === 0) {
-    return <LoadingOverlay visible={true} />;
+    return (
+      <ScreenContainer>
+        <LoadingOverlay visible={true} />
+      </ScreenContainer>
+    );
   }
 
   if (error && renters.length === 0) {
     return (
-      <View style={styles.container}>
+      <ScreenContainer>
         <EmptyState message={error} icon="alert-circle" />
-      </View>
+      </ScreenContainer>
     );
   }
 
   if (renters.length === 0) {
     return (
-      <View style={styles.container}>
-        <EmptyState message="No renters yet. Tap + to add one." icon="account" />
-        <FAB icon="plus" style={styles.fab} onPress={handleAddPress} />
-      </View>
+      <ScreenContainer>
+        <EmptyState message={t('empty.noRenters')} icon="account" />
+        <FAB
+          icon="plus"
+          style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
+          onPress={handleAddPress}
+          accessibilityLabel={t('renter.addRenter')}
+          accessibilityRole="button"
+        />
+      </ScreenContainer>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer>
       <LoadingOverlay visible={loading} />
-      <Searchbar
-        placeholder="Search by name or property address"
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-        style={styles.searchbar}
-      />
+      <View style={styles.header}>
+        <Text variant="headlineLarge" style={styles.heroTitle}>
+          {t('screens.renters')}
+        </Text>
+        <Searchbar
+          placeholder={t('search.placeholder')}
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={styles.searchbar}
+        />
+        <SegmentedButtons
+          value={filter}
+          onValueChange={(v) => setFilter(v as RenterFilter)}
+          buttons={[
+            { value: 'all', label: t('filters.all') },
+            { value: 'active', label: t('filters.active') },
+            { value: 'pending', label: t('filters.pending') },
+          ]}
+          style={styles.filters}
+        />
+      </View>
       <FlatList
         data={filteredRenters}
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={
-          <EmptyState message="No renters match your search." icon="magnify" />
+          <EmptyState message={t('empty.noSearchResults')} icon="magnify" />
         }
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleRenterPress(item.id)}>
-            <List.Item
-              title={`${item.first_name} ${item.last_name}`}
-              description={item.property?.address ?? 'Unassigned'}
-              left={(props) => <List.Icon {...props} icon="account" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            />
-          </TouchableOpacity>
+          <RenterCard
+            renter={item}
+            onPress={() => handleRenterPress(item.id)}
+          />
         )}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: 80 + insets.bottom },
+        ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.primary}
+          />
+        }
       />
-      <FAB icon="plus" style={styles.fab} onPress={handleAddPress} />
-    </View>
+      <FAB
+        icon="plus"
+        style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
+        onPress={handleAddPress}
+        accessibilityLabel={t('renter.addRenter')}
+        accessibilityRole="button"
+      />
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  heroTitle: {
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+    fontSize: 28,
   },
   searchbar: {
-    margin: 16,
-    marginBottom: 8,
+    minHeight: 40,
+    marginBottom: spacing.sm,
+    borderRadius: 10,
+  },
+  filters: {
+    marginBottom: spacing.md,
   },
   list: {
     paddingBottom: 80,
   },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: spacing.lg,
     right: 0,
-    bottom: 0,
   },
 });

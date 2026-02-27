@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 
-export default function RentersLayout() {
+export default function SettingsLayout() {
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -15,10 +15,7 @@ export default function RentersLayout() {
         headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="add" options={{ title: t('screens.addRenter') }} />
-      <Stack.Screen name="edit/[id]" options={{ title: t('screens.editRenter') }} />
+      <Stack.Screen name="index" options={{ title: t('settings.title') }} />
     </Stack>
   );
 }

@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
-import { Button, TextInput } from 'react-native-paper';
+import { Alert, ScrollView, StyleSheet, Image, View } from 'react-native';
+import { Button, Text, TextInput, Menu, useTheme } from 'react-native-paper';
+import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   createProperty,
   updateProperty,
   uploadPropertyImage,
   getPropertyById,
 } from '@/src/api/properties';
+import { getApiErrorMessage } from '@/src/api/client';
 import { usePropertyContext } from '@/src/context';
-import type { Property } from '@/src/types';
+import { ScreenContainer } from '@/src/components';
+import type { PropertyCreate, PropertyUpdate, PropertyType } from '@/src/types';
+
+const PROPERTY_TYPES: PropertyType[] = ['apartment', 'house', 'commercial'];
+import { spacing } from '@/src/theme';
+import { lightColors, darkColors } from '@/src/theme';
 
 export function AddEditPropertyScreen() {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const { refreshProperties } = usePropertyContext();
@@ -21,7 +32,8 @@ export function AddEditPropertyScreen() {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [zipCode, setZipCode] = useState('');
-  const [type, setType] = useState('');
+  const [type, setType] = useState<PropertyType | ''>('');
+  const [typeMenuVisible, setTypeMenuVisible] = useState(false);
   const [sqFt, setSqFt] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -35,7 +47,7 @@ export function AddEditPropertyScreen() {
           setAddress(prop.address);
           setCity(prop.city);
           setZipCode(prop.zip_code);
-          setType(prop.type);
+          setType(PROPERTY_TYPES.includes(prop.type as PropertyType) ? (prop.type as PropertyType) : '');
           setSqFt(prop.sq_ft.toString());
           setPurchasePrice(prop.purchase_price.toString());
         });
@@ -46,20 +58,15 @@ export function AddEditPropertyScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        'Permission required',
-        'Please grant photo library access to upload images.'
-      );
+      Alert.alert(t('permission.title'), t('permission.photoLibrary'));
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.8,
     });
-
     if (!result.canceled && result.assets[0]) {
       setImageUri(result.assets[0].uri);
     }
@@ -70,63 +77,70 @@ export function AddEditPropertyScreen() {
     const purchasePriceNum = parseFloat(purchasePrice);
 
     if (!address.trim()) {
-      Alert.alert('Validation', 'Address is required.');
+      Alert.alert(t('validation.title'), t('validation.addressRequired'));
       return;
     }
     if (!city.trim()) {
-      Alert.alert('Validation', 'City is required.');
+      Alert.alert(t('validation.title'), t('validation.cityRequired'));
       return;
     }
     if (!zipCode.trim()) {
-      Alert.alert('Validation', 'Zip code is required.');
+      Alert.alert(t('validation.title'), t('validation.zipRequired'));
       return;
     }
-    if (!type.trim()) {
-      Alert.alert('Validation', 'Property type is required.');
+    if (!type || !PROPERTY_TYPES.includes(type)) {
+      Alert.alert(t('validation.title'), t('validation.typeRequired'));
       return;
     }
     if (isNaN(sqFtNum) || sqFtNum <= 0) {
-      Alert.alert('Validation', 'Valid square footage is required.');
+      Alert.alert(t('validation.title'), t('validation.sqFtRequired'));
       return;
     }
     if (isNaN(purchasePriceNum) || purchasePriceNum < 0) {
-      Alert.alert('Validation', 'Valid purchase price is required.');
+      Alert.alert(t('validation.title'), t('validation.priceRequired'));
       return;
     }
 
     setLoading(true);
     try {
-      const data: Partial<Property> = {
+      const createData: PropertyCreate = {
         address: address.trim(),
         city: city.trim(),
         zip_code: zipCode.trim(),
-        type: type.trim(),
+        type,
         sq_ft: sqFtNum,
         purchase_price: purchasePriceNum,
       };
 
+      const updateData: PropertyUpdate = {
+        address: address.trim(),
+        city: city.trim(),
+        zip_code: zipCode.trim(),
+        type,
+        sq_ft: sqFtNum,
+        purchase_price: purchasePriceNum,
+      };
+
+      const formDataForImage = () => {
+        const fd = new FormData();
+        fd.append('file', {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: 'property.jpg',
+        } as unknown as Blob);
+        return fd;
+      };
+
       if (isEdit && id) {
         const numericId = Number(id);
-        await updateProperty(numericId, data);
+        await updateProperty(numericId, updateData);
         if (imageUri) {
-          const formData = new FormData();
-          formData.append('image', {
-            uri: imageUri,
-            type: 'image/jpeg',
-            name: 'property.jpg',
-          } as unknown as Blob);
-          await uploadPropertyImage(numericId, formData);
+          await uploadPropertyImage(numericId, formDataForImage());
         }
       } else {
-        const created = await createProperty(data);
+        const created = await createProperty(createData);
         if (imageUri) {
-          const formData = new FormData();
-          formData.append('image', {
-            uri: imageUri,
-            type: 'image/jpeg',
-            name: 'property.jpg',
-          } as unknown as Blob);
-          await uploadPropertyImage(created.id, formData);
+          await uploadPropertyImage(created.id, formDataForImage());
         }
       }
 
@@ -134,82 +148,144 @@ export function AddEditPropertyScreen() {
       router.back();
     } catch (err) {
       Alert.alert(
-        'Error',
-        err instanceof Error ? err.message : 'Failed to save property'
+        t('error.title'),
+        getApiErrorMessage(err, t('error.savePropertyFailed'))
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const onPressSubmit = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    handleSubmit();
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TextInput
-        label="Address"
-        value={address}
-        onChangeText={setAddress}
-        mode="outlined"
-        style={styles.input}
-      />
-      <TextInput
-        label="City"
-        value={city}
-        onChangeText={setCity}
-        mode="outlined"
-        style={styles.input}
-      />
-      <TextInput
-        label="Zip Code"
-        value={zipCode}
-        onChangeText={setZipCode}
-        mode="outlined"
-        keyboardType="numeric"
-        style={styles.input}
-      />
-      <TextInput
-        label="Property Type"
-        value={type}
-        onChangeText={setType}
-        mode="outlined"
-        placeholder="e.g. Apartment, House"
-        style={styles.input}
-      />
-      <TextInput
-        label="Square Feet"
-        value={sqFt}
-        onChangeText={setSqFt}
-        mode="outlined"
-        keyboardType="numeric"
-        style={styles.input}
-      />
-      <TextInput
-        label="Purchase Price"
-        value={purchasePrice}
-        onChangeText={setPurchasePrice}
-        mode="outlined"
-        keyboardType="decimal-pad"
-        style={styles.input}
-      />
-
-      <Button
-        mode="outlined"
-        onPress={pickImage}
-        style={styles.imageButton}
-        icon="image"
+    <ScreenContainer>
+      <ScrollView
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+        contentContainerStyle={styles.content}
       >
-        {imageUri ? 'Change Image' : 'Select Image'}
-      </Button>
+        {imageUri ? (
+          <View style={styles.imagePreview}>
+            <Image
+              source={{ uri: imageUri }}
+              style={styles.previewImage}
+              resizeMode="cover"
+            />
+            <Button
+              mode="outlined"
+              onPress={pickImage}
+              style={styles.changeImageBtn}
+              icon="camera"
+              compact
+            >
+              {t('property.changeImage')}
+            </Button>
+          </View>
+        ) : (
+          <Button
+            mode="outlined"
+            onPress={pickImage}
+            style={[styles.imageButton, { backgroundColor: colors.inputFilledBackground }]}
+            icon="camera"
+            compact
+          >
+            {t('property.selectImage')}
+          </Button>
+        )}
 
-      <Button
-        mode="contained"
-        onPress={handleSubmit}
-        loading={loading}
-        disabled={loading}
-        style={styles.submitButton}
-      >
-        {isEdit ? 'Update Property' : 'Add Property'}
-      </Button>
-    </ScrollView>
+        <Text variant="titleSmall" style={styles.sectionHeader}>
+          {t('property.basicInfo')}
+        </Text>
+        <TextInput
+          label={t('property.address')}
+          value={address}
+          onChangeText={setAddress}
+          mode="outlined"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <TextInput
+          label={t('property.city')}
+          value={city}
+          onChangeText={setCity}
+          mode="outlined"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <TextInput
+          label={t('property.zipCode')}
+          value={zipCode}
+          onChangeText={setZipCode}
+          mode="outlined"
+          keyboardType="numeric"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <Menu
+          visible={typeMenuVisible}
+          onDismiss={() => setTypeMenuVisible(false)}
+          anchor={
+            <TextInput
+              label={t('property.type')}
+              value={type ? t(`property.type${type.charAt(0).toUpperCase() + type.slice(1)}`) : ''}
+              mode="outlined"
+              placeholder={t('property.typePlaceholder')}
+              dense
+              editable={false}
+              right={<TextInput.Icon icon="menu-down" onPress={() => setTypeMenuVisible(true)} />}
+              onPressIn={() => setTypeMenuVisible(true)}
+              style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+            />
+          }
+        >
+          {PROPERTY_TYPES.map((ty) => (
+            <Menu.Item
+              key={ty}
+              onPress={() => {
+                setType(ty);
+                setTypeMenuVisible(false);
+              }}
+              title={t(`property.type${ty.charAt(0).toUpperCase() + ty.slice(1)}`)}
+            />
+          ))}
+        </Menu>
+        <TextInput
+          label={t('property.sqFt')}
+          value={sqFt}
+          onChangeText={setSqFt}
+          mode="outlined"
+          keyboardType="numeric"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <TextInput
+          label={t('property.purchasePrice')}
+          value={purchasePrice}
+          onChangeText={setPurchasePrice}
+          mode="outlined"
+          keyboardType="decimal-pad"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+
+        <Button
+          mode="contained"
+          onPress={onPressSubmit}
+          loading={loading}
+          disabled={loading}
+          style={styles.submitButton}
+          accessibilityLabel={
+            isEdit ? t('property.updateProperty') : t('property.addProperty')
+          }
+          accessibilityRole="button"
+        >
+          {isEdit ? t('property.updateProperty') : t('property.addProperty')}
+        </Button>
+      </ScrollView>
+    </ScreenContainer>
   );
 }
 
@@ -218,16 +294,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  sectionHeader: {
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+    fontWeight: '600',
   },
   input: {
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
   imageButton: {
-    marginBottom: 16,
+    marginBottom: spacing.md,
+    borderRadius: 10,
+  },
+  imagePreview: {
+    marginBottom: spacing.md,
+  },
+  previewImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 10,
+    marginBottom: spacing.sm,
+  },
+  changeImageBtn: {
+    alignSelf: 'flex-start',
   },
   submitButton: {
-    marginTop: 8,
+    marginTop: spacing.lg,
   },
 });

@@ -1,0 +1,138 @@
+{
+  "tabs": {
+    "properties": "נכסים",
+    "renters": "דיירים",
+    "settings": "הגדרות"
+  },
+  "settings": {
+    "title": "הגדרות",
+    "theme": "ערכת נושא",
+    "themeLight": "בהיר",
+    "themeDark": "כהה",
+    "themeSystem": "מערכת",
+    "language": "שפה",
+    "languageEn": "אנגלית",
+    "languageHe": "עברית"
+  },
+  "restart": {
+    "title": "נדרש הפעלה מחדש",
+    "message": "אנא הפעל מחדש את האפליקציה כדי שהשינוי בכיוון הפריסה ייכנס לתוקף."
+  },
+  "screens": {
+    "properties": "נכסים",
+    "propertyDetails": "פרטי נכס",
+    "addProperty": "הוספת נכס",
+    "editProperty": "עריכת נכס",
+    "renters": "דיירים",
+    "renterDetails": "פרטי דייר",
+    "addRenter": "הוספת דייר",
+    "editRenter": "עריכת דייר"
+  },
+  "property": {
+    "basicInfo": "מידע בסיסי",
+    "leaseInfo": "פרטי חכירה",
+    "address": "כתובת",
+    "city": "עיר",
+    "zipCode": "מיקוד",
+    "type": "סוג נכס",
+    "typePlaceholder": "למשל דירה, בית",
+    "sqFt": "מ\"ר",
+    "purchasePrice": "מחיר רכישה",
+    "typeLabel": "סוג",
+    "sqFtLabel": "מ\"ר",
+    "typeApartment": "דירה",
+    "typeHouse": "בית",
+    "typeCommercial": "מסחרי",
+    "occupancy": {
+      "occupied": "נתפס",
+      "vacant": "פנוי"
+    },
+    "renters": "דיירים",
+    "noRenters": "אין דיירים משויכים",
+    "lease": "חכירה",
+    "editProperty": "עריכת נכס",
+    "saveProperty": "שמירת נכס",
+    "addProperty": "הוספת נכס",
+    "updateProperty": "עדכון נכס",
+    "selectImage": "בחירת תמונה",
+    "changeImage": "שינוי תמונה",
+    "atAGlance": "בקיצור",
+    "uploadProfilePicture": "העלאת תמונת פרופיל"
+  },
+  "renter": {
+    "basicInfo": "מידע בסיסי",
+    "leaseInfo": "מידע חכירה",
+    "firstName": "שם פרטי",
+    "lastName": "שם משפחה",
+    "phone": "טלפון",
+    "email": "אימייל",
+    "monthlyRent": "שכר דירה חודשי",
+    "leaseStart": "תחילת חכירה (YYYY-MM-DD)",
+    "leaseEnd": "סוף חכירה (YYYY-MM-DD)",
+    "leaseStartPlaceholder": "למשל 2024-01-01",
+    "leaseEndPlaceholder": "למשל 2025-01-01",
+    "property": "נכס",
+    "unassigned": "לא משויך",
+    "editRenter": "עריכת דייר",
+    "createRenter": "יצירת דייר",
+    "addRenter": "הוספת דייר",
+    "updateRenter": "עדכון דייר",
+    "call": "התקשרות",
+    "sms": "הודעה",
+    "email": "אימייל",
+    "status": {
+      "active": "פעיל",
+      "paid": "שולם",
+      "pending": "ממתין",
+      "overdue": "באיחור"
+    }
+  },
+  "empty": {
+    "noProperties": "אין נכסים עדיין. לחץ + להוספה.",
+    "noRenters": "אין דיירים עדיין. לחץ + להוספה.",
+    "noSearchResults": "לא נמצאו דיירים התואמים לחיפוש.",
+    "noPropertySearchResults": "לא נמצאו נכסים התואמים לחיפוש."
+  },
+  "search": {
+    "placeholder": "חיפוש דיירים",
+    "placeholderProperties": "חיפוש נכסים, כתובות..."
+  },
+  "filters": {
+    "all": "הכל",
+    "residential": "מגורים",
+    "commercial": "מסחרי",
+    "active": "פעיל",
+    "pending": "ממתין",
+    "delinquent": "באיחור"
+  },
+  "validation": {
+    "title": "אימות",
+    "addressRequired": "כתובת נדרשת.",
+    "cityRequired": "עיר נדרשת.",
+    "zipRequired": "מיקוד נדרש.",
+    "typeRequired": "סוג נכס נדרש.",
+    "sqFtRequired": "מ\"ר תקין נדרש.",
+    "priceRequired": "מחיר רכישה תקין נדרש.",
+    "firstNameRequired": "שם פרטי נדרש.",
+    "lastNameRequired": "שם משפחה נדרש.",
+    "phoneRequired": "טלפון נדרש.",
+    "emailRequired": "אימייל נדרש.",
+    "rentRequired": "שכר דירה חודשי תקין נדרש.",
+    "leaseStartRequired": "תאריך תחילת חכירה נדרש.",
+    "leaseEndRequired": "תאריך סוף חכירה נדרש."
+  },
+  "error": {
+    "title": "שגיאה",
+    "savePropertyFailed": "שמירת הנכס נכשלה",
+    "saveRenterFailed": "שמירת הדייר נכשלה",
+    "loadFailed": "טעינה נכשלה",
+    "invalidPropertyId": "מזהה נכס לא תקין",
+    "invalidRenterId": "מזהה דייר לא תקין",
+    "propertyNotFound": "הנכס לא נמצא",
+    "renterNotFound": "הדייר לא נמצא"
+  },
+  "permission": {
+    "title": "נדרשות הרשאות",
+    "photoLibrary": "אנא אשר גישה לספריית תמונות להעלאה."
+  }
+}

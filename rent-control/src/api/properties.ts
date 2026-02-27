@@ -1,6 +1,6 @@
 import apiClient from './client';
 import { USE_MOCK_API, mockPropertiesApi } from './mock';
-import type { Property } from '@/src/types';
+import type { Property, PropertyCreate, PropertyUpdate } from '@/src/types';
 
 export async function getProperties(): Promise<Property[]> {
   if (USE_MOCK_API) return mockPropertiesApi.getProperties();
@@ -14,18 +14,35 @@ export async function getPropertyById(id: number): Promise<Property> {
   return response.data;
 }
 
-export async function createProperty(data: Partial<Property>): Promise<Property> {
+function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
+  const { address, city, zip_code, type, sq_ft, purchase_price, image_url } = data;
+  return { address, city, zip_code, type, sq_ft, purchase_price, image_url };
+}
+
+function sanitizePropertyUpdate(data: PropertyUpdate): Record<string, unknown> {
+  const allowed = ['address', 'city', 'zip_code', 'type', 'sq_ft', 'purchase_price', 'image_url'];
+  const out: Record<string, unknown> = {};
+  for (const key of allowed) {
+    const val = data[key as keyof PropertyUpdate];
+    if (val !== undefined) out[key] = val;
+  }
+  return out;
+}
+
+export async function createProperty(data: PropertyCreate): Promise<Property> {
   if (USE_MOCK_API) return mockPropertiesApi.createProperty(data);
-  const response = await apiClient.post<Property>('/properties', data);
+  const payload = sanitizePropertyCreate(data);
+  const response = await apiClient.post<Property>('/properties', payload);
   return response.data;
 }
 
 export async function updateProperty(
   id: number,
-  data: Partial<Property>
+  data: PropertyUpdate
 ): Promise<Property> {
   if (USE_MOCK_API) return mockPropertiesApi.updateProperty(id, data);
-  const response = await apiClient.patch<Property>(`/properties/${id}`, data);
+  const payload = sanitizePropertyUpdate(data);
+  const response = await apiClient.patch<Property>(`/properties/${id}`, payload);
   return response.data;
 }
 
@@ -39,14 +56,10 @@ export async function uploadPropertyImage(
   formData: FormData
 ): Promise<Property> {
   if (USE_MOCK_API) return mockPropertiesApi.uploadPropertyImage(id, formData);
+  // Do NOT set Content-Type; let axios set it with boundary for multipart/form-data
   const response = await apiClient.post<Property>(
     `/properties/${id}/image`,
-    formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }
+    formData
   );
   return response.data;
 }

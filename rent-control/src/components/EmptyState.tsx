@@ -1,23 +1,48 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Button, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { lightColors, darkColors } from '@/src/theme';
 
 interface EmptyStateProps {
   message: string;
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 export function EmptyState({
   message,
   icon = 'inbox',
+  actionLabel,
+  onAction,
 }: EmptyStateProps) {
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+
   return (
     <View style={styles.container}>
-      <MaterialCommunityIcons name={icon} size={64} color="#999" />
-      <Text variant="bodyLarge" style={styles.message}>
+      <MaterialCommunityIcons
+        name={icon}
+        size={72}
+        color={colors.placeholder}
+        style={{ opacity: 0.8 }}
+      />
+      <Text
+        variant="bodyLarge"
+        style={[styles.message, { color: colors.textSecondary }]}
+      >
         {message}
       </Text>
+      {actionLabel && onAction ? (
+        <Button
+          mode="contained"
+          onPress={onAction}
+          style={styles.actionButton}
+        >
+          {actionLabel}
+        </Button>
+      ) : null}
     </View>
   );
 }
@@ -32,6 +57,8 @@ const styles = StyleSheet.create({
   message: {
     marginTop: 16,
     textAlign: 'center',
-    color: '#666',
+  },
+  actionButton: {
+    marginTop: 16,
   },
 });

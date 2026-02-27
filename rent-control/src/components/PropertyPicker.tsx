@@ -1,26 +1,30 @@
 import React, { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { Menu, TextInput } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import { usePropertyContext } from '@/src/context';
 
 interface PropertyPickerProps {
   value: number | null;
   onChange: (id: number | null) => void;
   label?: string;
+  inputStyle?: StyleProp<ViewStyle>;
 }
 
 export function PropertyPicker({
   value,
   onChange,
-  label = 'Property',
+  label,
+  inputStyle,
 }: PropertyPickerProps) {
+  const { t } = useTranslation();
   const { properties } = usePropertyContext();
   const [visible, setVisible] = useState(false);
 
   const selectedProperty = properties.find((p) => p.id === value);
   const displayValue = selectedProperty
     ? selectedProperty.address
-    : 'Unassigned';
+    : t('renter.unassigned');
 
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
@@ -36,19 +40,20 @@ export function PropertyPicker({
       onDismiss={closeMenu}
       anchor={
         <TextInput
-          label={label}
+          label={label ?? t('renter.property')}
           value={displayValue}
           mode="outlined"
           editable={false}
+          dense
           right={<TextInput.Icon icon="menu-down" onPress={openMenu} />}
           onPressIn={openMenu}
-          style={styles.input}
+          style={[styles.input, inputStyle as any]}
         />
       }
     >
       <Menu.Item
         onPress={() => selectOption(null)}
-        title="Unassigned"
+        title={t('renter.unassigned')}
       />
       {properties.map((property) => (
         <Menu.Item
@@ -63,6 +68,6 @@ export function PropertyPicker({
 
 const styles = StyleSheet.create({
   input: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
 });

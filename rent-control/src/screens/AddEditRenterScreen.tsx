@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
-import { Button, TextInput } from 'react-native-paper';
+import { Alert, ScrollView, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Button, Text, TextInput } from 'react-native-paper';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import * as Haptics from 'expo-haptics';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { createRenter, updateRenter, getRenterById } from '@/src/api/renters';
+import { getApiErrorMessage } from '@/src/api/client';
 import { useRenterContext } from '@/src/context';
-import { PropertyPicker } from '@/src/components';
-import type { Renter } from '@/src/types';
+import { PropertyPicker, ScreenContainer } from '@/src/components';
+import { useTheme } from 'react-native-paper';
+import type { Renter, RenterCreate, RenterUpdate } from '@/src/types';
+import { spacing } from '@/src/theme';
+import { lightColors, darkColors } from '@/src/theme';
 
 export function AddEditRenterScreen() {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const { refreshRenters } = useRenterContext();
@@ -45,140 +55,188 @@ export function AddEditRenterScreen() {
     const rentNum = parseFloat(monthlyRent);
 
     if (!firstName.trim()) {
-      Alert.alert('Validation', 'First name is required.');
+      Alert.alert(t('validation.title'), t('validation.firstNameRequired'));
       return;
     }
     if (!lastName.trim()) {
-      Alert.alert('Validation', 'Last name is required.');
+      Alert.alert(t('validation.title'), t('validation.lastNameRequired'));
       return;
     }
     if (!phone.trim()) {
-      Alert.alert('Validation', 'Phone is required.');
+      Alert.alert(t('validation.title'), t('validation.phoneRequired'));
       return;
     }
     if (!email.trim()) {
-      Alert.alert('Validation', 'Email is required.');
+      Alert.alert(t('validation.title'), t('validation.emailRequired'));
       return;
     }
     if (isNaN(rentNum) || rentNum < 0) {
-      Alert.alert('Validation', 'Valid monthly rent is required.');
+      Alert.alert(t('validation.title'), t('validation.rentRequired'));
       return;
     }
     if (!leaseStart.trim()) {
-      Alert.alert('Validation', 'Lease start date is required.');
+      Alert.alert(t('validation.title'), t('validation.leaseStartRequired'));
       return;
     }
     if (!leaseEnd.trim()) {
-      Alert.alert('Validation', 'Lease end date is required.');
+      Alert.alert(t('validation.title'), t('validation.leaseEndRequired'));
       return;
     }
 
     setLoading(true);
     try {
-      const data: Partial<Renter> = {
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        phone: phone.trim(),
-        email: email.trim(),
-        monthly_rent: rentNum,
-        lease_start: leaseStart.trim(),
-        lease_end: leaseEnd.trim(),
-        property_id: propertyId,
-      };
-
       if (isEdit && id) {
         const numericId = Number(id);
-        await updateRenter(numericId, data);
+        const updateData: RenterUpdate = {
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+          monthly_rent: rentNum,
+          lease_start: leaseStart.trim(),
+          lease_end: leaseEnd.trim(),
+          property_id: propertyId,
+        };
+        await updateRenter(numericId, updateData);
       } else {
-        await createRenter(data);
+        const createData: RenterCreate = {
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+          monthly_rent: rentNum,
+          lease_start: leaseStart.trim(),
+          lease_end: leaseEnd.trim(),
+          property_id: propertyId ?? undefined,
+        };
+        await createRenter(createData);
       }
 
       await refreshRenters();
       router.back();
     } catch (err) {
       Alert.alert(
-        'Error',
-        err instanceof Error ? err.message : 'Failed to save renter'
+        t('error.title'),
+        getApiErrorMessage(err, t('error.saveRenterFailed'))
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const onPressSubmit = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    handleSubmit();
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TextInput
-        label="First Name"
-        value={firstName}
-        onChangeText={setFirstName}
-        mode="outlined"
-        style={styles.input}
-      />
-      <TextInput
-        label="Last Name"
-        value={lastName}
-        onChangeText={setLastName}
-        mode="outlined"
-        style={styles.input}
-      />
-      <TextInput
-        label="Phone"
-        value={phone}
-        onChangeText={setPhone}
-        mode="outlined"
-        keyboardType="phone-pad"
-        style={styles.input}
-      />
-      <TextInput
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        mode="outlined"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        style={styles.input}
-      />
-      <TextInput
-        label="Monthly Rent"
-        value={monthlyRent}
-        onChangeText={setMonthlyRent}
-        mode="outlined"
-        keyboardType="decimal-pad"
-        style={styles.input}
-      />
-      <TextInput
-        label="Lease Start (YYYY-MM-DD)"
-        value={leaseStart}
-        onChangeText={setLeaseStart}
-        mode="outlined"
-        placeholder="e.g. 2024-01-01"
-        style={styles.input}
-      />
-      <TextInput
-        label="Lease End (YYYY-MM-DD)"
-        value={leaseEnd}
-        onChangeText={setLeaseEnd}
-        mode="outlined"
-        placeholder="e.g. 2025-01-01"
-        style={styles.input}
-      />
-
-      <PropertyPicker
-        value={propertyId}
-        onChange={setPropertyId}
-        label="Property"
-      />
-
-      <Button
-        mode="contained"
-        onPress={handleSubmit}
-        loading={loading}
-        disabled={loading}
-        style={styles.submitButton}
+    <ScreenContainer>
+      <ScrollView
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+        contentContainerStyle={styles.content}
       >
-        {isEdit ? 'Update Renter' : 'Add Renter'}
-      </Button>
-    </ScrollView>
+        <View style={styles.profileSection}>
+          <TouchableOpacity
+            style={[styles.avatarPlaceholder, { backgroundColor: colors.inputFilledBackground }]}
+            onPress={() => {}}
+          >
+            <MaterialCommunityIcons name="plus" size={28} color={colors.textSecondary} />
+          </TouchableOpacity>
+          <Text variant="bodySmall" style={[styles.uploadLabel, { color: colors.textSecondary }]}>
+            {t('property.uploadProfilePicture')}
+          </Text>
+        </View>
+
+        <Text variant="titleSmall" style={styles.sectionHeader}>
+          {t('renter.basicInfo')}
+        </Text>
+        <TextInput
+          label={t('renter.firstName')}
+          value={firstName}
+          onChangeText={setFirstName}
+          mode="outlined"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <TextInput
+          label={t('renter.lastName')}
+          value={lastName}
+          onChangeText={setLastName}
+          mode="outlined"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <TextInput
+          label={t('renter.phone')}
+          value={phone}
+          onChangeText={setPhone}
+          mode="outlined"
+          keyboardType="phone-pad"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <TextInput
+          label={t('renter.email')}
+          value={email}
+          onChangeText={setEmail}
+          mode="outlined"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <TextInput
+          label={t('renter.monthlyRent')}
+          value={monthlyRent}
+          onChangeText={setMonthlyRent}
+          mode="outlined"
+          keyboardType="decimal-pad"
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <Text variant="titleSmall" style={styles.sectionHeader}>
+          {t('renter.leaseInfo')}
+        </Text>
+        <TextInput
+          label={t('renter.leaseStart')}
+          value={leaseStart}
+          onChangeText={setLeaseStart}
+          mode="outlined"
+          placeholder={t('renter.leaseStartPlaceholder')}
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+        <TextInput
+          label={t('renter.leaseEnd')}
+          value={leaseEnd}
+          onChangeText={setLeaseEnd}
+          mode="outlined"
+          placeholder={t('renter.leaseEndPlaceholder')}
+          dense
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+        />
+
+        <PropertyPicker
+          value={propertyId}
+          onChange={setPropertyId}
+          inputStyle={{ backgroundColor: colors.inputFilledBackground }}
+        />
+
+        <Button
+          mode="contained"
+          onPress={onPressSubmit}
+          loading={loading}
+          disabled={loading}
+          style={styles.submitButton}
+          accessibilityLabel={
+            isEdit ? t('renter.updateRenter') : t('renter.addRenter')
+          }
+          accessibilityRole="button"
+        >
+          {isEdit ? t('renter.updateRenter') : t('renter.addRenter')}
+        </Button>
+      </ScrollView>
+    </ScreenContainer>
   );
 }
 
@@ -187,13 +245,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  profileSection: {
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadLabel: {
+    marginTop: spacing.sm,
+    fontSize: 12,
+  },
+  sectionHeader: {
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+    fontWeight: '600',
   },
   input: {
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
   submitButton: {
-    marginTop: 8,
+    marginTop: spacing.lg,
   },
 });

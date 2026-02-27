@@ -25,6 +25,14 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Backend API
+
+The app connects to a FastAPI backend. Configure the base URL via `EXPO_PUBLIC_API_URL` in `.env`:
+
+- **iOS Simulator / Web:** `http://localhost:8000`
+- **Android Emulator:** `http://10.0.2.2:8000`
+- **Physical device:** `http://YOUR_COMPUTER_IP:8000`
+
 ## Get a fresh project
 
 When you're ready, run:

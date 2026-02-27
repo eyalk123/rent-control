@@ -7,6 +7,8 @@ import React, {
 } from 'react';
 import type { Property } from '@/src/types';
 import { getProperties } from '@/src/api/properties';
+import { getRenters } from '@/src/api/renters';
+import { getApiErrorMessage } from '@/src/api/client';
 
 export interface PropertyContextType {
   properties: Property[];
@@ -28,11 +30,21 @@ export function PropertyProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const data = await getProperties();
-      setProperties(data);
+      const propertiesData = await getProperties();
+      let rentersData: { property_id: number | null }[] = [];
+      try {
+        rentersData = await getRenters();
+      } catch {
+        // Renters fetch failed; occupancy will fall back to renters?.length (vacant)
+      }
+      const enriched = propertiesData.map((p) => ({
+        ...p,
+        hasRenters: rentersData.some((r) => r.property_id === p.id),
+      }));
+      setProperties(enriched);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to load properties'
+        getApiErrorMessage(err, 'Failed to load properties')
       );
       setProperties([]);
     } finally {

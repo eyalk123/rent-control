@@ -1,7 +1,11 @@
-import type { Property, Renter } from '@/src/types';
+import type { Property, PropertyBrief, PropertyCreate, PropertyUpdate, Renter, RenterCreate, RenterUpdate } from '@/src/types';
 
 // Set to true to use in-memory mock data when no backend is available
-export const USE_MOCK_API = true;
+export const USE_MOCK_API = false;
+
+function toPropertyBrief(p: Property): PropertyBrief {
+  return { id: p.id, address: p.address, city: p.city, type: p.type };
+}
 
 const seedProperties: Property[] = [
   {
@@ -10,7 +14,7 @@ const seedProperties: Property[] = [
     address: '123 Main St',
     city: 'Austin',
     zip_code: '78701',
-    type: 'House',
+    type: 'house',
     sq_ft: 2200,
     purchase_price: 450000,
     image_url: null,
@@ -22,7 +26,7 @@ const seedProperties: Property[] = [
     address: '456 Oak Avenue',
     city: 'Austin',
     zip_code: '78702',
-    type: 'Apartment',
+    type: 'apartment',
     sq_ft: 1200,
     purchase_price: 280000,
     image_url: null,
@@ -34,7 +38,7 @@ const seedProperties: Property[] = [
     address: '789 Elm Street',
     city: 'Austin',
     zip_code: '78703',
-    type: 'Condo',
+    type: 'apartment',
     sq_ft: 950,
     purchase_price: 320000,
     image_url: null,
@@ -46,7 +50,7 @@ const seedProperties: Property[] = [
     address: '321 Pine Road',
     city: 'Round Rock',
     zip_code: '78664',
-    type: 'House',
+    type: 'house',
     sq_ft: 1800,
     purchase_price: 380000,
     image_url: null,
@@ -58,7 +62,7 @@ const seedProperties: Property[] = [
     address: '555 Cedar Lane',
     city: 'Austin',
     zip_code: '78704',
-    type: 'Townhouse',
+    type: 'commercial',
     sq_ft: 1500,
     purchase_price: 410000,
     image_url: null,
@@ -152,7 +156,7 @@ export const mockPropertiesApi = {
       ...p,
       renters: mockRenters.filter((r) => r.property_id === p.id).map((r) => ({
         ...r,
-        property: p,
+        property: toPropertyBrief(p),
       })),
     }));
   },
@@ -161,18 +165,18 @@ export const mockPropertiesApi = {
     if (!p) throw new Error('Property not found');
     const renters = mockRenters.filter((r) => r.property_id === id).map((r) => ({
       ...r,
-      property: p,
+      property: toPropertyBrief(p),
     }));
     return { ...p, renters };
   },
-  createProperty: async (data: Partial<Property>): Promise<Property> => {
+  createProperty: async (data: PropertyCreate | Partial<Property>): Promise<Property> => {
     const newProp: Property = {
       id: nextPropertyId++,
       owner_id: 0,
       address: data.address ?? '',
       city: data.city ?? '',
       zip_code: data.zip_code ?? '',
-      type: data.type ?? '',
+      type: (data.type ?? 'apartment') as Property['type'],
       sq_ft: data.sq_ft ?? 0,
       purchase_price: data.purchase_price ?? 0,
       image_url: data.image_url ?? null,
@@ -181,7 +185,7 @@ export const mockPropertiesApi = {
     mockProperties.push(newProp);
     return { ...newProp };
   },
-  updateProperty: async (id: number, data: Partial<Property>): Promise<Property> => {
+  updateProperty: async (id: number, data: PropertyUpdate | Partial<Property>): Promise<Property> => {
     const idx = mockProperties.findIndex((x) => x.id === id);
     if (idx < 0) throw new Error('Property not found');
     const { renters: _r, ...rest } = data as Partial<Property> & { renters?: unknown };
@@ -195,6 +199,7 @@ export const mockPropertiesApi = {
     );
   },
   uploadPropertyImage: async (id: number, _formData: FormData): Promise<Property> => {
+    // FormData should have 'file' field per API spec
     const idx = mockProperties.findIndex((x) => x.id === id);
     if (idx < 0) throw new Error('Property not found');
     mockProperties[idx] = { ...mockProperties[idx], image_url: 'https://placehold.co/400x300' };
@@ -204,20 +209,26 @@ export const mockPropertiesApi = {
 
 export const mockRentersApi = {
   getRenters: async (): Promise<Renter[]> => {
-    return mockRenters.map((r) => ({
-      ...r,
-      property: mockProperties.find((p) => p.id === r.property_id) ?? null,
-    }));
+    return mockRenters.map((r) => {
+      const prop = r.property_id
+        ? mockProperties.find((p) => p.id === r.property_id)
+        : null;
+      return {
+        ...r,
+        property: prop ? toPropertyBrief(prop) : null,
+      };
+    });
   },
   getRenterById: async (id: number): Promise<Renter> => {
     const r = mockRenters.find((x) => x.id === id);
     if (!r) throw new Error('Renter not found');
+    const prop = r.property_id ? mockProperties.find((p) => p.id === r.property_id) : null;
     return {
       ...r,
-      property: mockProperties.find((p) => p.id === r.property_id) ?? null,
+      property: prop ? toPropertyBrief(prop) : null,
     };
   },
-  createRenter: async (data: Partial<Renter>): Promise<Renter> => {
+  createRenter: async (data: RenterCreate | Partial<Renter>): Promise<Renter> => {
     const newRenter: Renter = {
       id: nextRenterId++,
       property_id: data.property_id ?? null,
@@ -233,7 +244,7 @@ export const mockRentersApi = {
     mockRenters.push(newRenter);
     return mockRentersApi.getRenterById(newRenter.id);
   },
-  updateRenter: async (id: number, data: Partial<Renter>): Promise<Renter> => {
+  updateRenter: async (id: number, data: RenterUpdate | Partial<Renter>): Promise<Renter> => {
     const idx = mockRenters.findIndex((x) => x.id === id);
     if (idx < 0) throw new Error('Renter not found');
     mockRenters[idx] = { ...mockRenters[idx], ...data };
