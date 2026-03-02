@@ -12,7 +12,7 @@ import {
   getPropertyById,
 } from '@/src/api/properties';
 import { getApiErrorMessage } from '@/src/api/client';
-import { usePropertyContext } from '@/src/context';
+import { usePropertyContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import { ScreenContainer } from '@/src/components';
 import type { PropertyCreate, PropertyUpdate, PropertyType } from '@/src/types';
 
@@ -24,6 +24,7 @@ export function AddEditPropertyScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const rtlInputStyle = useRtlInputStyle();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const { refreshProperties } = usePropertyContext();
@@ -206,6 +207,7 @@ export function AddEditPropertyScreen() {
           mode="outlined"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <TextInput
           label={t('property.city')}
@@ -214,6 +216,7 @@ export function AddEditPropertyScreen() {
           mode="outlined"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <TextInput
           label={t('property.zipCode')}
@@ -223,6 +226,7 @@ export function AddEditPropertyScreen() {
           keyboardType="numeric"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <Menu
           visible={typeMenuVisible}
@@ -232,12 +236,13 @@ export function AddEditPropertyScreen() {
               label={t('property.type')}
               value={type ? t(`property.type${type.charAt(0).toUpperCase() + type.slice(1)}`) : ''}
               mode="outlined"
-              placeholder={t('property.typePlaceholder')}
+              placeholder={useRtlPlaceholder(t('property.typePlaceholder'))}
               dense
               editable={false}
               right={<TextInput.Icon icon="menu-down" onPress={() => setTypeMenuVisible(true)} />}
               onPressIn={() => setTypeMenuVisible(true)}
               style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+              contentStyle={rtlInputStyle}
             />
           }
         >
@@ -260,6 +265,7 @@ export function AddEditPropertyScreen() {
           keyboardType="numeric"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <TextInput
           label={t('property.purchasePrice')}
@@ -269,6 +275,7 @@ export function AddEditPropertyScreen() {
           keyboardType="decimal-pad"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
 
         <Button

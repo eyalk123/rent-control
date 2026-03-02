@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.sm,
+    marginEnd: spacing.sm,
   },
   renterInfo: {
     flex: 1,

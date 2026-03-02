@@ -5,7 +5,6 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { Alert, I18nManager } from 'react-native';
 import i18n from 'i18next';
 import {
   setLanguage as setI18nLanguage,
@@ -20,6 +19,20 @@ export interface LanguageContextType {
   isRtl: boolean;
 }
 
+/** Style for TextInput/Searchbar to align placeholder and text correctly in RTL. */
+export function useRtlInputStyle() {
+  const { isRtl } = useLanguageContext();
+  return isRtl
+    ? ({ textAlign: 'right' as const, writingDirection: 'rtl' as const })
+    : {};
+}
+
+/** Prepends Unicode RTL mark to placeholder text when in RTL, forcing correct direction. */
+export function useRtlPlaceholder(text: string): string {
+  const { isRtl } = useLanguageContext();
+  return isRtl && text ? '\u200F' + text : text;
+}
+
 const LanguageContext = createContext<LanguageContextType | undefined>(
   undefined
 );
@@ -28,12 +41,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<SupportedLanguage>(
     (i18n.language as SupportedLanguage) || 'en'
   );
-  const [isRtl, setIsRtl] = useState(I18nManager.isRTL);
+  const isRtl = isRtlLanguage(language);
 
   useEffect(() => {
     loadSavedLanguage().then((lang) => {
       setLanguageState(lang);
-      setIsRtl(isRtlLanguage(lang));
     });
     const handler = () =>
       setLanguageState((i18n.language as SupportedLanguage) || 'en');
@@ -42,24 +54,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setLanguage = useCallback(async (lang: SupportedLanguage) => {
-    const willBeRtl = isRtlLanguage(lang);
-    const currentlyRtl = I18nManager.isRTL;
-
-    if (willBeRtl !== currentlyRtl) {
-      I18nManager.allowRTL(true);
-      I18nManager.forceRTL(willBeRtl);
-      await setI18nLanguage(lang);
-      setLanguageState(lang);
-      setIsRtl(willBeRtl);
-      Alert.alert(
-        i18n.t('restart.title'),
-        i18n.t('restart.message'),
-        [{ text: 'OK' }]
-      );
-    } else {
-      await setI18nLanguage(lang);
-      setLanguageState(lang);
-    }
+    await setI18nLanguage(lang);
+    setLanguageState(lang);
   }, []);
 
   return (

@@ -1,5 +1,6 @@
 import '@/src/i18n';
 import React from 'react';
+import { View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -10,7 +11,21 @@ import {
   ThemeProvider,
   useThemeContext,
   LanguageProvider,
+  useLanguageContext,
 } from '@/src/context';
+
+function DirectionalContent() {
+  const { isRtl } = useLanguageContext();
+  return (
+    <View style={{ direction: isRtl ? 'rtl' : 'ltr', flex: 1 }}>
+      <PropertyProvider>
+        <RenterProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </RenterProvider>
+      </PropertyProvider>
+    </View>
+  );
+}
 
 function AppContent() {
   const { theme } = useThemeContext();
@@ -19,11 +34,7 @@ function AppContent() {
     <PaperProvider theme={theme}>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
       <LanguageProvider>
-        <PropertyProvider>
-          <RenterProvider>
-            <Stack screenOptions={{ headerShown: false }} />
-          </RenterProvider>
-        </PropertyProvider>
+        <DirectionalContent />
       </LanguageProvider>
     </PaperProvider>
   );

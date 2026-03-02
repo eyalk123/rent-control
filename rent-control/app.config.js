@@ -8,6 +8,7 @@ module.exports = {
     ...appJson.expo,
     extra: {
       apiUrl: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000',
+      supportsRTL: true,
     },
   },
 };

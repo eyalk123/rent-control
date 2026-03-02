@@ -10,7 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePropertyContext } from '@/src/context';
+import { usePropertyContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import {
   PropertyCard,
   LoadingOverlay,
@@ -26,6 +26,7 @@ const RESIDENTIAL_TYPES = ['apartment', 'house'];
 export function PropertiesListScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const rtlInputStyle = useRtlInputStyle();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { properties, loading, error, refreshProperties } = usePropertyContext();
@@ -106,10 +107,11 @@ export function PropertiesListScreen() {
           {t('screens.properties')}
         </Text>
         <Searchbar
-          placeholder={t('search.placeholderProperties')}
+          placeholder={useRtlPlaceholder(t('search.placeholderProperties'))}
           onChangeText={setSearchQuery}
           value={searchQuery}
           style={styles.searchbar}
+          inputStyle={rtlInputStyle}
         />
         <SegmentedButtons
           value={filter}
@@ -182,6 +184,6 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     margin: spacing.lg,
-    right: 0,
+    end: 0,
   },
 });

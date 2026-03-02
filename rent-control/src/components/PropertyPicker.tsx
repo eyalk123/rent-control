@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { Menu, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { usePropertyContext } from '@/src/context';
+import { usePropertyContext, useRtlInputStyle } from '@/src/context';
 
 interface PropertyPickerProps {
   value: number | null;
@@ -19,6 +19,7 @@ export function PropertyPicker({
 }: PropertyPickerProps) {
   const { t } = useTranslation();
   const { properties } = usePropertyContext();
+  const rtlInputStyle = useRtlInputStyle();
   const [visible, setVisible] = useState(false);
 
   const selectedProperty = properties.find((p) => p.id === value);
@@ -48,6 +49,7 @@ export function PropertyPicker({
           right={<TextInput.Icon icon="menu-down" onPress={openMenu} />}
           onPressIn={openMenu}
           style={[styles.input, inputStyle as any]}
+          contentStyle={rtlInputStyle}
         />
       }
     >

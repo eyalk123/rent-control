@@ -7,7 +7,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { createRenter, updateRenter, getRenterById } from '@/src/api/renters';
 import { getApiErrorMessage } from '@/src/api/client';
-import { useRenterContext } from '@/src/context';
+import { useRenterContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import { PropertyPicker, ScreenContainer } from '@/src/components';
 import { useTheme } from 'react-native-paper';
 import type { Renter, RenterCreate, RenterUpdate } from '@/src/types';
@@ -18,6 +18,7 @@ export function AddEditRenterScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const rtlInputStyle = useRtlInputStyle();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const { refreshRenters } = useRenterContext();
@@ -157,6 +158,7 @@ export function AddEditRenterScreen() {
           mode="outlined"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <TextInput
           label={t('renter.lastName')}
@@ -165,6 +167,7 @@ export function AddEditRenterScreen() {
           mode="outlined"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <TextInput
           label={t('renter.phone')}
@@ -174,6 +177,7 @@ export function AddEditRenterScreen() {
           keyboardType="phone-pad"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <TextInput
           label={t('renter.email')}
@@ -184,6 +188,7 @@ export function AddEditRenterScreen() {
           autoCapitalize="none"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <TextInput
           label={t('renter.monthlyRent')}
@@ -193,6 +198,7 @@ export function AddEditRenterScreen() {
           keyboardType="decimal-pad"
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <Text variant="titleSmall" style={styles.sectionHeader}>
           {t('renter.leaseInfo')}
@@ -202,18 +208,20 @@ export function AddEditRenterScreen() {
           value={leaseStart}
           onChangeText={setLeaseStart}
           mode="outlined"
-          placeholder={t('renter.leaseStartPlaceholder')}
+          placeholder={useRtlPlaceholder(t('renter.leaseStartPlaceholder'))}
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
         <TextInput
           label={t('renter.leaseEnd')}
           value={leaseEnd}
           onChangeText={setLeaseEnd}
           mode="outlined"
-          placeholder={t('renter.leaseEndPlaceholder')}
+          placeholder={useRtlPlaceholder(t('renter.leaseEndPlaceholder'))}
           dense
           style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          contentStyle={rtlInputStyle}
         />
 
         <PropertyPicker

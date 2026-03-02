@@ -54,3 +54,12 @@ export async function setLanguage(lang: SupportedLanguage) {
 export function isRtlLanguage(lang: string): boolean {
   return lang === 'he';
 }
+
+export async function restartAppForRTL(): Promise<void> {
+  try {
+    const Updates = await import('expo-updates');
+    if (Updates.reloadAsync) await Updates.reloadAsync();
+  } catch {
+    // In dev/preview, reloadAsync may be unavailable; user must restart manually
+  }
+}

@@ -1,7 +1,18 @@
+import { View } from 'react-native';
 import { Tabs } from 'expo-router';
+import { BottomTabBar } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+
+function TabBarLtr(props: BottomTabBarProps) {
+  return (
+    <View style={{ direction: 'ltr' }}>
+      <BottomTabBar {...props} />
+    </View>
+  );
+}
 
 export default function TabLayout() {
   const { t } = useTranslation();
@@ -9,6 +20,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <TabBarLtr {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,

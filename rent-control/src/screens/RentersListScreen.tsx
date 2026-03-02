@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRenterContext } from '@/src/context';
+import { useRenterContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import {
   LoadingOverlay,
   EmptyState,
@@ -19,6 +19,7 @@ type RenterFilter = 'all' | 'active' | 'pending';
 export function RentersListScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const rtlInputStyle = useRtlInputStyle();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { renters, loading, error, refreshRenters } = useRenterContext();
@@ -98,10 +99,11 @@ export function RentersListScreen() {
           {t('screens.renters')}
         </Text>
         <Searchbar
-          placeholder={t('search.placeholder')}
+          placeholder={useRtlPlaceholder(t('search.placeholder'))}
           onChangeText={setSearchQuery}
           value={searchQuery}
           style={styles.searchbar}
+          inputStyle={rtlInputStyle}
         />
         <SegmentedButtons
           value={filter}
@@ -174,6 +176,6 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     margin: spacing.lg,
-    right: 0,
+    end: 0,
   },
 });
