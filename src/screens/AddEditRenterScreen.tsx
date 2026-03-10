@@ -157,7 +157,7 @@ export function AddEditRenterScreen() {
           onChangeText={setFirstName}
           mode="outlined"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <TextInput
@@ -166,7 +166,7 @@ export function AddEditRenterScreen() {
           onChangeText={setLastName}
           mode="outlined"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <TextInput
@@ -176,7 +176,7 @@ export function AddEditRenterScreen() {
           mode="outlined"
           keyboardType="phone-pad"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <TextInput
@@ -187,7 +187,7 @@ export function AddEditRenterScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <TextInput
@@ -197,7 +197,7 @@ export function AddEditRenterScreen() {
           mode="outlined"
           keyboardType="decimal-pad"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <Text variant="titleSmall" style={styles.sectionHeader}>
@@ -210,7 +210,7 @@ export function AddEditRenterScreen() {
           mode="outlined"
           placeholder={useRtlPlaceholder(t('renter.leaseStartPlaceholder'))}
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <TextInput
@@ -220,7 +220,7 @@ export function AddEditRenterScreen() {
           mode="outlined"
           placeholder={useRtlPlaceholder(t('renter.leaseEndPlaceholder'))}
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
 

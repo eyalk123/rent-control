@@ -48,7 +48,7 @@ export function PropertyPicker({
           dense
           right={<TextInput.Icon icon="menu-down" onPress={openMenu} />}
           onPressIn={openMenu}
-          style={[styles.input, inputStyle as any]}
+          style={[styles.input, inputStyle as any, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
       }

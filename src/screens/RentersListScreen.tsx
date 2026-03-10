@@ -1,74 +1,58 @@
 import React, { useMemo, useState } from 'react';
-import {
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { FAB, Searchbar, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FAB, Searchbar, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePropertyContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
+import { useRenterContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import {
-  PropertyCard,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
+  RenterCard,
 } from '@/src/components';
 import { spacing } from '@/src/theme';
 
-type PropertyFilter = 'all' | 'residential' | 'commercial';
-
-const RESIDENTIAL_TYPES = ['apartment', 'house'];
-
-export function PropertiesListScreen() {
+export function RentersListScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const rtlInputStyle = useRtlInputStyle();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { properties, loading, error, refreshProperties } = usePropertyContext();
+  const { renters, loading, error, refreshRenters } = useRenterContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<PropertyFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  const filteredProperties = useMemo(() => {
-    let list = properties;
+  const filteredRenters = useMemo(() => {
+    let list = renters;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      list = list.filter(
-        (p) =>
-          p.address.toLowerCase().includes(q) ||
-          p.city.toLowerCase().includes(q) ||
-          p.zip_code.toLowerCase().includes(q)
-      );
-    }
-    if (filter === 'residential') {
-      list = list.filter((p) => RESIDENTIAL_TYPES.includes(p.type));
-    } else if (filter === 'commercial') {
-      list = list.filter((p) => p.type === 'commercial');
+      list = list.filter((renter) => {
+        const fullName = `${renter.first_name} ${renter.last_name}`.toLowerCase();
+        const address = (renter.property?.address ?? '').toLowerCase();
+        return fullName.includes(q) || address.includes(q);
+      });
     }
     return list;
-  }, [properties, searchQuery, filter]);
+  }, [renters, searchQuery]);
 
-  const handlePropertyPress = (id: number) => {
-    router.push(`/(tabs)/properties/${id}` as any);
+  const handleRenterPress = (id: number) => {
+    router.push(`/(tabs)/renters/${id}` as any);
   };
 
   const handleAddPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/(tabs)/properties/add' as any);
+    router.push('/(tabs)/renters/add' as any);
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await refreshProperties();
+    await refreshRenters();
     setRefreshing(false);
   };
 
-  if (loading && properties.length === 0) {
+  if (loading && renters.length === 0) {
     return (
       <ScreenContainer>
         <LoadingOverlay visible={true} />
@@ -76,7 +60,7 @@ export function PropertiesListScreen() {
     );
   }
 
-  if (error && properties.length === 0) {
+  if (error && renters.length === 0) {
     return (
       <ScreenContainer>
         <EmptyState message={error} icon="alert-circle" />
@@ -84,15 +68,15 @@ export function PropertiesListScreen() {
     );
   }
 
-  if (properties.length === 0) {
+  if (renters.length === 0) {
     return (
       <ScreenContainer>
-        <EmptyState message={t('empty.noProperties')} icon="home" />
+        <EmptyState message={t('empty.noRenters')} icon="account" />
         <FAB
           icon="plus"
           style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
           onPress={handleAddPress}
-          accessibilityLabel={t('property.addProperty')}
+          accessibilityLabel={t('renter.addRenter')}
           accessibilityRole="button"
         />
       </ScreenContainer>
@@ -104,33 +88,26 @@ export function PropertiesListScreen() {
       <LoadingOverlay visible={loading} />
       <View style={styles.header}>
         <Text variant="headlineLarge" style={styles.heroTitle}>
-          {t('screens.properties')}
+          {t('screens.renters')}
         </Text>
         <Searchbar
-          placeholder={useRtlPlaceholder(t('search.placeholderProperties'))}
+          placeholder={useRtlPlaceholder(t('search.placeholder'))}
           onChangeText={setSearchQuery}
           value={searchQuery}
           style={styles.searchbar}
           inputStyle={rtlInputStyle}
         />
-        <SegmentedButtons
-          value={filter}
-          onValueChange={(v) => setFilter(v as PropertyFilter)}
-          buttons={[
-            { value: 'all', label: t('filters.all') },
-            { value: 'residential', label: t('filters.residential') },
-            { value: 'commercial', label: t('filters.commercial') },
-          ]}
-          style={styles.filters}
-        />
       </View>
       <FlatList
-        data={filteredProperties}
+        data={filteredRenters}
         keyExtractor={(item) => item.id.toString()}
+        ListEmptyComponent={
+          <EmptyState message={t('empty.noSearchResults')} icon="magnify" />
+        }
         renderItem={({ item }) => (
-          <PropertyCard
-            property={item}
-            onPress={() => handlePropertyPress(item.id)}
+          <RenterCard
+            renter={item}
+            onPress={() => handleRenterPress(item.id)}
           />
         )}
         contentContainerStyle={[
@@ -144,15 +121,12 @@ export function PropertiesListScreen() {
             tintColor={theme.colors.primary}
           />
         }
-        ListEmptyComponent={
-          <EmptyState message={t('empty.noPropertySearchResults')} icon="magnify" />
-        }
       />
       <FAB
         icon="plus"
         style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
         onPress={handleAddPress}
-        accessibilityLabel={t('property.addProperty')}
+        accessibilityLabel={t('renter.addRenter')}
         accessibilityRole="button"
       />
     </ScreenContainer>
@@ -174,9 +148,6 @@ const styles = StyleSheet.create({
     minHeight: 40,
     marginBottom: spacing.sm,
     borderRadius: 10,
-  },
-  filters: {
-    marginBottom: spacing.md,
   },
   list: {
     paddingBottom: 80,

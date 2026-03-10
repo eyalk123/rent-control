@@ -206,7 +206,7 @@ export function AddEditPropertyScreen() {
           onChangeText={setAddress}
           mode="outlined"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <TextInput
@@ -215,7 +215,7 @@ export function AddEditPropertyScreen() {
           onChangeText={setCity}
           mode="outlined"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <TextInput
@@ -225,7 +225,7 @@ export function AddEditPropertyScreen() {
           mode="outlined"
           keyboardType="numeric"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <Menu
@@ -241,7 +241,7 @@ export function AddEditPropertyScreen() {
               editable={false}
               right={<TextInput.Icon icon="menu-down" onPress={() => setTypeMenuVisible(true)} />}
               onPressIn={() => setTypeMenuVisible(true)}
-              style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+              style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
               contentStyle={rtlInputStyle}
             />
           }
@@ -264,7 +264,7 @@ export function AddEditPropertyScreen() {
           mode="outlined"
           keyboardType="numeric"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
         <TextInput
@@ -274,7 +274,7 @@ export function AddEditPropertyScreen() {
           mode="outlined"
           keyboardType="decimal-pad"
           dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }]}
+          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
           contentStyle={rtlInputStyle}
         />
 

@@ -4,34 +4,42 @@ import { List, SegmentedButtons, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useThemeContext } from '@/src/context';
 import { useLanguageContext } from '@/src/context';
-import { ScreenContainer } from '@/src/components';
+import { ScreenContainer, LtrSection } from '@/src/components';
 import { spacing } from '@/src/theme';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
   const { themeMode, setThemeMode } = useThemeContext();
-  const { language, setLanguage } = useLanguageContext();
+  const { language, setLanguage, isRtl } = useLanguageContext();
 
   return (
     <ScreenContainer>
       <ScrollView style={styles.container}>
-        <Text variant="titleMedium" style={styles.sectionTitle}>
-          {t('settings.theme')}
-        </Text>
-        <SegmentedButtons
-          value={themeMode}
-          onValueChange={(v) =>
-            setThemeMode(v as 'light' | 'dark' | 'system')
-          }
-          buttons={[
-            { value: 'light', label: t('settings.themeLight'), icon: 'white-balance-sunny' },
-            { value: 'dark', label: t('settings.themeDark'), icon: 'moon-waning-crescent' },
-            { value: 'system', label: t('settings.themeSystem'), icon: 'cellphone' },
-          ]}
-          style={styles.segmented}
-        />
+        <LtrSection style={styles.themeSection}>
+          <Text
+            variant="titleMedium"
+            style={[styles.sectionTitle, isRtl && styles.sectionTitleRtl]}
+          >
+            {t('settings.theme')}
+          </Text>
+          <SegmentedButtons
+            value={themeMode}
+            onValueChange={(v) =>
+              setThemeMode(v as 'light' | 'dark' | 'system')
+            }
+            buttons={[
+              { value: 'light', label: t('settings.themeLight'), icon: 'white-balance-sunny' },
+              { value: 'dark', label: t('settings.themeDark'), icon: 'moon-waning-crescent' },
+              { value: 'system', label: t('settings.themeSystem'), icon: 'cellphone' },
+            ]}
+            style={styles.segmented}
+          />
+        </LtrSection>
 
-        <Text variant="titleMedium" style={styles.sectionTitle}>
+        <Text
+          variant="titleMedium"
+          style={[styles.sectionTitle, isRtl && styles.sectionTitleRtl]}
+        >
           {t('settings.language')}
         </Text>
         <List.Section>
@@ -67,11 +75,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  themeSection: {
+    marginTop: spacing.xl,
+  },
   sectionTitle: {
     marginHorizontal: spacing.lg,
-    marginTop: spacing.xl,
     marginBottom: spacing.sm,
     fontWeight: '600',
+  },
+  sectionTitleRtl: {
+    textAlign: 'right',
   },
   segmented: {
     marginHorizontal: spacing.lg,
