@@ -18,6 +18,7 @@ export function RentersListScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const rtlInputStyle = useRtlInputStyle();
+  const rtlPlaceholder = useRtlPlaceholder();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { renters, loading, error, refreshRenters } = useRenterContext();
@@ -91,7 +92,7 @@ export function RentersListScreen() {
           {t('screens.renters')}
         </Text>
         <Searchbar
-          placeholder={useRtlPlaceholder(t('search.placeholder'))}
+          placeholder={rtlPlaceholder(t('search.placeholder'))}
           onChangeText={setSearchQuery}
           value={searchQuery}
           style={styles.searchbar}

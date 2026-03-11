@@ -134,7 +134,7 @@ export function RenterDetailScreen() {
           <Card.Content>
             <View style={styles.detailRow}>
               <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                {t('renter.monthlyRent')}
+                {t('renter.rent')}
               </Text>
               <Text variant="bodyMedium">
                 ${renter.monthly_rent.toLocaleString()}
@@ -142,12 +142,56 @@ export function RenterDetailScreen() {
             </View>
             <View style={styles.detailRow}>
               <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                {t('property.lease')}
+                {t('renter.dateOfStart')}
               </Text>
-              <Text variant="bodyMedium">
-                {renter.lease_start} – {renter.lease_end}
-              </Text>
+              <Text variant="bodyMedium">{renter.lease_start}</Text>
             </View>
+            <View style={styles.detailRow}>
+              <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                {t('renter.dateOfEnd')}
+              </Text>
+              <Text variant="bodyMedium">{renter.lease_end}</Text>
+            </View>
+            {renter.payment_day_of_month != null && (
+              <View style={styles.detailRow}>
+                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                  {t('renter.dateOfPayment')}
+                </Text>
+                <Text variant="bodyMedium">{renter.payment_day_of_month}</Text>
+              </View>
+            )}
+            {renter.number_of_payments != null && (
+              <View style={styles.detailRow}>
+                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                  {t('renter.numberOfPayments')}
+                </Text>
+                <Text variant="bodyMedium">{renter.number_of_payments}</Text>
+              </View>
+            )}
+            {renter.payment_type != null && renter.payment_type !== '' && (
+              <View style={styles.detailRow}>
+                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                  {t('renter.paymentType')}
+                </Text>
+                <Text variant="bodyMedium">{renter.payment_type}</Text>
+              </View>
+            )}
+            {renter.insurance_type != null && renter.insurance_type !== '' && (
+              <View style={styles.detailRow}>
+                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                  {t('renter.insuranceType')}
+                </Text>
+                <Text variant="bodyMedium">{renter.insurance_type}</Text>
+              </View>
+            )}
+            {renter.insurance_amount != null && (
+              <View style={styles.detailRow}>
+                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                  {t('renter.insuranceAmount')}
+                </Text>
+                <Text variant="bodyMedium">{renter.insurance_amount.toLocaleString()}</Text>
+              </View>
+            )}
           </Card.Content>
         </Card>
 

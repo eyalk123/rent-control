@@ -9,5 +9,7 @@ export {
   useLanguageContext,
   useRtlInputStyle,
   useRtlPlaceholder,
+  useSectionHeaderStyle,
+  useRtlLabelStyle,
 } from './LanguageContext';
 export type { LanguageContextType } from './LanguageContext';

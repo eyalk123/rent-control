@@ -5,4 +5,6 @@ export const spacing = {
   lg: 16,
   xl: 24,
   xxl: 32,
+  /** Horizontal padding for form screens (add/edit) */
+  formPaddingHorizontal: 24,
 } as const;

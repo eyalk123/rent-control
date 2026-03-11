@@ -18,6 +18,12 @@ const seedProperties: Property[] = [
     sq_ft: 2200,
     purchase_price: 450000,
     image_url: null,
+    number_of_rooms: 5,
+    parking_numbers: ['A-12', 'B-34'],
+    electricity_meter_number: 'EM-001',
+    water_meter_tax: 120,
+    property_tax: 4500,
+    house_committee: 200,
     renters: null,
   },
   {
@@ -30,6 +36,12 @@ const seedProperties: Property[] = [
     sq_ft: 1200,
     purchase_price: 280000,
     image_url: null,
+    number_of_rooms: 3,
+    parking_numbers: null,
+    electricity_meter_number: null,
+    water_meter_tax: 80,
+    property_tax: 2800,
+    house_committee: 150,
     renters: null,
   },
   {
@@ -81,6 +93,11 @@ const seedRenters: Renter[] = [
     monthly_rent: 2200,
     lease_start: '2024-01-15',
     lease_end: '2025-01-14',
+    number_of_payments: 12,
+    payment_type: 'monthly',
+    payment_day_of_month: 1,
+    insurance_type: 'tenant',
+    insurance_amount: 150,
     property: null,
   },
   {
@@ -93,6 +110,9 @@ const seedRenters: Renter[] = [
     monthly_rent: 1900,
     lease_start: '2024-03-01',
     lease_end: '2025-02-28',
+    number_of_payments: 12,
+    payment_type: 'monthly',
+    payment_day_of_month: 15,
     property: null,
   },
   {
@@ -180,6 +200,12 @@ export const mockPropertiesApi = {
       sq_ft: data.sq_ft ?? 0,
       purchase_price: data.purchase_price ?? 0,
       image_url: data.image_url ?? null,
+      number_of_rooms: data.number_of_rooms ?? null,
+      parking_numbers: data.parking_numbers ?? null,
+      electricity_meter_number: data.electricity_meter_number ?? null,
+      water_meter_tax: data.water_meter_tax ?? null,
+      property_tax: data.property_tax ?? null,
+      house_committee: data.house_committee ?? null,
       renters: [],
     };
     mockProperties.push(newProp);
@@ -239,6 +265,11 @@ export const mockRentersApi = {
       monthly_rent: data.monthly_rent ?? 0,
       lease_start: data.lease_start ?? '',
       lease_end: data.lease_end ?? '',
+      number_of_payments: data.number_of_payments ?? null,
+      payment_type: data.payment_type ?? null,
+      payment_day_of_month: data.payment_day_of_month ?? null,
+      insurance_type: data.insurance_type ?? null,
+      insurance_amount: data.insurance_amount ?? null,
       property: null,
     };
     mockRenters.push(newRenter);

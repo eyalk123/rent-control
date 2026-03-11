@@ -57,7 +57,18 @@
     "selectImage": "Select Image",
     "changeImage": "Change Image",
     "atAGlance": "At a Glance",
-    "uploadProfilePicture": "Upload Profile Picture"
+    "uploadProfilePicture": "Upload Profile Picture",
+    "surfaceArea": "Surface area",
+    "numberOfRooms": "Number of rooms",
+    "parkingNumbers": "Parking numbers",
+    "parkingNumbersPlaceholder": "e.g. A-12, B-34",
+    "electricityMeterNumber": "Electricity meter number",
+    "waterMeterTax": "Water meter tax",
+    "propertyTax": "Property tax",
+    "houseCommittee": "House committee",
+    "details": "Details",
+    "additionalDetails": "Additional details",
+    "removePhoto": "Remove photo"
   },
   "renter": {
     "basicInfo": "Basic Information",
@@ -67,12 +78,23 @@
     "phone": "Phone",
     "email": "Email",
     "monthlyRent": "Monthly Rent",
+    "rent": "Rent",
+    "dateOfStart": "Date of start",
+    "dateOfEnd": "Date of end",
+    "dateOfPayment": "Date of payment",
     "leaseStart": "Lease Start (YYYY-MM-DD)",
     "leaseEnd": "Lease End (YYYY-MM-DD)",
+    "numberOfPayments": "Number of payments",
+    "paymentType": "Payment type",
+    "paymentTypePlaceholder": "e.g. monthly, bimonthly",
+    "insuranceType": "Insurance type",
+    "insuranceAmount": "Insurance amount",
     "leaseStartPlaceholder": "e.g. 2024-01-01",
     "leaseEndPlaceholder": "e.g. 2025-01-01",
     "property": "Property",
+    "propertyOptional": "Property (optional)",
     "unassigned": "Unassigned",
+    "profilePictureComingSoon": "Coming soon",
     "editRenter": "Edit Renter",
     "createRenter": "Create Renter",
     "addRenter": "Add Renter",
@@ -105,6 +127,14 @@
     "pending": "Pending",
     "delinquent": "Delinquent"
   },
+  "common": {
+    "required": "Required",
+    "optional": "Optional",
+    "discardChanges": "Discard changes?",
+    "discardChangesMessage": "You have unsaved changes. Are you sure you want to leave?",
+    "discard": "Discard",
+    "cancel": "Cancel"
+  },
   "validation": {
     "title": "Validation",
     "addressRequired": "Address is required.",
@@ -119,7 +149,9 @@
     "emailRequired": "Email is required.",
     "rentRequired": "Valid monthly rent is required.",
     "leaseStartRequired": "Lease start date is required.",
-    "leaseEndRequired": "Lease end date is required."
+    "leaseEndRequired": "Lease end date is required.",
+    "paymentDayInvalid": "Date of payment must be between 1 and 31.",
+    "dateFormatInvalid": "Use format YYYY-MM-DD."
   },
   "error": {
     "title": "Error",

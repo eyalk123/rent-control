@@ -11,6 +11,7 @@ export default function RentersLayout() {
       screenOptions={{
         headerTintColor: theme.colors.primary,
         headerTitleStyle: { fontWeight: '600', color: theme.colors.onSurface },
+        headerTitleContainerStyle: { paddingHorizontal: 48 },
         headerStyle: { backgroundColor: theme.colors.surface },
         headerShadowVisible: false,
       }}

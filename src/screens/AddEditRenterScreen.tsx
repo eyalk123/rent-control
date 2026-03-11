@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View, TouchableOpacity } from 'react-native';
-import { Button, Text, TextInput } from 'react-native-paper';
+import { Alert, ScrollView, StyleSheet, View, TouchableOpacity, Platform, KeyboardAvoidingView } from 'react-native';
+import { Button, Text, TextInput, Card } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Haptics from 'expo-haptics';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { createRenter, updateRenter, getRenterById } from '@/src/api/renters';
 import { getApiErrorMessage } from '@/src/api/client';
-import { useRenterContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
-import { PropertyPicker, ScreenContainer } from '@/src/components';
+import { useRenterContext, useRtlInputStyle, useRtlPlaceholder, useSectionHeaderStyle, useLanguageContext } from '@/src/context';
+import { PropertyPicker, ScreenContainer, LoadingOverlay } from '@/src/components';
 import { useTheme } from 'react-native-paper';
-import type { Renter, RenterCreate, RenterUpdate } from '@/src/types';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { RenterCreate, RenterUpdate } from '@/src/types';
 import { spacing } from '@/src/theme';
 import { lightColors, darkColors } from '@/src/theme';
 
@@ -19,10 +20,16 @@ export function AddEditRenterScreen() {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
+  const sectionHeaderStyle = useSectionHeaderStyle();
+  const { isRtl } = useLanguageContext();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { refreshRenters } = useRenterContext();
+  const rtlPlaceholder = useRtlPlaceholder();
   const isEdit = Boolean(id);
+  const submitBarHeight = 72;
+  const bottomPadding = submitBarHeight + insets.bottom + spacing.md;
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -32,85 +39,142 @@ export function AddEditRenterScreen() {
   const [leaseStart, setLeaseStart] = useState('');
   const [leaseEnd, setLeaseEnd] = useState('');
   const [propertyId, setPropertyId] = useState<number | null>(null);
+  const [numberOfPayments, setNumberOfPayments] = useState('');
+  const [paymentType, setPaymentType] = useState('');
+  const [paymentDayOfMonth, setPaymentDayOfMonth] = useState('');
+  const [insuranceType, setInsuranceType] = useState('');
+  const [insuranceAmount, setInsuranceAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(isEdit);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [dirty, setDirty] = useState(false);
+  const navigation = useNavigation();
+
+  const clearError = (field: string) => {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  React.useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      if (!dirty) return;
+      e.preventDefault();
+      Alert.alert(
+        t('common.discardChanges'),
+        t('common.discardChangesMessage'),
+        [
+          { text: t('common.cancel'), style: 'cancel', onPress: () => {} },
+          {
+            text: t('common.discard'),
+            style: 'destructive',
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+        ]
+      );
+    });
+    return unsub;
+  }, [navigation, dirty, t]);
 
   React.useEffect(() => {
     if (isEdit && id) {
       const numericId = Number(id);
       if (!isNaN(numericId)) {
-        getRenterById(numericId).then((renter) => {
-          setFirstName(renter.first_name);
-          setLastName(renter.last_name);
-          setPhone(renter.phone);
-          setEmail(renter.email);
-          setMonthlyRent(renter.monthly_rent.toString());
-          setLeaseStart(renter.lease_start);
-          setLeaseEnd(renter.lease_end);
-          setPropertyId(renter.property_id);
-        });
+        setFormLoading(true);
+        getRenterById(numericId)
+          .then((renter) => {
+            setFirstName(renter.first_name);
+            setLastName(renter.last_name);
+            setPhone(renter.phone);
+            setEmail(renter.email);
+            setMonthlyRent(renter.monthly_rent.toString());
+            setLeaseStart(renter.lease_start);
+            setLeaseEnd(renter.lease_end);
+            setPropertyId(renter.property_id);
+            setNumberOfPayments(renter.number_of_payments != null ? String(renter.number_of_payments) : '');
+            setPaymentType(renter.payment_type ?? '');
+            setPaymentDayOfMonth(
+              renter.payment_day_of_month != null ? String(renter.payment_day_of_month) : ''
+            );
+            setInsuranceType(renter.insurance_type ?? '');
+            setInsuranceAmount(renter.insurance_amount != null ? String(renter.insurance_amount) : '');
+          })
+          .finally(() => setFormLoading(false));
+      } else {
+        setFormLoading(false);
       }
     }
   }, [isEdit, id]);
 
   const handleSubmit = async () => {
     const rentNum = parseFloat(monthlyRent);
+    const errors: Record<string, string> = {};
 
-    if (!firstName.trim()) {
-      Alert.alert(t('validation.title'), t('validation.firstNameRequired'));
+    if (!firstName.trim()) errors.firstName = t('validation.firstNameRequired');
+    if (!lastName.trim()) errors.lastName = t('validation.lastNameRequired');
+    if (!phone.trim()) errors.phone = t('validation.phoneRequired');
+    if (!email.trim()) errors.email = t('validation.emailRequired');
+    if (isNaN(rentNum) || rentNum < 0) errors.monthlyRent = t('validation.rentRequired');
+    const dateFormat = /^\d{4}-\d{2}-\d{2}$/;
+    if (!leaseStart.trim()) errors.leaseStart = t('validation.leaseStartRequired');
+    else if (!dateFormat.test(leaseStart.trim())) errors.leaseStart = t('validation.dateFormatInvalid');
+    if (!leaseEnd.trim()) errors.leaseEnd = t('validation.leaseEndRequired');
+    else if (!dateFormat.test(leaseEnd.trim())) errors.leaseEnd = t('validation.dateFormatInvalid');
+    const paymentDayNum = paymentDayOfMonth.trim() ? parseInt(paymentDayOfMonth, 10) : null;
+    if (paymentDayNum != null && (isNaN(paymentDayNum) || paymentDayNum < 1 || paymentDayNum > 31)) {
+      errors.paymentDayOfMonth = t('validation.paymentDayInvalid');
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
-    if (!lastName.trim()) {
-      Alert.alert(t('validation.title'), t('validation.lastNameRequired'));
-      return;
-    }
-    if (!phone.trim()) {
-      Alert.alert(t('validation.title'), t('validation.phoneRequired'));
-      return;
-    }
-    if (!email.trim()) {
-      Alert.alert(t('validation.title'), t('validation.emailRequired'));
-      return;
-    }
-    if (isNaN(rentNum) || rentNum < 0) {
-      Alert.alert(t('validation.title'), t('validation.rentRequired'));
-      return;
-    }
-    if (!leaseStart.trim()) {
-      Alert.alert(t('validation.title'), t('validation.leaseStartRequired'));
-      return;
-    }
-    if (!leaseEnd.trim()) {
-      Alert.alert(t('validation.title'), t('validation.leaseEndRequired'));
-      return;
-    }
+    setFieldErrors({});
+
+    const numPayments = numberOfPayments.trim() ? parseInt(numberOfPayments, 10) : null;
+    const insuranceAmt = insuranceAmount.trim() ? parseFloat(insuranceAmount) : null;
+
+    const baseCreate: RenterCreate = {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+      monthly_rent: rentNum,
+      lease_start: leaseStart.trim(),
+      lease_end: leaseEnd.trim(),
+      property_id: propertyId ?? undefined,
+    };
+    if (numPayments != null && !isNaN(numPayments)) baseCreate.number_of_payments = numPayments;
+    if (paymentType.trim()) baseCreate.payment_type = paymentType.trim();
+    if (paymentDayNum != null) baseCreate.payment_day_of_month = paymentDayNum;
+    if (insuranceType.trim()) baseCreate.insurance_type = insuranceType.trim();
+    if (insuranceAmt != null && !isNaN(insuranceAmt)) baseCreate.insurance_amount = insuranceAmt;
+
+    const baseUpdate: RenterUpdate = {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+      monthly_rent: rentNum,
+      lease_start: leaseStart.trim(),
+      lease_end: leaseEnd.trim(),
+      property_id: propertyId,
+    };
+    if (numPayments != null && !isNaN(numPayments)) baseUpdate.number_of_payments = numPayments;
+    if (paymentType.trim()) baseUpdate.payment_type = paymentType.trim();
+    if (paymentDayNum != null) baseUpdate.payment_day_of_month = paymentDayNum;
+    if (insuranceType.trim()) baseUpdate.insurance_type = insuranceType.trim();
+    if (insuranceAmt != null && !isNaN(insuranceAmt)) baseUpdate.insurance_amount = insuranceAmt;
 
     setLoading(true);
     try {
       if (isEdit && id) {
         const numericId = Number(id);
-        const updateData: RenterUpdate = {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          phone: phone.trim(),
-          email: email.trim(),
-          monthly_rent: rentNum,
-          lease_start: leaseStart.trim(),
-          lease_end: leaseEnd.trim(),
-          property_id: propertyId,
-        };
-        await updateRenter(numericId, updateData);
+        await updateRenter(numericId, baseUpdate);
       } else {
-        const createData: RenterCreate = {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          phone: phone.trim(),
-          email: email.trim(),
-          monthly_rent: rentNum,
-          lease_start: leaseStart.trim(),
-          lease_end: leaseEnd.trim(),
-          property_id: propertyId ?? undefined,
-        };
-        await createRenter(createData);
+        await createRenter(baseCreate);
       }
 
       await refreshRenters();
@@ -130,120 +194,258 @@ export function AddEditRenterScreen() {
     handleSubmit();
   };
 
+  if (isEdit && formLoading) {
+    return (
+      <ScreenContainer>
+        <LoadingOverlay visible={true} />
+      </ScreenContainer>
+    );
+  }
+
   return (
     <ScreenContainer>
-      <ScrollView
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-        contentContainerStyle={styles.content}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 56 : 0}
       >
+        <ScrollView
+          style={[styles.scroll, { backgroundColor: theme.colors.background }]}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: bottomPadding, flexGrow: 1 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
+        >
         <View style={styles.profileSection}>
           <TouchableOpacity
-            style={[styles.avatarPlaceholder, { backgroundColor: colors.inputFilledBackground }]}
+            style={[styles.avatarPlaceholder, { backgroundColor: colors.inputFilledBackground, opacity: 0.7 }]}
             onPress={() => {}}
+            disabled
+            accessibilityLabel={t('renter.profilePictureComingSoon')}
           >
             <MaterialCommunityIcons name="plus" size={28} color={colors.textSecondary} />
           </TouchableOpacity>
           <Text variant="bodySmall" style={[styles.uploadLabel, { color: colors.textSecondary }]}>
-            {t('property.uploadProfilePicture')}
+            {t('renter.profilePictureComingSoon')}
           </Text>
         </View>
 
-        <Text variant="titleSmall" style={styles.sectionHeader}>
-          {t('renter.basicInfo')}
-        </Text>
-        <TextInput
-          label={t('renter.firstName')}
-          value={firstName}
-          onChangeText={setFirstName}
-          mode="outlined"
-          dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
-          contentStyle={rtlInputStyle}
-        />
-        <TextInput
-          label={t('renter.lastName')}
-          value={lastName}
-          onChangeText={setLastName}
-          mode="outlined"
-          dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
-          contentStyle={rtlInputStyle}
-        />
-        <TextInput
-          label={t('renter.phone')}
-          value={phone}
-          onChangeText={setPhone}
-          mode="outlined"
-          keyboardType="phone-pad"
-          dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
-          contentStyle={rtlInputStyle}
-        />
-        <TextInput
-          label={t('renter.email')}
-          value={email}
-          onChangeText={setEmail}
-          mode="outlined"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
-          contentStyle={rtlInputStyle}
-        />
-        <TextInput
-          label={t('renter.monthlyRent')}
-          value={monthlyRent}
-          onChangeText={setMonthlyRent}
-          mode="outlined"
-          keyboardType="decimal-pad"
-          dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
-          contentStyle={rtlInputStyle}
-        />
-        <Text variant="titleSmall" style={styles.sectionHeader}>
-          {t('renter.leaseInfo')}
-        </Text>
-        <TextInput
-          label={t('renter.leaseStart')}
-          value={leaseStart}
-          onChangeText={setLeaseStart}
-          mode="outlined"
-          placeholder={useRtlPlaceholder(t('renter.leaseStartPlaceholder'))}
-          dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
-          contentStyle={rtlInputStyle}
-        />
-        <TextInput
-          label={t('renter.leaseEnd')}
-          value={leaseEnd}
-          onChangeText={setLeaseEnd}
-          mode="outlined"
-          placeholder={useRtlPlaceholder(t('renter.leaseEndPlaceholder'))}
-          dense
-          style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
-          contentStyle={rtlInputStyle}
-        />
+        <Card style={[styles.sectionCard, { backgroundColor: colors.cardBackground, elevation: theme.dark ? 4 : 2 }]} mode="outlined">
+          <Card.Content style={styles.cardContent}>
+            <View style={[sectionHeaderStyle.containerStyle, { flexDirection: isRtl ? 'row-reverse' : 'row', alignItems: 'center' }]}>
+              <View style={[styles.sectionAccent, { backgroundColor: colors.sectionAccent, marginRight: isRtl ? 0 : spacing.sm, marginLeft: isRtl ? spacing.sm : 0 }]} />
+              <Text variant="titleLarge" style={[styles.sectionHeader, sectionHeaderStyle.textStyle]} numberOfLines={1}>
+                {t('renter.basicInfo')}
+              </Text>
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={`${t('renter.firstName')} *`}
+                value={firstName}
+                onChangeText={(text) => { clearError('firstName'); setFirstName(text); setDirty(true); }}
+                error={!!fieldErrors.firstName}
+                mode="outlined"
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+              {fieldErrors.firstName ? <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>{fieldErrors.firstName}</Text> : null}
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={`${t('renter.lastName')} *`}
+                value={lastName}
+                onChangeText={(text) => { clearError('lastName'); setLastName(text); setDirty(true); }}
+                error={!!fieldErrors.lastName}
+                mode="outlined"
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+              {fieldErrors.lastName ? <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>{fieldErrors.lastName}</Text> : null}
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={`${t('renter.phone')} *`}
+                value={phone}
+                onChangeText={(text) => { clearError('phone'); setPhone(text); setDirty(true); }}
+                error={!!fieldErrors.phone}
+                mode="outlined"
+                keyboardType="phone-pad"
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+              {fieldErrors.phone ? <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>{fieldErrors.phone}</Text> : null}
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={`${t('renter.email')} *`}
+                value={email}
+                onChangeText={(text) => { clearError('email'); setEmail(text); setDirty(true); }}
+                error={!!fieldErrors.email}
+                mode="outlined"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+              {fieldErrors.email ? <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>{fieldErrors.email}</Text> : null}
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={`${t('renter.monthlyRent')} *`}
+                value={monthlyRent}
+                onChangeText={(text) => { clearError('monthlyRent'); setMonthlyRent(text); }}
+                error={!!fieldErrors.monthlyRent}
+                mode="outlined"
+                keyboardType="decimal-pad"
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+              {fieldErrors.monthlyRent ? <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>{fieldErrors.monthlyRent}</Text> : null}
+            </View>
+          </Card.Content>
+        </Card>
 
-        <PropertyPicker
-          value={propertyId}
-          onChange={setPropertyId}
-          inputStyle={{ backgroundColor: colors.inputFilledBackground }}
-        />
-
-        <Button
-          mode="contained"
-          onPress={onPressSubmit}
-          loading={loading}
-          disabled={loading}
-          style={styles.submitButton}
-          accessibilityLabel={
-            isEdit ? t('renter.updateRenter') : t('renter.addRenter')
-          }
-          accessibilityRole="button"
+        <Card style={[styles.sectionCard, { backgroundColor: colors.cardBackground, elevation: theme.dark ? 4 : 2 }]} mode="outlined">
+          <Card.Content style={styles.cardContent}>
+            <View style={[sectionHeaderStyle.containerStyle, { flexDirection: isRtl ? 'row-reverse' : 'row', alignItems: 'center' }]}>
+              <View style={[styles.sectionAccent, { backgroundColor: colors.sectionAccent, marginRight: isRtl ? 0 : spacing.sm, marginLeft: isRtl ? spacing.sm : 0 }]} />
+              <Text variant="titleLarge" style={[styles.sectionHeader, sectionHeaderStyle.textStyle]} numberOfLines={1}>
+                {t('renter.leaseInfo')}
+              </Text>
+            </View>
+            <PropertyPicker
+              value={propertyId}
+              onChange={(id) => { setPropertyId(id); setDirty(true); }}
+              label={t('renter.propertyOptional')}
+              inputStyle={{ backgroundColor: colors.inputFilledBackground }}
+            />
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={`${t('renter.leaseStart')} *`}
+                value={leaseStart}
+                onChangeText={(text) => { clearError('leaseStart'); setLeaseStart(text); }}
+                error={!!fieldErrors.leaseStart}
+                mode="outlined"
+                placeholder={rtlPlaceholder(t('renter.leaseStartPlaceholder'))}
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+              {fieldErrors.leaseStart ? <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>{fieldErrors.leaseStart}</Text> : <Text variant="bodySmall" style={[styles.helperText, { color: colors.textSecondary }]}>{t('renter.leaseStartPlaceholder')}</Text>}
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={`${t('renter.leaseEnd')} *`}
+                value={leaseEnd}
+                onChangeText={(text) => { clearError('leaseEnd'); setLeaseEnd(text); setDirty(true); }}
+                error={!!fieldErrors.leaseEnd}
+                mode="outlined"
+                placeholder={rtlPlaceholder(t('renter.leaseEndPlaceholder'))}
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+              {fieldErrors.leaseEnd ? <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>{fieldErrors.leaseEnd}</Text> : <Text variant="bodySmall" style={[styles.helperText, { color: colors.textSecondary }]}>{t('renter.leaseEndPlaceholder')}</Text>}
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={t('renter.numberOfPayments')}
+                value={numberOfPayments}
+                onChangeText={(v) => { setNumberOfPayments(v); setDirty(true); }}
+                mode="outlined"
+                keyboardType="numeric"
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={t('renter.paymentType')}
+                value={paymentType}
+                onChangeText={setPaymentType}
+                mode="outlined"
+                placeholder={rtlPlaceholder(t('renter.paymentTypePlaceholder'))}
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={t('renter.dateOfPayment')}
+                value={paymentDayOfMonth}
+                onChangeText={(text) => { clearError('paymentDayOfMonth'); setPaymentDayOfMonth(text); setDirty(true); }}
+                error={!!fieldErrors.paymentDayOfMonth}
+                mode="outlined"
+                keyboardType="numeric"
+                placeholder={rtlPlaceholder('1–31')}
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+              {fieldErrors.paymentDayOfMonth ? <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>{fieldErrors.paymentDayOfMonth}</Text> : null}
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={t('renter.insuranceType')}
+                value={insuranceType}
+                onChangeText={(v) => { setInsuranceType(v); setDirty(true); }}
+                mode="outlined"
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+            </View>
+            <View style={styles.inputWrap}>
+              <TextInput
+                label={t('renter.insuranceAmount')}
+                value={insuranceAmount}
+                onChangeText={(v) => { setInsuranceAmount(v); setDirty(true); }}
+                mode="outlined"
+                keyboardType="decimal-pad"
+                dense
+                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+                contentStyle={rtlInputStyle}
+              />
+            </View>
+          </Card.Content>
+        </Card>
+        </ScrollView>
+        <View
+          style={[
+            styles.submitBar,
+            {
+              paddingBottom: insets.bottom + spacing.sm,
+              backgroundColor: theme.colors.background,
+              borderTopWidth: 1,
+              borderTopColor: colors.outline,
+            },
+          ]}
         >
-          {isEdit ? t('renter.updateRenter') : t('renter.addRenter')}
-        </Button>
-      </ScrollView>
+          <Button
+            mode="contained"
+            onPress={onPressSubmit}
+            loading={loading}
+            disabled={loading}
+            style={[styles.submitButton, { minHeight: 48 }]}
+            contentStyle={styles.submitButtonContent}
+            accessibilityLabel={
+              isEdit ? t('renter.updateRenter') : t('renter.addRenter')
+            }
+            accessibilityRole="button"
+          >
+            {isEdit ? t('renter.updateRenter') : t('renter.addRenter')}
+          </Button>
+        </View>
+      </KeyboardAvoidingView>
     </ScreenContainer>
   );
 }
@@ -252,9 +454,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scroll: {
+    flex: 1,
+  },
   content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingHorizontal: spacing.formPaddingHorizontal,
+    paddingTop: spacing.lg,
+  },
+  submitBar: {
+    paddingHorizontal: spacing.formPaddingHorizontal,
+    paddingTop: spacing.md,
+  },
+  sectionCard: {
+    marginBottom: spacing.xl,
+    borderRadius: 16,
+  },
+  cardContent: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+  },
+  sectionAccent: {
+    width: 4,
+    height: 22,
+    borderRadius: 2,
   },
   profileSection: {
     alignItems: 'center',
@@ -272,14 +494,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   sectionHeader: {
-    marginBottom: spacing.sm,
-    marginTop: spacing.xs,
-    fontWeight: '600',
+    flex: 1,
+    fontWeight: '700',
+  },
+  inputWrap: {
+    marginBottom: spacing.md,
   },
   input: {
-    marginBottom: spacing.sm,
+    marginBottom: 0,
+  },
+  errorText: {
+    marginTop: 2,
+    marginBottom: spacing.xs,
+  },
+  helperText: {
+    marginTop: 2,
+    marginBottom: spacing.xs,
   },
   submitButton: {
-    marginTop: spacing.lg,
+    borderRadius: 12,
+  },
+  submitButtonContent: {
+    minHeight: 48,
   },
 });

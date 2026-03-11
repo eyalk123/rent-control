@@ -24,8 +24,13 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     monthly_rent,
     lease_start,
     lease_end,
+    number_of_payments,
+    payment_type,
+    payment_day_of_month,
+    insurance_type,
+    insurance_amount,
   } = data;
-  return {
+  const out: RenterCreate = {
     property_id: property_id ?? null,
     first_name,
     last_name,
@@ -35,6 +40,12 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     lease_start,
     lease_end,
   };
+  if (number_of_payments !== undefined) out.number_of_payments = number_of_payments;
+  if (payment_type !== undefined) out.payment_type = payment_type;
+  if (payment_day_of_month !== undefined) out.payment_day_of_month = payment_day_of_month;
+  if (insurance_type !== undefined) out.insurance_type = insurance_type;
+  if (insurance_amount !== undefined) out.insurance_amount = insurance_amount;
+  return out;
 }
 
 function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
@@ -47,6 +58,11 @@ function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
     'monthly_rent',
     'lease_start',
     'lease_end',
+    'number_of_payments',
+    'payment_type',
+    'payment_day_of_month',
+    'insurance_type',
+    'insurance_amount',
   ];
   const out: Record<string, unknown> = {};
   for (const key of allowed) {

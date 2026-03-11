@@ -57,7 +57,18 @@
     "selectImage": "בחירת תמונה",
     "changeImage": "שינוי תמונה",
     "atAGlance": "בקיצור",
-    "uploadProfilePicture": "העלאת תמונת פרופיל"
+    "uploadProfilePicture": "העלאת תמונת פרופיל",
+    "surfaceArea": "שטח",
+    "numberOfRooms": "מספר חדרים",
+    "parkingNumbers": "מקומות חניה",
+    "parkingNumbersPlaceholder": "למשל A-12, B-34",
+    "electricityMeterNumber": "מספר מונה חשמל",
+    "waterMeterTax": "מס מונה מים",
+    "propertyTax": "ארנונה",
+    "houseCommittee": "ועד בית",
+    "details": "פרטים",
+    "additionalDetails": "פרטים נוספים",
+    "removePhoto": "הסרת תמונה"
   },
   "renter": {
     "basicInfo": "מידע בסיסי",
@@ -67,12 +78,23 @@
     "phone": "טלפון",
     "email": "אימייל",
     "monthlyRent": "שכר דירה חודשי",
+    "rent": "שכר דירה",
+    "dateOfStart": "תאריך התחלה",
+    "dateOfEnd": "תאריך סיום",
+    "dateOfPayment": "תאריך תשלום",
     "leaseStart": "תחילת חכירה (YYYY-MM-DD)",
     "leaseEnd": "סוף חכירה (YYYY-MM-DD)",
+    "numberOfPayments": "מספר תשלומים",
+    "paymentType": "סוג תשלום",
+    "paymentTypePlaceholder": "למשל חודשי, דו-חודשי",
+    "insuranceType": "סוג ביטוח",
+    "insuranceAmount": "סכום ביטוח",
     "leaseStartPlaceholder": "למשל 2024-01-01",
     "leaseEndPlaceholder": "למשל 2025-01-01",
     "property": "נכס",
+    "propertyOptional": "נכס (אופציונלי)",
     "unassigned": "לא משויך",
+    "profilePictureComingSoon": "בקרוב",
     "editRenter": "עריכת דייר",
     "createRenter": "יצירת דייר",
     "addRenter": "הוספת דייר",
@@ -105,6 +127,14 @@
     "pending": "ממתין",
     "delinquent": "באיחור"
   },
+  "common": {
+    "required": "חובה",
+    "optional": "אופציונלי",
+    "discardChanges": "לבטל שינויים?",
+    "discardChangesMessage": "יש שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?",
+    "discard": "ביטול",
+    "cancel": "ביטול"
+  },
   "validation": {
     "title": "אימות",
     "addressRequired": "כתובת נדרשת.",
@@ -119,7 +149,9 @@
     "emailRequired": "אימייל נדרש.",
     "rentRequired": "שכר דירה חודשי תקין נדרש.",
     "leaseStartRequired": "תאריך תחילת חכירה נדרש.",
-    "leaseEndRequired": "תאריך סוף חכירה נדרש."
+    "leaseEndRequired": "תאריך סוף חכירה נדרש.",
+    "paymentDayInvalid": "תאריך התשלום חייב להיות בין 1 ל-31.",
+    "dateFormatInvalid": "השתמש בפורמט YYYY-MM-DD."
   },
   "error": {
     "title": "שגיאה",

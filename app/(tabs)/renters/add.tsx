@@ -1,1 +1,2 @@
-export { AddEditRenterScreen as default } from '@/src/screens/AddEditRenterScreen';
+export { AddEditRenterScreen as default } from "@/src/screens/AddEditRenterScreen";
+

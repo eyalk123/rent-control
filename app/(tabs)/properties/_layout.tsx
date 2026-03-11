@@ -26,6 +26,7 @@ export default function PropertiesLayout() {
       screenOptions={{
         headerTintColor: theme.colors.primary,
         headerTitleStyle: { fontWeight: '600', color: theme.colors.onSurface },
+        headerTitleContainerStyle: { paddingHorizontal: 48 },
         headerStyle: { backgroundColor: theme.colors.surface },
         headerShadowVisible: false,
       }}
@@ -38,6 +39,7 @@ export default function PropertiesLayout() {
           headerTransparent: true,
           headerTintColor: '#FFF',
           headerTitleStyle: { color: '#FFF', fontWeight: '600' },
+          headerTitleContainerStyle: { paddingHorizontal: 48 },
           headerStyle: { backgroundColor: 'transparent' },
           headerRight: () => <PropertyDetailHeaderRight />,
         }}

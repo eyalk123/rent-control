@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import type { TextStyle, ViewStyle } from 'react-native';
 import i18n from 'i18next';
 import {
   setLanguage as setI18nLanguage,
@@ -12,6 +13,7 @@ import {
   isRtlLanguage,
 } from '@/src/i18n';
 import type { SupportedLanguage } from '@/src/i18n';
+import { spacing } from '@/src/theme';
 
 export interface LanguageContextType {
   language: SupportedLanguage;
@@ -28,9 +30,36 @@ export function useRtlInputStyle() {
 }
 
 /** Prepends Unicode RTL mark to placeholder text when in RTL, forcing correct direction. */
-export function useRtlPlaceholder(text: string): string {
+export function useRtlPlaceholder() {
   const { isRtl } = useLanguageContext();
-  return isRtl && text ? '\u200F' + text : text;
+  return (text: string): string => (isRtl && text ? '\u200F' + text : text);
+}
+
+/** Text styles for field labels so they align correctly in RTL/LTR. */
+export function useRtlLabelStyle(): TextStyle {
+  const { isRtl } = useLanguageContext();
+  return {
+    textAlign: isRtl ? 'right' : 'left',
+    writingDirection: isRtl ? 'rtl' : 'ltr',
+  };
+}
+
+/** Styles for section headers on form screens so RTL/Hebrew titles align correctly and don't get cut off. */
+export function useSectionHeaderStyle(): {
+  containerStyle: ViewStyle;
+  textStyle: TextStyle;
+} {
+  const { isRtl } = useLanguageContext();
+  return {
+    containerStyle: {
+      marginBottom: spacing.sm,
+      marginTop: spacing.xs,
+    },
+    textStyle: {
+      textAlign: isRtl ? 'right' : 'left',
+      writingDirection: isRtl ? 'rtl' : 'ltr',
+    },
+  };
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(

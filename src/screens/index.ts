@@ -1,12 +1,12 @@
 // Properties tab screens
-export { PropertiesListScreen } from './PropertiesListScreen';
-export { PropertyDetailScreen } from './PropertyDetailScreen';
-export { AddEditPropertyScreen } from './AddEditPropertyScreen';
+export { AddEditPropertyScreen } from "./AddEditPropertyScreen";
+export { PropertiesListScreen } from "./PropertiesListScreen";
+export { PropertyDetailScreen } from "./PropertyDetailScreen";
 
 // Renters tab screens
-export { RentersListScreen } from './RentersListScreen';
-export { RenterDetailScreen } from './RenterDetailScreen';
-export { AddEditRenterScreen } from './AddEditRenterScreen';
+export { AddEditRenterScreen } from "./AddEditRenterScreen";
+export { RenterDetailScreen } from "./RenterDetailScreen";
+export { RentersListScreen } from "./RentersListScreen";
 
 // Settings tab screens
-export { SettingsScreen } from './SettingsScreen';
+export { SettingsScreen } from "./SettingsScreen";

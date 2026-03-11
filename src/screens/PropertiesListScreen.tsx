@@ -43,7 +43,8 @@ export function PropertiesListScreen() {
     return list;
   }, [properties, searchQuery]);
 
-  const searchPlaceholder = useRtlPlaceholder(t('search.placeholderProperties'));
+  const rtlPlaceholder = useRtlPlaceholder();
+  const searchPlaceholder = rtlPlaceholder(t('search.placeholderProperties'));
 
   const handlePropertyPress = (id: number) => {
     router.push(`/(tabs)/properties/${id}` as any);

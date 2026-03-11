@@ -5,7 +5,7 @@ import {
 } from 'react-native-paper';
 import { lightColors, darkColors } from './colors';
 
-const roundness = 12;
+const roundness = 16;
 
 export const lightTheme: MD3Theme = {
   ...MD3LightTheme,
@@ -16,7 +16,7 @@ export const lightTheme: MD3Theme = {
     onPrimary: '#FFFFFF',
     primaryContainer: lightColors.primary,
     onPrimaryContainer: '#FFFFFF',
-    secondary: lightColors.primary,
+    secondary: lightColors.secondary,
     onSecondary: '#FFFFFF',
     background: lightColors.background,
     onBackground: lightColors.textPrimary,
@@ -41,7 +41,7 @@ export const darkTheme: MD3Theme = {
     onPrimary: '#FFFFFF',
     primaryContainer: darkColors.primary,
     onPrimaryContainer: '#FFFFFF',
-    secondary: darkColors.primary,
+    secondary: darkColors.secondary,
     onSecondary: '#FFFFFF',
     background: darkColors.background,
     onBackground: darkColors.textPrimary,

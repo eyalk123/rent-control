@@ -124,7 +124,7 @@ export function PropertyDetailScreen() {
               </View>
               <View style={styles.atGlanceRow}>
                 <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('property.sqFtLabel')}
+                  {t('property.surfaceArea')}
                 </Text>
                 <Text variant="bodyMedium">
                   {property.sq_ft.toLocaleString()}
@@ -154,6 +154,71 @@ export function PropertyDetailScreen() {
               </Text>
             </Card.Content>
           </Card>
+
+          {(property.number_of_rooms != null ||
+            (Array.isArray(property.parking_numbers) && property.parking_numbers.length > 0) ||
+            property.electricity_meter_number ||
+            property.water_meter_tax != null ||
+            property.property_tax != null ||
+            property.house_committee != null) && (
+            <Card style={styles.card} mode="outlined">
+              <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
+                <Text variant="titleSmall" style={styles.sectionHeaderText}>
+                  {t('property.details')}
+                </Text>
+              </View>
+              <Card.Content style={styles.atGlanceContent}>
+                {property.number_of_rooms != null && (
+                  <View style={styles.atGlanceRow}>
+                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                      {t('property.numberOfRooms')}
+                    </Text>
+                    <Text variant="bodyMedium">{property.number_of_rooms}</Text>
+                  </View>
+                )}
+                {Array.isArray(property.parking_numbers) && property.parking_numbers.length > 0 && (
+                  <View style={styles.atGlanceRow}>
+                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                      {t('property.parkingNumbers')}
+                    </Text>
+                    <Text variant="bodyMedium">{property.parking_numbers.join(', ')}</Text>
+                  </View>
+                )}
+                {property.electricity_meter_number != null && property.electricity_meter_number !== '' && (
+                  <View style={styles.atGlanceRow}>
+                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                      {t('property.electricityMeterNumber')}
+                    </Text>
+                    <Text variant="bodyMedium">{property.electricity_meter_number}</Text>
+                  </View>
+                )}
+                {property.water_meter_tax != null && (
+                  <View style={styles.atGlanceRow}>
+                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                      {t('property.waterMeterTax')}
+                    </Text>
+                    <Text variant="bodyMedium">{property.water_meter_tax.toLocaleString()}</Text>
+                  </View>
+                )}
+                {property.property_tax != null && (
+                  <View style={styles.atGlanceRow}>
+                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                      {t('property.propertyTax')}
+                    </Text>
+                    <Text variant="bodyMedium">{property.property_tax.toLocaleString()}</Text>
+                  </View>
+                )}
+                {property.house_committee != null && (
+                  <View style={styles.atGlanceRow}>
+                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                      {t('property.houseCommittee')}
+                    </Text>
+                    <Text variant="bodyMedium">{property.house_committee.toLocaleString()}</Text>
+                  </View>
+                )}
+              </Card.Content>
+            </Card>
+          )}
 
           {property.renters && property.renters.length > 0 ? (
             <Card style={styles.card} mode="outlined">

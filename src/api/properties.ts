@@ -15,12 +15,55 @@ export async function getPropertyById(id: number): Promise<Property> {
 }
 
 function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
-  const { address, city, zip_code, type, sq_ft, purchase_price, image_url } = data;
-  return { address, city, zip_code, type, sq_ft, purchase_price, image_url };
+  const {
+    address,
+    city,
+    zip_code,
+    type,
+    sq_ft,
+    purchase_price,
+    image_url,
+    number_of_rooms,
+    parking_numbers,
+    electricity_meter_number,
+    water_meter_tax,
+    property_tax,
+    house_committee,
+  } = data;
+  const out: PropertyCreate = {
+    address,
+    city,
+    zip_code,
+    type,
+    sq_ft,
+    purchase_price,
+  };
+  if (image_url !== undefined) out.image_url = image_url;
+  if (number_of_rooms !== undefined) out.number_of_rooms = number_of_rooms;
+  if (parking_numbers !== undefined) out.parking_numbers = parking_numbers;
+  if (electricity_meter_number !== undefined) out.electricity_meter_number = electricity_meter_number;
+  if (water_meter_tax !== undefined) out.water_meter_tax = water_meter_tax;
+  if (property_tax !== undefined) out.property_tax = property_tax;
+  if (house_committee !== undefined) out.house_committee = house_committee;
+  return out;
 }
 
 function sanitizePropertyUpdate(data: PropertyUpdate): Record<string, unknown> {
-  const allowed = ['address', 'city', 'zip_code', 'type', 'sq_ft', 'purchase_price', 'image_url'];
+  const allowed = [
+    'address',
+    'city',
+    'zip_code',
+    'type',
+    'sq_ft',
+    'purchase_price',
+    'image_url',
+    'number_of_rooms',
+    'parking_numbers',
+    'electricity_meter_number',
+    'water_meter_tax',
+    'property_tax',
+    'house_committee',
+  ];
   const out: Record<string, unknown> = {};
   for (const key of allowed) {
     const val = data[key as keyof PropertyUpdate];
