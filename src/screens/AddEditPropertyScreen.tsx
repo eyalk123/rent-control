@@ -8,15 +8,7 @@ import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Button, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -113,11 +105,7 @@ export function AddEditPropertyScreen() {
           />
         </TouchableOpacity>
       </View>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 56 : 0}
-      >
+      <View style={styles.container}>
         <ScrollView
           style={[styles.scroll, { backgroundColor: theme.colors.background }]}
           contentContainerStyle={[
@@ -125,8 +113,8 @@ export function AddEditPropertyScreen() {
             { paddingBottom: bottomPadding },
           ]}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
           showsVerticalScrollIndicator={true}
-          scrollEventThrottle={16}
         >
           <BasicInfoCard
             control={control}
@@ -164,7 +152,7 @@ export function AddEditPropertyScreen() {
             {isEdit ? t("property.updateProperty") : t("property.addProperty")}
           </Button>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </ScreenContainer>
   );
 }

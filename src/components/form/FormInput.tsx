@@ -1,16 +1,25 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { TextInput, Text, useTheme } from 'react-native-paper';
-import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { useRtlInputStyle, useLanguageContext, useRtlLabelStyle } from '@/src/context';
-import { spacing, lightColors, darkColors } from '@/src/theme';
+import {
+  useLanguageContext,
+  useRtlInputStyle,
+  useRtlLabelStyle,
+} from "@/src/context";
+import { darkColors, lightColors, spacing } from "@/src/theme";
+import React from "react";
+import {
+  Controller,
+  type Control,
+  type FieldValues,
+  type Path,
+} from "react-hook-form";
+import { StyleSheet, View } from "react-native";
+import { Text, TextInput, useTheme } from "react-native-paper";
 
 type FormInputProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   name: Path<TFieldValues>;
   label: string;
   placeholder?: string;
-  keyboardType?: React.ComponentProps<typeof TextInput>['keyboardType'];
+  keyboardType?: React.ComponentProps<typeof TextInput>["keyboardType"];
   multiline?: boolean;
   dense?: boolean;
 };
@@ -34,7 +43,10 @@ function FormInputInner<TFieldValues extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
+      render={({
+        field: { value, onChange, onBlur },
+        fieldState: { error },
+      }) => (
         <View style={styles.inputWrap}>
           <Text
             variant="bodyMedium"
@@ -53,13 +65,20 @@ function FormInputInner<TFieldValues extends FieldValues>({
             dense={dense}
             keyboardType={keyboardType}
             multiline={multiline}
-            style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
+            style={[
+              styles.input,
+              { backgroundColor: colors.inputFilledBackground },
+              rtlInputStyle,
+            ]}
             contentStyle={rtlInputStyle}
             placeholder={placeholder}
-            textAlign={isRtl ? 'right' : 'left'}
+            textAlign={isRtl ? "right" : "left"}
           />
           {error ? (
-            <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>
+            <Text
+              variant="bodySmall"
+              style={[styles.errorText, { color: colors.error }]}
+            >
               {error.message}
             </Text>
           ) : null}
@@ -86,4 +105,3 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
 });
-
