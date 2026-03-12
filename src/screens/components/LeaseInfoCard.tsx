@@ -1,4 +1,5 @@
 import { FormInput } from "@/src/components/form/FormInput";
+import { FormChipInput } from "@/src/components/form/FormChipInput";
 import { useRtlPlaceholder, useSectionHeaderStyle } from "@/src/context";
 import { darkColors, lightColors, spacing } from "@/src/theme";
 import type { TFunction } from "i18next";
@@ -72,7 +73,7 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
           label={t("property.numberOfRooms")}
           keyboardType="numeric"
         />
-        <FormInput
+        <FormChipInput
           control={control}
           name={"parkingNumbersStr" as any}
           label={t("property.parkingNumbers")}
