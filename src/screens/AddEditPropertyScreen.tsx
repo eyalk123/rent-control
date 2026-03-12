@@ -4,12 +4,18 @@ import { usePropertyForm } from "@/src/hooks/usePropertyForm";
 import { BasicInfoCard } from "@/src/screens/components/BasicInfoCard";
 import { LeaseInfoCard } from "@/src/screens/components/LeaseInfoCard";
 import { darkColors, lightColors, spacing } from "@/src/theme";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View
+} from "react-native";
 import { Button, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
