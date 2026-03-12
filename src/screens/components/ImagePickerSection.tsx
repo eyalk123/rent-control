@@ -32,48 +32,56 @@ export function ImagePickerSection({ imageUri, setImageUri, t }: ImagePickerSect
     }
   };
 
-  return imageUri ? (
-    <View style={styles.imagePreview}>
-      <Image
-        source={{ uri: imageUri }}
-        style={styles.previewImage}
-        resizeMode="cover"
-      />
-      <View style={styles.imageActions}>
+  return (
+    <View style={styles.centerWrap}>
+      {imageUri ? (
+        <View style={styles.imagePreview}>
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.previewImage}
+            resizeMode="cover"
+          />
+          <View style={styles.imageActions}>
+            <Button
+              mode="outlined"
+              onPress={pickImage}
+              style={styles.changeImageBtn}
+              icon="camera"
+              compact
+            >
+              {t('property.changeImage')}
+            </Button>
+            <Button
+              mode="outlined"
+              onPress={() => setImageUri(null)}
+              style={styles.changeImageBtn}
+              icon="close"
+              compact
+            >
+              {t('property.removePhoto')}
+            </Button>
+          </View>
+        </View>
+      ) : (
         <Button
           mode="outlined"
           onPress={pickImage}
-          style={styles.changeImageBtn}
+          style={[styles.imageButton, { backgroundColor: colors.inputFilledBackground }]}
           icon="camera"
           compact
         >
-          {t('property.changeImage')}
+          {t('property.selectImage')}
         </Button>
-        <Button
-          mode="outlined"
-          onPress={() => setImageUri(null)}
-          style={styles.changeImageBtn}
-          icon="close"
-          compact
-        >
-          {t('property.removePhoto')}
-        </Button>
-      </View>
+      )}
     </View>
-  ) : (
-    <Button
-      mode="outlined"
-      onPress={pickImage}
-      style={[styles.imageButton, { backgroundColor: colors.inputFilledBackground }]}
-      icon="camera"
-      compact
-    >
-      {t('property.selectImage')}
-    </Button>
   );
 }
 
 const styles = StyleSheet.create({
+  centerWrap: {
+    width: '100%',
+    alignItems: 'center',
+  },
   imageButton: {
     marginBottom: spacing.md,
     borderRadius: 12,

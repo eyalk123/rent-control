@@ -39,12 +39,12 @@ export function RentersListScreen() {
   }, [renters, searchQuery]);
 
   const handleRenterPress = (id: number) => {
-    router.push(`/(tabs)/renters/${id}` as any);
+    router.push(`/renters/${id}` as any);
   };
 
   const handleAddPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/(tabs)/renters/add' as any);
+    router.push('/renters/add' as any);
   };
 
   const onRefresh = async () => {

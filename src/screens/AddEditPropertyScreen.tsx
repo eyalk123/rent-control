@@ -1,18 +1,25 @@
-import React from 'react';
-import { Alert, ScrollView, StyleSheet, View, Platform, KeyboardAvoidingView } from 'react-native';
-import { Button, useTheme } from 'react-native-paper';
-import * as Haptics from 'expo-haptics';
-import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { usePropertyContext, useLanguageContext } from '@/src/context';
-import { ScreenContainer, LoadingOverlay } from '@/src/components';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { spacing } from '@/src/theme';
-import { lightColors, darkColors } from '@/src/theme';
-import { usePropertyForm } from '@/src/hooks/usePropertyForm';
-import { ImagePickerSection } from '@/src/screens/components/ImagePickerSection';
-import { BasicInfoCard } from '@/src/screens/components/BasicInfoCard';
-import { LeaseInfoCard } from '@/src/screens/components/LeaseInfoCard';
+import { LoadingOverlay, ScreenContainer } from "@/src/components";
+import { useLanguageContext, usePropertyContext } from "@/src/context";
+import { usePropertyForm } from "@/src/hooks/usePropertyForm";
+import { BasicInfoCard } from "@/src/screens/components/BasicInfoCard";
+import { LeaseInfoCard } from "@/src/screens/components/LeaseInfoCard";
+import { darkColors, lightColors, spacing } from "@/src/theme";
+import * as Haptics from "expo-haptics";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Button, useTheme } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function AddEditPropertyScreen() {
   const { t } = useTranslation();
@@ -29,7 +36,14 @@ export function AddEditPropertyScreen() {
 
   const navigation = useNavigation();
 
-  const { formMethods, onSubmit, isSubmitting, isFetching, imageUri, setImageUri } = usePropertyForm({
+  const {
+    formMethods,
+    onSubmit,
+    isSubmitting,
+    isFetching,
+    imageUri,
+    setImageUri,
+  } = usePropertyForm({
     id,
     t,
     refreshProperties,
@@ -39,20 +53,20 @@ export function AddEditPropertyScreen() {
   const { formState, control } = formMethods;
 
   React.useEffect(() => {
-    const unsub = navigation.addListener('beforeRemove', (e) => {
+    const unsub = navigation.addListener("beforeRemove", (e) => {
       if (!formState.isDirty) return;
       e.preventDefault();
       Alert.alert(
-        t('common.discardChanges'),
-        t('common.discardChangesMessage'),
+        t("common.discardChanges"),
+        t("common.discardChangesMessage"),
         [
-          { text: t('common.cancel'), style: 'cancel', onPress: () => {} },
+          { text: t("common.cancel"), style: "cancel", onPress: () => {} },
           {
-            text: t('common.discard'),
-            style: 'destructive',
+            text: t("common.discard"),
+            style: "destructive",
             onPress: () => navigation.dispatch(e.data.action),
           },
-        ]
+        ],
       );
     });
     return unsub;
@@ -73,10 +87,36 @@ export function AddEditPropertyScreen() {
 
   return (
     <ScreenContainer>
+      <View
+        style={[
+          styles.topRow,
+          {
+            paddingTop: insets.top + spacing.xs,
+            paddingBottom: spacing.sm,
+            paddingHorizontal: spacing.formPaddingHorizontal,
+            backgroundColor: theme.colors.background,
+            flexDirection: isRtl ? "row-reverse" : "row",
+          },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          style={styles.backButton}
+          accessibilityLabel={t("common.back")}
+          accessibilityRole="button"
+        >
+          <MaterialCommunityIcons
+            name={isRtl ? "chevron-right" : "chevron-left"}
+            size={28}
+            color={colors.textSecondary}
+          />
+        </TouchableOpacity>
+      </View>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 56 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 56 : 0}
       >
         <ScrollView
           style={[styles.scroll, { backgroundColor: theme.colors.background }]}
@@ -87,18 +127,22 @@ export function AddEditPropertyScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={true}
         >
-        <ImagePickerSection imageUri={imageUri} setImageUri={setImageUri} t={t} />
+          <BasicInfoCard
+            control={control}
+            t={t}
+            imageUri={imageUri}
+            setImageUri={setImageUri}
+          />
 
-        <BasicInfoCard control={control} t={t} />
-
-        <LeaseInfoCard control={control} t={t} />
+          <LeaseInfoCard control={control} t={t} />
         </ScrollView>
         <View
           style={[
             styles.submitBar,
             {
-              paddingBottom: insets.bottom + spacing.sm,
+              paddingBottom: 1,
               backgroundColor: theme.colors.background,
+              borderBottomWidth: 1,
               borderTopWidth: 1,
               borderTopColor: colors.outline,
             },
@@ -112,11 +156,11 @@ export function AddEditPropertyScreen() {
             style={[styles.submitButton, { minHeight: 48 }]}
             contentStyle={styles.submitButtonContent}
             accessibilityLabel={
-              isEdit ? t('property.updateProperty') : t('property.addProperty')
+              isEdit ? t("property.updateProperty") : t("property.addProperty")
             }
             accessibilityRole="button"
           >
-            {isEdit ? t('property.updateProperty') : t('property.addProperty')}
+            {isEdit ? t("property.updateProperty") : t("property.addProperty")}
           </Button>
         </View>
       </KeyboardAvoidingView>
@@ -125,6 +169,16 @@ export function AddEditPropertyScreen() {
 }
 
 const styles = StyleSheet.create({
+  topRow: {
+    alignItems: "center",
+  },
+  backButton: {
+    padding: spacing.xs,
+  },
+  imagePickerWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
   container: {
     flex: 1,
   },

@@ -10,7 +10,7 @@ interface ScreenContainerProps {
 
 export function ScreenContainer({
   children,
-  edges = ['top', 'left', 'right'],
+  edges = ['top', 'bottom', 'left', 'right'],
 }: ScreenContainerProps) {
   const theme = useTheme();
 

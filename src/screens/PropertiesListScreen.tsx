@@ -47,12 +47,12 @@ export function PropertiesListScreen() {
   const searchPlaceholder = rtlPlaceholder(t('search.placeholderProperties'));
 
   const handlePropertyPress = (id: number) => {
-    router.push(`/(tabs)/properties/${id}` as any);
+    router.push(`/properties/${id}` as any);
   };
 
   const handleAddPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/(tabs)/properties/add' as any);
+    router.push('/properties/add' as any);
   };
 
   const onRefresh = async () => {

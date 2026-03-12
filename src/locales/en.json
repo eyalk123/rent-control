@@ -128,6 +128,7 @@
     "delinquent": "Delinquent"
   },
   "common": {
+    "back": "Back",
     "required": "Required",
     "optional": "Optional",
     "discardChanges": "Discard changes?",

@@ -1,11 +1,11 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
-import type { Control, FieldValues } from 'react-hook-form';
-import { FormInput } from '@/src/components/form/FormInput';
-import { spacing, lightColors, darkColors } from '@/src/theme';
-import { useSectionHeaderStyle, useLanguageContext, useRtlPlaceholder } from '@/src/context';
-import type { TFunction } from 'i18next';
+import { FormInput } from "@/src/components/form/FormInput";
+import { useRtlPlaceholder, useSectionHeaderStyle } from "@/src/context";
+import { darkColors, lightColors, spacing } from "@/src/theme";
+import type { TFunction } from "i18next";
+import React from "react";
+import type { Control, FieldValues } from "react-hook-form";
+import { StyleSheet, View } from "react-native";
+import { Card, Text, useTheme } from "react-native-paper";
 
 type LeaseInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -19,19 +19,24 @@ export function LeaseInfoCard<TFieldValues extends FieldValues>({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const sectionHeaderStyle = useSectionHeaderStyle();
-  const { isRtl } = useLanguageContext();
   const rtlPlaceholder = useRtlPlaceholder();
 
   return (
     <Card
-      style={[styles.sectionCard, { backgroundColor: colors.cardBackground, elevation: theme.dark ? 4 : 2 }]}
+      style={[
+        styles.sectionCard,
+        {
+          backgroundColor: colors.cardBackground,
+          elevation: theme.dark ? 4 : 2,
+        },
+      ]}
       mode="outlined"
     >
       <Card.Content style={styles.cardContent}>
         <View
           style={[
             sectionHeaderStyle.containerStyle,
-            { flexDirection: isRtl ? 'row-reverse' : 'row', alignItems: 'center' },
+            { flexDirection: "row", alignItems: "center" },
           ]}
         >
           <View
@@ -39,8 +44,7 @@ export function LeaseInfoCard<TFieldValues extends FieldValues>({
               styles.sectionAccent,
               {
                 backgroundColor: colors.sectionAccent,
-                marginRight: isRtl ? 0 : spacing.sm,
-                marginLeft: isRtl ? spacing.sm : 0,
+                marginEnd: spacing.sm,
               },
             ]}
           />
@@ -49,7 +53,7 @@ export function LeaseInfoCard<TFieldValues extends FieldValues>({
             style={[styles.sectionHeader, sectionHeaderStyle.textStyle]}
             numberOfLines={1}
           >
-            {t('property.leaseInfo')}
+            {t("property.leaseInfo")}
           </Text>
         </View>
         <View
@@ -57,64 +61,44 @@ export function LeaseInfoCard<TFieldValues extends FieldValues>({
             sectionHeaderStyle.containerStyle,
             {
               marginTop: spacing.sm,
-              flexDirection: isRtl ? 'row-reverse' : 'row',
-              alignItems: 'center',
+              flexDirection: "row",
+              alignItems: "center",
             },
           ]}
-        >
-          <View
-            style={[
-              styles.sectionAccent,
-              styles.sectionAccentSmall,
-              {
-                backgroundColor: colors.sectionAccent,
-                marginRight: isRtl ? 0 : spacing.sm,
-                marginLeft: isRtl ? spacing.sm : 0,
-              },
-            ]}
-          />
-          <Text
-            variant="titleSmall"
-            style={[styles.subSectionHeader, sectionHeaderStyle.textStyle]}
-            numberOfLines={1}
-          >
-            {t('property.additionalDetails')}
-          </Text>
-        </View>
-
+        />
         <FormInput
           control={control}
-          name={'numberOfRooms' as any}
-          label={t('property.numberOfRooms')}
+          name={"numberOfRooms" as any}
+          label={t("property.numberOfRooms")}
           keyboardType="numeric"
         />
         <FormInput
           control={control}
-          name={'parkingNumbersStr' as any}
-          label={t('property.parkingNumbers')}
-          placeholder={rtlPlaceholder(t('property.parkingNumbersPlaceholder'))}
+          name={"parkingNumbersStr" as any}
+          label={t("property.parkingNumbers")}
+          placeholder={rtlPlaceholder(t("property.parkingNumbersPlaceholder"))}
         />
         <FormInput
           control={control}
-          name={'electricityMeterNumber' as any}
-          label={t('property.electricityMeterNumber')}
+          name={"electricityMeterNumber" as any}
+          label={t("property.electricityMeterNumber")}
         />
         <FormInput
           control={control}
-          name={'waterMeterTax' as any}
-          label={t('property.waterMeterTax')}
+          name={"waterMeterTax" as any}
+          label={t("property.waterMeterTax")}
           keyboardType="decimal-pad"
         />
         <FormInput
           control={control}
-          name={'propertyTax' as any}
-          label={t('property.propertyTax')}
+          name={"propertyTax" as any}
+          label={t("property.propertyTax")}
           keyboardType="decimal-pad"
         />
         <FormInput
           control={control}
-          name={'houseCommittee' as any}
-          label={t('property.houseCommittee')}
+          name={"houseCommittee" as any}
+          label={t("property.houseCommittee")}
           keyboardType="decimal-pad"
         />
       </Card.Content>
@@ -132,12 +116,12 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   sectionHeader: {
-    flex: 1,
-    fontWeight: '700',
+    flexShrink: 1,
+    fontWeight: "700",
   },
   subSectionHeader: {
-    flex: 1,
-    fontWeight: '600',
+    flexShrink: 1,
+    fontWeight: "600",
     opacity: 0.9,
   },
   sectionAccent: {
@@ -145,8 +129,4 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 2,
   },
-  sectionAccentSmall: {
-    height: 18,
-  },
 });
-

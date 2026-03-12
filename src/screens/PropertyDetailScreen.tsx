@@ -57,7 +57,7 @@ export function PropertyDetailScreen() {
 
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(`/(tabs)/properties/edit/${property!.id}` as any);
+    router.push(`/properties/edit/${property!.id}` as any);
   };
 
   if (loading) {

@@ -51,7 +51,7 @@ export function RenterDetailScreen() {
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (renter) {
-      router.push(`/(tabs)/renters/edit/${renter.id}` as any);
+      router.push(`/renters/edit/${renter.id}` as any);
     }
   };
 

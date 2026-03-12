@@ -4,24 +4,28 @@ import { Card, Text, useTheme } from 'react-native-paper';
 import type { Control, FieldValues } from 'react-hook-form';
 import { FormInput } from '@/src/components/form/FormInput';
 import { FormDropdown } from '@/src/components/form/FormDropdown';
+import { ImagePickerSection } from '@/src/screens/components/ImagePickerSection';
 import { spacing, lightColors, darkColors } from '@/src/theme';
-import { useSectionHeaderStyle, useLanguageContext } from '@/src/context';
+import { useSectionHeaderStyle } from '@/src/context';
 import type { PropertyType } from '@/src/types';
 import type { TFunction } from 'i18next';
 
 type BasicInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   t: TFunction;
+  imageUri: string | null;
+  setImageUri: (uri: string | null) => void;
 };
 
 export function BasicInfoCard<TFieldValues extends FieldValues>({
   control,
   t,
+  imageUri,
+  setImageUri,
 }: BasicInfoCardProps<TFieldValues>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const sectionHeaderStyle = useSectionHeaderStyle();
-  const { isRtl } = useLanguageContext();
 
   const translateTypeLabel = (type: PropertyType) =>
     t(`property.type${type.charAt(0).toUpperCase() + type.slice(1)}`);
@@ -35,7 +39,7 @@ export function BasicInfoCard<TFieldValues extends FieldValues>({
         <View
           style={[
             sectionHeaderStyle.containerStyle,
-            { flexDirection: isRtl ? 'row-reverse' : 'row', alignItems: 'center' },
+            { flexDirection: 'row', alignItems: 'center' },
           ]}
         >
           <View
@@ -43,8 +47,7 @@ export function BasicInfoCard<TFieldValues extends FieldValues>({
               styles.sectionAccent,
               {
                 backgroundColor: colors.sectionAccent,
-                marginRight: isRtl ? 0 : spacing.sm,
-                marginLeft: isRtl ? spacing.sm : 0,
+                marginEnd: spacing.sm,
               },
             ]}
           />
@@ -92,6 +95,12 @@ export function BasicInfoCard<TFieldValues extends FieldValues>({
           label={`${t('property.purchasePrice')} *`}
           keyboardType="decimal-pad"
         />
+
+        <ImagePickerSection
+          imageUri={imageUri}
+          setImageUri={setImageUri}
+          t={t}
+        />
       </Card.Content>
     </Card>
   );
@@ -107,7 +116,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   sectionHeader: {
-    flex: 1,
+    flexShrink: 1,
     fontWeight: '700',
   },
   sectionAccent: {

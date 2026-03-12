@@ -39,6 +39,8 @@ export function useRtlPlaceholder() {
 export function useRtlLabelStyle(): TextStyle {
   const { isRtl } = useLanguageContext();
   return {
+    // In a flex column with direction: 'rtl', 'flex-start' aligns to the right edge.
+    alignSelf: 'flex-start',
     textAlign: isRtl ? 'right' : 'left',
     writingDirection: isRtl ? 'rtl' : 'ltr',
   };
