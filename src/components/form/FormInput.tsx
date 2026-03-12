@@ -15,7 +15,7 @@ type FormInputProps<TFieldValues extends FieldValues> = {
   dense?: boolean;
 };
 
-export function FormInput<TFieldValues extends FieldValues>({
+function FormInputInner<TFieldValues extends FieldValues>({
   control,
   name,
   label,
@@ -68,6 +68,8 @@ export function FormInput<TFieldValues extends FieldValues>({
     />
   );
 }
+
+export const FormInput = React.memo(FormInputInner) as typeof FormInputInner;
 
 const styles = StyleSheet.create({
   inputWrap: {

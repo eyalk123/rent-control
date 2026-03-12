@@ -17,7 +17,7 @@ type BasicInfoCardProps<TFieldValues extends FieldValues> = {
   setImageUri: (uri: string | null) => void;
 };
 
-export function BasicInfoCard<TFieldValues extends FieldValues>({
+function BasicInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
   imageUri,
@@ -105,6 +105,8 @@ export function BasicInfoCard<TFieldValues extends FieldValues>({
     </Card>
   );
 }
+
+export const BasicInfoCard = React.memo(BasicInfoCardInner) as typeof BasicInfoCardInner;
 
 const styles = StyleSheet.create({
   sectionCard: {

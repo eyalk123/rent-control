@@ -12,7 +12,7 @@ type LeaseInfoCardProps<TFieldValues extends FieldValues> = {
   t: TFunction;
 };
 
-export function LeaseInfoCard<TFieldValues extends FieldValues>({
+function LeaseInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
 }: LeaseInfoCardProps<TFieldValues>) {
@@ -105,6 +105,8 @@ export function LeaseInfoCard<TFieldValues extends FieldValues>({
     </Card>
   );
 }
+
+export const LeaseInfoCard = React.memo(LeaseInfoCardInner) as typeof LeaseInfoCardInner;
 
 const styles = StyleSheet.create({
   sectionCard: {

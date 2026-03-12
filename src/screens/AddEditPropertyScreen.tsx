@@ -31,8 +31,8 @@ export function AddEditPropertyScreen() {
   const insets = useSafeAreaInsets();
   const { refreshProperties } = usePropertyContext();
   const isEdit = Boolean(id);
-  const submitBarHeight = 72;
-  const bottomPadding = submitBarHeight + insets.bottom + spacing.md;
+  const submitBarHeight = 64;
+  const bottomPadding = submitBarHeight + insets.bottom;
 
   const navigation = useNavigation();
 
@@ -115,17 +115,18 @@ export function AddEditPropertyScreen() {
       </View>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "padding"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 56 : 0}
       >
         <ScrollView
           style={[styles.scroll, { backgroundColor: theme.colors.background }]}
           contentContainerStyle={[
             styles.content,
-            { paddingBottom: bottomPadding, flexGrow: 1 },
+            { paddingBottom: bottomPadding },
           ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={true}
+          scrollEventThrottle={16}
         >
           <BasicInfoCard
             control={control}
