@@ -24,8 +24,12 @@ export interface LanguageContextType {
 /** Style for TextInput/Searchbar to align placeholder and text correctly in RTL. */
 export function useRtlInputStyle() {
   const { isRtl } = useLanguageContext();
+  
+  // We remove `writingDirection: 'rtl'` because it causes the native Android 
+  // TextInput to swallow vertical pan gestures in a ScrollView.
+  // `textAlign: 'right'` is sufficient for RTL visual alignment.
   return isRtl
-    ? ({ textAlign: 'right' as const, writingDirection: 'rtl' as const })
+    ? ({ textAlign: 'right' as const })
     : {};
 }
 

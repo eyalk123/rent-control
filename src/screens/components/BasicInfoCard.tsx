@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import type { Control, FieldValues } from 'react-hook-form';
 import { FormInput } from '@/src/components/form/FormInput';
 import { FormDropdown } from '@/src/components/form/FormDropdown';
@@ -31,11 +31,17 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
     t(`property.type${type.charAt(0).toUpperCase() + type.slice(1)}`);
 
   return (
-    <Card
-      style={[styles.sectionCard, { backgroundColor: colors.cardBackground, elevation: theme.dark ? 4 : 2 }]}
-      mode="outlined"
+    <View
+      style={[
+        styles.sectionCard,
+        {
+          backgroundColor: colors.cardBackground,
+          borderColor: colors.outline,
+          borderWidth: 1,
+        },
+      ]}
     >
-      <Card.Content style={styles.cardContent}>
+      <View style={styles.cardContent}>
         <View
           style={[
             sectionHeaderStyle.containerStyle,
@@ -101,8 +107,8 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
           setImageUri={setImageUri}
           t={t}
         />
-      </Card.Content>
-    </Card>
+      </View>
+    </View>
   );
 }
 
@@ -112,10 +118,12 @@ const styles = StyleSheet.create({
   sectionCard: {
     marginBottom: spacing.xl,
     borderRadius: 16,
+    overflow: 'hidden',
   },
   cardContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
+    paddingTop: spacing.lg,
   },
   sectionHeader: {
     flexShrink: 1,
@@ -127,4 +135,3 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 });
-

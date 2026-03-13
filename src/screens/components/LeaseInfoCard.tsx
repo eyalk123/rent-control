@@ -6,7 +6,7 @@ import type { TFunction } from "i18next";
 import React from "react";
 import type { Control, FieldValues } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
-import { Card, Text, useTheme } from "react-native-paper";
+import { Text, useTheme } from "react-native-paper";
 
 type LeaseInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -23,17 +23,17 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
   const rtlPlaceholder = useRtlPlaceholder();
 
   return (
-    <Card
+    <View
       style={[
         styles.sectionCard,
         {
           backgroundColor: colors.cardBackground,
-          elevation: theme.dark ? 4 : 2,
+          borderColor: colors.outline,
+          borderWidth: 1,
         },
       ]}
-      mode="outlined"
     >
-      <Card.Content style={styles.cardContent}>
+      <View style={styles.cardContent}>
         <View
           style={[
             sectionHeaderStyle.containerStyle,
@@ -102,8 +102,8 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
           label={t("property.houseCommittee")}
           keyboardType="decimal-pad"
         />
-      </Card.Content>
-    </Card>
+      </View>
+    </View>
   );
 }
 
@@ -113,10 +113,12 @@ const styles = StyleSheet.create({
   sectionCard: {
     marginBottom: spacing.xl,
     borderRadius: 16,
+    overflow: 'hidden',
   },
   cardContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
+    paddingTop: spacing.lg,
   },
   sectionHeader: {
     flexShrink: 1,

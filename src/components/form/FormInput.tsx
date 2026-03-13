@@ -11,7 +11,6 @@ import {
   type FieldValues,
   type Path,
 } from "react-hook-form";
-// 1. Import TextInput from react-native instead of react-native-paper
 import { StyleSheet, View, TextInput as RNTextInput } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
@@ -61,27 +60,32 @@ function FormInputInner<TFieldValues extends FieldValues>({
             {label}
           </Text>
           
-          {/* 2. Use the native TextInput and style it to look like an outlined input */}
-          <RNTextInput
-            value={value as string}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            keyboardType={keyboardType}
-            multiline={multiline}
-            placeholder={placeholder}
-            placeholderTextColor={colors.textSecondary}
-            textAlign={isRtl ? "right" : "left"}
-            style={[
-              styles.nativeInput,
-              {
-                backgroundColor: colors.inputFilledBackground,
-                borderColor: error ? colors.error : colors.outline,
-                color: colors.textPrimary,
-                minHeight: dense ? 40 : 48,
-              },
-              rtlInputStyle,
-            ]}
-          />
+          {/* THE FIX: We force only the input container back to LTR. 
+              This prevents Android from swallowing the ScrollView pan gesture in Hebrew. */}
+          <View style={{ direction: 'ltr' }}>
+            <RNTextInput
+              value={value as string}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              keyboardType={keyboardType}
+              multiline={multiline}
+              placeholder={placeholder}
+              placeholderTextColor={colors.textSecondary}
+              // We manually push the text to the right so it visually remains perfect RTL
+              textAlign={isRtl ? "right" : "left"}
+              style={[
+                styles.nativeInput,
+                {
+                  backgroundColor: colors.inputFilledBackground,
+                  borderColor: error ? colors.error : colors.outline,
+                  color: colors.textPrimary,
+                  minHeight: dense ? 40 : 48,
+                },
+                rtlInputStyle,
+              ]}
+            />
+          </View>
+          
           {error ? (
             <Text
               variant="bodySmall"

@@ -11,14 +11,14 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
-  KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from "react-native";
 import { Button, useTheme } from "react-native-paper";
+// 1. Import the ultimate fix
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 export function AddEditPropertyScreen() {
   const { t } = useTranslation();
@@ -83,60 +83,60 @@ export function AddEditPropertyScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        // 2. These props are the magic combination
+        enableOnAndroid={true}
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={Platform.OS === "ios" ? 20 : 0}
+        bounces={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
+        {/* Header */}
+        <View
+          style={[
+            styles.header,
+            { flexDirection: isRtl ? "row-reverse" : "row" },
+          ]}
         >
-          {/* Header */}
-          <View
-            style={[
-              styles.header,
-              { flexDirection: isRtl ? "row-reverse" : "row" },
-            ]}
-          >
-            <TouchableOpacity
-              onPress={() => router.back()}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              accessibilityLabel={t("common.back")}
-              accessibilityRole="button"
-            >
-              <MaterialCommunityIcons
-                name={isRtl ? "chevron-right" : "chevron-left"}
-                size={28}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <BasicInfoCard
-            control={control}
-            t={t}
-            imageUri={imageUri}
-            setImageUri={setImageUri}
-          />
-
-          <LeaseInfoCard control={control} t={t} />
-
-          <Button
-            mode="contained"
-            onPress={onPressSubmit}
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            style={styles.saveButton}
-            contentStyle={styles.saveButtonContent}
-            accessibilityLabel={
-              isEdit ? t("property.updateProperty") : t("property.addProperty")
-            }
+          <TouchableOpacity
+            onPress={() => router.back()}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityLabel={t("common.back")}
             accessibilityRole="button"
           >
-            {isEdit ? t("property.updateProperty") : t("property.addProperty")}
-          </Button>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            <MaterialCommunityIcons
+              name={isRtl ? "chevron-right" : "chevron-left"}
+              size={28}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <BasicInfoCard
+          control={control}
+          t={t}
+          imageUri={imageUri}
+          setImageUri={setImageUri}
+        />
+
+        <LeaseInfoCard control={control} t={t} />
+
+        <Button
+          mode="contained"
+          onPress={onPressSubmit}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          style={styles.saveButton}
+          contentStyle={styles.saveButtonContent}
+          accessibilityLabel={
+            isEdit ? t("property.updateProperty") : t("property.addProperty")
+          }
+          accessibilityRole="button"
+        >
+          {isEdit ? t("property.updateProperty") : t("property.addProperty")}
+        </Button>
+      </KeyboardAwareScrollView>
     </ScreenContainer>
   );
 }
@@ -145,6 +145,8 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.formPaddingHorizontal,
     gap: spacing.sm,
+    // Add a little bottom padding so the button doesn't hug the keyboard
+    paddingBottom: 40,
   },
   header: {
     alignItems: "center",

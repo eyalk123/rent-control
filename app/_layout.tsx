@@ -5,6 +5,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
+// 1. Import GestureHandlerRootView
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   PropertyProvider,
   RenterProvider,
@@ -42,10 +44,13 @@ function AppContent() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    // 2. Wrap the entire app and give it a flex: 1 so it fills the screen
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
