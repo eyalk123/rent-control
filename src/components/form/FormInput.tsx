@@ -11,15 +11,16 @@ import {
   type FieldValues,
   type Path,
 } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
-import { Text, TextInput, useTheme } from "react-native-paper";
+// 1. Import TextInput from react-native instead of react-native-paper
+import { StyleSheet, View, TextInput as RNTextInput } from "react-native";
+import { Text, useTheme } from "react-native-paper";
 
 type FormInputProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   name: Path<TFieldValues>;
   label: string;
   placeholder?: string;
-  keyboardType?: React.ComponentProps<typeof TextInput>["keyboardType"];
+  keyboardType?: React.ComponentProps<typeof RNTextInput>["keyboardType"];
   multiline?: boolean;
   dense?: boolean;
 };
@@ -50,29 +51,36 @@ function FormInputInner<TFieldValues extends FieldValues>({
         <View style={styles.inputWrap}>
           <Text
             variant="bodyMedium"
-            style={[styles.label, rtlLabelStyle]}
+            style={[
+              styles.label,
+              rtlLabelStyle,
+              { color: error ? colors.error : colors.textPrimary },
+            ]}
             numberOfLines={1}
           >
             {label}
           </Text>
-          <TextInput
-            // We render a separate label Text above, so keep the field itself label-less
+          
+          {/* 2. Use the native TextInput and style it to look like an outlined input */}
+          <RNTextInput
             value={value as string}
             onChangeText={onChange}
             onBlur={onBlur}
-            error={!!error}
-            mode="outlined"
-            dense={dense}
             keyboardType={keyboardType}
             multiline={multiline}
+            placeholder={placeholder}
+            placeholderTextColor={colors.textSecondary}
+            textAlign={isRtl ? "right" : "left"}
             style={[
-              styles.input,
-              { backgroundColor: colors.inputFilledBackground },
+              styles.nativeInput,
+              {
+                backgroundColor: colors.inputFilledBackground,
+                borderColor: error ? colors.error : colors.outline,
+                color: colors.textPrimary,
+                minHeight: dense ? 40 : 48,
+              },
               rtlInputStyle,
             ]}
-            contentStyle={rtlInputStyle}
-            placeholder={placeholder}
-            textAlign={isRtl ? "right" : "left"}
           />
           {error ? (
             <Text
@@ -96,12 +104,16 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 4,
+    fontWeight: "500",
   },
-  input: {
-    marginBottom: 0,
+  nativeInput: {
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 16,
   },
   errorText: {
-    marginTop: 2,
-    marginBottom: spacing.xs,
+    marginTop: 4,
   },
 });

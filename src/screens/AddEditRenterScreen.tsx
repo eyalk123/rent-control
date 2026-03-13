@@ -23,11 +23,11 @@ import {
     Alert,
     KeyboardAvoidingView,
     Platform,
-    ScrollView,
     StyleSheet,
     TouchableOpacity,
     View,
 } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { Button, Card, Text, TextInput, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -286,6 +286,7 @@ export function AddEditRenterScreen() {
             { paddingBottom: bottomPadding, flexGrow: 1 },
           ]}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={true}
         >
           <View style={styles.profileSection}>
