@@ -2,7 +2,8 @@
   "tabs": {
     "properties": "Properties",
     "renters": "Renters",
-    "settings": "Settings"
+    "settings": "Settings",
+    "transactions": "Transactions"
   },
   "settings": {
     "title": "Settings",
@@ -26,7 +27,8 @@
     "renters": "Renters",
     "renterDetails": "Renter Details",
     "addRenter": "Add Renter",
-    "editRenter": "Edit Renter"
+    "editRenter": "Edit Renter",
+    "transactions": "Transactions"
   },
   "property": {
     "basicInfo": "Basic Information",
@@ -113,11 +115,14 @@
     "noProperties": "No properties yet. Tap + to add one.",
     "noRenters": "No renters yet. Tap + to add one.",
     "noSearchResults": "No renters match your search.",
-    "noPropertySearchResults": "No properties match your search."
+    "noPropertySearchResults": "No properties match your search.",
+    "noTransactions": "No transactions yet. Tap + to add one.",
+    "noTransactionSearchResults": "No transactions match your search."
   },
   "search": {
     "placeholder": "Search renters",
-    "placeholderProperties": "Search properties, addresses..."
+    "placeholderProperties": "Search properties, addresses...",
+    "placeholderTransactions": "Search by renter, property, category..."
   },
   "filters": {
     "all": "All",
@@ -134,7 +139,8 @@
     "discardChanges": "Discard changes?",
     "discardChangesMessage": "You have unsaved changes. Are you sure you want to leave?",
     "discard": "Discard",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "next": "Next"
   },
   "validation": {
     "title": "Validation",
@@ -152,7 +158,12 @@
     "leaseStartRequired": "Lease start date is required.",
     "leaseEndRequired": "Lease end date is required.",
     "paymentDayInvalid": "Date of payment must be between 1 and 31.",
-    "dateFormatInvalid": "Use format YYYY-MM-DD."
+    "dateFormatInvalid": "Use format YYYY-MM-DD.",
+    "propertyRequired": "Property is required.",
+    "amountRequired": "Valid amount is required.",
+    "monthForRequired": "Month is required.",
+    "dateRequired": "Date of payment is required.",
+    "paymentMethodRequired": "Payment method is required."
   },
   "error": {
     "title": "Error",
@@ -162,7 +173,37 @@
     "invalidPropertyId": "Invalid property ID",
     "invalidRenterId": "Invalid renter ID",
     "propertyNotFound": "Property not found",
-    "renterNotFound": "Renter not found"
+    "renterNotFound": "Renter not found",
+    "saveTransactionFailed": "Failed to save transaction"
+  },
+  "transactions": {
+    "addTransaction": "Add transaction",
+    "addRevenue": "Add revenue",
+    "addExpense": "Add expense",
+    "chooseType": "What kind of transaction do you want to add?",
+    "typeRevenue": "Revenue",
+    "typeExpense": "Expense",
+    "filterAll": "All",
+    "filterRevenue": "Revenues",
+    "filterExpense": "Expenses",
+    "property": "Property",
+    "renter": "Renter",
+    "renterOptional": "Renter (optional)",
+    "amount": "Amount",
+    "dateOfPayment": "Date of payment",
+    "monthFor": "For: {{month}}",
+    "monthForLabel": "Month",
+    "monthForPlaceholder": "Month, Year",
+    "paymentMethod": "Payment method",
+    "paymentMethodBit": "Bit",
+    "paymentMethodCash": "Cash",
+    "paymentMethodBankTransfer": "Bank transfer",
+    "category": "Category",
+    "supplier": "Supplier",
+    "notes": "Notes (optional)",
+    "revenueTitle": "Revenue",
+    "expenseTitle": "Expense",
+    "save": "Save"
   },
   "permission": {
     "title": "Permission required",

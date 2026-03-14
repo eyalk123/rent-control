@@ -192,6 +192,7 @@ export function usePropertyForm({
       }
 
       await refreshProperties();
+      reset(values);
       onSuccess();
     } catch (err) {
       Alert.alert(

@@ -168,6 +168,7 @@ export function useRenterForm({
       }
 
       await refreshRenters();
+      reset(values);
       onSuccess();
     } catch (err) {
       Alert.alert(

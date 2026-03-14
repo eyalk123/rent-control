@@ -50,6 +50,77 @@ export interface Renter {
   property: PropertyBrief | null;
 }
 
+// Transactions
+
+export type TransactionType = 'revenue' | 'expense';
+
+export type PaymentMethod = 'bit' | 'cash' | 'bank_transfer';
+
+export interface Transaction {
+  id: number;
+  type: TransactionType;
+  property_id: number;
+  renter_id: number | null;
+  payment_method: PaymentMethod | null;
+  date_of_payment: string;
+  /** Month the transaction is for (YYYY-MM format or full date string), revenues only */
+  month_for: string | null;
+  amount: number;
+  currencyCode: string;
+  category_id: number | null;
+  supplier_id: number | null;
+  notes: string | null;
+  // Denormalized display fields
+  property_name: string;
+  renter_name: string | null;
+  category_name: string | null;
+  supplier_name: string | null;
+}
+
+export interface TransactionCreateRevenue {
+  property_id: number;
+  renter_id?: number | null;
+  amount: number;
+  /** ISO date string, defaults to today on backend if omitted */
+  date_of_payment?: string;
+  /** Month the rent was paid for (e.g. 2026-02-01, day ignored) */
+  month_for: string;
+  payment_method?: PaymentMethod;
+  notes?: string;
+}
+
+export interface TransactionCreateExpense {
+  property_id: number;
+  renter_id?: number | null;
+  amount: number;
+  date_of_payment: string;
+  payment_method: PaymentMethod;
+  category_id: number;
+  supplier_id?: number | null;
+  notes?: string;
+}
+
+export interface ExpenseCategory {
+  id: number;
+  key: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface Supplier {
+  id: number;
+  category_id: number;
+  name: string;
+  is_active: boolean;
+}
+
+export interface PropertyRenterSummary {
+  id: number;
+  first_name: string;
+  last_name: string;
+  monthly_rent: number;
+}
+
 // Create payload (what frontend sends on POST /properties)
 export interface PropertyCreate {
   address: string;

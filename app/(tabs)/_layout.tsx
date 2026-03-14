@@ -38,6 +38,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="transactions"
+        options={{
+          title: t('tabs.transactions', { defaultValue: 'Transactions' }),
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="cash-multiple" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="renters"
         options={{
           title: t('tabs.renters'),

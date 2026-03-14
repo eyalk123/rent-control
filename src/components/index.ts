@@ -10,3 +10,8 @@ export { PropertyPicker } from './PropertyPicker';
 
 // Renters tab components
 export { RenterCard } from './RenterCard';
+export { RenterPicker } from './RenterPicker';
+
+// Transactions tab components
+export { ExpenseCategoryPicker } from './ExpenseCategoryPicker';
+export { SupplierPicker } from './SupplierPicker';

@@ -79,7 +79,7 @@ export function FormSectionCard({
 
 const styles = StyleSheet.create({
   sectionCard: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.md,
     borderRadius: 16,
     overflow: "hidden",
   },

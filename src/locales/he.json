@@ -2,7 +2,8 @@
   "tabs": {
     "properties": "נכסים",
     "renters": "דיירים",
-    "settings": "הגדרות"
+    "settings": "הגדרות",
+    "transactions": "תנועות"
   },
   "settings": {
     "title": "הגדרות",
@@ -26,7 +27,8 @@
     "renters": "דיירים",
     "renterDetails": "פרטי דייר",
     "addRenter": "הוספת דייר",
-    "editRenter": "עריכת דייר"
+    "editRenter": "עריכת דייר",
+    "transactions": "תנועות"
   },
   "property": {
     "basicInfo": "מידע בסיסי",
@@ -113,11 +115,14 @@
     "noProperties": "אין נכסים עדיין. לחץ + להוספה.",
     "noRenters": "אין דיירים עדיין. לחץ + להוספה.",
     "noSearchResults": "לא נמצאו דיירים התואמים לחיפוש.",
-    "noPropertySearchResults": "לא נמצאו נכסים התואמים לחיפוש."
+    "noPropertySearchResults": "לא נמצאו נכסים התואמים לחיפוש.",
+    "noTransactions": "אין תנועות עדיין. לחץ + להוספה.",
+    "noTransactionSearchResults": "לא נמצאו תנועות התואמות לחיפוש."
   },
   "search": {
     "placeholder": "חיפוש דיירים",
-    "placeholderProperties": "חיפוש נכסים, כתובות..."
+    "placeholderProperties": "חיפוש נכסים, כתובות...",
+    "placeholderTransactions": "חיפוש לפי דייר, נכס, קטגוריה..."
   },
   "filters": {
     "all": "הכל",
@@ -133,8 +138,9 @@
     "optional": "אופציונלי",
     "discardChanges": "לבטל שינויים?",
     "discardChangesMessage": "יש שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?",
-    "discard": "ביטול",
-    "cancel": "ביטול"
+    "discard": "עזוב בלי לשמור",
+    "cancel": "ביטול",
+    "next": "הבא"
   },
   "validation": {
     "title": "אימות",
@@ -152,7 +158,12 @@
     "leaseStartRequired": "תאריך תחילת חכירה נדרש.",
     "leaseEndRequired": "תאריך סוף חכירה נדרש.",
     "paymentDayInvalid": "תאריך התשלום חייב להיות בין 1 ל-31.",
-    "dateFormatInvalid": "השתמש בפורמט YYYY-MM-DD."
+    "dateFormatInvalid": "השתמש בפורמט YYYY-MM-DD.",
+    "propertyRequired": "נדרש לבחור נכס.",
+    "amountRequired": "נדרש סכום תקין.",
+    "monthForRequired": "נדרש לציין חודש.",
+    "dateRequired": "נדרש לציין תאריך תשלום.",
+    "paymentMethodRequired": "נדרש לבחור אמצעי תשלום."
   },
   "error": {
     "title": "שגיאה",
@@ -162,7 +173,37 @@
     "invalidPropertyId": "מזהה נכס לא תקין",
     "invalidRenterId": "מזהה דייר לא תקין",
     "propertyNotFound": "הנכס לא נמצא",
-    "renterNotFound": "הדייר לא נמצא"
+    "renterNotFound": "הדייר לא נמצא",
+    "saveTransactionFailed": "שמירת התנועה נכשלה"
+  },
+  "transactions": {
+    "addTransaction": "הוספת תנועה",
+    "addRevenue": "הוספת הכנסה",
+    "addExpense": "הוספת הוצאה",
+    "chooseType": "איזו תנועה ברצונך להוסיף?",
+    "typeRevenue": "הכנסה",
+    "typeExpense": "הוצאה",
+    "filterAll": "הכל",
+    "filterRevenue": "הכנסות",
+    "filterExpense": "הוצאות",
+    "property": "נכס",
+    "renter": "דייר",
+    "renterOptional": "דייר (אופציונלי)",
+    "amount": "סכום",
+    "dateOfPayment": "תאריך תשלום",
+    "monthFor": "עבור: {{month}}",
+    "monthForLabel": "חודש",
+    "monthForPlaceholder": "חודש, שנה",
+    "paymentMethod": "אמצעי תשלום",
+    "paymentMethodBit": "ביט",
+    "paymentMethodCash": "מזומן",
+    "paymentMethodBankTransfer": "העברה בנקאית",
+    "category": "קטגוריה",
+    "supplier": "ספק",
+    "notes": "הערות (אופציונלי)",
+    "revenueTitle": "הכנסה",
+    "expenseTitle": "הוצאה",
+    "save": "שמירה"
   },
   "permission": {
     "title": "נדרשות הרשאות",

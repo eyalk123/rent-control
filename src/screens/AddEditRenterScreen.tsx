@@ -11,7 +11,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
     Alert,
-    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -38,7 +37,8 @@ export function AddEditRenterScreen() {
     onSuccess: () => router.back(),
   });
 
-  const { formState, control } = formMethods;
+  const { formState, control, trigger } = formMethods;
+  const [step, setStep] = React.useState<"basic" | "lease">("basic");
 
   React.useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e) => {
@@ -60,6 +60,27 @@ export function AddEditRenterScreen() {
     return unsub;
   }, [navigation, formState.isDirty, t]);
 
+  const handleHeaderBack = () => {
+    if (step === "lease") {
+      setStep("basic");
+      return;
+    }
+    router.back();
+  };
+
+  const onPressNext = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const isValid = await trigger([
+      "firstName",
+      "lastName",
+      "phone",
+      "email",
+      "monthlyRent",
+    ]);
+    if (!isValid) return;
+    setStep("lease");
+  };
+
   const onPressSubmit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onSubmit();
@@ -75,63 +96,90 @@ export function AddEditRenterScreen() {
 
   return (
     <ScreenContainer>
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-        enableOnAndroid={true}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={Platform.OS === "ios" ? 20 : 0}
-        bounces={false}
-      >
-        <View
-          style={[
-            styles.header,
-            { flexDirection: isRtl ? "row-reverse" : "row" },
-          ]}
+      <View style={styles.wrapper}>
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          enableOnAndroid={true}
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={spacing.keyboardExtraScrollHeight}
+          bounces={false}
         >
-          <TouchableOpacity
-            onPress={() => router.back()}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityLabel={t("common.back")}
-            accessibilityRole="button"
+          <View
+            style={[
+              styles.header,
+              { flexDirection: isRtl ? "row-reverse" : "row" },
+            ]}
           >
-            <MaterialCommunityIcons
-              name={isRtl ? "chevron-right" : "chevron-left"}
-              size={28}
-              color={colors.textSecondary}
-            />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            {isEdit ? t("renter.updateRenter") : t("renter.addRenter")}
-          </Text>
-          <View style={styles.headerSpacer} />
+            <TouchableOpacity
+              onPress={handleHeaderBack}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityLabel={t("common.back")}
+              accessibilityRole="button"
+            >
+              <MaterialCommunityIcons
+                name={isRtl ? "chevron-right" : "chevron-left"}
+                size={28}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+              {isEdit ? t("renter.updateRenter") : t("renter.addRenter")}
+            </Text>
+            <View style={styles.headerSpacer} />
+          </View>
+          {step === "basic" && <RenterBasicInfoCard control={control} t={t} />}
+          {step === "lease" && <RenterLeaseInfoCard control={control} t={t} />}
+        </KeyboardAwareScrollView>
+        <View style={styles.fixedButtonBar}>
+          {step === "basic" && (
+            <Button
+              mode="contained"
+              onPress={onPressNext}
+              loading={isSubmitting}
+              disabled={isSubmitting}
+              style={styles.saveButton}
+              contentStyle={styles.saveButtonContent}
+              accessibilityLabel={t("common.next")}
+              accessibilityRole="button"
+            >
+              {t("common.next")}
+            </Button>
+          )}
+          {step === "lease" && (
+            <Button
+              mode="contained"
+              onPress={onPressSubmit}
+              loading={isSubmitting}
+              disabled={isSubmitting}
+              style={styles.saveButton}
+              contentStyle={styles.saveButtonContent}
+              accessibilityLabel={
+                isEdit ? t("renter.updateRenter") : t("renter.addRenter")
+              }
+              accessibilityRole="button"
+            >
+              {isEdit ? t("renter.updateRenter") : t("renter.addRenter")}
+            </Button>
+          )}
         </View>
-        <RenterBasicInfoCard control={control} t={t} />
-        <RenterLeaseInfoCard control={control} t={t} />
-        <Button
-          mode="contained"
-          onPress={onPressSubmit}
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          style={styles.saveButton}
-          contentStyle={styles.saveButtonContent}
-          accessibilityLabel={
-            isEdit ? t("renter.updateRenter") : t("renter.addRenter")
-          }
-          accessibilityRole="button"
-        >
-          {isEdit ? t("renter.updateRenter") : t("renter.addRenter")}
-        </Button>
-      </KeyboardAwareScrollView>
+      </View>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     padding: spacing.formPaddingHorizontal,
     gap: spacing.sm,
-    paddingBottom: 40,
+    paddingBottom: 24,
   },
   header: {
     alignItems: "center",
@@ -147,9 +195,12 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 28,
   },
+  fixedButtonBar: {
+    paddingHorizontal: spacing.formPaddingHorizontal,
+    paddingTop: spacing.sm,
+    paddingBottom: 24,
+  },
   saveButton: {
-    marginTop: 10,
-    marginBottom: 24,
     borderRadius: 12,
   },
   saveButtonContent: {
