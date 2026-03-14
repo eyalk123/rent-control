@@ -1,8 +1,9 @@
 import '@/src/i18n';
-import React from 'react';
-import { View } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 // 1. Import GestureHandlerRootView
@@ -31,6 +32,12 @@ function DirectionalContent() {
 
 function AppContent() {
   const { theme } = useThemeContext();
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setStyle(theme.dark ? 'dark' : 'light');
+    }
+  }, [theme.dark]);
 
   return (
     <PaperProvider theme={theme}>
