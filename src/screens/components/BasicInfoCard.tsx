@@ -1,14 +1,11 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
-import type { Control, FieldValues } from 'react-hook-form';
-import { FormInput } from '@/src/components/form/FormInput';
-import { FormDropdown } from '@/src/components/form/FormDropdown';
-import { ImagePickerSection } from '@/src/screens/components/ImagePickerSection';
-import { spacing, lightColors, darkColors } from '@/src/theme';
-import { useSectionHeaderStyle } from '@/src/context';
-import type { PropertyType } from '@/src/types';
-import type { TFunction } from 'i18next';
+import React from "react";
+import type { Control, FieldValues } from "react-hook-form";
+import { FormDropdown } from "@/src/components/form/FormDropdown";
+import { ImagePickerSection } from "@/src/screens/components/ImagePickerSection";
+import { FormSectionCard } from "@/src/components/form/FormSectionCard";
+import { FormTextField, FormNumericField } from "@/src/components/form/FormFields";
+import type { PropertyType } from "@/src/types";
+import type { TFunction } from "i18next";
 
 type BasicInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -23,115 +20,73 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   imageUri,
   setImageUri,
 }: BasicInfoCardProps<TFieldValues>) {
-  const theme = useTheme();
-  const colors = theme.dark ? darkColors : lightColors;
-  const sectionHeaderStyle = useSectionHeaderStyle();
-
   const translateTypeLabel = (type: PropertyType) =>
     t(`property.type${type.charAt(0).toUpperCase() + type.slice(1)}`);
 
+  const textFields = [
+    { name: "address", labelKey: "property.address", required: true },
+    { name: "city", labelKey: "property.city", required: true },
+  ] as const;
+
+  const numericFields = [
+    {
+      name: "zipCode",
+      labelKey: "property.zipCode",
+      keyboardType: "numeric" as const,
+    },
+    {
+      name: "sqFt",
+      labelKey: "property.sqFt",
+      keyboardType: "numeric" as const,
+    },
+    {
+      name: "purchasePrice",
+      labelKey: "property.purchasePrice",
+      keyboardType: "decimal-pad" as const,
+    },
+  ];
+
   return (
-    <View
-      style={[
-        styles.sectionCard,
-        {
-          backgroundColor: colors.cardBackground,
-          borderColor: colors.outline,
-          borderWidth: 1,
-        },
-      ]}
-    >
-      <View style={styles.cardContent}>
-        <View
-          style={[
-            sectionHeaderStyle.containerStyle,
-            { flexDirection: 'row', alignItems: 'center' },
-          ]}
-        >
-          <View
-            style={[
-              styles.sectionAccent,
-              {
-                backgroundColor: colors.sectionAccent,
-                marginEnd: spacing.sm,
-              },
-            ]}
+    <FormSectionCard title={t("property.basicInfo")}>
+      {textFields.map((f) => (
+        <FormTextField
+          key={f.name}
+          control={control}
+          name={f.name as any}
+          label={`${t(f.labelKey)}${f.required ? " *" : ""}`}
+        />
+      ))}
+      <FormNumericField
+        control={control}
+        name={"zipCode" as any}
+        label={`${t("property.zipCode")} *`}
+        keyboardType="numeric"
+      />
+      <FormDropdown
+        control={control}
+        name={"type" as any}
+        label={`${t("property.type")} *`}
+        translateTypeLabel={translateTypeLabel}
+        placeholderKey={t("property.typePlaceholder")}
+      />
+      {numericFields
+        .filter((f) => f.name !== "zipCode")
+        .map((f) => (
+          <FormNumericField
+            key={f.name}
+            control={control}
+            name={f.name as any}
+            label={`${t(f.labelKey)} *`}
+            keyboardType={f.keyboardType}
           />
-          <Text
-            variant="titleLarge"
-            style={[styles.sectionHeader, sectionHeaderStyle.textStyle]}
-            numberOfLines={1}
-          >
-            {t('property.basicInfo')}
-          </Text>
-        </View>
-
-        <FormInput
-          control={control}
-          name={'address' as any}
-          label={`${t('property.address')} *`}
-        />
-        <FormInput
-          control={control}
-          name={'city' as any}
-          label={`${t('property.city')} *`}
-        />
-        <FormInput
-          control={control}
-          name={'zipCode' as any}
-          label={`${t('property.zipCode')} *`}
-          keyboardType="numeric"
-        />
-        <FormDropdown
-          control={control}
-          name={'type' as any}
-          label={`${t('property.type')} *`}
-          translateTypeLabel={translateTypeLabel}
-          placeholderKey={t('property.typePlaceholder')}
-        />
-        <FormInput
-          control={control}
-          name={'sqFt' as any}
-          label={`${t('property.sqFt')} *`}
-          keyboardType="numeric"
-        />
-        <FormInput
-          control={control}
-          name={'purchasePrice' as any}
-          label={`${t('property.purchasePrice')} *`}
-          keyboardType="decimal-pad"
-        />
-
-        <ImagePickerSection
-          imageUri={imageUri}
-          setImageUri={setImageUri}
-          t={t}
-        />
-      </View>
-    </View>
+        ))}
+      <ImagePickerSection
+        imageUri={imageUri}
+        setImageUri={setImageUri}
+        t={t}
+      />
+    </FormSectionCard>
   );
 }
 
 export const BasicInfoCard = React.memo(BasicInfoCardInner) as typeof BasicInfoCardInner;
-
-const styles = StyleSheet.create({
-  sectionCard: {
-    marginBottom: spacing.xl,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  cardContent: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
-    paddingTop: spacing.lg,
-  },
-  sectionHeader: {
-    flexShrink: 1,
-    fontWeight: '700',
-  },
-  sectionAccent: {
-    width: 4,
-    height: 22,
-    borderRadius: 2,
-  },
-});

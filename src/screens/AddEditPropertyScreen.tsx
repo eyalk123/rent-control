@@ -13,6 +13,7 @@ import {
   Alert,
   Platform,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -111,6 +112,10 @@ export function AddEditPropertyScreen() {
               color={colors.textSecondary}
             />
           </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            {isEdit ? t("property.updateProperty") : t("property.addProperty")}
+          </Text>
+          <View style={styles.headerSpacer} />
         </View>
 
         <BasicInfoCard
@@ -152,6 +157,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 8,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  headerSpacer: {
+    width: 28,
   },
   saveButton: {
     marginTop: 10,
