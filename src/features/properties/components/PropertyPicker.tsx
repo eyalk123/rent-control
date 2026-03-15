@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { Menu, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { usePropertyContext, useRtlInputStyle } from '@/src/core/context';
+import { usePropertyContext, useRtlInputStyle } from '@/src/context';
 
 interface PropertyPickerProps {
   value: number | null;

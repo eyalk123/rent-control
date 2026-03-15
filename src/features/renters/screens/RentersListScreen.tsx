@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRenterContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/core/context';
+import { useRenterContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import {
   LoadingOverlay,
   EmptyState,

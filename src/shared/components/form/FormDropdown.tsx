@@ -1,11 +1,22 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Menu, TextInput, Text, useTheme } from 'react-native-paper';
-import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { useRtlInputStyle, useLanguageContext, useRtlPlaceholder, useRtlLabelStyle } from '@/src/core/context';
-import { spacing, lightColors, darkColors } from '@/src/core/theme';
-import type { PropertyType } from '@/src/shared/types';
-import { PROPERTY_TYPES } from '@/src/features/properties/validation/propertyValidation';
+import {
+  useLanguageContext,
+  useRtlInputStyle,
+  useRtlLabelStyle,
+  useRtlPlaceholder,
+} from "@/src/core/context";
+import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import { PROPERTY_TYPES } from "@/src/features/properties/validation/propertyValidation";
+import type { PropertyType } from "@/src/shared/types";
+import React from "react";
+import {
+  Controller,
+  type Control,
+  type FieldValues,
+  type Path,
+} from "react-hook-form";
+import { StyleSheet, View } from "react-native";
+import { Text, useTheme } from "react-native-paper";
+import { Dropdown } from "react-native-element-dropdown";
 
 type FormDropdownProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -28,7 +39,17 @@ export function FormDropdown<TFieldValues extends FieldValues>({
   const rtlPlaceholder = useRtlPlaceholder();
   const { isRtl } = useLanguageContext();
   const rtlLabelStyle = useRtlLabelStyle();
-  const [menuVisible, setMenuVisible] = React.useState(false);
+
+  const dropdownData = React.useMemo<
+    { label: string; value: PropertyType }[]
+  >(
+    () =>
+      PROPERTY_TYPES.map((ty) => ({
+        label: translateTypeLabel(ty),
+        value: ty,
+      })),
+    [translateTypeLabel],
+  );
 
   return (
     <Controller
@@ -38,47 +59,78 @@ export function FormDropdown<TFieldValues extends FieldValues>({
         <View style={styles.inputWrap}>
           <Text
             variant="bodyMedium"
-            style={[styles.label, rtlLabelStyle]}
+            style={[
+              styles.label,
+              rtlLabelStyle,
+              { color: error ? colors.error : colors.textPrimary },
+            ]}
             numberOfLines={1}
           >
             {label}
           </Text>
-          <Menu
-            visible={menuVisible}
-            onDismiss={() => setMenuVisible(false)}
-            anchor={
-              <TextInput
-                value={
-                  value
-                    ? translateTypeLabel(value as PropertyType)
-                    : ''
-                }
-                mode="outlined"
-                placeholder={rtlPlaceholder(placeholderKey)}
-                dense
-                editable={false}
-                error={!!error}
-                right={<TextInput.Icon icon="menu-down" onPress={() => setMenuVisible(true)} />}
-                onPressIn={() => setMenuVisible(true)}
-                style={[styles.input, { backgroundColor: colors.inputFilledBackground }, rtlInputStyle]}
-                contentStyle={rtlInputStyle}
-                textAlign={isRtl ? 'right' : 'left'}
-              />
-            }
-          >
-            {PROPERTY_TYPES.map((ty) => (
-              <Menu.Item
-                key={ty}
-                onPress={() => {
-                  onChange(ty);
-                  setMenuVisible(false);
-                }}
-                title={translateTypeLabel(ty)}
-              />
-            ))}
-          </Menu>
+
+          {/* The key fix: LTR wrapper matching your FormInput */}
+          <View style={{ direction: "ltr" }}>
+            <Dropdown
+              data={dropdownData}
+              labelField="label"
+              valueField="value"
+              value={value as PropertyType | null}
+              placeholder={rtlPlaceholder(placeholderKey)}
+              placeholderStyle={[
+                styles.placeholder,
+                rtlInputStyle,
+                {
+                  color: colors.placeholder,
+                  textAlign: isRtl ? "right" : "left",
+                },
+              ]}
+              selectedTextStyle={[
+                styles.selectedText,
+                rtlInputStyle,
+                { textAlign: isRtl ? "right" : "left" },
+              ]}
+              itemTextStyle={rtlInputStyle}
+              style={[
+                styles.dropdown,
+                {
+                  backgroundColor: colors.inputFilledBackground,
+                  borderColor: error ? colors.error : colors.outline,
+                  // If you want the chevron icon to move to the left in RTL, uncomment the next line:
+                  // flexDirection: isRtl ? "row-reverse" : "row",
+                },
+              ]}
+              containerStyle={styles.dropdownContainer}
+              onChange={(item: { label: string; value: PropertyType }) => {
+                onChange(item.value);
+              }}
+              renderItem={(item: { label: string; value: PropertyType }) => (
+                <View style={styles.itemContainer}>
+                  <Text
+                    style={[
+                      styles.itemText,
+                      rtlInputStyle,
+                      {
+                        textAlign: isRtl ? "right" : "left",
+                        width: "100%", // Ensures text can actually align right within the item box
+                      },
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </View>
+              )}
+              mode="default"
+              disable={false}
+              autoScroll={false}
+            />
+          </View>
+
           {error ? (
-            <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>
+            <Text
+              variant="bodySmall"
+              style={[styles.errorText, { color: colors.error }]}
+            >
               {error.message}
             </Text>
           ) : null}
@@ -94,12 +146,33 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 4,
-  },
-  input: {
-    marginBottom: 0,
+    fontWeight: "500",
   },
   errorText: {
-    marginTop: 2,
-    marginBottom: spacing.xs,
+    marginTop: 4,
+  },
+  dropdown: {
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    minHeight: 48, // Matched roughly to your standard input height
+  },
+  dropdownContainer: {
+    borderRadius: 4,
+  },
+  placeholder: {
+    fontSize: 16,
+  },
+  selectedText: {
+    fontSize: 16,
+    color: "auto", // Or tie to colors.textPrimary
+  },
+  itemContainer: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  itemText: {
+    fontSize: 16,
   },
 });

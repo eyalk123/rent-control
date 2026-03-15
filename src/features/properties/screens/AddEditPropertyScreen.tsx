@@ -1,5 +1,5 @@
 import { LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
-import { useLanguageContext, usePropertyContext } from "@/src/core/context";
+import { useLanguageContext, usePropertyContext } from "@/src/context";
 import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm";
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
