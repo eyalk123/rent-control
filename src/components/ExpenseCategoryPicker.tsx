@@ -24,7 +24,9 @@ export function ExpenseCategoryPicker({
   const [visible, setVisible] = useState(false);
 
   const selected = categories.find((c) => c.id === value) ?? null;
-  const displayValue = selected ? selected.key : '';
+  const displayValue = selected
+    ? t(`expenseCategories.${selected.key}`, { defaultValue: selected.key })
+    : '';
 
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
@@ -56,7 +58,7 @@ export function ExpenseCategoryPicker({
         <Menu.Item
           key={category.id}
           onPress={() => selectOption(category.id)}
-          title={category.key}
+          title={t(`expenseCategories.${category.key}`, { defaultValue: category.key })}
         />
       ))}
     </Menu>

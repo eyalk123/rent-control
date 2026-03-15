@@ -90,14 +90,15 @@ export function TransactionsListScreen() {
       ? t('transactions.typeRevenue', { defaultValue: 'Revenue' })
       : t('transactions.typeExpense', { defaultValue: 'Expense' });
 
-    const amountColor = isRevenue ? theme.colors.primary : theme.colors.error;
+    const amountColor = isRevenue ? colors.chooseRevenueIcon : colors.chooseExpenseIcon;
+    const cardBg = isRevenue ? colors.chooseRevenueBg : colors.chooseExpenseBg;
 
     return (
       <View
         style={[
           styles.card,
           {
-            backgroundColor: colors.cardBackground,
+            backgroundColor: cardBg,
             borderColor: colors.outline,
           },
         ]}
@@ -125,7 +126,9 @@ export function TransactionsListScreen() {
           ) : null}
           {item.category_name ? (
             <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-              {item.category_name}
+              {t(`expenseCategories.${item.category_name.toLowerCase()}`, {
+                defaultValue: item.category_name,
+              })}
             </Text>
           ) : null}
           {item.supplier_name ? (

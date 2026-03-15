@@ -205,6 +205,20 @@
     "expenseTitle": "Expense",
     "save": "Save"
   },
+  "expenseCategories": {
+    "maintenance": "Maintenance",
+    "electricity": "Electricity",
+    "water": "Water",
+    "gas": "Gas",
+    "insurance": "Insurance",
+    "property_tax": "Property tax",
+    "repairs": "Repairs",
+    "cleaning": "Cleaning",
+    "gardening": "Gardening",
+    "air_conditioning": "Air conditioning",
+    "management_fee": "Management fee",
+    "other": "Other"
+  },
   "permission": {
     "title": "Permission required",
     "photoLibrary": "Please grant photo library access to upload images."

@@ -205,6 +205,20 @@
     "expenseTitle": "הוצאה",
     "save": "שמירה"
   },
+  "expenseCategories": {
+    "maintenance": "תחזוקה",
+    "electricity": "חשמל",
+    "water": "מים",
+    "gas": "גז",
+    "insurance": "ביטוח",
+    "property_tax": "ארנונה",
+    "repairs": "תיקונים",
+    "cleaning": "ניקיון",
+    "gardening": "גינון",
+    "air_conditioning": "מיזוג אוויר",
+    "management_fee": "דמי ניהול",
+    "other": "אחר"
+  },
   "permission": {
     "title": "נדרשות הרשאות",
     "photoLibrary": "אנא אשר גישה לספריית תמונות להעלאה."
