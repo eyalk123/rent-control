@@ -2,8 +2,6 @@ import React from "react";
 import type { FieldValues, Path, Control } from "react-hook-form";
 import type { TextInput as RNTextInput } from "react-native";
 import { FormInput } from "./FormInput";
-import { FormDatePickerField } from "./FormDatePickerField";
-import { FormMonthYearPickerField } from "./FormMonthYearPickerField";
 import { useRtlPlaceholder } from "@/src/core/context";
 
 type CommonFieldProps<TFieldValues extends FieldValues> = {
@@ -11,6 +9,7 @@ type CommonFieldProps<TFieldValues extends FieldValues> = {
   name: Path<TFieldValues>;
   label: string;
   placeholder?: string;
+  keyboardType?: React.ComponentProps<typeof RNTextInput>["keyboardType"];
 };
 
 export function FormTextField<TFieldValues extends FieldValues>(
@@ -45,6 +44,3 @@ export function FormDateField<TFieldValues extends FieldValues>(
     />
   );
 }
-
-export { FormDatePickerField } from "./FormDatePickerField";
-export { FormMonthYearPickerField } from "./FormMonthYearPickerField";

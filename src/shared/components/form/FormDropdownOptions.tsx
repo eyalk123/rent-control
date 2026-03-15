@@ -2,11 +2,8 @@ import {
   useLanguageContext,
   useRtlInputStyle,
   useRtlLabelStyle,
-  useRtlPlaceholder,
 } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
-import { PROPERTY_TYPES } from "@/src/features/properties/validation/propertyValidation";
-import type { PropertyType } from "@/src/shared/types";
 import React from "react";
 import {
   Controller,
@@ -18,38 +15,31 @@ import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { Dropdown } from "react-native-element-dropdown";
 
-type FormDropdownProps<TFieldValues extends FieldValues> = {
+type Option = {
+  label: string;
+  value: string;
+};
+
+type FormDropdownOptionsProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   name: Path<TFieldValues>;
   label: string;
-  translateTypeLabel: (type: PropertyType) => string;
-  placeholderKey: string;
+  options: Option[];
+  placeholder?: string;
 };
 
-export function FormDropdown<TFieldValues extends FieldValues>({
+export function FormDropdownOptions<TFieldValues extends FieldValues>({
   control,
   name,
   label,
-  translateTypeLabel,
-  placeholderKey,
-}: FormDropdownProps<TFieldValues>) {
+  options,
+  placeholder,
+}: FormDropdownOptionsProps<TFieldValues>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
-  const rtlPlaceholder = useRtlPlaceholder();
   const { isRtl } = useLanguageContext();
   const rtlLabelStyle = useRtlLabelStyle();
-
-  const dropdownData = React.useMemo<
-    { label: string; value: PropertyType }[]
-  >(
-    () =>
-      PROPERTY_TYPES.map((ty) => ({
-        label: translateTypeLabel(ty),
-        value: ty,
-      })),
-    [translateTypeLabel],
-  );
 
   return (
     <Controller
@@ -69,14 +59,13 @@ export function FormDropdown<TFieldValues extends FieldValues>({
             {label}
           </Text>
 
-          {/* The key fix: LTR wrapper matching your FormInput */}
           <View style={{ direction: "ltr" }}>
             <Dropdown
-              data={dropdownData}
+              data={options}
               labelField="label"
               valueField="value"
-              value={value as PropertyType | null}
-              placeholder={rtlPlaceholder(placeholderKey)}
+              value={(value as string) ?? null}
+              placeholder={placeholder}
               placeholderStyle={[
                 styles.placeholder,
                 rtlInputStyle,
@@ -96,15 +85,13 @@ export function FormDropdown<TFieldValues extends FieldValues>({
                 {
                   backgroundColor: colors.inputFilledBackground,
                   borderColor: error ? colors.error : colors.outline,
-                  // If you want the chevron icon to move to the left in RTL, uncomment the next line:
-                  // flexDirection: isRtl ? "row-reverse" : "row",
                 },
               ]}
               containerStyle={styles.dropdownContainer}
-              onChange={(item: { label: string; value: PropertyType }) => {
+              onChange={(item: Option) => {
                 onChange(item.value);
               }}
-              renderItem={(item: { label: string; value: PropertyType }) => (
+              renderItem={(item: Option) => (
                 <View style={styles.itemContainer}>
                   <Text
                     style={[
@@ -112,7 +99,7 @@ export function FormDropdown<TFieldValues extends FieldValues>({
                       rtlInputStyle,
                       {
                         textAlign: isRtl ? "right" : "left",
-                        width: "100%", // Ensures text can actually align right within the item box
+                        width: "100%",
                       },
                     ]}
                   >
@@ -156,7 +143,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    minHeight: 48, // Matched roughly to your standard input height
+    minHeight: 48,
   },
   dropdownContainer: {
     borderRadius: 4,
@@ -166,7 +153,7 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     fontSize: 16,
-    color: "auto", // Or tie to colors.textPrimary
+    color: "auto",
   },
   itemContainer: {
     paddingVertical: 10,
@@ -176,3 +163,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+

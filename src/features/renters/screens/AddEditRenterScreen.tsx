@@ -75,7 +75,6 @@ export function AddEditRenterScreen() {
       "lastName",
       "phone",
       "email",
-      "monthlyRent",
     ]);
     if (!isValid) return;
     setStep("lease");

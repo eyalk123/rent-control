@@ -37,11 +37,19 @@ export const renterFormSchema = z.object({
   email: nonEmptyTrimmed,
   monthlyRent: numericString,
   leaseStart: dateString,
-  leaseEnd: dateString,
+  leaseEnd: z
+    .string()
+    .transform((val) => val.trim())
+    .optional(),
   propertyId: z.number().nullable(),
-  numberOfPayments: optionalNumericString,
   paymentType: optionalString,
-  paymentDayOfMonth: optionalNumericString,
+  paymentDate: z
+    .string()
+    .transform((val) => val.trim())
+    .optional(),
+  paymentFrequency: z
+    .enum(["monthly", "quarterly", "yearly"])
+    .optional(),
   insuranceType: optionalString,
   insuranceAmount: optionalNumericString,
 });

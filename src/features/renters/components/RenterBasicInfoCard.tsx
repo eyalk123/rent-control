@@ -1,10 +1,15 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import type { Control, FieldValues } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { spacing } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
 import type { TFunction } from "i18next";
-import { FormTextField, FormNumericField } from "@/src/shared/components/form/FormFields";
+import {
+  FormTextField,
+  FormNumericField,
+} from "@/src/shared/components/form/FormFields";
+import { PropertyPicker } from "@/src/features/properties/components/PropertyPicker";
 
 type RenterBasicInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -15,29 +20,44 @@ function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
 }: RenterBasicInfoCardProps<TFieldValues>) {
-  const textFields = [
-    { name: "firstName", labelKey: "renter.firstName", required: true },
-    { name: "lastName", labelKey: "renter.lastName", required: true },
-    { name: "phone", labelKey: "renter.phone", required: true },
-    { name: "email", labelKey: "renter.email", required: true },
-  ] as const;
-
   return (
     <FormSectionCard title={t("renter.basicInfo")}>
-      {textFields.map((f) => (
-        <FormTextField
-          key={f.name}
-          control={control}
-          name={f.name as any}
-          label={`${t(f.labelKey)}${f.required ? " *" : ""}`}
-        />
-      ))}
+      <FormTextField
+        control={control}
+        name={"firstName" as any}
+        label={`${t("renter.firstName")} *`}
+      />
+      <FormTextField
+        control={control}
+        name={"lastName" as any}
+        label={`${t("renter.lastName")} *`}
+      />
       <FormNumericField
         control={control}
-        name={"monthlyRent" as any}
-        label={`${t("renter.monthlyRent")} *`}
-        keyboardType="decimal-pad"
+        name={"phone" as any}
+        label={`${t("renter.phone")} *`}
+        keyboardType="phone-pad"
       />
+      <FormTextField
+        control={control}
+        name={"email" as any}
+        label={`${t("renter.email")} *`}
+        keyboardType="email-address"
+      />
+      <View style={styles.inputWrap}>
+        <Controller
+          control={control}
+          name={"propertyId" as any}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <PropertyPicker
+              value={value}
+              onChange={onChange}
+              label={t("renter.propertyOptional")}
+              error={error}
+            />
+          )}
+        />
+      </View>
     </FormSectionCard>
   );
 }

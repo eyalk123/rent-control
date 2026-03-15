@@ -1,17 +1,15 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import type { Control, FieldValues } from "react-hook-form";
-import { Controller } from "react-hook-form";
-import { PropertyPicker } from "@/src/features/properties/components/PropertyPicker";
-import {
-  useLanguageContext,
-  useRtlInputStyle,
-  useRtlPlaceholder,
-} from "@/src/core/context";
-import { spacing } from "@/src/core/theme";
 import type { TFunction } from "i18next";
+import { spacing } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
-import { FormDateField, FormNumericField, FormTextField } from "@/src/shared/components/form/FormFields";
+import {
+  FormNumericField,
+  FormTextField,
+  FormDatePickerField,
+  FormDropdownOptions,
+} from "@/src/shared/components/form";
 
 type RenterLeaseInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -22,32 +20,10 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
 }: RenterLeaseInfoCardProps<TFieldValues>) {
-  const rtlInputStyle = useRtlInputStyle();
-  const rtlPlaceholder = useRtlPlaceholder();
-  const { isRtl } = useLanguageContext();
-
-  const simpleNumericFields: { name: string; labelKey: string; decimal?: boolean }[] = [
-    { name: "numberOfPayments", labelKey: "renter.numberOfPayments" },
-    { name: "paymentDayOfMonth", labelKey: "renter.dateOfPayment" },
-    { name: "insuranceAmount", labelKey: "renter.insuranceAmount", decimal: true },
-  ];
-
   return (
     <FormSectionCard title={t("renter.leaseInfo")}>
-      <Controller
-        control={control}
-        name={"propertyId" as any}
-        render={({ field: { onChange, value } }) => (
-          <PropertyPicker
-            value={value}
-            onChange={onChange}
-            label={t("renter.propertyOptional")}
-          />
-        )}
-      />
-
       <View style={styles.inputWrap}>
-        <FormDateField
+        <FormDatePickerField
           control={control}
           name={"leaseStart" as any}
           label={`${t("renter.leaseStart")} *`}
@@ -56,31 +32,54 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
       </View>
 
       <View style={styles.inputWrap}>
-        <FormDateField
+        <FormNumericField
           control={control}
-          name={"leaseEnd" as any}
-          label={`${t("renter.leaseEnd")} *`}
-          placeholder={t("renter.leaseEndPlaceholder")}
+          name={"monthlyRent" as any}
+          label={`${t("renter.monthlyRent")} *`}
+          keyboardType="decimal-pad"
         />
       </View>
 
-      {simpleNumericFields.map((f) => (
-        <View key={f.name} style={styles.inputWrap}>
-          <FormNumericField
-            control={control}
-            name={f.name as any}
-            label={t(f.labelKey)}
-            keyboardType={f.decimal ? "decimal-pad" : "numeric"}
-          />
-        </View>
-      ))}
+      <View style={styles.inputWrap}>
+        <FormDatePickerField
+          control={control}
+          name={"paymentDate" as any}
+          label={t("renter.dateOfPayment")}
+        />
+      </View>
 
       <View style={styles.inputWrap}>
-        <FormTextField
+        <FormDropdownOptions
           control={control}
           name={"paymentType" as any}
           label={t("renter.paymentType")}
-          placeholder={rtlPlaceholder(t("renter.paymentTypePlaceholder"))}
+          options={[
+            { value: "cash", label: t("transactions.paymentMethodCash") },
+            { value: "wire_transfer", label: t("transactions.paymentMethodBankTransfer") },
+            { value: "bit", label: t("transactions.paymentMethodBit") },
+          ]}
+        />
+      </View>
+
+      <View style={styles.inputWrap}>
+        <FormDropdownOptions
+          control={control}
+          name={"paymentFrequency" as any}
+          label={t("renter.numberOfPayments")}
+          options={[
+            { value: "monthly", label: t("renter.frequencyMonthly") },
+            { value: "quarterly", label: t("renter.frequencyQuarterly") },
+            { value: "yearly", label: t("renter.frequencyYearly") },
+          ]}
+        />
+      </View>
+
+      <View style={styles.inputWrap}>
+        <FormNumericField
+          control={control}
+          name={"insuranceAmount" as any}
+          label={t("renter.insuranceAmount")}
+          keyboardType="decimal-pad"
         />
       </View>
 

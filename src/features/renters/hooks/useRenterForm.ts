@@ -42,9 +42,9 @@ export function useRenterForm({
       leaseStart: "",
       leaseEnd: "",
       propertyId: null,
-      numberOfPayments: "",
       paymentType: "",
-      paymentDayOfMonth: "",
+      paymentDate: "",
+      paymentFrequency: undefined,
       insuranceType: "",
       insuranceAmount: "",
     },
@@ -76,15 +76,19 @@ export function useRenterForm({
           leaseStart: renter.lease_start ?? "",
           leaseEnd: renter.lease_end ?? "",
           propertyId: renter.property_id ?? null,
-          numberOfPayments:
-            renter.number_of_payments != null
-              ? String(renter.number_of_payments)
-              : "",
           paymentType: renter.payment_type ?? "",
-          paymentDayOfMonth:
+          paymentDate:
             renter.payment_day_of_month != null
-              ? String(renter.payment_day_of_month)
+              ? `2000-01-${String(renter.payment_day_of_month).padStart(2, "0")}`
               : "",
+          paymentFrequency:
+            renter.number_of_payments === 12
+              ? "monthly"
+              : renter.number_of_payments === 4
+              ? "quarterly"
+              : renter.number_of_payments === 1
+              ? "yearly"
+              : undefined,
           insuranceType: renter.insurance_type ?? "",
           insuranceAmount:
             renter.insurance_amount != null
@@ -97,12 +101,18 @@ export function useRenterForm({
 
   const submit = handleSubmit(async (values) => {
     const rentNum = Number(values.monthlyRent);
-    const paymentDayNum = values.paymentDayOfMonth
-      ? Number(values.paymentDayOfMonth)
-      : null;
-    const numPayments = values.numberOfPayments
-      ? Number(values.numberOfPayments)
-      : null;
+    const paymentDayNum =
+      values.paymentDate && values.paymentDate.length >= 10
+        ? Number(values.paymentDate.slice(8, 10))
+        : null;
+    const numPayments =
+      values.paymentFrequency === "monthly"
+        ? 12
+        : values.paymentFrequency === "quarterly"
+        ? 4
+        : values.paymentFrequency === "yearly"
+        ? 1
+        : null;
     const insuranceAmt = values.insuranceAmount
       ? Number(values.insuranceAmount)
       : null;
@@ -114,7 +124,7 @@ export function useRenterForm({
       email: values.email.trim(),
       monthly_rent: rentNum,
       lease_start: values.leaseStart.trim(),
-      lease_end: values.leaseEnd.trim(),
+      lease_end: values.leaseEnd?.trim() ?? "",
       property_id: values.propertyId ?? undefined,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
@@ -140,7 +150,7 @@ export function useRenterForm({
       email: values.email.trim(),
       monthly_rent: rentNum,
       lease_start: values.leaseStart.trim(),
-      lease_end: values.leaseEnd.trim(),
+      lease_end: values.leaseEnd?.trim() ?? "",
       property_id: values.propertyId ?? null,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
