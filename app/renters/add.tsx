@@ -1,4 +1,4 @@
-import { AddEditRenterScreen } from "@/src/screens/AddEditRenterScreen";
+import { AddEditRenterScreen } from "@/src/features/renters/screens/AddEditRenterScreen";
 
 export default function AddRenterRoute() {
   return <AddEditRenterScreen />;

@@ -1,1 +1,1 @@
-export { RentersListScreen as default } from '@/src/screens/RentersListScreen';
+export { RentersListScreen as default } from '@/src/features/renters/screens/RentersListScreen';

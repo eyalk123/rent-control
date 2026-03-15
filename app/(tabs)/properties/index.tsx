@@ -1,1 +1,1 @@
-export { PropertiesListScreen as default } from '@/src/screens/PropertiesListScreen';
+export { PropertiesListScreen as default } from '@/src/features/properties/screens/PropertiesListScreen';

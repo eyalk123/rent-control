@@ -1,1 +1,1 @@
-export { PropertyDetailScreen as default } from '@/src/screens/PropertyDetailScreen';
+export { PropertyDetailScreen as default } from '@/src/features/properties/screens/PropertyDetailScreen';

@@ -1,4 +1,4 @@
-import '@/src/i18n';
+import '@/src/core/i18n';
 import React, { useEffect } from 'react';
 import { View, Platform } from 'react-native';
 import { Stack } from 'expo-router';

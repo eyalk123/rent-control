@@ -1,2 +1,2 @@
-export { AddTransactionScreen as default } from '@/src/screens/AddTransactionScreen';
+export { AddTransactionScreen as default } from '@/src/features/transactions/screens/AddTransactionScreen';
 
