@@ -9,6 +9,7 @@ import {
   FormTextField,
   FormDatePickerField,
   FormDropdownOptions,
+  FormLeaseYearsField,
 } from "@/src/shared/components/form";
 
 type RenterLeaseInfoCardProps<TFieldValues extends FieldValues> = {
@@ -20,6 +21,25 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
 }: RenterLeaseInfoCardProps<TFieldValues>) {
+  // #region agent log
+  fetch("http://127.0.0.1:7498/ingest/4ccddd3e-0eee-492b-990a-657c3c69b983", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": "f27e17",
+    },
+    body: JSON.stringify({
+      sessionId: "f27e17",
+      runId: "pre-fix",
+      hypothesisId: "H1",
+      location: "RenterLeaseInfoCard.tsx:19",
+      message: "RenterLeaseInfoCard rendered",
+      data: {},
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion agent log
+
   return (
     <FormSectionCard title={t("renter.leaseInfo")}>
       <View style={styles.inputWrap}>
@@ -32,11 +52,11 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
       </View>
 
       <View style={styles.inputWrap}>
-        <FormNumericField
+        <FormLeaseYearsField
           control={control}
-          name={"monthlyRent" as any}
-          label={`${t("renter.monthlyRent")} *`}
-          keyboardType="decimal-pad"
+          name={"leaseYears" as any}
+          yearsCountName={"contractYears" as any}
+          t={t}
         />
       </View>
 

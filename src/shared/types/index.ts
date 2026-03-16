@@ -41,7 +41,6 @@ export interface Renter {
   email: string;
   monthly_rent: number;
   lease_start: string;
-  lease_end: string;
   number_of_payments?: number | null;
   payment_type?: string | null;
   payment_day_of_month?: number | null;
@@ -164,7 +163,6 @@ export interface RenterCreate {
   email: string;
   monthly_rent: number;
   lease_start: string;
-  lease_end: string;
   number_of_payments?: number | null;
   payment_type?: string | null;
   payment_day_of_month?: number | null;
@@ -181,7 +179,6 @@ export interface RenterUpdate {
   email?: string;
   monthly_rent?: number;
   lease_start?: string;
-  lease_end?: string;
   number_of_payments?: number | null;
   payment_type?: string | null;
   payment_day_of_month?: number | null;

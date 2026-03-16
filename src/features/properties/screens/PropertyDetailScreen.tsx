@@ -245,11 +245,8 @@ export function PropertyDetailScreen() {
                       <Text variant="bodyMedium">
                         {renter.first_name} {renter.last_name}
                       </Text>
-                      <Text
-                        variant="bodySmall"
-                        style={{ color: colors.textSecondary }}
-                      >
-                        {t('property.lease')}: {renter.lease_start} – {renter.lease_end}
+                      <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
+                        {t('property.lease')}: {renter.lease_start}
                       </Text>
                     </View>
                     <View

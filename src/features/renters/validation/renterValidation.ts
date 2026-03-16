@@ -30,17 +30,17 @@ const dateString = z
 
 const optionalString = z.string().transform((val) => val.trim());
 
+const leaseYearSchema = z.object({
+  amount: optionalNumericString,
+  type: z.enum(["option", "contract"]).optional(),
+});
+
 export const renterFormSchema = z.object({
   firstName: nonEmptyTrimmed,
   lastName: nonEmptyTrimmed,
   phone: nonEmptyTrimmed,
   email: nonEmptyTrimmed,
-  monthlyRent: numericString,
   leaseStart: dateString,
-  leaseEnd: z
-    .string()
-    .transform((val) => val.trim())
-    .optional(),
   propertyId: z.number().nullable(),
   paymentType: optionalString,
   paymentDate: z
@@ -52,6 +52,8 @@ export const renterFormSchema = z.object({
     .optional(),
   insuranceType: optionalString,
   insuranceAmount: optionalNumericString,
+  contractYears: optionalNumericString,
+  leaseYears: z.array(leaseYearSchema).optional(),
 });
 
 export type RenterFormValues = z.infer<typeof renterFormSchema>;

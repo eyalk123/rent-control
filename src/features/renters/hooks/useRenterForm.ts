@@ -38,15 +38,15 @@ export function useRenterForm({
       lastName: "",
       phone: "",
       email: "",
-      monthlyRent: "",
       leaseStart: "",
-      leaseEnd: "",
       propertyId: null,
       paymentType: "",
       paymentDate: "",
       paymentFrequency: undefined,
       insuranceType: "",
       insuranceAmount: "",
+      contractYears: "",
+      leaseYears: [],
     },
     mode: "onBlur",
   });
@@ -71,10 +71,7 @@ export function useRenterForm({
           lastName: renter.last_name ?? "",
           phone: renter.phone ?? "",
           email: renter.email ?? "",
-          monthlyRent:
-            renter.monthly_rent != null ? String(renter.monthly_rent) : "",
           leaseStart: renter.lease_start ?? "",
-          leaseEnd: renter.lease_end ?? "",
           propertyId: renter.property_id ?? null,
           paymentType: renter.payment_type ?? "",
           paymentDate:
@@ -100,7 +97,7 @@ export function useRenterForm({
   }, [id, isEdit, reset]);
 
   const submit = handleSubmit(async (values) => {
-    const rentNum = Number(values.monthlyRent);
+    const leaseStartTrimmed = values.leaseStart.trim();
     const paymentDayNum =
       values.paymentDate && values.paymentDate.length >= 10
         ? Number(values.paymentDate.slice(8, 10))
@@ -122,9 +119,7 @@ export function useRenterForm({
       last_name: values.lastName.trim(),
       phone: values.phone.trim(),
       email: values.email.trim(),
-      monthly_rent: rentNum,
-      lease_start: values.leaseStart.trim(),
-      lease_end: values.leaseEnd?.trim() ?? "",
+      lease_start: leaseStartTrimmed,
       property_id: values.propertyId ?? undefined,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
@@ -148,9 +143,7 @@ export function useRenterForm({
       last_name: values.lastName.trim(),
       phone: values.phone.trim(),
       email: values.email.trim(),
-      monthly_rent: rentNum,
-      lease_start: values.leaseStart.trim(),
-      lease_end: values.leaseEnd?.trim() ?? "",
+      lease_start: leaseStartTrimmed,
       property_id: values.propertyId ?? null,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {

@@ -146,12 +146,6 @@ export function RenterDetailScreen() {
               </Text>
               <Text variant="bodyMedium">{renter.lease_start}</Text>
             </View>
-            <View style={styles.detailRow}>
-              <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                {t('renter.dateOfEnd')}
-              </Text>
-              <Text variant="bodyMedium">{renter.lease_end}</Text>
-            </View>
             {renter.payment_day_of_month != null && (
               <View style={styles.detailRow}>
                 <Text variant="labelSmall" style={{ color: colors.textSecondary }}>

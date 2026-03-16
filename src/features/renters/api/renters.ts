@@ -23,7 +23,6 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     email,
     monthly_rent,
     lease_start,
-    lease_end,
     number_of_payments,
     payment_type,
     payment_day_of_month,
@@ -38,7 +37,6 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     email,
     monthly_rent,
     lease_start,
-    lease_end,
   };
   if (number_of_payments !== undefined) out.number_of_payments = number_of_payments;
   if (payment_type !== undefined) out.payment_type = payment_type;
@@ -57,7 +55,6 @@ function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
     'email',
     'monthly_rent',
     'lease_start',
-    'lease_end',
     'number_of_payments',
     'payment_type',
     'payment_day_of_month',

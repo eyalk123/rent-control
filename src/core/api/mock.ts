@@ -92,7 +92,6 @@ const seedRenters: Renter[] = [
     email: 'sarah.johnson@email.com',
     monthly_rent: 2200,
     lease_start: '2024-01-15',
-    lease_end: '2025-01-14',
     number_of_payments: 12,
     payment_type: 'monthly',
     payment_day_of_month: 1,
@@ -109,7 +108,6 @@ const seedRenters: Renter[] = [
     email: 'michael.chen@email.com',
     monthly_rent: 1900,
     lease_start: '2024-03-01',
-    lease_end: '2025-02-28',
     number_of_payments: 12,
     payment_type: 'monthly',
     payment_day_of_month: 15,
@@ -124,7 +122,6 @@ const seedRenters: Renter[] = [
     email: 'emily.davis@email.com',
     monthly_rent: 1650,
     lease_start: '2024-02-01',
-    lease_end: '2025-01-31',
     property: null,
   },
   {
@@ -136,7 +133,6 @@ const seedRenters: Renter[] = [
     email: 'james.wilson@email.com',
     monthly_rent: 2100,
     lease_start: '2024-04-15',
-    lease_end: '2025-04-14',
     property: null,
   },
   {
@@ -148,7 +144,6 @@ const seedRenters: Renter[] = [
     email: 'lisa.martinez@email.com',
     monthly_rent: 0,
     lease_start: '',
-    lease_end: '',
     property: null,
   },
   {
@@ -160,7 +155,6 @@ const seedRenters: Renter[] = [
     email: 'robert.thompson@email.com',
     monthly_rent: 1950,
     lease_start: '2024-05-01',
-    lease_end: '2025-04-30',
     property: null,
   },
 ];
@@ -264,7 +258,6 @@ export const mockRentersApi = {
       email: data.email ?? '',
       monthly_rent: data.monthly_rent ?? 0,
       lease_start: data.lease_start ?? '',
-      lease_end: data.lease_end ?? '',
       number_of_payments: data.number_of_payments ?? null,
       payment_type: data.payment_type ?? null,
       payment_day_of_month: data.payment_day_of_month ?? null,
