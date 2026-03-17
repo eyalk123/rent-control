@@ -31,6 +31,14 @@ export interface Property {
   hasRenters?: boolean;
 }
 
+// Lease: per-year amount and type (option vs contract) - matches FormLeaseYearsField UI
+export type LeaseYearType = 'option' | 'contract';
+
+export interface LeaseYear {
+  amount: number;
+  type: LeaseYearType;
+}
+
 // Renter - matches backend
 export interface Renter {
   id: number;
@@ -39,7 +47,7 @@ export interface Renter {
   last_name: string;
   phone: string;
   email: string;
-  monthly_rent: number;
+  lease_years: LeaseYear[];
   lease_start: string;
   number_of_payments?: number | null;
   payment_type?: string | null;
@@ -47,6 +55,13 @@ export interface Renter {
   insurance_type?: string | null;
   insurance_amount?: number | null;
   property: PropertyBrief | null;
+}
+
+/** Monthly rent derived from first lease year (amount/12). Use for display or default transaction amount. */
+export function getRenterMonthlyRent(renter: Renter): number {
+  const first = renter.lease_years?.[0];
+  if (!first?.amount) return 0;
+  return first.amount / 12;
 }
 
 // Transactions
@@ -117,6 +132,7 @@ export interface PropertyRenterSummary {
   id: number;
   first_name: string;
   last_name: string;
+  /** Display monthly rent (e.g. derived from first lease year). */
   monthly_rent: number;
 }
 
@@ -161,7 +177,7 @@ export interface RenterCreate {
   last_name: string;
   phone: string;
   email: string;
-  monthly_rent: number;
+  lease_years: LeaseYear[];
   lease_start: string;
   number_of_payments?: number | null;
   payment_type?: string | null;
@@ -177,7 +193,7 @@ export interface RenterUpdate {
   last_name?: string;
   phone?: string;
   email?: string;
-  monthly_rent?: number;
+  lease_years?: LeaseYear[];
   lease_start?: string;
   number_of_payments?: number | null;
   payment_type?: string | null;

@@ -149,7 +149,8 @@
     "discardChangesMessage": "יש שינויים שלא נשמרו. האם אתה בטוח שברצונך לצאת?",
     "discard": "עזוב בלי לשמור",
     "cancel": "ביטול",
-    "next": "הבא"
+    "next": "הבא",
+    "tryAgain": "נסה שוב"
   },
   "validation": {
     "title": "אימות",

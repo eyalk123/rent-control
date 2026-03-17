@@ -20,7 +20,7 @@ import {
   createRevenueTransaction,
 } from '@/src/features/transactions/api/transactions';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import type { PaymentMethod } from '@/src/shared/types';
+import { getRenterMonthlyRent, type PaymentMethod } from '@/src/shared/types';
 import {
   type ExpenseFormValues,
   type RevenueFormValues,
@@ -197,7 +197,7 @@ export function AddTransactionScreen() {
     const rentersForProp = renters.filter((r) => r.property_id === propertyId);
     if (rentersForProp.length >= 1) {
       revenueForm.setValue('renterId', rentersForProp[0].id);
-      revenueForm.setValue('amount', String(rentersForProp[0].monthly_rent ?? ''));
+      revenueForm.setValue('amount', String(getRenterMonthlyRent(rentersForProp[0]) ?? ''));
     } else {
       revenueForm.setValue('renterId', null);
     }

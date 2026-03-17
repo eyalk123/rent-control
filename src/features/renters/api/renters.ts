@@ -21,7 +21,7 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     last_name,
     phone,
     email,
-    monthly_rent,
+    lease_years,
     lease_start,
     number_of_payments,
     payment_type,
@@ -35,7 +35,7 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     last_name,
     phone,
     email,
-    monthly_rent,
+    lease_years: lease_years ?? [],
     lease_start,
   };
   if (number_of_payments !== undefined) out.number_of_payments = number_of_payments;
@@ -53,7 +53,7 @@ function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
     'last_name',
     'phone',
     'email',
-    'monthly_rent',
+    'lease_years',
     'lease_start',
     'number_of_payments',
     'payment_type',

@@ -72,7 +72,12 @@ export function PropertiesListScreen() {
   if (error && properties.length === 0) {
     return (
       <ScreenContainer>
-        <EmptyState message={error} icon="alert-circle" />
+        <EmptyState
+          message={error}
+          icon="alert-circle"
+          actionLabel={t('common.tryAgain')}
+          onAction={refreshProperties}
+        />
       </ScreenContainer>
     );
   }

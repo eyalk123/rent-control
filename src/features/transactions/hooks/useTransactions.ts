@@ -45,6 +45,7 @@ export function useTransactionsList(params: TransactionsListParams = {}) {
   );
 
   const refreshTransactions = React.useCallback(() => load(true), [load]);
+  const retryLoad = React.useCallback(() => load(false), [load]);
 
   React.useEffect(() => {
     load(false);
@@ -56,6 +57,7 @@ export function useTransactionsList(params: TransactionsListParams = {}) {
     refreshing,
     error,
     refreshTransactions,
+    retryLoad,
   };
 }
 

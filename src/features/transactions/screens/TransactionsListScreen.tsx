@@ -29,6 +29,7 @@ export function TransactionsListScreen() {
     error,
     refreshing,
     refreshTransactions,
+    retryLoad,
   } = useTransactionsList();
 
   const isFirstFocus = React.useRef(true);
@@ -165,7 +166,12 @@ export function TransactionsListScreen() {
   if (error && transactions.length === 0) {
     return (
       <ScreenContainer>
-        <EmptyState message={error} icon="alert-circle" />
+        <EmptyState
+          message={error}
+          icon="alert-circle"
+          actionLabel={t('common.tryAgain')}
+          onAction={retryLoad}
+        />
       </ScreenContainer>
     );
   }

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getRenterById } from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import type { Renter } from '@/src/shared/types';
+import { getRenterMonthlyRent, type Renter } from '@/src/shared/types';
 import {
   LoadingOverlay,
   EmptyState,
@@ -132,14 +132,35 @@ export function RenterDetailScreen() {
             </Text>
           </View>
           <Card.Content>
-            <View style={styles.detailRow}>
-              <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                {t('renter.rent')}
-              </Text>
-              <Text variant="bodyMedium">
-                ${renter.monthly_rent.toLocaleString()}
-              </Text>
-            </View>
+            {renter.lease_years && renter.lease_years.length > 0 ? (
+              <>
+                {renter.lease_years.map((year, idx) => (
+                  <View key={idx} style={styles.detailRow}>
+                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                      {t('renter.leaseYearLabel', { year: idx + 1 })}
+                    </Text>
+                    <Text variant="bodyMedium">
+                      ${year.amount.toLocaleString()} ({year.type === 'contract' ? t('renter.leaseYearTypeContract') : t('renter.leaseYearTypeOption')})
+                    </Text>
+                  </View>
+                ))}
+                <View style={styles.detailRow}>
+                  <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                    {t('renter.rent')}
+                  </Text>
+                  <Text variant="bodyMedium">
+                    ${getRenterMonthlyRent(renter).toLocaleString()} / {t('renter.frequencyMonthly').toLowerCase()}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <View style={styles.detailRow}>
+                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                  {t('renter.rent')}
+                </Text>
+                <Text variant="bodyMedium">—</Text>
+              </View>
+            )}
             <View style={styles.detailRow}>
               <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
                 {t('renter.dateOfStart')}

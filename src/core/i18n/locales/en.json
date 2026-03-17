@@ -150,7 +150,8 @@
     "discardChangesMessage": "You have unsaved changes. Are you sure you want to leave?",
     "discard": "Discard",
     "cancel": "Cancel",
-    "next": "Next"
+    "next": "Next",
+    "tryAgain": "Try Again"
   },
   "validation": {
     "title": "Validation",

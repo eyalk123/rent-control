@@ -9,7 +9,11 @@ import {
   getRenterById,
   updateRenter,
 } from "@/src/features/renters/api/renters";
-import type { RenterCreate, RenterUpdate } from "@/src/shared/types";
+import type {
+  LeaseYear,
+  RenterCreate,
+  RenterUpdate,
+} from "@/src/shared/types";
 import {
   renterFormSchema,
   type RenterFormValues,
@@ -66,6 +70,7 @@ export function useRenterForm({
     setIsFetching(true);
     getRenterById(numericId)
       .then((renter) => {
+        const lease_years = renter.lease_years ?? [];
         reset({
           firstName: renter.first_name ?? "",
           lastName: renter.last_name ?? "",
@@ -91,6 +96,12 @@ export function useRenterForm({
             renter.insurance_amount != null
               ? String(renter.insurance_amount)
               : "",
+          contractYears:
+            lease_years.length > 0 ? String(lease_years.length) : "",
+          leaseYears: lease_years.map((y) => ({
+            amount: String(y.amount),
+            type: y.type,
+          })),
         });
       })
       .finally(() => setIsFetching(false));
@@ -113,6 +124,17 @@ export function useRenterForm({
     const insuranceAmt = values.insuranceAmount
       ? Number(values.insuranceAmount)
       : null;
+    const leaseYearsForm = values.leaseYears ?? [];
+    const lease_years: LeaseYear[] = leaseYearsForm
+      .map((row) => {
+        const amount = row?.amount ? Number(row.amount) : NaN;
+        const type = row?.type === "option" || row?.type === "contract"
+          ? row.type
+          : "contract";
+        if (!Number.isFinite(amount) || amount < 0) return null;
+        return { amount, type };
+      })
+      .filter((y): y is LeaseYear => y != null);
 
     const baseCreate: RenterCreate = {
       first_name: values.firstName.trim(),
@@ -121,6 +143,7 @@ export function useRenterForm({
       email: values.email.trim(),
       lease_start: leaseStartTrimmed,
       property_id: values.propertyId ?? undefined,
+      lease_years,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseCreate.number_of_payments = numPayments;
@@ -145,6 +168,7 @@ export function useRenterForm({
       email: values.email.trim(),
       lease_start: leaseStartTrimmed,
       property_id: values.propertyId ?? null,
+      lease_years,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseUpdate.number_of_payments = numPayments;
