@@ -7,11 +7,11 @@ import { PropertyPicker } from '@/src/features/properties/components/PropertyPic
 import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import {
-  FormDatePickerField,
-  FormMonthYearPickerField,
   FormNumericField,
   FormTextField,
-} from '@/src/shared/components/form/FormFields';
+  FormDatePickerField,
+  FormMonthYearPickerField,
+} from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
 import type { RevenueFormValues } from '@/src/features/transactions/screens/types';
 import { PaymentMethodRadios } from '@/src/features/transactions/components/PaymentMethodRadios';

@@ -11,6 +11,7 @@ import { useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
+import { formatMoney } from '@/src/shared/utils/money';
 
 type TransactionTypeFilter = 'all' | 'revenue' | 'expense';
 
@@ -109,11 +110,7 @@ export function TransactionsListScreen() {
             {item.property_name}
           </Text>
           <Text style={[styles.amount, { color: amountColor }]}>
-            {item.amount.toLocaleString(undefined, {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 2,
-            })}{' '}
-            {item.currencyCode}
+            {formatMoney(item.amount)}
           </Text>
         </View>
         <View style={styles.cardRow}>
@@ -187,7 +184,7 @@ export function TransactionsListScreen() {
         />
         <FAB
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
+          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('transactions.addTransaction', {
             defaultValue: 'Add transaction',
@@ -258,7 +255,7 @@ export function TransactionsListScreen() {
       />
       <FAB
         icon="plus"
-        style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
+        style={[styles.fab, { bottom: insets.bottom }]}
         onPress={handleAddPress}
         accessibilityLabel={t('transactions.addTransaction', {
           defaultValue: 'Add transaction',
@@ -339,7 +336,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    margin: spacing.lg,
-    end: 0,
+    margin: spacing.sm,
+    right: 0,
   },
 });

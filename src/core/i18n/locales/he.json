@@ -71,6 +71,7 @@
     "details": "פרטים",
     "additionalDetails": "פרטים נוספים",
     "removePhoto": "הסרת תמונה",
+    "choosePresetImage": "בחירת תמונה",
     "tabs": {
       "info": "מידע",
       "renters": "דיירים",
@@ -89,7 +90,7 @@
     "rent": "שכר דירה",
     "contractYears": "מספר השנים בחוזה",
     "leaseYearLabel": "שנה {{year}}",
-    "leaseYearAmount": "שכר דירה לשנה זו",
+    "leaseYearAmount": "שכר דירה חודשי (לשנה זו)",
     "leaseYearType": "סוג",
     "leaseYearTypeOption": "אופציה",
     "leaseYearTypeContract": "חוזה",
@@ -107,6 +108,8 @@
     "frequencyQuarterly": "רבעוני",
     "frequencyYearly": "שנתי",
     "insuranceType": "סוג ביטוח",
+    "insuranceTypeWireTransfer": "העברה בנקאית",
+    "insuranceTypeBankGuarantee": "ערבות בנקאית",
     "insuranceAmount": "סכום ביטוח",
     "leaseStartPlaceholder": "למשל 2024-01-01",
     "property": "נכס",
@@ -119,6 +122,13 @@
     "updateRenter": "עדכון דייר",
     "call": "התקשרות",
     "sms": "הודעה",
+    "tabs": {
+      "info": "מידע",
+      "property": "נכס",
+      "transactions": "תנועות"
+    },
+    "noProperty": "לא משויך לנכס",
+    "noTransactions": "אין תנועות לדייר זה",
     "status": {
       "active": "פעיל",
       "paid": "שולם",

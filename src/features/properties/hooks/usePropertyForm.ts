@@ -6,7 +6,6 @@ import type { TFunction } from 'i18next';
 import {
   createProperty,
   updateProperty,
-  uploadPropertyImage,
   getPropertyById,
 } from '@/src/features/properties/api/properties';
 import { getApiErrorMessage } from '@/src/core/api/client';
@@ -133,7 +132,7 @@ export function usePropertyForm({
       purchase_price: purchasePriceNum,
     };
 
-    if (imageUri) createData.image_url = imageUri;
+    createData.image_url = imageUri;
     if (numberOfRoomsNum != null) createData.number_of_rooms = numberOfRoomsNum;
     if (parkingNumbersParsed != null && parkingNumbersParsed.length > 0) {
       createData.parking_numbers = parkingNumbersParsed;
@@ -153,7 +152,7 @@ export function usePropertyForm({
       sq_ft: sqFtNum,
       purchase_price: purchasePriceNum,
     };
-    if (imageUri) updateData.image_url = imageUri;
+    updateData.image_url = imageUri;
     if (numberOfRoomsNum != null) updateData.number_of_rooms = numberOfRoomsNum;
     if (parkingNumbersParsed != null && parkingNumbersParsed.length > 0) {
       updateData.parking_numbers = parkingNumbersParsed;
@@ -166,29 +165,10 @@ export function usePropertyForm({
     if (houseCommitteeNum != null) updateData.house_committee = houseCommitteeNum;
 
     try {
-      const formDataForImage = () => {
-        const fd = new FormData();
-        if (imageUri) {
-          fd.append('file', {
-            uri: imageUri,
-            type: 'image/jpeg',
-            name: 'property.jpg',
-          } as unknown as Blob);
-        }
-        return fd;
-      };
-
       if (isEdit && id) {
-        const numericId = Number(id);
-        await updateProperty(numericId, updateData);
-        if (imageUri) {
-          await uploadPropertyImage(numericId, formDataForImage());
-        }
+        await updateProperty(Number(id), updateData);
       } else {
-        const created = await createProperty(createData);
-        if (imageUri) {
-          await uploadPropertyImage(created.id, formDataForImage());
-        }
+        await createProperty(createData);
       }
 
       await refreshProperties();

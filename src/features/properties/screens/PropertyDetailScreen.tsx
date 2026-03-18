@@ -23,6 +23,7 @@ import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { PropertyInfoTab } from '@/src/features/properties/components/PropertyInfoTab';
 import { PropertyRentersTab } from '@/src/features/properties/components/PropertyRentersTab';
 import { PropertyTransactionsTab } from '@/src/features/properties/components/PropertyTransactionsTab';
+import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
 
 type TabKey = 'info' | 'renters' | 'transactions';
 
@@ -82,15 +83,17 @@ export function PropertyDetailScreen() {
     );
   }
 
+  const imageSource = getPropertyImageSource(property.image_url);
+
   return (
-    <ScreenContainer edges={['left', 'right']}>
+    <ScreenContainer edges={['top', 'left', 'right']}>
       <View style={styles.container}>
         {/* Header: image + address + edit */}
         <View>
           <View style={[styles.imageWrapper, { width }]}>
-            {property.image_url ? (
+            {imageSource ? (
               <Image
-                source={{ uri: property.image_url }}
+                source={imageSource}
                 style={[styles.image, { width }]}
                 resizeMode="cover"
               />
@@ -187,8 +190,8 @@ const styles = StyleSheet.create({
   },
   editIcon: {
     position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
+    bottom: spacing.sm,
+    left: spacing.sm,
     margin: 0,
   },
   addressRow: {

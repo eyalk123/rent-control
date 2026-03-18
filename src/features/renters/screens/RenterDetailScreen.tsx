@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View, Linking, TouchableOpacity } from 'react-native';
-import { Card, Text, useTheme, Button } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { StyleSheet, View, Pressable } from 'react-native';
+import { IconButton, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getRenterById } from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import { getRenterMonthlyRent, type Renter } from '@/src/shared/types';
+import type { Renter } from '@/src/shared/types';
 import {
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
 } from '@/src/shared/components/ui';
-import { lightColors, darkColors } from '@/src/core/theme';
-import { spacing } from '@/src/core/theme';
+import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { RenterInfoTab } from '@/src/features/renters/components/RenterInfoTab';
+import { RenterPropertyTab } from '@/src/features/renters/components/RenterPropertyTab';
+import { RenterTransactionsTab } from '@/src/features/renters/components/RenterTransactionsTab';
+
+type TabKey = 'info' | 'property' | 'transactions';
 
 export function RenterDetailScreen() {
   const { t } = useTranslation();
@@ -27,6 +30,7 @@ export function RenterDetailScreen() {
   const [renter, setRenter] = useState<Renter | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabKey>('info');
 
   useEffect(() => {
     async function fetchRenter() {
@@ -55,18 +59,6 @@ export function RenterDetailScreen() {
     }
   };
 
-  const handleCall = () => {
-    if (renter?.phone) Linking.openURL(`tel:${renter.phone}`);
-  };
-
-  const handleSms = () => {
-    if (renter?.phone) Linking.openURL(`sms:${renter.phone}`);
-  };
-
-  const handleEmail = () => {
-    if (renter?.email) Linking.openURL(`mailto:${renter.email}`);
-  };
-
   if (loading) {
     return (
       <ScreenContainer>
@@ -88,268 +80,144 @@ export function RenterDetailScreen() {
 
   return (
     <ScreenContainer edges={['left', 'right']}>
-      <View style={[styles.header, { paddingTop: insets.top, backgroundColor: colors.primary }]}>
-        <View style={styles.headerBar}>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
-            <MaterialCommunityIcons name="arrow-left" size={24} color="#FFF" />
-          </TouchableOpacity>
-          <Text variant="titleMedium" style={[styles.headerTitle, { color: '#FFF' }]}>
-            {t('screens.renterDetails')}
-          </Text>
-          <TouchableOpacity onPress={handleEdit} hitSlop={12} style={styles.editHeaderBtn}>
-            <MaterialCommunityIcons name="pencil" size={22} color="#FFF" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.profileSection}>
+      <View style={styles.container}>
+        {/* Header: avatar + name + edit */}
+        <View>
           <View
             style={[
-              styles.avatarPlaceholder,
-              { backgroundColor: 'rgba(255,255,255,0.3)' },
+              styles.avatarSection,
+              { paddingTop: insets.top + spacing.sm, backgroundColor: colors.inputBackground },
             ]}
           >
-            <Text style={[styles.avatarText, { color: '#FFF' }]}>
-              {renter.first_name[0]}
-              {renter.last_name[0]}
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarText}>
+                {renter.first_name[0]}
+                {renter.last_name[0]}
+              </Text>
+            </View>
+            <IconButton
+              icon="pencil"
+              iconColor="#FFF"
+              size={20}
+              style={[styles.editIcon, { backgroundColor: colors.primary }]}
+              onPress={handleEdit}
+              accessibilityLabel={t('renter.editRenter')}
+            />
+          </View>
+
+          <View style={styles.nameRow}>
+            <Text
+              variant="titleLarge"
+              style={[styles.nameText, { color: colors.textPrimary }]}
+            >
+              {renter.first_name} {renter.last_name}
+            </Text>
+            <Text
+              variant="bodyMedium"
+              style={{ color: colors.textSecondary, textAlign: 'center' }}
+            >
+              {renter.property?.address ?? t('renter.unassigned')}
             </Text>
           </View>
-          <Text variant="headlineSmall" style={[styles.name, { color: '#FFF' }]}>
-            {renter.first_name} {renter.last_name}
-          </Text>
-          <Text variant="bodyMedium" style={[styles.propertyLine, { color: 'rgba(255,255,255,0.9)' }]}>
-            {renter.property?.address ?? t('renter.unassigned')}
-          </Text>
+
+          {/* Tab bar */}
+          <View style={[styles.tabBar, { backgroundColor: colors.inputBackground }]}>
+            {([
+              { value: 'info', label: t('renter.tabs.info') },
+              { value: 'property', label: t('renter.tabs.property') },
+              { value: 'transactions', label: t('renter.tabs.transactions') },
+            ] as const).map((tab) => {
+              const isActive = activeTab === tab.value;
+              return (
+                <Pressable
+                  key={tab.value}
+                  style={[
+                    styles.tab,
+                    isActive && { borderBottomColor: colors.primary },
+                  ]}
+                  onPress={() => setActiveTab(tab.value as TabKey)}
+                >
+                  <Text
+                    variant="labelLarge"
+                    style={[
+                      styles.tabLabel,
+                      { color: isActive ? colors.primary : colors.textSecondary },
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Tab content */}
+        <View style={styles.tabContent}>
+          {activeTab === 'info' && <RenterInfoTab renter={renter} />}
+          {activeTab === 'property' && <RenterPropertyTab renter={renter} />}
+          {activeTab === 'transactions' && (
+            <RenterTransactionsTab renterId={renter.id} />
+          )}
         </View>
       </View>
-      <ScrollView
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <Card style={styles.card} mode="outlined">
-          <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
-              {t('renter.leaseInfo')}
-            </Text>
-          </View>
-          <Card.Content>
-            {renter.lease_years && renter.lease_years.length > 0 ? (
-              <>
-                {renter.lease_years.map((year, idx) => (
-                  <View key={idx} style={styles.detailRow}>
-                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                      {t('renter.leaseYearLabel', { year: idx + 1 })}
-                    </Text>
-                    <Text variant="bodyMedium">
-                      ${year.amount.toLocaleString()} ({year.type === 'contract' ? t('renter.leaseYearTypeContract') : t('renter.leaseYearTypeOption')})
-                    </Text>
-                  </View>
-                ))}
-                <View style={styles.detailRow}>
-                  <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                    {t('renter.rent')}
-                  </Text>
-                  <Text variant="bodyMedium">
-                    ${getRenterMonthlyRent(renter).toLocaleString()} / {t('renter.frequencyMonthly').toLowerCase()}
-                  </Text>
-                </View>
-              </>
-            ) : (
-              <View style={styles.detailRow}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('renter.rent')}
-                </Text>
-                <Text variant="bodyMedium">—</Text>
-              </View>
-            )}
-            <View style={styles.detailRow}>
-              <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                {t('renter.dateOfStart')}
-              </Text>
-              <Text variant="bodyMedium">{renter.lease_start}</Text>
-            </View>
-            {renter.payment_day_of_month != null && (
-              <View style={styles.detailRow}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('renter.dateOfPayment')}
-                </Text>
-                <Text variant="bodyMedium">{renter.payment_day_of_month}</Text>
-              </View>
-            )}
-            {renter.number_of_payments != null && (
-              <View style={styles.detailRow}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('renter.numberOfPayments')}
-                </Text>
-                <Text variant="bodyMedium">{renter.number_of_payments}</Text>
-              </View>
-            )}
-            {renter.payment_type != null && renter.payment_type !== '' && (
-              <View style={styles.detailRow}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('renter.paymentType')}
-                </Text>
-                <Text variant="bodyMedium">{renter.payment_type}</Text>
-              </View>
-            )}
-            {renter.insurance_type != null && renter.insurance_type !== '' && (
-              <View style={styles.detailRow}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('renter.insuranceType')}
-                </Text>
-                <Text variant="bodyMedium">{renter.insurance_type}</Text>
-              </View>
-            )}
-            {renter.insurance_amount != null && (
-              <View style={styles.detailRow}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('renter.insuranceAmount')}
-                </Text>
-                <Text variant="bodyMedium">{renter.insurance_amount.toLocaleString()}</Text>
-              </View>
-            )}
-          </Card.Content>
-        </Card>
-
-        <Card style={styles.card} mode="outlined">
-          <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
-              {t('renter.basicInfo')}
-            </Text>
-          </View>
-          <Card.Content>
-            <View style={styles.detailRow}>
-              <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                {t('renter.phone')}
-              </Text>
-              <Text variant="bodyMedium">{renter.phone}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                {t('renter.email')}
-              </Text>
-              <Text variant="bodyMedium">{renter.email}</Text>
-            </View>
-          </Card.Content>
-        </Card>
-
-        <View style={styles.buttonRow}>
-          <Button
-            mode="outlined"
-            onPress={handleCall}
-            icon="phone"
-            style={styles.actionButton}
-            compact
-          >
-            {t('renter.call')}
-          </Button>
-          <Button
-            mode="outlined"
-            onPress={handleSms}
-            icon="message"
-            style={styles.actionButton}
-            compact
-          >
-            {t('renter.sms')}
-          </Button>
-          <Button
-            mode="outlined"
-            onPress={handleEmail}
-            icon="email"
-            style={styles.actionButton}
-            compact
-          >
-            {t('renter.email')}
-          </Button>
-        </View>
-
-        <Button
-          mode="contained"
-          onPress={handleEdit}
-          style={styles.editButton}
-          accessibilityLabel={t('renter.editRenter')}
-          accessibilityRole="button"
-        >
-          {t('renter.editRenter')}
-        </Button>
-      </ScrollView>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingBottom: spacing.lg,
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sm,
-    paddingBottom: spacing.sm,
-  },
-  backBtn: {
-    padding: spacing.xs,
-  },
-  headerTitle: {
-    fontWeight: '600',
-  },
-  editHeaderBtn: {
-    padding: spacing.xs,
-  },
-  profileSection: {
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  avatarPlaceholder: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  name: {
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
-  propertyLine: {},
   container: {
     flex: 1,
   },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+  avatarSection: {
+    alignItems: 'center',
+    paddingBottom: spacing.md,
+    position: 'relative',
   },
-  card: {
-    marginBottom: spacing.md,
-    borderRadius: 10,
-    overflow: 'hidden',
+  avatarCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sectionHeader: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+  avatarText: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#FFF',
   },
-  sectionHeaderText: {
+  editIcon: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    left: spacing.sm,
+    margin: 0,
+  },
+  nameRow: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    alignItems: 'center',
+  },
+  nameText: {
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  tabBar: {
+    flexDirection: 'row',
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center' as const,
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  tabLabel: {
     fontWeight: '600',
   },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    marginBottom: spacing.md,
-    gap: spacing.sm,
-  },
-  actionButton: {
+  tabContent: {
     flex: 1,
-  },
-  editButton: {
-    marginTop: spacing.xs,
   },
 });

@@ -13,7 +13,8 @@ export const lightColors = {
   textSecondary: "rgba(100, 116, 139, 1)",
   placeholder: "rgba(148, 163, 184, 1)",
   inputBackground: "rgba(248, 250, 252, 1)",
-  inputFilledBackground: "rgba(241, 245, 249, 1)",
+  // Slightly lighter than `background` for better form contrast
+  inputFilledBackground: "rgba(248, 250, 252, 1)",
   inputBorder: "rgba(226, 232, 240, 1)",
   success: "rgba(5, 150, 105, 1)",
   warning: "rgba(217, 119, 6, 1)",
@@ -40,7 +41,8 @@ export const darkColors = {
   textSecondary: "rgba(240, 241, 243, 0.72)",
   placeholder: "rgba(240, 241, 243, 0.55)",
   inputBackground: "rgba(30, 30, 32, 1)",
-  inputFilledBackground: "rgba(24, 24, 26, 1)",
+  // Slightly lighter than `background` for better form contrast
+  inputFilledBackground: "rgba(44, 44, 46, 1)",
   inputBorder: "rgba(255, 255, 255, 0.15)",
   success: "rgba(16, 185, 129, 1)",
   warning: "rgba(245, 158, 11, 1)",

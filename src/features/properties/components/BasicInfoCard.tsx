@@ -7,7 +7,7 @@ import {
   FormDropdownOptions,
 } from "@/src/shared/components/form";
 import { useRtlPlaceholder } from "@/src/core/context";
-import { ImagePickerSection } from "@/src/features/properties/components/ImagePickerSection";
+import { PropertyHouseImageField } from "@/src/features/properties/components/PropertyHouseImageField";
 import { PROPERTY_TYPES } from "@/src/features/properties/validation/propertyValidation";
 import type { PropertyType } from "@/src/shared/types";
 import type { TFunction } from "i18next";
@@ -95,9 +95,9 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
             keyboardType={f.keyboardType}
           />
         ))}
-      <ImagePickerSection
-        imageUri={imageUri}
-        setImageUri={setImageUri}
+      <PropertyHouseImageField
+        imageUrl={imageUri}
+        onChangeImageUrl={setImageUri}
         t={t}
       />
     </FormSectionCard>

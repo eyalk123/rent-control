@@ -5,6 +5,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
+import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
 
 interface PropertyCardProps {
   property: Property;
@@ -18,14 +19,15 @@ export function PropertyCard({ property, onPress }: PropertyCardProps) {
   const colors = isDark ? darkColors : lightColors;
   const isOccupied =
     property.hasRenters ?? (property.renters?.length ?? 0) > 0;
+  const imageSource = getPropertyImageSource(property.image_url);
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <Card style={styles.card} mode="outlined">
         <Card.Content style={styles.content}>
-          {property.image_url ? (
+          {imageSource ? (
             <Image
-              source={{ uri: property.image_url }}
+              source={imageSource}
               style={styles.thumbnail}
               resizeMode="cover"
             />

@@ -8,6 +8,7 @@ import type { Property } from '@/src/shared/types';
 import { getRenterMonthlyRent } from '@/src/shared/types';
 import { EmptyState } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { formatMoney } from '@/src/shared/utils/money';
 
 interface PropertyRentersTabProps {
   property: Property;
@@ -59,7 +60,7 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
                   style={{ color: colors.textSecondary }}
                   numberOfLines={1}
                 >
-                  {t('renter.rent')}: ${getRenterMonthlyRent(renter).toLocaleString()}/{t('renter.frequencyMonthly').toLowerCase()}
+                  {t('renter.monthlyRent')}: {formatMoney(getRenterMonthlyRent(renter))}/{t('renter.frequencyMonthly').toLowerCase()}
                 </Text>
                 <Text
                   variant="bodySmall"

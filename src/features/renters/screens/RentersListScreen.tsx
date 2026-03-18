@@ -80,7 +80,7 @@ export function RentersListScreen() {
         <EmptyState message={t('empty.noRenters')} icon="account" />
         <FAB
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
+          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('renter.addRenter')}
           accessibilityRole="button"
@@ -130,7 +130,7 @@ export function RentersListScreen() {
       />
       <FAB
         icon="plus"
-        style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
+        style={[styles.fab, { bottom: insets.bottom }]}
         onPress={handleAddPress}
         accessibilityLabel={t('renter.addRenter')}
         accessibilityRole="button"
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    margin: spacing.lg,
-    end: 0,
+    margin: spacing.sm,
+    right: 0,
   },
 });

@@ -5,6 +5,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import type { Property, PropertyType } from '@/src/shared/types';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { formatMoney } from '@/src/shared/utils/money';
 
 interface PropertyInfoTabProps {
   property: Property;
@@ -147,7 +148,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
           <IconDetailRow
             icon="cash"
             label={t('property.purchasePrice')}
-            value={`$${property.purchase_price.toLocaleString()}`}
+            value={formatMoney(property.purchase_price)}
             iconColor={colors.primary}
             secondaryColor={colors.textSecondary}
           />
@@ -185,7 +186,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
               <IconDetailRow
                 icon="water"
                 label={t('property.waterMeterTax')}
-                value={property.water_meter_tax.toLocaleString()}
+                value={formatMoney(property.water_meter_tax)}
                 iconColor={colors.sectionAccent}
                 secondaryColor={colors.textSecondary}
               />
@@ -194,7 +195,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
               <IconDetailRow
                 icon="file-document"
                 label={t('property.propertyTax')}
-                value={property.property_tax.toLocaleString()}
+                value={formatMoney(property.property_tax)}
                 iconColor={colors.sectionAccent}
                 secondaryColor={colors.textSecondary}
               />
@@ -203,7 +204,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
               <IconDetailRow
                 icon="account-group"
                 label={t('property.houseCommittee')}
-                value={property.house_committee.toLocaleString()}
+                value={formatMoney(property.house_committee)}
                 iconColor={colors.sectionAccent}
                 secondaryColor={colors.textSecondary}
               />

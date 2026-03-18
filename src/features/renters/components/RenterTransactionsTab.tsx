@@ -10,11 +10,11 @@ import { formatMoney } from '@/src/shared/utils/money';
 
 type TransactionTypeFilter = 'all' | 'revenue' | 'expense';
 
-interface PropertyTransactionsTabProps {
-  propertyId: number;
+interface RenterTransactionsTabProps {
+  renterId: number;
 }
 
-export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabProps) {
+export function RenterTransactionsTab({ renterId }: RenterTransactionsTabProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -26,7 +26,7 @@ export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabP
     error,
     refreshTransactions,
     retryLoad,
-  } = useTransactionsList({ propertyId });
+  } = useTransactionsList({ renterId });
 
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
 
@@ -56,9 +56,9 @@ export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabP
           </Text>
         </View>
         <View style={styles.txMeta}>
-          {item.renter_name ? (
+          {item.property_name ? (
             <Text style={[styles.txMetaText, { color: colors.textSecondary }]}>
-              {item.renter_name}
+              {item.property_name}
             </Text>
           ) : null}
           {item.category_name ? (
@@ -131,7 +131,7 @@ export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabP
         }
         ListEmptyComponent={
           <EmptyState
-            message={t('property.noTransactions')}
+            message={t('renter.noTransactions')}
             icon="cash-multiple"
           />
         }

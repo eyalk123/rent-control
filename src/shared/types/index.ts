@@ -57,11 +57,11 @@ export interface Renter {
   property: PropertyBrief | null;
 }
 
-/** Monthly rent derived from first lease year (amount/12). Use for display or default transaction amount. */
+/** Monthly rent derived from first lease year amount. Use for display or default transaction amount. */
 export function getRenterMonthlyRent(renter: Renter): number {
   const first = renter.lease_years?.[0];
   if (!first?.amount) return 0;
-  return first.amount / 12;
+  return first.amount;
 }
 
 // Transactions

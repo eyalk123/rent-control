@@ -77,9 +77,12 @@ export function FormDropdownOptions<TFieldValues extends FieldValues>({
               selectedTextStyle={[
                 styles.selectedText,
                 rtlInputStyle,
-                { textAlign: isRtl ? "right" : "left" },
+                {
+                  textAlign: isRtl ? "right" : "left",
+                  color: colors.textPrimary,
+                },
               ]}
-              itemTextStyle={rtlInputStyle}
+              itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
               style={[
                 styles.dropdown,
                 {
@@ -87,12 +90,23 @@ export function FormDropdownOptions<TFieldValues extends FieldValues>({
                   borderColor: error ? colors.error : colors.outline,
                 },
               ]}
-              containerStyle={styles.dropdownContainer}
+              containerStyle={[
+                styles.dropdownContainer,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.outline,
+                },
+              ]}
               onChange={(item: Option) => {
                 onChange(item.value);
               }}
               renderItem={(item: Option) => (
-                <View style={styles.itemContainer}>
+                <View
+                  style={[
+                    styles.itemContainer,
+                    { backgroundColor: colors.surface },
+                  ]}
+                >
                   <Text
                     style={[
                       styles.itemText,
@@ -100,6 +114,7 @@ export function FormDropdownOptions<TFieldValues extends FieldValues>({
                       {
                         textAlign: isRtl ? "right" : "left",
                         width: "100%",
+                        color: colors.textPrimary,
                       },
                     ]}
                   >
@@ -146,6 +161,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   dropdownContainer: {
+    borderWidth: 1,
     borderRadius: 4,
   },
   placeholder: {
@@ -153,7 +169,6 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     fontSize: 16,
-    color: "auto",
   },
   itemContainer: {
     paddingVertical: 10,

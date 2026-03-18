@@ -88,7 +88,7 @@ export function PropertiesListScreen() {
         <EmptyState message={t('empty.noProperties')} icon="home" />
         <FAB
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
+          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('property.addProperty')}
           accessibilityRole="button"
@@ -138,7 +138,7 @@ export function PropertiesListScreen() {
       />
       <FAB
         icon="plus"
-        style={[styles.fab, { bottom: insets.bottom + spacing.lg }]}
+        style={[styles.fab, { bottom: insets.bottom }]}
         onPress={handleAddPress}
         accessibilityLabel={t('property.addProperty')}
         accessibilityRole="button"
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    margin: spacing.lg,
-    end: 0,
+    margin: spacing.sm,
+    right: 0,
   },
 });

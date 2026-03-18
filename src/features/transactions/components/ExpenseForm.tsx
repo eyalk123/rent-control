@@ -9,10 +9,10 @@ import { ExpenseCategoryPicker } from '@/src/features/transactions/components/Ex
 import { SupplierPicker } from '@/src/features/transactions/components/SupplierPicker';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import {
-  FormDatePickerField,
   FormNumericField,
   FormTextField,
-} from '@/src/shared/components/form/FormFields';
+  FormDatePickerField,
+} from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
 import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
 import { PaymentMethodRadios } from '@/src/features/transactions/components/PaymentMethodRadios';
