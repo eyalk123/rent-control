@@ -11,6 +11,7 @@ import { useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
+import { TransactionSummaryCards } from '@/src/features/transactions/components/TransactionSummaryCards';
 import { formatMoney } from '@/src/shared/utils/money';
 
 type TransactionTypeFilter = 'all' | 'revenue' | 'expense';
@@ -47,31 +48,42 @@ export function TransactionsListScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
 
+  const searchFilteredTransactions = useMemo(() => {
+    if (!searchQuery.trim()) return transactions;
+    const q = searchQuery.toLowerCase().trim();
+    return transactions.filter((tx) => {
+      const property = tx.property_name.toLowerCase();
+      const renter = (tx.renter_name ?? '').toLowerCase();
+      const category = (tx.category_name ?? '').toLowerCase();
+      const supplier = (tx.supplier_name ?? '').toLowerCase();
+      return (
+        property.includes(q) ||
+        renter.includes(q) ||
+        category.includes(q) ||
+        supplier.includes(q)
+      );
+    });
+  }, [transactions, searchQuery]);
+
   const filteredTransactions = useMemo(() => {
-    let list = transactions;
+    if (typeFilter === 'all') return searchFilteredTransactions;
+    return searchFilteredTransactions.filter((tx) => tx.type === typeFilter);
+  }, [searchFilteredTransactions, typeFilter]);
 
-    if (typeFilter !== 'all') {
-      list = list.filter((tx) => tx.type === typeFilter);
-    }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter((tx) => {
-        const property = tx.property_name.toLowerCase();
-        const renter = (tx.renter_name ?? '').toLowerCase();
-        const category = (tx.category_name ?? '').toLowerCase();
-        const supplier = (tx.supplier_name ?? '').toLowerCase();
-        return (
-          property.includes(q) ||
-          renter.includes(q) ||
-          category.includes(q) ||
-          supplier.includes(q)
-        );
-      });
-    }
-
-    return list;
-  }, [transactions, typeFilter, searchQuery]);
+  const summary = useMemo(() => {
+    const toNumber = (n: unknown) => {
+      if (n == null) return 0;
+      const num = Number(n);
+      return isNaN(num) ? 0 : num;
+    };
+    const revenue = searchFilteredTransactions
+      .filter((tx) => tx.type === 'revenue')
+      .reduce((sum, tx) => sum + toNumber(tx.amount), 0);
+    const expenses = searchFilteredTransactions
+      .filter((tx) => tx.type === 'expense')
+      .reduce((sum, tx) => sum + toNumber(tx.amount), 0);
+    return { revenue, expenses, profitLoss: revenue - expenses };
+  }, [searchFilteredTransactions]);
 
   const searchPlaceholder = rtlPlaceholder(t('search.placeholderTransactions', {
     defaultValue: 'Search transactions',
@@ -209,6 +221,7 @@ export function TransactionsListScreen() {
           style={styles.searchbar}
           inputStyle={rtlInputStyle}
         />
+        <TransactionSummaryCards summary={summary} />
         <SegmentedButtons
           value={typeFilter}
           onValueChange={(value) => setTypeFilter(value as TransactionTypeFilter)}
