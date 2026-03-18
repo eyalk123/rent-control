@@ -6,9 +6,9 @@ import { spacing } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
 import {
   FormNumericField,
-  FormDatePickerField,
   FormDropdownOptions,
   FormLeaseYearsField,
+  FormWheelDateField,
 } from "@/src/shared/components/form";
 
 type RenterLeaseInfoCardProps<TFieldValues extends FieldValues> = {
@@ -23,11 +23,12 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   return (
     <FormSectionCard title={t("renter.leaseInfo")}>
       <View style={styles.inputWrap}>
-        <FormDatePickerField
+        <FormWheelDateField
           control={control}
           name={"leaseStart" as any}
           label={`${t("renter.leaseStart")} *`}
           placeholder={t("renter.leaseStartPlaceholder")}
+          mode="full"
         />
       </View>
 
@@ -41,10 +42,11 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
       </View>
 
       <View style={styles.inputWrap}>
-        <FormDatePickerField
+        <FormWheelDateField
           control={control}
           name={"paymentDate" as any}
           label={t("renter.dateOfPayment")}
+          mode="dayOfMonth"
         />
       </View>
 

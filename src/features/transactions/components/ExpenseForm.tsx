@@ -11,7 +11,7 @@ import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import {
   FormNumericField,
   FormTextField,
-  FormDatePickerField,
+  FormWheelDateField,
 } from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
 import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
@@ -76,10 +76,11 @@ export function ExpenseForm({
           name="amount"
           label={t('transactions.amount', { defaultValue: 'Amount' })}
         />
-        <FormDatePickerField
+        <FormWheelDateField
           control={control}
           name="dateOfPayment"
           label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
+          mode="full"
         />
         <Controller
           control={control}

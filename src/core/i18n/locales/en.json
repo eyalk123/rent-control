@@ -90,7 +90,7 @@
     "rent": "Rent",
     "contractYears": "Number of years in contract",
     "leaseYearLabel": "Year {{year}}",
-    "leaseYearAmount": "Monthly rent (for this year)",
+    "leaseYearAmount": "Monthly rent",
     "leaseYearType": "Type",
     "leaseYearTypeOption": "Option",
     "leaseYearTypeContract": "Contract",

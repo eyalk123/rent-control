@@ -9,8 +9,7 @@ import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import {
   FormNumericField,
   FormTextField,
-  FormDatePickerField,
-  FormMonthYearPickerField,
+  FormWheelDateField,
 } from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
 import type { RevenueFormValues } from '@/src/features/transactions/screens/types';
@@ -76,16 +75,18 @@ export function RevenueForm({
           name="amount"
           label={t('transactions.amount', { defaultValue: 'Amount' })}
         />
-        <FormMonthYearPickerField
+        <FormWheelDateField
           control={control}
           name="monthFor"
           label={t('transactions.monthForLabel', { defaultValue: 'Month' })}
           placeholder={t('transactions.monthForPlaceholder', { defaultValue: 'Month, Year' })}
+          mode="monthYear"
         />
-        <FormDatePickerField
+        <FormWheelDateField
           control={control}
           name="dateOfPayment"
           label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
+          mode="full"
         />
         <Controller
           control={control}
