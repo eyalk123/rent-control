@@ -130,7 +130,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
       {/* Overview card */}
       <Card style={styles.card} mode="outlined">
         <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-          <Text variant="titleSmall" style={styles.sectionHeaderText}>
+          <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
             {t('property.basicInfo')}
           </Text>
         </View>
@@ -158,7 +158,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
       {hasPropertyDetails && (
         <Card style={styles.card} mode="outlined">
           <View style={[styles.sectionHeader, { backgroundColor: colors.sectionAccent }]}>
-            <Text variant="titleSmall" style={styles.sectionHeaderText}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
               {t('property.details')}
             </Text>
           </View>
@@ -246,7 +246,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   sectionHeaderText: {
-    color: '#FFFFFF',
     fontWeight: '600',
   },
   cardContent: {

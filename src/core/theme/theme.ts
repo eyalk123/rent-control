@@ -48,6 +48,14 @@ export const darkTheme: MD3Theme = {
     outline: darkColors.outline,
     error: darkColors.error,
     onError: "#FFFFFF",
-    outlineVariant: darkColors.outline,
+    outlineVariant: darkColors.outlineSubtle,
+    elevation: {
+      level0: "transparent",
+      level1: darkColors.surface,
+      level2: darkColors.cardBackground,
+      level3: darkColors.surfaceElevated,
+      level4: darkColors.surfaceElevated,
+      level5: darkColors.surfaceElevated,
+    },
   },
 };

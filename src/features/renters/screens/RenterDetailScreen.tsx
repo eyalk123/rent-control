@@ -93,7 +93,7 @@ export function RenterDetailScreen() {
           <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
             <MaterialCommunityIcons name="arrow-left" size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text variant="titleMedium" style={styles.headerTitle}>
+          <Text variant="titleMedium" style={[styles.headerTitle, { color: '#FFF' }]}>
             {t('screens.renterDetails')}
           </Text>
           <TouchableOpacity onPress={handleEdit} hitSlop={12} style={styles.editHeaderBtn}>
@@ -107,15 +107,15 @@ export function RenterDetailScreen() {
               { backgroundColor: 'rgba(255,255,255,0.3)' },
             ]}
           >
-            <Text style={styles.avatarText}>
+            <Text style={[styles.avatarText, { color: '#FFF' }]}>
               {renter.first_name[0]}
               {renter.last_name[0]}
             </Text>
           </View>
-          <Text variant="headlineSmall" style={styles.name}>
+          <Text variant="headlineSmall" style={[styles.name, { color: '#FFF' }]}>
             {renter.first_name} {renter.last_name}
           </Text>
-          <Text variant="bodyMedium" style={styles.propertyLine}>
+          <Text variant="bodyMedium" style={[styles.propertyLine, { color: 'rgba(255,255,255,0.9)' }]}>
             {renter.property?.address ?? t('renter.unassigned')}
           </Text>
         </View>
@@ -127,7 +127,7 @@ export function RenterDetailScreen() {
       >
         <Card style={styles.card} mode="outlined">
           <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-            <Text variant="titleSmall" style={styles.sectionHeaderText}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
               {t('renter.leaseInfo')}
             </Text>
           </View>
@@ -212,7 +212,7 @@ export function RenterDetailScreen() {
 
         <Card style={styles.card} mode="outlined">
           <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-            <Text variant="titleSmall" style={styles.sectionHeaderText}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
               {t('renter.basicInfo')}
             </Text>
           </View>
@@ -291,7 +291,6 @@ const styles = StyleSheet.create({
     padding: spacing.xs,
   },
   headerTitle: {
-    color: '#FFFFFF',
     fontWeight: '600',
   },
   editHeaderBtn: {
@@ -312,16 +311,12 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   name: {
-    color: '#FFFFFF',
     fontWeight: '600',
     marginBottom: spacing.xs,
   },
-  propertyLine: {
-    color: 'rgba(255,255,255,0.9)',
-  },
+  propertyLine: {},
   container: {
     flex: 1,
   },
@@ -339,7 +334,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   sectionHeaderText: {
-    color: '#FFFFFF',
     fontWeight: '600',
   },
   detailRow: {

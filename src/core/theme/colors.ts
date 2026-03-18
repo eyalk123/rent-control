@@ -30,25 +30,34 @@ export const lightColors = {
   chooseExpenseIcon: "rgba(185, 28, 28, 1)",
 } as const;
 
+
 export const darkColors = {
-  primary: "rgba(59, 130, 246, 1)",
-  secondary: "rgba(45, 212, 191, 1)",
-  background: "rgba(15, 23, 42, 1)",
-  surface: "rgba(30, 41, 59, 1)",
-  textPrimary: "rgba(248, 250, 252, 1)",
-  textSecondary: "rgba(148, 163, 184, 1)",
-  placeholder: "rgba(100, 116, 139, 1)",
-  inputBackground: "rgba(51, 65, 85, 1)",
-  inputFilledBackground: "rgba(51, 65, 85, 1)",
-  inputBorder: "rgba(71, 85, 105, 1)",
+  primary: "rgb(40, 136, 226)",
+  secondary: "rgb(70, 150, 224)",
+  background: "rgba(18, 18, 18, 1)",
+  surface: "rgba(30, 30, 32, 1)",
+  textPrimary: "rgba(240, 241, 243, 1)",
+  textSecondary: "rgba(240, 241, 243, 0.72)",
+  placeholder: "rgba(240, 241, 243, 0.55)",
+  inputBackground: "rgba(30, 30, 32, 1)",
+  inputFilledBackground: "rgba(24, 24, 26, 1)",
+  inputBorder: "rgba(255, 255, 255, 0.15)",
   success: "rgba(16, 185, 129, 1)",
   warning: "rgba(245, 158, 11, 1)",
   error: "rgba(248, 113, 113, 1)",
-  outline: "rgba(71, 85, 105, 1)",
-  cardBackground: "rgba(30, 41, 59, 1)",
-  sectionAccent: "rgba(45, 212, 191, 1)",
-  chooseRevenueBg: "rgba(16, 185, 129, 0.28)",
+  outline: "rgba(255, 255, 255, 0.12)",
+  cardBackground: "rgba(30, 30, 32, 1)",
+  sectionAccent: "rgba(86, 132, 174, 1)",
+  chooseRevenueBg: "rgba(16, 185, 129, 0.18)",
   chooseRevenueIcon: "rgba(52, 211, 153, 1)",
-  chooseExpenseBg: "rgba(248, 113, 113, 0.28)",
+  chooseExpenseBg: "rgba(248, 113, 113, 0.18)",
   chooseExpenseIcon: "rgba(252, 165, 165, 1)",
+  /** Elevated surface (modals, FABs) — slightly lighter than surface */
+  surfaceElevated: "rgba(44, 44, 46, 1)",
+  /** Pressed/hover overlay */
+  surfaceOverlay: "rgba(240, 241, 243, 0.06)",
+  /** Subtle separator/divider */
+  outlineSubtle: "rgba(255, 255, 255, 0.08)",
+  /** Disabled text */
+  textDisabled: "rgba(240, 241, 243, 0.38)",
 } as const;
