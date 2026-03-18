@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,6 +10,7 @@ import { IconButton, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { getPropertyById } from '@/src/features/properties/api/properties';
 import { getApiErrorMessage } from '@/src/core/api/client';
@@ -39,25 +40,29 @@ export function PropertyDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>('info');
 
-  useEffect(() => {
-    async function fetchProperty() {
-      const numericId = Number(id);
-      if (isNaN(numericId)) {
-        setError(t('error.invalidPropertyId'));
-        setLoading(false);
-        return;
+  useFocusEffect(
+    useCallback(() => {
+      async function fetchProperty() {
+        const numericId = Number(id);
+        if (isNaN(numericId)) {
+          setError(t('error.invalidPropertyId'));
+          setLoading(false);
+          return;
+        }
+        setLoading(true);
+        setError(null);
+        try {
+          const data = await getPropertyById(numericId);
+          setProperty(data);
+        } catch (err) {
+          setError(getApiErrorMessage(err, t('error.loadFailed')));
+        } finally {
+          setLoading(false);
+        }
       }
-      try {
-        const data = await getPropertyById(numericId);
-        setProperty(data);
-      } catch (err) {
-        setError(getApiErrorMessage(err, t('error.loadFailed')));
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProperty();
-  }, [id, t]);
+      fetchProperty();
+    }, [id, t])
+  );
 
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
