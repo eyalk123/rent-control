@@ -1,14 +1,12 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  ScrollView,
   StyleSheet,
   View,
   Image,
-  useWindowDimensions,
-  TouchableOpacity,
   Pressable,
+  useWindowDimensions,
 } from 'react-native';
-import { Card, Text, useTheme, IconButton } from 'react-native-paper';
+import { IconButton, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -21,8 +19,12 @@ import {
   EmptyState,
   ScreenContainer,
 } from '@/src/shared/components/ui';
-import { lightColors, darkColors } from '@/src/core/theme';
-import { spacing } from '@/src/core/theme';
+import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { PropertyInfoTab } from '@/src/features/properties/components/PropertyInfoTab';
+import { PropertyRentersTab } from '@/src/features/properties/components/PropertyRentersTab';
+import { PropertyTransactionsTab } from '@/src/features/properties/components/PropertyTransactionsTab';
+
+type TabKey = 'info' | 'renters' | 'transactions';
 
 export function PropertyDetailScreen() {
   const { t } = useTranslation();
@@ -34,6 +36,7 @@ export function PropertyDetailScreen() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabKey>('info');
 
   useEffect(() => {
     async function fetchProperty() {
@@ -81,211 +84,87 @@ export function PropertyDetailScreen() {
 
   return (
     <ScreenContainer edges={['left', 'right']}>
-      <ScrollView
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={[styles.imageWrapper, { width }]}>
-          {property.image_url ? (
-            <Image
-              source={{ uri: property.image_url }}
-              style={[styles.image, { width }]}
-              resizeMode="cover"
-            />
-          ) : (
-            <View
-              style={[
-                styles.imagePlaceholder,
-                { width, backgroundColor: colors.inputBackground },
-              ]}
-            >
-              <MaterialCommunityIcons
-                name="home"
-                size={48}
-                color={colors.placeholder}
+      <View style={styles.container}>
+        {/* Header: image + address + edit */}
+        <View>
+          <View style={[styles.imageWrapper, { width }]}>
+            {property.image_url ? (
+              <Image
+                source={{ uri: property.image_url }}
+                style={[styles.image, { width }]}
+                resizeMode="cover"
               />
-            </View>
-          )}
-        </View>
-        <View style={styles.body}>
-          <Card style={styles.card} mode="outlined">
-            <View style={[styles.atGlanceHeader, { backgroundColor: colors.primary }]}>
-              <Text variant="titleSmall" style={styles.atGlanceTitle}>
-                {t('property.atAGlance')}
-              </Text>
-            </View>
-            <Card.Content style={styles.atGlanceContent}>
-              <View style={styles.atGlanceRow}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('property.typeLabel')}
-                </Text>
-                <Text variant="bodyMedium">{property.type}</Text>
+            ) : (
+              <View
+                style={[
+                  styles.imagePlaceholder,
+                  { width, backgroundColor: colors.inputBackground },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="home"
+                  size={48}
+                  color={colors.placeholder}
+                />
               </View>
-              <View style={styles.atGlanceRow}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('property.surfaceArea')}
-                </Text>
-                <Text variant="bodyMedium">
-                  {property.sq_ft.toLocaleString()}
-                </Text>
-              </View>
-              <View style={styles.atGlanceRow}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('property.purchasePrice')}
-                </Text>
-                <Text variant="bodyMedium">
-                  ${property.purchase_price.toLocaleString()}
-                </Text>
-              </View>
-            </Card.Content>
-          </Card>
+            )}
+            <IconButton
+              icon="pencil"
+              iconColor="#FFF"
+              size={20}
+              style={[styles.editIcon, { backgroundColor: colors.primary }]}
+              onPress={handleEdit}
+              accessibilityLabel={t('property.editProperty')}
+            />
+          </View>
 
-          <Card style={styles.card} mode="outlined">
-            <Card.Content>
-              <Text variant="titleSmall" style={styles.sectionLabel}>
-                {t('property.address')}
-              </Text>
-              <Text variant="bodyMedium" style={styles.address}>
-                {property.address}
-              </Text>
-              <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
-                {property.city}, {property.zip_code}
-              </Text>
-            </Card.Content>
-          </Card>
-
-          {(property.number_of_rooms != null ||
-            (Array.isArray(property.parking_numbers) && property.parking_numbers.length > 0) ||
-            property.electricity_meter_number ||
-            property.water_meter_tax != null ||
-            property.property_tax != null ||
-            property.house_committee != null) && (
-            <Card style={styles.card} mode="outlined">
-              <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-                <Text variant="titleSmall" style={styles.sectionHeaderText}>
-                  {t('property.details')}
-                </Text>
-              </View>
-              <Card.Content style={styles.atGlanceContent}>
-                {property.number_of_rooms != null && (
-                  <View style={styles.atGlanceRow}>
-                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                      {t('property.numberOfRooms')}
-                    </Text>
-                    <Text variant="bodyMedium">{property.number_of_rooms}</Text>
-                  </View>
-                )}
-                {Array.isArray(property.parking_numbers) && property.parking_numbers.length > 0 && (
-                  <View style={styles.atGlanceRow}>
-                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                      {t('property.parkingNumbers')}
-                    </Text>
-                    <Text variant="bodyMedium">{property.parking_numbers.join(', ')}</Text>
-                  </View>
-                )}
-                {property.electricity_meter_number != null && property.electricity_meter_number !== '' && (
-                  <View style={styles.atGlanceRow}>
-                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                      {t('property.electricityMeterNumber')}
-                    </Text>
-                    <Text variant="bodyMedium">{property.electricity_meter_number}</Text>
-                  </View>
-                )}
-                {property.water_meter_tax != null && (
-                  <View style={styles.atGlanceRow}>
-                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                      {t('property.waterMeterTax')}
-                    </Text>
-                    <Text variant="bodyMedium">{property.water_meter_tax.toLocaleString()}</Text>
-                  </View>
-                )}
-                {property.property_tax != null && (
-                  <View style={styles.atGlanceRow}>
-                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                      {t('property.propertyTax')}
-                    </Text>
-                    <Text variant="bodyMedium">{property.property_tax.toLocaleString()}</Text>
-                  </View>
-                )}
-                {property.house_committee != null && (
-                  <View style={styles.atGlanceRow}>
-                    <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                      {t('property.houseCommittee')}
-                    </Text>
-                    <Text variant="bodyMedium">{property.house_committee.toLocaleString()}</Text>
-                  </View>
-                )}
-              </Card.Content>
-            </Card>
-          )}
-
-          {property.renters && property.renters.length > 0 ? (
-            <Card style={styles.card} mode="outlined">
-              <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-                <Text variant="titleSmall" style={styles.sectionHeaderText}>
-                  {t('property.renters')}
-                </Text>
-              </View>
-              <Card.Content>
-                {property.renters.map((renter) => (
-                  <View key={renter.id} style={styles.renterRow}>
-                    <View
-                      style={[
-                        styles.renterAvatar,
-                        { backgroundColor: colors.inputBackground },
-                      ]}
-                    >
-                      <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                        {renter.first_name[0]}
-                        {renter.last_name[0]}
-                      </Text>
-                    </View>
-                    <View style={styles.renterInfo}>
-                      <Text variant="bodyMedium">
-                        {renter.first_name} {renter.last_name}
-                      </Text>
-                      <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
-                        {t('property.lease')}: {renter.lease_start}
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.statusPill,
-                        { backgroundColor: colors.success },
-                      ]}
-                    >
-                      <Text variant="labelSmall" style={styles.statusPillText}>
-                        {t('renter.status.active')}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </Card.Content>
-            </Card>
-          ) : (
-            <Card style={styles.card} mode="outlined">
-              <Card.Content>
-                <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
-                  {t('property.noRenters')}
-                </Text>
-              </Card.Content>
-            </Card>
-          )}
-
-          <Pressable
-            onPress={handleEdit}
-            style={[styles.editButton, { backgroundColor: colors.primary }]}
-            accessibilityLabel={t('property.editProperty')}
-            accessibilityRole="button"
-          >
-            <MaterialCommunityIcons name="pencil" size={20} color="#FFF" />
-            <Text variant="labelLarge" style={styles.editButtonText}>
-              {t('property.editProperty')}
+          <View style={styles.addressRow}>
+            <Text variant="titleLarge" style={[styles.addressText, { color: colors.textPrimary }]}>
+              {property.address}, {property.city}
             </Text>
-          </Pressable>
+          </View>
+
+          {/* Tab bar */}
+          <View style={[styles.tabBar, { backgroundColor: colors.inputBackground }]}>
+            {([
+              { value: 'info', label: t('property.tabs.info') },
+              { value: 'renters', label: t('property.tabs.renters') },
+              { value: 'transactions', label: t('property.tabs.transactions') },
+            ] as const).map((tab) => {
+              const isActive = activeTab === tab.value;
+              return (
+                <Pressable
+                  key={tab.value}
+                  style={[
+                    styles.tab,
+                    isActive && { borderBottomColor: colors.primary },
+                  ]}
+                  onPress={() => setActiveTab(tab.value as TabKey)}
+                >
+                  <Text
+                    variant="labelLarge"
+                    style={[
+                      styles.tabLabel,
+                      { color: isActive ? colors.primary : colors.textSecondary },
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
-      </ScrollView>
+
+        {/* Tab content */}
+        <View style={styles.tabContent}>
+          {activeTab === 'info' && <PropertyInfoTab property={property} />}
+          {activeTab === 'renters' && <PropertyRentersTab property={property} />}
+          {activeTab === 'transactions' && (
+            <PropertyTransactionsTab propertyId={property.id} />
+          )}
+        </View>
+      </View>
     </ScreenContainer>
   );
 }
@@ -294,11 +173,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    paddingBottom: spacing.xxl,
-  },
   imageWrapper: {
     alignSelf: 'stretch',
+    position: 'relative',
   },
   image: {
     height: 200,
@@ -308,82 +185,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  body: {
-    padding: spacing.lg,
-    marginTop: -spacing.md,
+  editIcon: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    margin: 0,
   },
-  card: {
-    marginBottom: spacing.md,
-    borderRadius: 10,
-    overflow: 'hidden',
+  addressRow: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
-  atGlanceHeader: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+  addressText: {
+    fontWeight: '700',
+    textAlign: 'center',
   },
-  atGlanceTitle: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  atGlanceContent: {
-    padding: spacing.md,
-  },
-  atGlanceRow: {
+  tabBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xs,
   },
-  sectionLabel: {
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
-  address: {
-    marginBottom: spacing.xs,
-  },
-  sectionHeader: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  sectionHeaderText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  renterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-  },
-  renterAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginEnd: spacing.sm,
-  },
-  renterInfo: {
+  tab: {
     flex: 1,
+    alignItems: 'center' as const,
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
   },
-  statusPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusPillText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-  },
-  editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-    borderRadius: 10,
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  editButtonText: {
-    color: '#FFFFFF',
+  tabLabel: {
     fontWeight: '600',
+  },
+  tabContent: {
+    flex: 1,
   },
 });

@@ -1,9 +1,5 @@
-import {
-  MD3LightTheme,
-  MD3DarkTheme,
-  type MD3Theme,
-} from 'react-native-paper';
-import { lightColors, darkColors } from './colors';
+import { MD3DarkTheme, MD3LightTheme, type MD3Theme } from "react-native-paper";
+import { darkColors, lightColors } from "./colors";
 
 const roundness = 16;
 
@@ -13,11 +9,11 @@ export const lightTheme: MD3Theme = {
   colors: {
     ...MD3LightTheme.colors,
     primary: lightColors.primary,
-    onPrimary: '#FFFFFF',
+    onPrimary: "#FFFFFF",
     primaryContainer: lightColors.primary,
-    onPrimaryContainer: '#FFFFFF',
+    onPrimaryContainer: "#FFFFFF",
     secondary: lightColors.secondary,
-    onSecondary: '#FFFFFF',
+    onSecondary: "#FFFFFF",
     background: lightColors.background,
     onBackground: lightColors.textPrimary,
     surface: lightColors.surface,
@@ -26,7 +22,7 @@ export const lightTheme: MD3Theme = {
     onSurfaceVariant: lightColors.textSecondary,
     outline: lightColors.outline,
     error: lightColors.error,
-    onError: '#FFFFFF',
+    onError: "#FFFFFF",
     outlineVariant: lightColors.outline,
   },
 };
@@ -38,11 +34,11 @@ export const darkTheme: MD3Theme = {
   colors: {
     ...MD3DarkTheme.colors,
     primary: darkColors.primary,
-    onPrimary: '#FFFFFF',
+    onPrimary: "#FFFFFF",
     primaryContainer: darkColors.primary,
-    onPrimaryContainer: '#FFFFFF',
+    onPrimaryContainer: "#FFFFFF",
     secondary: darkColors.secondary,
-    onSecondary: '#FFFFFF',
+    onSecondary: "#FFFFFF",
     background: darkColors.background,
     onBackground: darkColors.textPrimary,
     surface: darkColors.surface,
@@ -51,7 +47,7 @@ export const darkTheme: MD3Theme = {
     onSurfaceVariant: darkColors.textSecondary,
     outline: darkColors.outline,
     error: darkColors.error,
-    onError: '#FFFFFF',
+    onError: "#FFFFFF",
     outlineVariant: darkColors.outline,
   },
 };

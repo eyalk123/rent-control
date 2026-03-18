@@ -70,7 +70,13 @@
     "houseCommittee": "ועד בית",
     "details": "פרטים",
     "additionalDetails": "פרטים נוספים",
-    "removePhoto": "הסרת תמונה"
+    "removePhoto": "הסרת תמונה",
+    "tabs": {
+      "info": "מידע",
+      "renters": "דיירים",
+      "transactions": "תנועות"
+    },
+    "noTransactions": "אין תנועות לנכס זה"
   },
   "renter": {
     "basicInfo": "מידע בסיסי",

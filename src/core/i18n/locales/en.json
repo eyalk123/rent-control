@@ -70,7 +70,13 @@
     "houseCommittee": "House committee",
     "details": "Details",
     "additionalDetails": "Additional details",
-    "removePhoto": "Remove photo"
+    "removePhoto": "Remove photo",
+    "tabs": {
+      "info": "Info",
+      "renters": "Renters",
+      "transactions": "Transactions"
+    },
+    "noTransactions": "No transactions for this property"
   },
   "renter": {
     "basicInfo": "Basic Information",
