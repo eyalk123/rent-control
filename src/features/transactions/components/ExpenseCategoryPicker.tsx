@@ -4,6 +4,7 @@ import { Menu, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRtlInputStyle } from '@/src/context';
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
+import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
 
 interface ExpenseCategoryPickerProps {
   value: number | null;
@@ -24,9 +25,7 @@ export function ExpenseCategoryPicker({
   const [visible, setVisible] = useState(false);
 
   const selected = categories.find((c) => c.id === value) ?? null;
-  const displayValue = selected
-    ? t(`expenseCategories.${selected.key}`, { defaultValue: selected.key })
-    : '';
+  const displayValue = selected ? getCategoryDisplayName(selected, t) : '';
 
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
@@ -58,7 +57,7 @@ export function ExpenseCategoryPicker({
         <Menu.Item
           key={category.id}
           onPress={() => selectOption(category.id)}
-          title={t(`expenseCategories.${category.key}`, { defaultValue: category.key })}
+          title={getCategoryDisplayName(category, t)}
         />
       ))}
     </Menu>

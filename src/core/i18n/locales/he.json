@@ -13,7 +13,8 @@
     "themeSystem": "מערכת",
     "language": "שפה",
     "languageEn": "אנגלית",
-    "languageHe": "עברית"
+    "languageHe": "עברית",
+    "suppliers": "ספקים"
   },
   "restart": {
     "title": "נדרש הפעלה מחדש",
@@ -144,12 +145,14 @@
     "noRenters": "אין דיירים עדיין. לחץ + להוספה.",
     "noSearchResults": "לא נמצאו דיירים התואמים לחיפוש.",
     "noPropertySearchResults": "לא נמצאו נכסים התואמים לחיפוש.",
+    "noSupplierSearchResults": "לא נמצאו ספקים התואמים לחיפוש.",
     "noTransactions": "אין תנועות עדיין. לחץ + להוספה.",
     "noTransactionSearchResults": "לא נמצאו תנועות התואמות לחיפוש."
   },
   "search": {
     "placeholder": "חיפוש דיירים",
     "placeholderProperties": "חיפוש נכסים, כתובות...",
+    "placeholderSuppliers": "חיפוש ספקים...",
     "placeholderTransactions": "חיפוש לפי דייר, נכס, קטגוריה..."
   },
   "filters": {
@@ -169,7 +172,8 @@
     "discard": "עזוב בלי לשמור",
     "cancel": "ביטול",
     "next": "הבא",
-    "tryAgain": "נסה שוב"
+    "tryAgain": "נסה שוב",
+    "create": "צור"
   },
   "validation": {
     "title": "אימות",
@@ -202,7 +206,8 @@
     "invalidRenterId": "מזהה דייר לא תקין",
     "propertyNotFound": "הנכס לא נמצא",
     "renterNotFound": "הדייר לא נמצא",
-    "saveTransactionFailed": "שמירת התנועה נכשלה"
+    "saveTransactionFailed": "שמירת התנועה נכשלה",
+    "saveFailed": "השמירה נכשלה"
   },
   "transactions": {
     "addTransaction": "הוספת תנועה",
@@ -249,6 +254,25 @@
     "air_conditioning": "מיזוג אוויר",
     "management_fee": "דמי ניהול",
     "other": "אחר"
+  },
+  "suppliers": {
+    "title": "ספקים",
+    "add": "הוספת ספק",
+    "edit": "עריכת ספק",
+    "chooseFromContacts": "בחר מרשימת אנשי קשר",
+    "noSuppliers": "אין ספקים עדיין",
+    "inactive": "לא פעיל",
+    "name": "שם",
+    "phone": "טלפון",
+    "email": "אימייל",
+    "notes": "הערות",
+    "categories": "קטגוריות",
+    "addCategory": "הוספת קטגוריה",
+    "createCategory": "שם קטגוריה",
+    "createNewCategory": "צור קטגוריה חדשה...",
+    "details": "פרטי ספק",
+    "updateSupplier": "עדכון ספק",
+    "saveSupplier": "שמירת ספק"
   },
   "permission": {
     "title": "נדרשות הרשאות",

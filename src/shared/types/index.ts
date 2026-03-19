@@ -118,16 +118,43 @@ export interface TransactionCreateExpense {
 
 export interface ExpenseCategory {
   id: number;
-  key: string;
+  /** Predefined categories only */
+  key?: string;
+  /** User-created categories only */
+  name?: string;
   is_active: boolean;
   sort_order: number;
 }
 
+export interface ExpenseCategoryCreate {
+  name: string;
+}
+
 export interface Supplier {
   id: number;
-  category_id: number;
+  category_ids: number[];
   name: string;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
   is_active: boolean;
+}
+
+export interface SupplierCreate {
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
+  category_ids: number[];
+}
+
+export interface SupplierUpdate {
+  name?: string;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
+  category_ids?: number[];
+  is_active?: boolean;
 }
 
 export interface PropertyRenterSummary {

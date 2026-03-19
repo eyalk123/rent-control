@@ -343,14 +343,33 @@ interface TransactionCreateExpense {
 
 **Response:** `ExpenseCategory[]`
 
+Returns both predefined categories (with `key`) and user-created categories (with `name`).
+
 ```ts
 interface ExpenseCategory {
   id: number;
-  key: string;
+  key?: string;    // predefined only (e.g. electricity, maintenance)
+  name?: string;   // user-created only
   is_active: boolean;
   sort_order: number;
 }
 ```
+
+---
+
+### POST /expense-categories
+
+**Request body:** `ExpenseCategoryCreate`
+
+Creates a user-defined category (no `key`, only `name`).
+
+```ts
+interface ExpenseCategoryCreate {
+  name: string;
+}
+```
+
+**Response:** `ExpenseCategory` (created category with `name`, no `key`)
 
 ---
 
@@ -360,21 +379,70 @@ interface ExpenseCategory {
 
 **Query params (snake_case):**
 
-| Frontend param | Sent as     | Type   |
-|----------------|-------------|--------|
-| categoryId     | category_id | number |
-| search         | q           | string |
+| Frontend param | Sent as         | Type    | Notes                                              |
+|----------------|-----------------|---------|----------------------------------------------------|
+| categoryId     | category_id     | number  | Filter suppliers that have this category           |
+| search         | q               | string  | Search by name                                     |
+| includeInactive| include_inactive| boolean | If true, include suppliers with is_active=false    |
 
 **Response:** `Supplier[]`
 
 ```ts
 interface Supplier {
   id: number;
-  category_id: number;
+  category_ids: number[];
   name: string;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
   is_active: boolean;
 }
 ```
+
+---
+
+### GET /suppliers/:id
+
+**Response:** `Supplier` (single supplier, for edit-screen prefill)
+
+---
+
+### POST /suppliers
+
+**Request body:** `SupplierCreate`
+
+```ts
+interface SupplierCreate {
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
+  category_ids: number[];
+}
+```
+
+**Response:** `Supplier`
+
+---
+
+### PATCH /suppliers/:id
+
+**Request body:** `SupplierUpdate` (all fields optional)
+
+For soft delete, send `{ is_active: false }`.
+
+```ts
+interface SupplierUpdate {
+  name?: string;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
+  category_ids?: number[];
+  is_active?: boolean;
+}
+```
+
+**Response:** `Supplier`
 
 ---
 
@@ -413,4 +481,8 @@ Then the frontend expects the **actual payload in `response.data`** (axios alrea
 | POST   | /transactions/revenue         | TransactionCreateRevenue | Transaction     |
 | POST   | /transactions/expense         | TransactionCreateExpense | Transaction     |
 | GET    | /expense-categories           | —                      | ExpenseCategory[]  |
-| GET    | /suppliers                    | query: category_id, q   | Supplier[]        |
+| POST   | /expense-categories           | ExpenseCategoryCreate   | ExpenseCategory    |
+| GET    | /suppliers                    | query: category_id, q, include_inactive | Supplier[] |
+| GET    | /suppliers/:id                | —                      | Supplier           |
+| POST   | /suppliers                    | SupplierCreate          | Supplier           |
+| PATCH  | /suppliers/:id                | SupplierUpdate          | Supplier           |

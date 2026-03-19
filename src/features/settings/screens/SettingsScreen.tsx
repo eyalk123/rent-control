@@ -1,7 +1,8 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { List, SegmentedButtons, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { useThemeContext } from '@/src/context';
 import { useLanguageContext } from '@/src/context';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
@@ -9,6 +10,7 @@ import { spacing } from '@/src/core/theme';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const { themeMode, setThemeMode } = useThemeContext();
   const { language, setLanguage, isRtl } = useLanguageContext();
 
@@ -35,6 +37,27 @@ export function SettingsScreen() {
             style={styles.segmented}
           />
         </LtrSection>
+
+        <Text
+          variant="titleMedium"
+          style={[styles.sectionTitle, isRtl && styles.sectionTitleRtl]}
+        >
+          {t('settings.language')}
+        </Text>
+        <Text
+          variant="titleMedium"
+          style={[styles.sectionTitle, isRtl && styles.sectionTitleRtl]}
+        >
+          {t('settings.suppliers')}
+        </Text>
+        <List.Section>
+          <List.Item
+            title={t('settings.suppliers')}
+            left={(props) => <List.Icon {...props} icon="truck" />}
+            onPress={() => router.push('/settings/suppliers')}
+            style={styles.listItem}
+          />
+        </List.Section>
 
         <Text
           variant="titleMedium"

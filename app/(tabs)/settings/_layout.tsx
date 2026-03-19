@@ -35,6 +35,18 @@ export default function SettingsLayout() {
           ),
         }}
       />
+      <Stack.Screen
+        name="suppliers/index"
+        options={{ headerTitle: t('suppliers.title') }}
+      />
+      <Stack.Screen
+        name="suppliers/add"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="suppliers/[id]"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

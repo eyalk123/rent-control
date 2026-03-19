@@ -1,4 +1,17 @@
-import type { Property, PropertyBrief, PropertyCreate, PropertyUpdate, Renter, RenterCreate, RenterUpdate } from '@/src/shared/types';
+import type {
+  Property,
+  PropertyBrief,
+  PropertyCreate,
+  PropertyUpdate,
+  Renter,
+  RenterCreate,
+  RenterUpdate,
+  Supplier,
+  SupplierCreate,
+  SupplierUpdate,
+  ExpenseCategory,
+  ExpenseCategoryCreate,
+} from '@/src/shared/types';
 
 // Set to true to use in-memory mock data when no backend is available
 export const USE_MOCK_API = false;
@@ -165,10 +178,52 @@ const seedRenters: Renter[] = [
   },
 ];
 
+const seedExpenseCategories: ExpenseCategory[] = [
+  { id: 1, key: 'maintenance', is_active: true, sort_order: 1 },
+  { id: 2, key: 'electricity', is_active: true, sort_order: 2 },
+  { id: 3, key: 'water', is_active: true, sort_order: 3 },
+  { id: 4, key: 'repairs', is_active: true, sort_order: 4 },
+  { id: 5, key: 'other', is_active: true, sort_order: 5 },
+];
+
+const seedSuppliers: Supplier[] = [
+  {
+    id: 1,
+    category_ids: [1, 4],
+    name: 'Joe Plumber',
+    phone: '512-555-1001',
+    email: 'joe@plumber.com',
+    notes: null,
+    is_active: true,
+  },
+  {
+    id: 2,
+    category_ids: [2],
+    name: 'City Power Co',
+    phone: '512-555-2000',
+    email: null,
+    notes: null,
+    is_active: true,
+  },
+  {
+    id: 3,
+    category_ids: [3],
+    name: 'Water Utility',
+    phone: null,
+    email: 'billing@water.com',
+    notes: 'Monthly billing',
+    is_active: true,
+  },
+];
+
 let mockProperties: Property[] = [...seedProperties];
 let mockRenters: Renter[] = [...seedRenters];
+let mockExpenseCategories: ExpenseCategory[] = [...seedExpenseCategories];
+let mockSuppliers: Supplier[] = [...seedSuppliers];
 let nextPropertyId = 6;
 let nextRenterId = 7;
+let nextCategoryId = 6;
+let nextSupplierId = 4;
 
 export const mockPropertiesApi = {
   getProperties: async (): Promise<Property[]> => {
@@ -283,5 +338,75 @@ export const mockRentersApi = {
   },
   deleteRenter: async (id: number): Promise<void> => {
     mockRenters = mockRenters.filter((x) => x.id !== id);
+  },
+};
+
+export const mockExpenseCategoriesApi = {
+  getExpenseCategories: async (): Promise<ExpenseCategory[]> => {
+    return [...mockExpenseCategories];
+  },
+  createExpenseCategory: async (data: ExpenseCategoryCreate): Promise<ExpenseCategory> => {
+    const newCat: ExpenseCategory = {
+      id: nextCategoryId++,
+      name: data.name,
+      is_active: true,
+      sort_order: mockExpenseCategories.length,
+    };
+    mockExpenseCategories.push(newCat);
+    return { ...newCat };
+  },
+};
+
+export const mockSuppliersApi = {
+  getSuppliers: async (params?: {
+    categoryId?: number;
+    q?: string;
+    includeInactive?: boolean;
+  }): Promise<Supplier[]> => {
+    let list = mockSuppliers;
+    if (!params?.includeInactive) {
+      list = list.filter((s) => s.is_active !== false);
+    }
+    if (params?.categoryId != null) {
+      list = list.filter((s) => s.category_ids?.includes(params.categoryId!));
+    }
+    if (params?.q?.trim()) {
+      const q = params.q.toLowerCase().trim();
+      list = list.filter((s) => {
+        const name = (s.name ?? '').toLowerCase();
+        const phone = (s.phone ?? '').toLowerCase();
+        const email = (s.email ?? '').toLowerCase();
+        return name.includes(q) || phone.includes(q) || email.includes(q);
+      });
+    }
+    return [...list];
+  },
+  getSupplierById: async (id: number): Promise<Supplier> => {
+    const s = mockSuppliers.find((x) => x.id === id);
+    if (!s) throw new Error('Supplier not found');
+    return { ...s };
+  },
+  createSupplier: async (data: SupplierCreate): Promise<Supplier> => {
+    const newSupplier: Supplier = {
+      id: nextSupplierId++,
+      category_ids: data.category_ids,
+      name: data.name,
+      phone: data.phone ?? null,
+      email: data.email ?? null,
+      notes: data.notes ?? null,
+      is_active: true,
+    };
+    mockSuppliers.push(newSupplier);
+    return { ...newSupplier };
+  },
+  updateSupplier: async (id: number, data: SupplierUpdate): Promise<Supplier> => {
+    const idx = mockSuppliers.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error('Supplier not found');
+    mockSuppliers[idx] = {
+      ...mockSuppliers[idx],
+      ...data,
+      category_ids: data.category_ids ?? mockSuppliers[idx].category_ids,
+    };
+    return { ...mockSuppliers[idx] };
   },
 };

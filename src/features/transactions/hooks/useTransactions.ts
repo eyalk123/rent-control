@@ -3,8 +3,8 @@ import {
   getTransactions,
   type TransactionsListParams,
   getExpenseCategories,
-  getSuppliers,
 } from '@/src/features/transactions/api/transactions';
+import { getSuppliers } from '@/src/features/suppliers/api/suppliers';
 import type { ExpenseCategory, Supplier, Transaction } from '@/src/shared/types';
 import { getApiErrorMessage } from '@/src/core/api/client';
 
@@ -66,33 +66,25 @@ export function useExpenseCategories() {
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getExpenseCategories();
-        if (!cancelled) {
-          setCategories(data);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(getApiErrorMessage(err, 'Failed to load categories'));
-          setCategories([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getExpenseCategories();
+      setCategories(data);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to load categories'));
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { categories, loading, error };
+  React.useEffect(() => {
+    load();
+  }, [load]);
+
+  return { categories, loading, error, refreshCategories: load };
 }
 
 export function useSuppliers(categoryId?: number) {
@@ -111,7 +103,10 @@ export function useSuppliers(categoryId?: number) {
       setLoading(true);
       setError(null);
       try {
-        const data = await getSuppliers(categoryId);
+        const data = await getSuppliers({
+          categoryId,
+          includeInactive: false,
+        });
         if (!cancelled) {
           setSuppliers(data);
         }

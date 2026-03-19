@@ -1,11 +1,11 @@
 import apiClient from '@/src/core/api/client';
-import { USE_MOCK_API } from '@/src/core/api/mock';
+import { USE_MOCK_API, mockExpenseCategoriesApi } from '@/src/core/api/mock';
 import type {
   Transaction,
   TransactionCreateRevenue,
   TransactionCreateExpense,
   ExpenseCategory,
-  Supplier,
+  ExpenseCategoryCreate,
   PropertyRenterSummary,
 } from '@/src/shared/types';
 
@@ -99,27 +99,25 @@ export async function createExpenseTransaction(
 
 export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
   if (USE_MOCK_API) {
-    return [];
+    return mockExpenseCategoriesApi.getExpenseCategories();
   }
 
   const response = await apiClient.get<ExpenseCategory[]>('/expense-categories');
   return response.data;
 }
 
-export async function getSuppliers(
-  categoryId?: number,
-  search?: string,
-): Promise<Supplier[]> {
+export async function createExpenseCategory(
+  name: string,
+): Promise<ExpenseCategory> {
   if (USE_MOCK_API) {
-    return [];
+    return mockExpenseCategoriesApi.createExpenseCategory({ name });
   }
 
-  const response = await apiClient.get<Supplier[]>('/suppliers', {
-    params: {
-      category_id: categoryId,
-      q: search,
-    },
-  });
+  const payload: ExpenseCategoryCreate = { name };
+  const response = await apiClient.post<ExpenseCategory>(
+    '/expense-categories',
+    payload,
+  );
   return response.data;
 }
 

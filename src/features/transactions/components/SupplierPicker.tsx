@@ -27,7 +27,16 @@ export function SupplierPicker({
   const { suppliers } = useSuppliers(categoryId ?? undefined);
   const [visible, setVisible] = useState(false);
 
-  const selected = suppliers.find((s) => s.id === value) ?? null;
+  const filteredSuppliers = React.useMemo(() => {
+    if (!categoryId) return [];
+    return suppliers.filter(
+      (s) =>
+        s.is_active !== false &&
+        (s.category_ids?.includes(categoryId) ?? false),
+    );
+  }, [suppliers, categoryId]);
+
+  const selected = filteredSuppliers.find((s) => s.id === value) ?? suppliers.find((s) => s.id === value) ?? null;
   const displayValue = selected ? selected.name : allowNone ? t('renter.unassigned') : '';
 
   const openMenu = () => {
@@ -67,7 +76,7 @@ export function SupplierPicker({
           title={t('renter.unassigned')}
         />
       )}
-      {suppliers.map((supplier) => (
+      {filteredSuppliers.map((supplier) => (
         <Menu.Item
           key={supplier.id}
           onPress={() => selectOption(supplier.id)}

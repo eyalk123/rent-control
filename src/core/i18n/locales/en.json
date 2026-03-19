@@ -13,7 +13,8 @@
     "themeSystem": "System",
     "language": "Language",
     "languageEn": "English",
-    "languageHe": "Hebrew"
+    "languageHe": "Hebrew",
+    "suppliers": "Suppliers"
   },
   "restart": {
     "title": "Restart Required",
@@ -144,12 +145,14 @@
     "noRenters": "No renters yet. Tap + to add one.",
     "noSearchResults": "No renters match your search.",
     "noPropertySearchResults": "No properties match your search.",
+    "noSupplierSearchResults": "No suppliers match your search.",
     "noTransactions": "No transactions yet. Tap + to add one.",
     "noTransactionSearchResults": "No transactions match your search."
   },
   "search": {
     "placeholder": "Search renters",
     "placeholderProperties": "Search properties, addresses...",
+    "placeholderSuppliers": "Search suppliers...",
     "placeholderTransactions": "Search by renter, property, category..."
   },
   "filters": {
@@ -169,7 +172,8 @@
     "discard": "Discard",
     "cancel": "Cancel",
     "next": "Next",
-    "tryAgain": "Try Again"
+    "tryAgain": "Try Again",
+    "create": "Create"
   },
   "validation": {
     "title": "Validation",
@@ -202,7 +206,8 @@
     "invalidRenterId": "Invalid renter ID",
     "propertyNotFound": "Property not found",
     "renterNotFound": "Renter not found",
-    "saveTransactionFailed": "Failed to save transaction"
+    "saveTransactionFailed": "Failed to save transaction",
+    "saveFailed": "Failed to save"
   },
   "transactions": {
     "addTransaction": "Add transaction",
@@ -249,6 +254,25 @@
     "air_conditioning": "Air conditioning",
     "management_fee": "Management fee",
     "other": "Other"
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "add": "Add Supplier",
+    "edit": "Edit Supplier",
+    "chooseFromContacts": "Choose from contacts",
+    "noSuppliers": "No suppliers yet",
+    "inactive": "Inactive",
+    "name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "notes": "Notes",
+    "categories": "Categories",
+    "addCategory": "Add category",
+    "createCategory": "Category name",
+    "createNewCategory": "Create new category...",
+    "details": "Supplier details",
+    "updateSupplier": "Update Supplier",
+    "saveSupplier": "Save Supplier"
   },
   "permission": {
     "title": "Permission required",
