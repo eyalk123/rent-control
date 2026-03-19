@@ -51,6 +51,7 @@ export function useRenterForm({
       insuranceAmount: "",
       contractYears: "",
       leaseYears: [],
+      contactId: null,
     },
     mode: "onBlur",
   });
@@ -102,6 +103,7 @@ export function useRenterForm({
             amount: String(y.amount),
             type: y.type,
           })),
+          contactId: renter.contact_id ?? null,
         });
       })
       .finally(() => setIsFetching(false));
@@ -144,6 +146,7 @@ export function useRenterForm({
       lease_start: leaseStartTrimmed,
       property_id: values.propertyId ?? undefined,
       lease_years,
+      contact_id: values.contactId ?? undefined,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseCreate.number_of_payments = numPayments;

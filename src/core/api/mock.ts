@@ -98,6 +98,7 @@ const seedRenters: Renter[] = [
     insurance_type: 'tenant',
     insurance_amount: 150,
     property: null,
+    contact_id: null,
   },
   {
     id: 2,
@@ -112,6 +113,7 @@ const seedRenters: Renter[] = [
     payment_type: 'monthly',
     payment_day_of_month: 15,
     property: null,
+    contact_id: null,
   },
   {
     id: 3,
@@ -123,6 +125,7 @@ const seedRenters: Renter[] = [
     lease_years: [{ amount: 19800, type: 'contract' }],
     lease_start: '2024-02-01',
     property: null,
+    contact_id: null,
   },
   {
     id: 4,
@@ -134,6 +137,7 @@ const seedRenters: Renter[] = [
     lease_years: [{ amount: 25200, type: 'contract' }],
     lease_start: '2024-04-15',
     property: null,
+    contact_id: null,
   },
   {
     id: 5,
@@ -145,6 +149,7 @@ const seedRenters: Renter[] = [
     lease_years: [],
     lease_start: '',
     property: null,
+    contact_id: null,
   },
   {
     id: 6,
@@ -156,6 +161,7 @@ const seedRenters: Renter[] = [
     lease_years: [{ amount: 23400, type: 'contract' }],
     lease_start: '2024-05-01',
     property: null,
+    contact_id: null,
   },
 ];
 
@@ -264,6 +270,7 @@ export const mockRentersApi = {
       insurance_type: data.insurance_type ?? null,
       insurance_amount: data.insurance_amount ?? null,
       property: null,
+      contact_id: (data as RenterCreate).contact_id ?? (data as Renter).contact_id ?? null,
     };
     mockRenters.push(newRenter);
     return mockRentersApi.getRenterById(newRenter.id);

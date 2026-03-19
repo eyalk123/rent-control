@@ -47,6 +47,12 @@
         {
           "enforceContrast": false
         }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow $(PRODUCT_NAME) to access contacts to quickly add renters."
+        }
       ]
     ],
     "experiments": {

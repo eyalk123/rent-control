@@ -55,6 +55,8 @@ export interface Renter {
   insurance_type?: string | null;
   insurance_amount?: number | null;
   property: PropertyBrief | null;
+  /** Device-specific system contact ID; used to fetch avatar from contacts. */
+  contact_id?: string | null;
 }
 
 /** Monthly rent derived from first lease year amount. Use for display or default transaction amount. */
@@ -184,6 +186,7 @@ export interface RenterCreate {
   payment_day_of_month?: number | null;
   insurance_type?: string | null;
   insurance_amount?: number | null;
+  contact_id?: string | null;
 }
 
 // Update payload (PATCH /renters/{id}) - all fields optional
@@ -200,6 +203,7 @@ export interface RenterUpdate {
   payment_day_of_month?: number | null;
   insurance_type?: string | null;
   insurance_amount?: number | null;
+  contact_id?: string | null;
 }
 
 // API response wrapper (if backend returns { data: T })

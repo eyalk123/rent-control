@@ -1,6 +1,7 @@
 import { LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
 import { useLanguageContext, useRenterContext } from "@/src/context";
 import { useRenterForm } from "@/src/features/renters/hooks/useRenterForm";
+import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
 import { RenterBasicInfoCard } from "@/src/features/renters/components/RenterBasicInfoCard";
 import { RenterLeaseInfoCard } from "@/src/features/renters/components/RenterLeaseInfoCard";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
@@ -37,8 +38,28 @@ export function AddEditRenterScreen() {
     onSuccess: () => router.back(),
   });
 
-  const { formState, control, trigger } = formMethods;
+  const { formState, control, trigger, setValue } = formMethods;
   const [step, setStep] = React.useState<"basic" | "lease">("basic");
+  const { requestPermission, pickContact } = useContactPicker();
+
+  const handlePickFromContacts = React.useCallback(async () => {
+    const status = await requestPermission();
+    if (status !== "granted") {
+      Alert.alert(
+        t("error.title"),
+        t("renter.contactsPermissionDenied"),
+      );
+      return;
+    }
+    const picked = await pickContact();
+    if (picked) {
+      setValue("firstName", picked.firstName, { shouldDirty: true });
+      setValue("lastName", picked.lastName, { shouldDirty: true });
+      setValue("phone", picked.phone, { shouldDirty: true });
+      setValue("email", picked.email, { shouldDirty: true });
+      setValue("contactId", picked.contactId, { shouldDirty: true });
+    }
+  }, [requestPermission, pickContact, setValue, t]);
 
   React.useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e) => {
@@ -128,7 +149,14 @@ export function AddEditRenterScreen() {
             </Text>
             <View style={styles.headerSpacer} />
           </View>
-          {step === "basic" && <RenterBasicInfoCard control={control} t={t} />}
+          {step === "basic" && (
+            <RenterBasicInfoCard
+              control={control}
+              t={t}
+              isEdit={isEdit}
+              onPickFromContacts={handlePickFromContacts}
+            />
+          )}
           {step === "lease" && <RenterLeaseInfoCard control={control} t={t} />}
         </KeyboardAwareScrollView>
         <View style={styles.fixedButtonBar}>

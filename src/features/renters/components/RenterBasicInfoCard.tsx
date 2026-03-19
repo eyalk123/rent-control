@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import type { Control, FieldValues } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { spacing } from "@/src/core/theme";
@@ -10,18 +10,46 @@ import {
   FormNumericField,
 } from "@/src/shared/components/form/FormFields";
 import { PropertyPicker } from "@/src/features/properties/components/PropertyPicker";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "react-native-paper";
+import { Text } from "react-native-paper";
+import { lightColors, darkColors } from "@/src/core/theme";
 
 type RenterBasicInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   t: TFunction;
+  isEdit?: boolean;
+  onPickFromContacts?: () => void;
 };
 
 function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
+  isEdit = false,
+  onPickFromContacts,
 }: RenterBasicInfoCardProps<TFieldValues>) {
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+
   return (
     <FormSectionCard title={t("renter.basicInfo")}>
+      {!isEdit && onPickFromContacts && Platform.OS !== "web" && (
+        <TouchableOpacity
+          style={[styles.contactButton, { backgroundColor: colors.inputBackground }]}
+          onPress={onPickFromContacts}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons
+            name="account-multiple"
+            size={22}
+            color={colors.primary}
+            style={styles.contactIcon}
+          />
+          <Text variant="bodyMedium" style={{ color: colors.primary }}>
+            {t("renter.chooseFromContacts")}
+          </Text>
+        </TouchableOpacity>
+      )}
       <FormTextField
         control={control}
         name={"firstName" as any}
@@ -67,6 +95,16 @@ export const RenterBasicInfoCard = React.memo(
 ) as typeof RenterBasicInfoCardInner;
 
 const styles = StyleSheet.create({
+  contactButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: spacing.md,
+    borderRadius: 10,
+    marginBottom: spacing.sm,
+  },
+  contactIcon: {
+    marginEnd: spacing.sm,
+  },
   inputWrap: {
     marginBottom: spacing.md,
   },

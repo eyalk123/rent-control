@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 import type { Renter } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
+import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 
 interface RenterCardProps {
   renter: Renter;
@@ -21,14 +22,7 @@ export function RenterCard({ renter, onPress }: RenterCardProps) {
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <Card style={styles.card} mode="outlined">
         <Card.Content style={styles.content}>
-          <View
-            style={[styles.avatar, { backgroundColor: colors.inputBackground }]}
-          >
-            <Text variant="labelLarge" style={{ color: colors.textSecondary }}>
-              {renter.first_name[0]}
-              {renter.last_name[0]}
-            </Text>
-          </View>
+          <RenterAvatar renter={renter} size={40} style={styles.avatar} />
           <View style={styles.info}>
             <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
               {renter.first_name} {renter.last_name}
@@ -70,11 +64,6 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginEnd: 12,
   },
   info: {

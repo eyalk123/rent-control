@@ -122,6 +122,9 @@
     "updateRenter": "עדכון דייר",
     "call": "התקשרות",
     "sms": "הודעה",
+    "chooseFromContacts": "בחר מרשימת אנשי קשר",
+    "contactsPermissionDenied": "גישה לאנשי קשר נדחתה. תוכל עדיין להוסיף דיירים ידנית.",
+    "contactsUnavailable": "אנשי קשר אינם זמינים במכשיר זה.",
     "tabs": {
       "info": "מידע",
       "property": "נכס",

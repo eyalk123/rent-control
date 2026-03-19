@@ -14,6 +14,7 @@ import {
   ScreenContainer,
 } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { RenterInfoTab } from '@/src/features/renters/components/RenterInfoTab';
 import { RenterPropertyTab } from '@/src/features/renters/components/RenterPropertyTab';
 import { RenterTransactionsTab } from '@/src/features/renters/components/RenterTransactionsTab';
@@ -89,12 +90,12 @@ export function RenterDetailScreen() {
               { paddingTop: insets.top + spacing.sm, backgroundColor: colors.inputBackground },
             ]}
           >
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>
-                {renter.first_name[0]}
-                {renter.last_name[0]}
-              </Text>
-            </View>
+            <RenterAvatar
+              renter={renter}
+              size={80}
+              backgroundColor="rgba(255,255,255,0.3)"
+              textColor="#FFF"
+            />
             <IconButton
               icon="pencil"
               iconColor="#FFF"
@@ -173,19 +174,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: spacing.md,
     position: 'relative',
-  },
-  avatarCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#FFF',
   },
   editIcon: {
     position: 'absolute',

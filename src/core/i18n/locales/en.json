@@ -122,6 +122,9 @@
     "updateRenter": "Update Renter",
     "call": "Call",
     "sms": "SMS",
+    "chooseFromContacts": "Choose from contacts",
+    "contactsPermissionDenied": "Contacts access was denied. You can still add renters manually.",
+    "contactsUnavailable": "Contacts are not available on this device.",
     "tabs": {
       "info": "Info",
       "property": "Property",

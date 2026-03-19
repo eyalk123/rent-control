@@ -54,6 +54,7 @@ export const renterFormSchema = z.object({
   insuranceAmount: optionalNumericString,
   contractYears: optionalNumericString,
   leaseYears: z.array(leaseYearSchema).optional(),
+  contactId: z.string().nullable().optional(),
 });
 
 export type RenterFormValues = z.infer<typeof renterFormSchema>;

@@ -28,6 +28,7 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     payment_day_of_month,
     insurance_type,
     insurance_amount,
+    contact_id,
   } = data;
   const out: RenterCreate = {
     property_id: property_id ?? null,
@@ -43,6 +44,7 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
   if (payment_day_of_month !== undefined) out.payment_day_of_month = payment_day_of_month;
   if (insurance_type !== undefined) out.insurance_type = insurance_type;
   if (insurance_amount !== undefined) out.insurance_amount = insurance_amount;
+  if (contact_id !== undefined) out.contact_id = contact_id ?? null;
   return out;
 }
 
@@ -60,6 +62,7 @@ function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
     'payment_day_of_month',
     'insurance_type',
     'insurance_amount',
+    'contact_id',
   ];
   const out: Record<string, unknown> = {};
   for (const key of allowed) {

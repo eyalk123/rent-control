@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
 import { getRenterMonthlyRent } from '@/src/shared/types';
 import { EmptyState } from '@/src/shared/components/ui';
+import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
 
@@ -43,14 +44,7 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
         >
           <Card style={styles.card} mode="outlined">
             <Card.Content style={styles.cardContent}>
-              <View
-                style={[styles.avatar, { backgroundColor: colors.inputBackground }]}
-              >
-                <Text variant="labelLarge" style={{ color: colors.textSecondary }}>
-                  {renter.first_name[0]}
-                  {renter.last_name[0]}
-                </Text>
-              </View>
+              <RenterAvatar renter={renter} size={44} style={styles.avatar} />
               <View style={styles.info}>
                 <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
                   {renter.first_name} {renter.last_name}
@@ -112,11 +106,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginEnd: spacing.md,
   },
   info: {
