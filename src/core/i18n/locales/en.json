@@ -269,10 +269,14 @@
     "categories": "Categories",
     "addCategory": "Add category",
     "createCategory": "Category name",
+    "createCategoryTitle": "Create new category",
     "createNewCategory": "Create new category...",
     "details": "Supplier details",
     "updateSupplier": "Update Supplier",
-    "saveSupplier": "Save Supplier"
+    "saveSupplier": "Save Supplier",
+    "delete": "Delete Supplier",
+    "deleteConfirmTitle": "Delete supplier?",
+    "deleteConfirmMessage": "This will deactivate the supplier. You can reactivate it later by editing."
   },
   "permission": {
     "title": "Permission required",

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert } from 'react-native';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { TFunction } from 'i18next';
 import { getApiErrorMessage } from '@/src/core/api/client';
@@ -32,7 +32,7 @@ export function useSupplierForm({
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
 
   const formMethods = useForm<SupplierFormValues>({
-    resolver: zodResolver(supplierFormSchema),
+    resolver: zodResolver(supplierFormSchema) as Resolver<SupplierFormValues>,
     defaultValues: {
       name: '',
       phone: '',

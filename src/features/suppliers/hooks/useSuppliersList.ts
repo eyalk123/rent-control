@@ -17,7 +17,7 @@ export function useSuppliersList() {
     }
     setError(null);
     try {
-      const data = await getSuppliers({ includeInactive: true });
+      const data = await getSuppliers({ includeInactive: false });
       setSuppliers(data);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to load suppliers'));

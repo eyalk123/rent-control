@@ -3,8 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { List, SegmentedButtons, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { useThemeContext } from '@/src/context';
-import { useLanguageContext } from '@/src/context';
+import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
 import { spacing } from '@/src/core/theme';
 
@@ -12,18 +11,25 @@ export function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { themeMode, setThemeMode } = useThemeContext();
-  const { language, setLanguage, isRtl } = useLanguageContext();
+  const { language, setLanguage } = useLanguageContext();
+  
+  // 1. Grab your awesome existing global helper!
+  const rtlLabelStyle = useRtlLabelStyle(); 
 
   return (
     <ScreenContainer>
       <ScrollView style={styles.container}>
-        <LtrSection style={styles.themeSection}>
-          <Text
-            variant="titleMedium"
-            style={[styles.sectionTitle, isRtl && styles.sectionTitleRtl]}
-          >
-            {t('settings.theme')}
-          </Text>
+        
+        {/* 2. Move the Theme title OUTSIDE of LtrSection so it respects the global RTL layout */}
+        <Text
+          variant="titleMedium"
+          style={[styles.sectionTitle, styles.themeTitle, rtlLabelStyle]}
+        >
+          {t('settings.theme')}
+        </Text>
+
+        {/* Keep LtrSection ONLY on the SegmentedButtons to preserve their order */}
+        <LtrSection>
           <SegmentedButtons
             value={themeMode}
             onValueChange={(v) =>
@@ -38,15 +44,10 @@ export function SettingsScreen() {
           />
         </LtrSection>
 
+        {/* 3. Apply the helper to the rest of your titles */}
         <Text
           variant="titleMedium"
-          style={[styles.sectionTitle, isRtl && styles.sectionTitleRtl]}
-        >
-          {t('settings.language')}
-        </Text>
-        <Text
-          variant="titleMedium"
-          style={[styles.sectionTitle, isRtl && styles.sectionTitleRtl]}
+          style={[styles.sectionTitle, rtlLabelStyle]}
         >
           {t('settings.suppliers')}
         </Text>
@@ -54,14 +55,14 @@ export function SettingsScreen() {
           <List.Item
             title={t('settings.suppliers')}
             left={(props) => <List.Icon {...props} icon="truck" />}
-            onPress={() => router.push('/settings/suppliers')}
+            onPress={() => router.push('/settings/suppliers' as any)}
             style={styles.listItem}
           />
         </List.Section>
 
         <Text
           variant="titleMedium"
-          style={[styles.sectionTitle, isRtl && styles.sectionTitleRtl]}
+          style={[styles.sectionTitle, rtlLabelStyle]}
         >
           {t('settings.language')}
         </Text>
@@ -98,16 +99,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  themeSection: {
+  themeTitle: {
     marginTop: spacing.xl,
   },
   sectionTitle: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.sm,
-    fontWeight: '600',
-  },
-  sectionTitleRtl: {
-    textAlign: 'right',
+    fontWeight: '900',
+    // alignSelf: 'stretch' has been removed! Your helper handles alignment elegantly.
   },
   segmented: {
     marginHorizontal: spacing.lg,
