@@ -37,7 +37,8 @@ export function PropertiesListScreen() {
         (p) =>
           p.address.toLowerCase().includes(q) ||
           p.city.toLowerCase().includes(q) ||
-          p.zip_code.toLowerCase().includes(q)
+          p.zip_code.toLowerCase().includes(q) ||
+          (p.property_owner ?? '').toLowerCase().includes(q)
       );
     }
     return list;

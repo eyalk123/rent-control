@@ -37,6 +37,7 @@ const seedProperties: Property[] = [
     water_meter_tax: 120,
     property_tax: 4500,
     house_committee: 200,
+    property_owner: 'Jane Cooper',
     renters: null,
   },
   {
@@ -261,6 +262,7 @@ export const mockPropertiesApi = {
       water_meter_tax: data.water_meter_tax ?? null,
       property_tax: data.property_tax ?? null,
       house_committee: data.house_committee ?? null,
+      property_owner: data.property_owner ?? null,
       renters: [],
     };
     mockProperties.push(newProp);

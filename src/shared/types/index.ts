@@ -26,6 +26,7 @@ export interface Property {
   water_meter_tax?: number | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  property_owner?: string | null;
   renters: Renter[] | null;
   /** Enriched on list when renters are fetched; used for occupancy display */
   hasRenters?: boolean;
@@ -180,6 +181,7 @@ export interface PropertyCreate {
   water_meter_tax?: number | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  property_owner?: string | null;
 }
 
 // Update payload (PATCH /properties/{id}) - all fields optional
@@ -197,6 +199,7 @@ export interface PropertyUpdate {
   water_meter_tax?: number | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  property_owner?: string | null;
 }
 
 // Create payload (POST /renters)

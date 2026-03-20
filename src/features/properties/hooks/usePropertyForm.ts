@@ -44,6 +44,7 @@ export function usePropertyForm({
       purchasePrice: '',
       numberOfRooms: '',
       parkingNumbersStr: '',
+      propertyOwner: '',
       electricityMeterNumber: '',
       waterMeterTax: '',
       propertyTax: '',
@@ -81,6 +82,7 @@ export function usePropertyForm({
             Array.isArray(prop.parking_numbers) && prop.parking_numbers.length > 0
               ? prop.parking_numbers.join(', ')
               : '',
+          propertyOwner: prop.property_owner ?? '',
           electricityMeterNumber: prop.electricity_meter_number ?? '',
           waterMeterTax: prop.water_meter_tax != null ? String(prop.water_meter_tax) : '',
           propertyTax: prop.property_tax != null ? String(prop.property_tax) : '',
@@ -163,6 +165,10 @@ export function usePropertyForm({
     if (waterMeterTaxNum != null) updateData.water_meter_tax = waterMeterTaxNum;
     if (propertyTaxNum != null) updateData.property_tax = propertyTaxNum;
     if (houseCommitteeNum != null) updateData.house_committee = houseCommitteeNum;
+    updateData.property_owner =
+      values.propertyOwner && values.propertyOwner.trim() !== ''
+        ? values.propertyOwner.trim()
+        : null;
 
     try {
       if (isEdit && id) {

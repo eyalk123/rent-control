@@ -41,6 +41,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   const textFields = [
     { name: "address", labelKey: "property.address", required: true },
     { name: "city", labelKey: "property.city", required: true },
+    { name: "propertyOwner", labelKey: "property.propertyOwner", required: false },
   ] as const;
 
   const numericFields = [

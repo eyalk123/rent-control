@@ -41,6 +41,7 @@
     "leaseInfo": "פרטי חכירה",
     "address": "כתובת",
     "city": "עיר",
+    "propertyOwner": "בעל הנכס",
     "zipCode": "מיקוד",
     "type": "סוג נכס",
     "typePlaceholder": "למשל דירה, בית",
@@ -155,10 +156,10 @@
     "noTransactionSearchResults": "לא נמצאו תנועות התואמות לחיפוש."
   },
   "search": {
-    "placeholder": "חיפוש דיירים",
-    "placeholderProperties": "חיפוש נכסים, כתובות...",
+    "placeholder": "חיפוש דיירים, נכס, בעלים...",
+    "placeholderProperties": "חיפוש נכסים, כתובות, בעלים...",
     "placeholderSuppliers": "חיפוש ספקים...",
-    "placeholderTransactions": "חיפוש לפי דייר, נכס, קטגוריה..."
+    "placeholderTransactions": "חיפוש לפי דייר, נכס, בעלים, קטגוריה..."
   },
   "filters": {
     "all": "הכל",

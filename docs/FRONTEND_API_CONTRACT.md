@@ -66,6 +66,7 @@ interface Property {
   water_meter_tax?: number | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  property_owner?: string | null;  // display label; distinct from owner_id (account)
   renters: Renter[] | null;
   hasRenters?: boolean;  // optional, for list occupancy display
 }
@@ -98,6 +99,7 @@ interface PropertyCreate {
   water_meter_tax?: number | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  property_owner?: string | null;
 }
 ```
 
@@ -124,6 +126,7 @@ interface PropertyUpdate {
   water_meter_tax?: number | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  property_owner?: string | null;
 }
 ```
 

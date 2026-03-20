@@ -41,6 +41,7 @@
     "leaseInfo": "Lease Details",
     "address": "Address",
     "city": "City",
+    "propertyOwner": "Property owner",
     "zipCode": "Zip Code",
     "type": "Property Type",
     "typePlaceholder": "e.g. Apartment, House",
@@ -155,10 +156,10 @@
     "noTransactionSearchResults": "No transactions match your search."
   },
   "search": {
-    "placeholder": "Search renters",
-    "placeholderProperties": "Search properties, addresses...",
+    "placeholder": "Search renters, property, owner...",
+    "placeholderProperties": "Search properties, addresses, owner...",
     "placeholderSuppliers": "Search suppliers...",
-    "placeholderTransactions": "Search by renter, property, category..."
+    "placeholderTransactions": "Search by renter, property, owner, category..."
   },
   "filters": {
     "all": "All",

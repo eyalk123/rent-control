@@ -5,7 +5,12 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRenterContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
+import {
+  usePropertyContext,
+  useRenterContext,
+  useRtlInputStyle,
+  useRtlPlaceholder,
+} from '@/src/context';
 import {
   LoadingOverlay,
   EmptyState,
@@ -22,8 +27,18 @@ export function RentersListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { renters, loading, error, refreshRenters } = useRenterContext();
+  const { properties } = usePropertyContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+
+  const propertyOwnerLowerById = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const p of properties) {
+      const o = (p.property_owner ?? '').trim();
+      if (o) m.set(p.id, o.toLowerCase());
+    }
+    return m;
+  }, [properties]);
 
   const filteredRenters = useMemo(() => {
     let list = renters;
@@ -32,11 +47,17 @@ export function RentersListScreen() {
       list = list.filter((renter) => {
         const fullName = `${renter.first_name} ${renter.last_name}`.toLowerCase();
         const address = (renter.property?.address ?? '').toLowerCase();
-        return fullName.includes(q) || address.includes(q);
+        const propertyOwner =
+          renter.property_id != null
+            ? (propertyOwnerLowerById.get(renter.property_id) ?? '')
+            : '';
+        return (
+          fullName.includes(q) || address.includes(q) || propertyOwner.includes(q)
+        );
       });
     }
     return list;
-  }, [renters, searchQuery]);
+  }, [renters, searchQuery, propertyOwnerLowerById]);
 
   const handleRenterPress = (id: number) => {
     router.push(`/renters/${id}` as any);

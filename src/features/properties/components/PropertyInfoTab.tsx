@@ -145,6 +145,15 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
               secondaryColor={colors.textSecondary}
             />
           )}
+          {property.property_owner != null && property.property_owner !== '' && (
+            <IconDetailRow
+              icon="account-tie"
+              label={t('property.propertyOwner')}
+              value={property.property_owner}
+              iconColor={colors.primary}
+              secondaryColor={colors.textSecondary}
+            />
+          )}
           <IconDetailRow
             icon="cash"
             label={t('property.purchasePrice')}

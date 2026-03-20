@@ -7,7 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EmptyState, LoadingOverlay, ScreenContainer } from '@/src/shared/components/ui';
-import { useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
+import { usePropertyContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
@@ -34,6 +34,16 @@ export function TransactionsListScreen() {
     retryLoad,
   } = useTransactionsList();
 
+  const { properties } = usePropertyContext();
+  const propertyOwnerLowerById = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const p of properties) {
+      const o = (p.property_owner ?? '').trim();
+      if (o) m.set(p.id, o.toLowerCase());
+    }
+    return m;
+  }, [properties]);
+
   const isFirstFocus = React.useRef(true);
   useFocusEffect(
     React.useCallback(() => {
@@ -53,17 +63,19 @@ export function TransactionsListScreen() {
     const q = searchQuery.toLowerCase().trim();
     return transactions.filter((tx) => {
       const property = tx.property_name.toLowerCase();
+      const propertyOwner = propertyOwnerLowerById.get(tx.property_id) ?? '';
       const renter = (tx.renter_name ?? '').toLowerCase();
       const category = (tx.category_name ?? '').toLowerCase();
       const supplier = (tx.supplier_name ?? '').toLowerCase();
       return (
         property.includes(q) ||
+        propertyOwner.includes(q) ||
         renter.includes(q) ||
         category.includes(q) ||
         supplier.includes(q)
       );
     });
-  }, [transactions, searchQuery]);
+  }, [transactions, searchQuery, propertyOwnerLowerById]);
 
   const filteredTransactions = useMemo(() => {
     if (typeFilter === 'all') return searchFilteredTransactions;

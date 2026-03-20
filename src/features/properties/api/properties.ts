@@ -29,6 +29,7 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
     water_meter_tax,
     property_tax,
     house_committee,
+    property_owner,
   } = data;
   const out: PropertyCreate = {
     address,
@@ -45,6 +46,7 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
   if (water_meter_tax !== undefined) out.water_meter_tax = water_meter_tax;
   if (property_tax !== undefined) out.property_tax = property_tax;
   if (house_committee !== undefined) out.house_committee = house_committee;
+  if (property_owner !== undefined) out.property_owner = property_owner;
   return out;
 }
 
@@ -63,6 +65,7 @@ function sanitizePropertyUpdate(data: PropertyUpdate): Record<string, unknown> {
     'water_meter_tax',
     'property_tax',
     'house_committee',
+    'property_owner',
   ];
   const out: Record<string, unknown> = {};
   for (const key of allowed) {
