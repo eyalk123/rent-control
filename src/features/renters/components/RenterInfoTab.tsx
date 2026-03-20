@@ -1,39 +1,15 @@
 import React from 'react';
-import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import { getRenterMonthlyRent, type Renter } from '@/src/shared/types';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
+import { ContactActionsRow } from '@/src/shared/components/ui';
 
 interface RenterInfoTabProps {
   renter: Renter;
-}
-
-function ActionCircle({
-  icon,
-  label,
-  backgroundColor,
-  iconColor,
-  onPress,
-}: {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  label: string;
-  backgroundColor: string;
-  iconColor: string;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity style={styles.actionCircleWrapper} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.actionCircle, { backgroundColor }]}>
-        <MaterialCommunityIcons name={icon} size={22} color={iconColor} />
-      </View>
-      <Text variant="labelSmall" style={styles.actionLabel} numberOfLines={1}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
 }
 
 function StatBox({
@@ -127,36 +103,11 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* Contact action circles */}
-      <View style={styles.actionsRow}>
-        {renter.phone ? (
-          <ActionCircle
-            icon="phone"
-            label={t('renter.call')}
-            backgroundColor={colors.chooseRevenueBg}
-            iconColor={colors.chooseRevenueIcon}
-            onPress={() => Linking.openURL(`tel:${renter.phone}`)}
-          />
-        ) : null}
-        {renter.phone ? (
-          <ActionCircle
-            icon="message-text"
-            label={t('renter.sms')}
-            backgroundColor="rgba(29, 78, 216, 0.15)"
-            iconColor={colors.primary}
-            onPress={() => Linking.openURL(`sms:${renter.phone}`)}
-          />
-        ) : null}
-        {renter.email ? (
-          <ActionCircle
-            icon="email"
-            label={t('renter.email')}
-            backgroundColor="rgba(13, 148, 136, 0.15)"
-            iconColor={colors.secondary}
-            onPress={() => Linking.openURL(`mailto:${renter.email}`)}
-          />
-        ) : null}
-      </View>
+      <ContactActionsRow
+        phone={renter.phone}
+        email={renter.email}
+        style={{ marginBottom: spacing.lg }}
+      />
 
       {/* Stat boxes */}
       <View style={styles.statsRow}>
@@ -285,26 +236,6 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.xl,
-    marginBottom: spacing.lg,
-  },
-  actionCircleWrapper: {
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  actionCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionLabel: {
-    fontWeight: '500',
   },
   statsRow: {
     flexDirection: 'row',

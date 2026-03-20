@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import {
+  ContactActionsRow,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
@@ -149,52 +150,69 @@ export function SuppliersListScreen() {
         ListEmptyComponent={
           <EmptyState message={t('empty.noSupplierSearchResults')} icon="magnify" />
         }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => handleSupplierPress(item.id)}
-            style={[
-              styles.row,
-              {
-                backgroundColor: theme.colors.surface,
-                opacity: item.is_active ? 1 : 0.6,
-              },
-            ]}
-          >
-            <View style={styles.rowContent}>
-              <Text variant="titleMedium" numberOfLines={1}>
-                {item.name}
-              </Text>
-              {!item.is_active && (
-                <Text
-                  variant="bodySmall"
-                  style={[styles.inactiveBadge, { color: theme.colors.error }]}
-                >
-                  {t('suppliers.inactive', { defaultValue: 'Inactive' })}
-                </Text>
-              )}
-            </View>
-            {item.phone ? (
-              <Text variant="bodySmall" style={styles.secondary}>
-                {item.phone}
-              </Text>
-            ) : null}
-            {item.email ? (
-              <Text variant="bodySmall" style={styles.secondary} numberOfLines={1}>
-                {item.email}
-              </Text>
-            ) : null}
-            {item.category_ids && item.category_ids.length > 0 ? (
-              <Text
-                variant="bodySmall"
-                style={styles.categories}
-                numberOfLines={2}
+        renderItem={({ item }) => {
+          const hasContact =
+            !!(item.phone?.trim() || item.email?.trim());
+          return (
+            <View
+              style={[
+                styles.row,
+                {
+                  backgroundColor: theme.colors.surface,
+                  opacity: item.is_active ? 1 : 0.6,
+                },
+              ]}
+            >
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => handleSupplierPress(item.id)}
+                style={styles.rowMain}
               >
-                {getCategoryNames(item)}
-              </Text>
-            ) : null}
-          </TouchableOpacity>
-        )}
+                <View style={styles.rowContent}>
+                  <Text variant="titleMedium" numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  {!item.is_active && (
+                    <Text
+                      variant="bodySmall"
+                      style={[styles.inactiveBadge, { color: theme.colors.error }]}
+                    >
+                      {t('suppliers.inactive', { defaultValue: 'Inactive' })}
+                    </Text>
+                  )}
+                </View>
+                {item.phone ? (
+                  <Text variant="bodySmall" style={styles.secondary}>
+                    {item.phone}
+                  </Text>
+                ) : null}
+                {item.email ? (
+                  <Text variant="bodySmall" style={styles.secondary} numberOfLines={1}>
+                    {item.email}
+                  </Text>
+                ) : null}
+                {item.category_ids && item.category_ids.length > 0 ? (
+                  <Text
+                    variant="bodySmall"
+                    style={styles.categories}
+                    numberOfLines={2}
+                  >
+                    {getCategoryNames(item)}
+                  </Text>
+                ) : null}
+              </TouchableOpacity>
+              {hasContact ? (
+                <ContactActionsRow
+                  phone={item.phone}
+                  email={item.email}
+                  variant="compact"
+                  contentAlign="flex-end"
+                  style={styles.rowActions}
+                />
+              ) : null}
+            </View>
+          );
+        }}
         contentContainerStyle={[
           styles.list,
           { paddingBottom: 80 + insets.bottom },
@@ -239,11 +257,22 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
   row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     padding: spacing.md,
     borderRadius: 12,
     marginBottom: spacing.sm,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
+  },
+  rowMain: {
+    flex: 1,
+    minWidth: 0,
+  },
+  rowActions: {
+    marginStart: spacing.sm,
+    paddingTop: 2,
+    alignSelf: 'center',
   },
   rowContent: {
     flexDirection: 'row',

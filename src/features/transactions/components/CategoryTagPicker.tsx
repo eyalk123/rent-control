@@ -12,24 +12,26 @@ import type { ExpenseCategory } from "@/src/shared/types";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    View,
-    type StyleProp,
-    type TextStyle,
-    type ViewStyle,
+  ActivityIndicator,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type TextStyle,
+  type ViewStyle,
 } from "react-native";
 import {
-    Button,
-    Chip,
-    Dialog,
-    Menu,
-    Portal,
-    Text,
-    TextInput,
-    useTheme,
+  Button,
+  Chip,
+  Dialog,
+  Menu,
+  Portal,
+  Text,
+  TextInput,
+  useTheme,
 } from "react-native-paper";
 
 const DROPDOWN_MAX_HEIGHT = Math.min(
@@ -56,10 +58,12 @@ export function CategoryTagPicker({
   const { isRtl } = useLanguageContext();
   const rtlInputStyle = useRtlInputStyle();
   const rtlLabelStyle = useRtlLabelStyle();
+  
   /** Chip label text (narrow box is OK). */
   const rtlChipTextStyle: TextStyle | undefined = isRtl
     ? { textAlign: "right", writingDirection: "rtl" }
     : undefined;
+    
   /**
    * Menu.Item title is shrink-wrapped by default, so `textAlign` has no visible effect in a wide row.
    * Let the title area grow (react-native-paper MenuItem `contentStyle`) and stretch the Text — same
@@ -75,6 +79,7 @@ export function CategoryTagPicker({
         width: "100%",
       }
     : undefined;
+    
   const { categories, loading, refreshCategories } = useExpenseCategories();
   const [menuVisible, setMenuVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -144,29 +149,35 @@ export function CategoryTagPicker({
       ) : null}
 
       <View style={styles.chipsRow}>
-        {selectedCategories.map((cat) => (
-          <Chip
-            key={cat.id}
-            mode="outlined"
-            compact
-            onClose={() => handleRemove(cat.id)}
-            style={styles.chip}
-            textStyle={[styles.chipText, rtlChipTextStyle]}
-          >
-            {getCategoryDisplayName(cat, t)}
-          </Chip>
-        ))}
+        {/* Render the Add Category button FIRST */}
         <Menu
           visible={menuVisible}
           onDismiss={closeMenu}
           anchor={
             <Chip
-              mode="outlined"
+              mode="flat"
               compact
               icon="plus"
               onPress={openMenu}
-              style={[styles.chip, styles.addChip]}
-              textStyle={[styles.chipText, rtlChipTextStyle]}
+              style={[
+                styles.chip,
+                { 
+                  backgroundColor: colors.primary,
+                  direction: isRtl ? "rtl" : "ltr"
+                }
+              ]}
+              textStyle={[
+                styles.chipText, 
+                rtlChipTextStyle, 
+                { color: "#FFFFFF", fontWeight: "600" },
+                isRtl && { marginLeft: 8, marginRight: 4 }
+              ]}
+              theme={{
+                colors: {
+                  onSurfaceVariant: "#FFFFFF", 
+                  primary: "#FFFFFF"
+                }
+              }}
             >
               {t("suppliers.addCategory", { defaultValue: "Add category" })}
             </Chip>
@@ -209,62 +220,102 @@ export function CategoryTagPicker({
           </ScrollView>
         </Menu>
 
-        <Portal>
-          <Dialog
-            visible={createModalVisible}
-            onDismiss={() => {
-              setCreateModalVisible(false);
-              setCreateName("");
-              setCreateError(null);
-            }}
+        {/* Selected categories */}
+        {selectedCategories.map((cat) => (
+          <Chip
+            key={cat.id}
+            mode="outlined"
+            compact
+            onClose={() => handleRemove(cat.id)}
+            style={[styles.chip, { direction: isRtl ? "rtl" : "ltr" }]}
+            textStyle={[styles.chipText, rtlChipTextStyle]}
           >
-            <Dialog.Title>
-              {t("suppliers.createCategoryTitle", {
-                defaultValue: "Create new category",
-              })}
-            </Dialog.Title>
-            <Dialog.Content>
-              <TextInput
-                value={createName}
-                onChangeText={setCreateName}
-                placeholder={t("suppliers.createCategory", {
-                  defaultValue: "Category name",
+            {getCategoryDisplayName(cat, t)}
+          </Chip>
+        ))}
+
+        <Portal>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.keyboardAvoidingView}
+            pointerEvents="box-none"
+          >
+            <Dialog
+              visible={createModalVisible}
+              onDismiss={() => {
+                setCreateModalVisible(false);
+                setCreateName("");
+                setCreateError(null);
+              }}
+              style={[
+                styles.dialog, 
+                { backgroundColor: theme.dark ? darkColors.surfaceElevated : lightColors.surface }
+              ]}
+            >
+              <Dialog.Title 
+                style={[
+                  styles.dialogTitle, 
+                  { 
+                    textAlign: isRtl ? "right" : "left", 
+                    color: colors.textPrimary 
+                  }
+                ]}
+              >
+                {t("suppliers.createCategoryTitle", {
+                  defaultValue: "Create new category",
                 })}
-                mode="outlined"
-                dense
-                style={[styles.dialogInput, rtlInputStyle]}
-                contentStyle={rtlInputStyle}
-                autoFocus
-                editable={!createLoading}
-              />
-              {createError ? (
-                <Text
-                  variant="bodySmall"
-                  style={[styles.errorText, { color: colors.error }]}
+              </Dialog.Title>
+              <Dialog.Content>
+                <TextInput
+                  value={createName}
+                  onChangeText={setCreateName}
+                  placeholder={t("suppliers.createCategory", {
+                    defaultValue: "Category name",
+                  })}
+                  mode="outlined"
+                  dense
+                  style={[
+                    styles.dialogInput, 
+                    rtlInputStyle, 
+                    { backgroundColor: theme.dark ? darkColors.inputFilledBackground : lightColors.inputBackground }
+                  ]}
+                  contentStyle={rtlInputStyle}
+                  textColor={colors.textPrimary}
+                  autoFocus
+                  editable={!createLoading}
+                />
+                {createError ? (
+                  <Text
+                    variant="bodySmall"
+                    style={[styles.errorText, { color: colors.error }]}
+                  >
+                    {createError}
+                  </Text>
+                ) : null}
+              </Dialog.Content>
+              <Dialog.Actions style={styles.dialogActions}>
+                <Button
+                  onPress={() => {
+                    setCreateModalVisible(false);
+                    setCreateName("");
+                    setCreateError(null);
+                  }}
+                  textColor={colors.textSecondary}
                 >
-                  {createError}
-                </Text>
-              ) : null}
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button
-                onPress={() => {
-                  setCreateModalVisible(false);
-                  setCreateName("");
-                  setCreateError(null);
-                }}
-              >
-                {t("common.cancel", { defaultValue: "Cancel" })}
-              </Button>
-              <Button
-                onPress={handleCreateCategory}
-                loading={createLoading}
-                disabled={!createName.trim() || createLoading}
-              >
-                {t("common.create", { defaultValue: "Create" })}
-              </Button>
-            </Dialog.Actions>
-          </Dialog>
+                  {t("common.cancel", { defaultValue: "Cancel" })}
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={handleCreateCategory}
+                  loading={createLoading}
+                  disabled={!createName.trim() || createLoading}
+                  style={isRtl ? { marginRight: spacing.sm } : { marginLeft: spacing.sm }}
+                >
+                  {t("common.create", { defaultValue: "Create" })}
+                </Button>
+              </Dialog.Actions>
+            </Dialog>
+          </KeyboardAvoidingView>
         </Portal>
       </View>
     </View>
@@ -276,18 +327,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   label: {
-    marginBottom: 4,
+    marginBottom: spacing.xs,
+    fontWeight: "500",
   },
   chipsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
+    gap: spacing.sm, 
   },
   chip: {
-    marginEnd: spacing.xs,
-    marginBottom: spacing.xs,
-  },
-  addChip: {
-    backgroundColor: "transparent",
   },
   chipText: {
     fontSize: 14,
@@ -299,8 +347,25 @@ const styles = StyleSheet.create({
   menuScrollView: {
     maxHeight: DROPDOWN_MAX_HEIGHT,
   },
+  keyboardAvoidingView: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  dialog: {
+    borderRadius: 16,
+    marginBottom: 100,
+  },
+  dialogTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
+  },
   dialogInput: {
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  dialogActions: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
   },
   errorText: {
     marginTop: spacing.xs,

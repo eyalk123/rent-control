@@ -20,6 +20,11 @@
     "title": "Restart Required",
     "message": "Please restart the app for the layout direction change to take effect."
   },
+  "contact": {
+    "call": "Call",
+    "sms": "SMS",
+    "email": "Email"
+  },
   "screens": {
     "properties": "Properties",
     "propertyDetails": "Property Details",
