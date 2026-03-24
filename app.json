@@ -13,6 +13,7 @@
       "bundleIdentifier": "com.eyalk123.rentcontrol"
     },
     "android": {
+      "launchMode": "singleTask",
       "package": "com.eyalk123.rentcontrol",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",

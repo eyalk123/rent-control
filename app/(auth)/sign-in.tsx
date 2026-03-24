@@ -14,8 +14,6 @@ import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
-WebBrowser.maybeCompleteAuthSession();
-
 type Step = 'email' | 'code';
 
 export default function SignInScreen() {
@@ -75,17 +73,22 @@ export default function SignInScreen() {
     setError('');
     setGoogleLoading(true);
     try {
-      const redirectUrl = Linking.createURL('/');
-      console.log('[Clerk] OAuth redirect URL:', redirectUrl);
-      const { createdSessionId, setActive: ssoSetActive } = await startSSOFlow({
-        strategy: 'oauth_google',
-        redirectUrl,
-      });
+      const redirectUrl = Linking.createURL('/sso-callback');
+      console.log('[SSO] redirectUrl:', redirectUrl);
+      console.log('[SSO] startSSOFlow starting');
+      const result = await startSSOFlow({ strategy: 'oauth_google', redirectUrl });
+      console.log('[SSO] startSSOFlow resolved, createdSessionId:', result.createdSessionId);
+      const { createdSessionId, setActive: ssoSetActive } = result;
       if (createdSessionId) {
+        console.log('[SSO] calling setActive');
         await ssoSetActive!({ session: createdSessionId });
+        console.log('[SSO] setActive done, navigating');
         router.replace('/(tabs)/properties' as any);
+      } else {
+        console.log('[SSO] createdSessionId null — relying on sso-callback auth watch');
       }
     } catch (err: any) {
+      console.warn('[SSO] signInWithGoogle error:', err?.errors?.[0]?.longMessage ?? err?.message);
       setError(err?.errors?.[0]?.longMessage ?? err?.message ?? 'Google sign-in failed.');
     } finally {
       setGoogleLoading(false);
