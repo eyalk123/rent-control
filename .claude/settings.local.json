@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/tmp/app_tree.txt:*)",
+      "Read(//tmp/**)"
+    ]
+  }
+}

@@ -83,7 +83,7 @@ export interface Transaction {
   /** Month the transaction is for (YYYY-MM format or full date string), revenues only */
   month_for: string | null;
   amount: number;
-  currencyCode: string;
+  currency_code: string;
   category_id: number | null;
   supplier_id: number | null;
   notes: string | null;
@@ -98,8 +98,7 @@ export interface TransactionCreateRevenue {
   property_id: number;
   renter_id?: number | null;
   amount: number;
-  /** ISO date string, defaults to today on backend if omitted */
-  date_of_payment?: string;
+  date_of_payment: string;
   /** Month the rent was paid for (e.g. 2026-02-01, day ignored) */
   month_for: string;
   payment_method?: PaymentMethod;

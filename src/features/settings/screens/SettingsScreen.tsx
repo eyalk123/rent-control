@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { List, SegmentedButtons, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@clerk/clerk-expo';
 import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
 import { spacing } from '@/src/core/theme';
@@ -12,9 +13,8 @@ export function SettingsScreen() {
   const router = useRouter();
   const { themeMode, setThemeMode } = useThemeContext();
   const { language, setLanguage } = useLanguageContext();
-  
-  // 1. Grab your awesome existing global helper!
-  const rtlLabelStyle = useRtlLabelStyle(); 
+  const { signOut } = useAuth();
+  const rtlLabelStyle = useRtlLabelStyle();
 
   return (
     <ScreenContainer>
@@ -87,6 +87,15 @@ export function SettingsScreen() {
               ) : null
             }
             onPress={() => setLanguage('he')}
+            style={styles.listItem}
+          />
+        </List.Section>
+
+        <List.Section>
+          <List.Item
+            title="Sign out"
+            left={(props) => <List.Icon {...props} icon="logout" />}
+            onPress={() => signOut()}
             style={styles.listItem}
           />
         </List.Section>

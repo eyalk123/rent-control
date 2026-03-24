@@ -11,6 +11,8 @@ import type {
   SupplierUpdate,
   ExpenseCategory,
   ExpenseCategoryCreate,
+  Transaction,
+  PropertyRenterSummary,
 } from '@/src/shared/types';
 
 // Set to true to use in-memory mock data when no backend is available
@@ -217,14 +219,127 @@ const seedSuppliers: Supplier[] = [
   },
 ];
 
+const seedTransactions: Transaction[] = [
+  {
+    id: 1,
+    type: 'revenue',
+    property_id: 1,
+    renter_id: 1,
+    payment_method: 'bank_transfer',
+    date_of_payment: '2026-03-01',
+    month_for: '2026-03-01',
+    amount: 2200,
+    currency_code: 'ILS',
+    category_id: null,
+    supplier_id: null,
+    notes: null,
+    property_name: '123 Main St',
+    renter_name: 'Sarah Johnson',
+    category_name: null,
+    supplier_name: null,
+  },
+  {
+    id: 2,
+    type: 'revenue',
+    property_id: 1,
+    renter_id: 2,
+    payment_method: 'bit',
+    date_of_payment: '2026-03-15',
+    month_for: '2026-03-01',
+    amount: 1900,
+    currency_code: 'ILS',
+    category_id: null,
+    supplier_id: null,
+    notes: null,
+    property_name: '123 Main St',
+    renter_name: 'Michael Chen',
+    category_name: null,
+    supplier_name: null,
+  },
+  {
+    id: 3,
+    type: 'revenue',
+    property_id: 2,
+    renter_id: 3,
+    payment_method: 'cash',
+    date_of_payment: '2026-03-01',
+    month_for: '2026-03-01',
+    amount: 1650,
+    currency_code: 'ILS',
+    category_id: null,
+    supplier_id: null,
+    notes: null,
+    property_name: '456 Oak Avenue',
+    renter_name: 'Emily Davis',
+    category_name: null,
+    supplier_name: null,
+  },
+  {
+    id: 4,
+    type: 'expense',
+    property_id: 1,
+    renter_id: null,
+    payment_method: 'bank_transfer',
+    date_of_payment: '2026-03-05',
+    month_for: null,
+    amount: 350,
+    currency_code: 'ILS',
+    category_id: 1,
+    supplier_id: 1,
+    notes: 'Leaky faucet repair',
+    property_name: '123 Main St',
+    renter_name: null,
+    category_name: 'maintenance',
+    supplier_name: 'Joe Plumber',
+  },
+  {
+    id: 5,
+    type: 'expense',
+    property_id: 2,
+    renter_id: null,
+    payment_method: 'bank_transfer',
+    date_of_payment: '2026-03-10',
+    month_for: null,
+    amount: 120,
+    currency_code: 'ILS',
+    category_id: 2,
+    supplier_id: 2,
+    notes: null,
+    property_name: '456 Oak Avenue',
+    renter_name: null,
+    category_name: 'electricity',
+    supplier_name: 'City Power Co',
+  },
+  {
+    id: 6,
+    type: 'expense',
+    property_id: 3,
+    renter_id: null,
+    payment_method: 'bank_transfer',
+    date_of_payment: '2026-03-10',
+    month_for: null,
+    amount: 75,
+    currency_code: 'ILS',
+    category_id: 3,
+    supplier_id: 3,
+    notes: 'Monthly water bill',
+    property_name: '789 Elm Street',
+    renter_name: null,
+    category_name: 'water',
+    supplier_name: 'Water Utility',
+  },
+];
+
 let mockProperties: Property[] = [...seedProperties];
 let mockRenters: Renter[] = [...seedRenters];
 let mockExpenseCategories: ExpenseCategory[] = [...seedExpenseCategories];
 let mockSuppliers: Supplier[] = [...seedSuppliers];
+let mockTransactions: Transaction[] = [...seedTransactions];
 let nextPropertyId = 6;
 let nextRenterId = 7;
 let nextCategoryId = 6;
 let nextSupplierId = 4;
+let nextTransactionId = 7;
 
 export const mockPropertiesApi = {
   getProperties: async (): Promise<Property[]> => {
@@ -356,6 +471,50 @@ export const mockExpenseCategoriesApi = {
     };
     mockExpenseCategories.push(newCat);
     return { ...newCat };
+  },
+};
+
+export const mockTransactionsApi = {
+  getTransactions: async (params: {
+    type?: 'revenue' | 'expense';
+    propertyId?: number;
+    renterId?: number;
+    search?: string;
+  } = {}): Promise<Transaction[]> => {
+    let list = mockTransactions;
+    if (params.type) {
+      list = list.filter((t) => t.type === params.type);
+    }
+    if (params.propertyId != null) {
+      list = list.filter((t) => t.property_id === params.propertyId);
+    }
+    if (params.renterId != null) {
+      list = list.filter((t) => t.renter_id === params.renterId);
+    }
+    if (params.search?.trim()) {
+      const q = params.search.toLowerCase().trim();
+      list = list.filter((t) =>
+        (t.property_name ?? '').toLowerCase().includes(q) ||
+        (t.renter_name ?? '').toLowerCase().includes(q) ||
+        (t.category_name ?? '').toLowerCase().includes(q) ||
+        (t.supplier_name ?? '').toLowerCase().includes(q) ||
+        (t.notes ?? '').toLowerCase().includes(q)
+      );
+    }
+    return [...list];
+  },
+  addTransaction: (t: Transaction): void => {
+    mockTransactions.push({ ...t, id: nextTransactionId++ });
+  },
+  getPropertyRenters: async (propertyId: number): Promise<PropertyRenterSummary[]> => {
+    return mockRenters
+      .filter((r) => r.property_id === propertyId)
+      .map((r) => ({
+        id: r.id,
+        first_name: r.first_name,
+        last_name: r.last_name,
+        monthly_rent: r.lease_years?.[0]?.amount ?? 0,
+      }));
   },
 };
 

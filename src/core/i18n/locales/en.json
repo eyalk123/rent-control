@@ -245,7 +245,26 @@
     "notes": "Notes (optional)",
     "revenueTitle": "Revenue",
     "expenseTitle": "Expense",
-    "save": "Save"
+    "save": "Save",
+    "bulkRevenue": {
+      "filters": "Filters",
+      "ownerFilter": "Owner",
+      "allOwners": "All owners",
+      "timePeriod": "Period",
+      "oneMonth": "1 Month",
+      "lastQuarter": "Quarter",
+      "calendarYear": "Year",
+      "selectAll": "Select all",
+      "selectedCount": "{{count}} selected",
+      "noContracts": "No contracts found.",
+      "noSelectionError": "Please select at least one renter.",
+      "invalidAmount": "Invalid amount for {{name}}.",
+      "partialError": "{{success}} saved, {{failed}} failed.",
+      "custom": "Custom",
+      "paymentDetails": "Payment details",
+      "monthsSelected": "{{count}} months selected",
+      "noMonthsError": "Please select at least one month."
+    }
   },
   "expenseCategories": {
     "maintenance": "Maintenance",

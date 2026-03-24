@@ -245,7 +245,26 @@
     "notes": "הערות (אופציונלי)",
     "revenueTitle": "הכנסה",
     "expenseTitle": "הוצאה",
-    "save": "שמירה"
+    "save": "שמירה",
+    "bulkRevenue": {
+      "filters": "סינון",
+      "ownerFilter": "בעלים",
+      "allOwners": "כל הבעלים",
+      "timePeriod": "תקופה",
+      "oneMonth": "חודש",
+      "lastQuarter": "רבעון",
+      "calendarYear": "שנה",
+      "selectAll": "בחר הכל",
+      "selectedCount": "{{count}} נבחרו",
+      "noContracts": "לא נמצאו חוזים.",
+      "noSelectionError": "יש לבחור לפחות דייר אחד.",
+      "invalidAmount": "סכום לא תקין עבור {{name}}.",
+      "partialError": "{{success}} נשמרו, {{failed}} נכשלו.",
+      "custom": "מותאם",
+      "paymentDetails": "פרטי תשלום",
+      "monthsSelected": "{{count}} חודשים נבחרו",
+      "noMonthsError": "יש לבחור לפחות חודש אחד."
+    }
   },
   "expenseCategories": {
     "maintenance": "תחזוקה",

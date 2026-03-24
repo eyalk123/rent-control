@@ -1,10 +1,11 @@
 import { View } from 'react-native';
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { BottomTabBar } from '@react-navigation/bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useAuth } from '@clerk/clerk-expo';
 
 function TabBarLtr(props: BottomTabBarProps) {
   return (
@@ -17,6 +18,10 @@ function TabBarLtr(props: BottomTabBarProps) {
 export default function TabLayout() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const { isSignedIn, isLoaded } = useAuth();
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href={'/(auth)/sign-in' as any} />;
 
   return (
     <Tabs

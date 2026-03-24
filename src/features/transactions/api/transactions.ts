@@ -1,5 +1,5 @@
 import apiClient from '@/src/core/api/client';
-import { USE_MOCK_API, mockExpenseCategoriesApi } from '@/src/core/api/mock';
+import { USE_MOCK_API, mockExpenseCategoriesApi, mockTransactionsApi } from '@/src/core/api/mock';
 import type {
   Transaction,
   TransactionCreateRevenue,
@@ -20,7 +20,7 @@ export async function getTransactions(
   params: TransactionsListParams = {},
 ): Promise<Transaction[]> {
   if (USE_MOCK_API) {
-    return [];
+    return mockTransactionsApi.getTransactions(params);
   }
 
   const response = await apiClient.get<Transaction[]>('/transactions', {
@@ -48,7 +48,7 @@ export async function createRevenueTransaction(
       date_of_payment: payload.date_of_payment ?? new Date().toISOString().slice(0, 10),
       month_for: payload.month_for,
       amount: payload.amount,
-      currencyCode: 'ILS',
+      currency_code: 'ILS',
       category_id: null,
       supplier_id: null,
       notes: payload.notes ?? null,
@@ -79,7 +79,7 @@ export async function createExpenseTransaction(
       date_of_payment: payload.date_of_payment,
       month_for: null,
       amount: payload.amount,
-      currencyCode: 'ILS',
+      currency_code: 'ILS',
       category_id: payload.category_id,
       supplier_id: payload.supplier_id ?? null,
       notes: payload.notes ?? null,
@@ -125,7 +125,7 @@ export async function getPropertyRenters(
   propertyId: number,
 ): Promise<PropertyRenterSummary[]> {
   if (USE_MOCK_API) {
-    return [];
+    return mockTransactionsApi.getPropertyRenters(propertyId);
   }
 
   const response = await apiClient.get<PropertyRenterSummary[]>(

@@ -13,21 +13,19 @@ import * as Haptics from 'expo-haptics';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRouter } from 'expo-router';
 import { ScreenContainer } from '@/src/shared/components/ui';
-import { useLanguageContext, useRenterContext } from '@/src/context';
+import { useLanguageContext } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import {
   createExpenseTransaction,
-  createRevenueTransaction,
 } from '@/src/features/transactions/api/transactions';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import { getRenterMonthlyRent, type PaymentMethod } from '@/src/shared/types';
+import { type PaymentMethod } from '@/src/shared/types';
 import {
   type ExpenseFormValues,
-  type RevenueFormValues,
   type TransactionMode,
 } from '@/src/features/transactions/screens/types';
 import { TransactionChooseStep } from '@/src/features/transactions/components/TransactionChooseStep';
-import { RevenueForm } from '@/src/features/transactions/components/RevenueForm';
+import { BulkRevenueForm } from '@/src/features/transactions/components/BulkRevenueForm';
 import { ExpenseForm } from '@/src/features/transactions/components/ExpenseForm';
 
 export function AddTransactionScreen() {
@@ -38,24 +36,11 @@ export function AddTransactionScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { renters } = useRenterContext();
 
   const [mode, setMode] = useState<TransactionMode>('choose');
   const [submitting, setSubmitting] = useState(false);
+  const [revenueDirty, setRevenueDirty] = useState(false);
   const allowRemoveRef = React.useRef(false);
-
-  const revenueForm = useForm<RevenueFormValues>({
-    defaultValues: {
-      propertyId: null,
-      renterId: null,
-      amount: '',
-      monthFor: '',
-      dateOfPayment: new Date().toISOString().slice(0, 10),
-      paymentMethod: '',
-      notes: '',
-    },
-    mode: 'onBlur',
-  });
 
   const expenseForm = useForm<ExpenseFormValues>({
     defaultValues: {
@@ -83,7 +68,7 @@ export function AddTransactionScreen() {
     const unsub = navigation.addListener('beforeRemove', (e) => {
       if (allowRemoveRef.current) return;
       const hasUnsavedChanges =
-        revenueForm.formState.isDirty || expenseForm.formState.isDirty;
+        revenueDirty || expenseForm.formState.isDirty;
       if (!hasUnsavedChanges) return;
       e.preventDefault();
       Alert.alert(
@@ -100,45 +85,12 @@ export function AddTransactionScreen() {
       );
     });
     return unsub;
-  }, [navigation, revenueForm.formState.isDirty, expenseForm.formState.isDirty, t]);
+  }, [navigation, revenueDirty, expenseForm.formState.isDirty, t]);
 
-  const submitRevenue = revenueForm.handleSubmit(async (values) => {
-    if (!values.propertyId) {
-      Alert.alert(t('validation.title'), t('validation.propertyRequired', { defaultValue: 'Property is required.' }));
-      return;
-    }
-    if (!values.amount || Number.isNaN(Number(values.amount))) {
-      Alert.alert(t('validation.title'), t('validation.amountRequired', { defaultValue: 'Valid amount is required.' }));
-      return;
-    }
-    if (!values.monthFor) {
-      Alert.alert(t('validation.title'), t('validation.monthForRequired', { defaultValue: 'Month is required.' }));
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await createRevenueTransaction({
-        property_id: values.propertyId,
-        renter_id: values.renterId ?? undefined,
-        amount: Number(values.amount),
-        date_of_payment: values.dateOfPayment,
-        month_for: values.monthFor,
-        payment_method: values.paymentMethod || undefined,
-        notes: values.notes || undefined,
-      });
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      allowRemoveRef.current = true;
-      router.back();
-    } catch (err) {
-      Alert.alert(
-        t('error.title'),
-        getApiErrorMessage(err, t('error.saveTransactionFailed', { defaultValue: 'Failed to save transaction' })),
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  });
+  const handleRevenueSuccess = () => {
+    allowRemoveRef.current = true;
+    router.back();
+  };
 
   const submitExpense = expenseForm.handleSubmit(async (values) => {
     if (!values.propertyId) {
@@ -163,6 +115,13 @@ export function AddTransactionScreen() {
       );
       return;
     }
+    if (!values.categoryId) {
+      Alert.alert(
+        t('validation.title'),
+        t('validation.categoryRequired', { defaultValue: 'Category is required.' }),
+      );
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -172,7 +131,7 @@ export function AddTransactionScreen() {
         amount: Number(values.amount),
         date_of_payment: values.dateOfPayment,
         payment_method: values.paymentMethod as PaymentMethod,
-        category_id: values.categoryId ?? 0,
+        category_id: values.categoryId,
         supplier_id: values.supplierId ?? undefined,
         notes: values.notes || undefined,
       });
@@ -188,20 +147,6 @@ export function AddTransactionScreen() {
       setSubmitting(false);
     }
   });
-
-  const autoFillRevenueForProperty = (propertyId: number | null) => {
-    if (!propertyId) {
-      revenueForm.setValue('renterId', null);
-      return;
-    }
-    const rentersForProp = renters.filter((r) => r.property_id === propertyId);
-    if (rentersForProp.length >= 1) {
-      revenueForm.setValue('renterId', rentersForProp[0].id);
-      revenueForm.setValue('amount', String(getRenterMonthlyRent(rentersForProp[0]) ?? ''));
-    } else {
-      revenueForm.setValue('renterId', null);
-    }
-  };
 
   const formContentPadding = { paddingBottom: 24 + 48 + spacing.sm + (insets?.bottom ?? 0) };
 
@@ -236,11 +181,9 @@ export function AddTransactionScreen() {
           />
         )}
         {mode === 'revenue' && (
-          <RevenueForm
-            control={revenueForm.control}
-            propertyId={revenueForm.watch('propertyId')}
-            autoFillRevenueForProperty={autoFillRevenueForProperty}
-            contentContainerStyle={formContentPadding}
+          <BulkRevenueForm
+            onSuccess={handleRevenueSuccess}
+            onDirtyChange={setRevenueDirty}
           />
         )}
         {mode === 'expense' && (
@@ -253,7 +196,7 @@ export function AddTransactionScreen() {
           />
         )}
 
-        {mode !== 'choose' && (
+        {mode === 'expense' && (
           <View
             style={[
               styles.fixedButtonBar,
@@ -262,7 +205,7 @@ export function AddTransactionScreen() {
           >
             <Button
               mode="contained"
-              onPress={mode === 'revenue' ? submitRevenue : submitExpense}
+              onPress={submitExpense}
               loading={submitting}
               disabled={submitting}
               style={styles.saveButton}

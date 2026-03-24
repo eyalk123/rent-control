@@ -4,7 +4,6 @@ import Constants from 'expo-constants';
 const baseURL =
   Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
 
-// TODO: Add Authorization: `Bearer ${token}` header when real auth is implemented
 const apiClient = axios.create({
   baseURL,
   timeout: 10000,
@@ -18,9 +17,22 @@ if (__DEV__) {
   console.log('[API] Base URL:', baseURL);
 }
 
-// Request interceptor - log outgoing requests in dev
+// Auth token getter — set by AuthTokenSync inside the React tree (has access to useAuth)
+let _getToken: (() => Promise<string | null>) | null = null;
+
+export function setAuthTokenGetter(fn: () => Promise<string | null>) {
+  _getToken = fn;
+}
+
+// Request interceptor — attach Bearer token and log in dev
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    if (_getToken) {
+      const token = await _getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
     if (__DEV__) {
       console.log('[API]', config.method?.toUpperCase(), (config.baseURL ?? '') + (config.url ?? ''));
     }

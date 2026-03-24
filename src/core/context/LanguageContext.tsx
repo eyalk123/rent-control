@@ -74,11 +74,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<SupportedLanguage>(
     (i18n.language as SupportedLanguage) || "en",
   );
+  const [ready, setReady] = useState(false);
   const isRtl = isRtlLanguage(language);
 
   useEffect(() => {
     loadSavedLanguage().then((lang) => {
       setLanguageState(lang);
+      setReady(true);
     });
     const handler = () =>
       setLanguageState((i18n.language as SupportedLanguage) || "en");
@@ -93,7 +95,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, isRtl }}>
-      {children}
+      {ready ? children : null}
     </LanguageContext.Provider>
   );
 }

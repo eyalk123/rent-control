@@ -5,7 +5,7 @@
  */
 
 export const lightColors = {
-  primary: "rgba(29, 78, 216, 1)",
+  primary: "#2563EB",
   secondary: "rgba(13, 148, 136, 1)",
   background: "rgba(241, 245, 249, 1)",
   surface: "rgba(255, 255, 255, 1)",
@@ -13,21 +13,21 @@ export const lightColors = {
   textSecondary: "rgba(100, 116, 139, 1)",
   placeholder: "rgba(148, 163, 184, 1)",
   inputBackground: "rgba(248, 250, 252, 1)",
-  // Slightly lighter than `background` for better form contrast
-  inputFilledBackground: "rgba(248, 250, 252, 1)",
-  inputBorder: "rgba(226, 232, 240, 1)",
+  // Slate-100 — clearly distinct from white card surface
+  inputFilledBackground: "rgba(241, 245, 249, 1)",
+  inputBorder: "rgba(203, 213, 225, 1)",
   success: "rgba(5, 150, 105, 1)",
   warning: "rgba(217, 119, 6, 1)",
   error: "rgba(220, 38, 38, 1)",
-  outline: "rgba(226, 232, 240, 1)",
+  outline: "rgba(203, 213, 225, 1)",
   /** Card/section background on form screens; slightly off surface for depth */
   cardBackground: "rgba(255, 255, 255, 1)",
   /** Accent line or highlight for section headers */
   sectionAccent: "rgba(13, 148, 136, 1)",
   /** Add-transaction choose buttons: light green/red backgrounds and text */
-  chooseRevenueBg: "rgba(5, 150, 105, 0.22)",
+  chooseRevenueBg: "rgba(5, 150, 105, 0.13)",
   chooseRevenueIcon: "rgba(4, 120, 87, 1)",
-  chooseExpenseBg: "rgba(220, 38, 38, 0.22)",
+  chooseExpenseBg: "rgba(220, 38, 38, 0.13)",
   chooseExpenseIcon: "rgba(185, 28, 28, 1)",
 } as const;
 

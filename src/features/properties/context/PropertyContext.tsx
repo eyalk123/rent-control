@@ -34,8 +34,8 @@ export function PropertyProvider({ children }: { children: React.ReactNode }) {
       let rentersData: { property_id: number | null }[] = [];
       try {
         rentersData = await getRenters();
-      } catch {
-        // Renters fetch failed; occupancy will fall back to renters?.length (vacant)
+      } catch (e) {
+        console.warn('[PropertyContext] Failed to fetch renters for occupancy:', e);
       }
       const enriched = propertiesData.map((p) => ({
         ...p,

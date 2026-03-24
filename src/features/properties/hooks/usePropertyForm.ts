@@ -9,7 +9,7 @@ import {
   getPropertyById,
 } from '@/src/features/properties/api/properties';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import type { PropertyCreate, PropertyUpdate, PropertyType } from '@/src/shared/types';
+import type { Property, PropertyCreate, PropertyType } from '@/src/shared/types';
 import {
   propertyFormSchema,
   type PropertyFormValues,
@@ -22,6 +22,33 @@ type UsePropertyFormParams = {
   refreshProperties: () => Promise<void>;
   onSuccess: () => void;
 };
+
+function toOptionalNumber(s: string | undefined): number | null {
+  return s && s.trim() !== '' ? Number(s) : null;
+}
+
+function propertyToFormValues(prop: Property): PropertyFormValues {
+  return {
+    address: prop.address ?? '',
+    city: prop.city ?? '',
+    zipCode: prop.zip_code ?? '',
+    type: PROPERTY_TYPES.includes(prop.type as PropertyType)
+      ? (prop.type as PropertyType)
+      : ('' as unknown as PropertyType),
+    sqFt: prop.sq_ft != null ? String(prop.sq_ft) : '',
+    purchasePrice: prop.purchase_price != null ? String(prop.purchase_price) : '',
+    numberOfRooms: prop.number_of_rooms != null ? String(prop.number_of_rooms) : '',
+    parkingNumbersStr:
+      Array.isArray(prop.parking_numbers) && prop.parking_numbers.length > 0
+        ? prop.parking_numbers.join(', ')
+        : '',
+    propertyOwner: prop.property_owner ?? '',
+    electricityMeterNumber: prop.electricity_meter_number ?? '',
+    waterMeterTax: prop.water_meter_tax != null ? String(prop.water_meter_tax) : '',
+    propertyTax: prop.property_tax != null ? String(prop.property_tax) : '',
+    houseCommittee: prop.house_committee != null ? String(prop.house_committee) : '',
+  };
+}
 
 export function usePropertyForm({
   id,
@@ -68,117 +95,43 @@ export function usePropertyForm({
     setIsFetching(true);
     getPropertyById(numericId)
       .then((prop) => {
-        reset({
-          address: prop.address ?? '',
-          city: prop.city ?? '',
-          zipCode: prop.zip_code ?? '',
-          type: PROPERTY_TYPES.includes(prop.type as PropertyType)
-            ? (prop.type as PropertyType)
-            : ('' as unknown as PropertyType),
-          sqFt: prop.sq_ft != null ? String(prop.sq_ft) : '',
-          purchasePrice: prop.purchase_price != null ? String(prop.purchase_price) : '',
-          numberOfRooms: prop.number_of_rooms != null ? String(prop.number_of_rooms) : '',
-          parkingNumbersStr:
-            Array.isArray(prop.parking_numbers) && prop.parking_numbers.length > 0
-              ? prop.parking_numbers.join(', ')
-              : '',
-          propertyOwner: prop.property_owner ?? '',
-          electricityMeterNumber: prop.electricity_meter_number ?? '',
-          waterMeterTax: prop.water_meter_tax != null ? String(prop.water_meter_tax) : '',
-          propertyTax: prop.property_tax != null ? String(prop.property_tax) : '',
-          houseCommittee: prop.house_committee != null ? String(prop.house_committee) : '',
-        });
+        reset(propertyToFormValues(prop));
         setImageUri(prop.image_url ?? null);
       })
       .finally(() => setIsFetching(false));
   }, [id, isEdit, reset]);
 
   const submit = handleSubmit(async (values) => {
-    const sqFtNum = Number(values.sqFt);
-    const purchasePriceNum = Number(values.purchasePrice);
-
-    const numberOfRoomsNum =
-      values.numberOfRooms && values.numberOfRooms.trim() !== ''
-        ? Number(values.numberOfRooms)
-        : null;
-
-    const waterMeterTaxNum =
-      values.waterMeterTax && values.waterMeterTax.trim() !== ''
-        ? Number(values.waterMeterTax)
-        : null;
-
-    const propertyTaxNum =
-      values.propertyTax && values.propertyTax.trim() !== ''
-        ? Number(values.propertyTax)
-        : null;
-
-    const houseCommitteeNum =
-      values.houseCommittee && values.houseCommittee.trim() !== ''
-        ? Number(values.houseCommittee)
-        : null;
-
-    const parkingNumbersParsed =
-      values.parkingNumbersStr.trim() === ''
-        ? null
-        : values.parkingNumbersStr
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean);
-
-    const createData: PropertyCreate = {
+    const payload: PropertyCreate = {
       address: values.address,
       city: values.city,
       zip_code: values.zipCode,
       type: values.type,
-      sq_ft: sqFtNum,
-      purchase_price: purchasePriceNum,
+      sq_ft: Number(values.sqFt),
+      purchase_price: Number(values.purchasePrice),
+      image_url: imageUri,
+      number_of_rooms: toOptionalNumber(values.numberOfRooms),
+      water_meter_tax: toOptionalNumber(values.waterMeterTax),
+      property_tax: toOptionalNumber(values.propertyTax),
+      house_committee: toOptionalNumber(values.houseCommittee),
+      parking_numbers:
+        values.parkingNumbersStr.trim() === ''
+          ? null
+          : values.parkingNumbersStr
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean),
+      electricity_meter_number: values.electricityMeterNumber || null,
+      property_owner: values.propertyOwner?.trim() || null,
     };
-
-    createData.image_url = imageUri;
-    if (numberOfRoomsNum != null) createData.number_of_rooms = numberOfRoomsNum;
-    if (parkingNumbersParsed != null && parkingNumbersParsed.length > 0) {
-      createData.parking_numbers = parkingNumbersParsed;
-    }
-    if (values.electricityMeterNumber) {
-      createData.electricity_meter_number = values.electricityMeterNumber;
-    }
-    if (waterMeterTaxNum != null) createData.water_meter_tax = waterMeterTaxNum;
-    if (propertyTaxNum != null) createData.property_tax = propertyTaxNum;
-    if (houseCommitteeNum != null) createData.house_committee = houseCommitteeNum;
-
-    const updateData: PropertyUpdate = {
-      address: values.address,
-      city: values.city,
-      zip_code: values.zipCode,
-      type: values.type,
-      sq_ft: sqFtNum,
-      purchase_price: purchasePriceNum,
-    };
-    updateData.image_url = imageUri;
-    if (numberOfRoomsNum != null) updateData.number_of_rooms = numberOfRoomsNum;
-    if (parkingNumbersParsed != null && parkingNumbersParsed.length > 0) {
-      updateData.parking_numbers = parkingNumbersParsed;
-    }
-    if (values.electricityMeterNumber) {
-      updateData.electricity_meter_number = values.electricityMeterNumber;
-    }
-    if (waterMeterTaxNum != null) updateData.water_meter_tax = waterMeterTaxNum;
-    if (propertyTaxNum != null) updateData.property_tax = propertyTaxNum;
-    if (houseCommitteeNum != null) updateData.house_committee = houseCommitteeNum;
-    updateData.property_owner =
-      values.propertyOwner && values.propertyOwner.trim() !== ''
-        ? values.propertyOwner.trim()
-        : null;
 
     try {
-      if (isEdit && id) {
-        await updateProperty(Number(id), updateData);
-      } else {
-        await createProperty(createData);
-      }
-
+      const savedProp = isEdit && id
+        ? await updateProperty(Number(id), payload)
+        : await createProperty(payload);
       await refreshProperties();
-      reset(values);
+      reset(propertyToFormValues(savedProp));
+      setImageUri(savedProp.image_url ?? null);
       onSuccess();
     } catch (err) {
       Alert.alert(
