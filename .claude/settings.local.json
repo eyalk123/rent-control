@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(/tmp/app_tree.txt:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(grep -r CLERK /c/Users/eyalk/Desktop/PythonProjects/rent-control --include=*.json --include=*.ts --include=*.tsx)"
     ]
   }
 }
