@@ -11,7 +11,10 @@ import { Text, TextInput, Button, useTheme, Divider } from 'react-native-paper';
 import { useSignIn, useSSO } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+
+WebBrowser.maybeCompleteAuthSession();
 
 type Step = 'email' | 'code';
 
