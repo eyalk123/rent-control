@@ -5,7 +5,8 @@
       "Read(//tmp/**)",
       "Bash(grep -r CLERK /c/Users/eyalk/Desktop/PythonProjects/rent-control --include=*.json --include=*.ts --include=*.tsx)",
       "Bash(grep -r \"publishable\\\\|secret\\\\|CLERK\" /c/Users/eyalk/Desktop/PythonProjects/rent-control --include=*.json --include=*.env* --include=*.ts --include=*.tsx)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(npx expo:*)"
     ]
   }
 }

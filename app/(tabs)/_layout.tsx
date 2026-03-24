@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useAuth } from '@clerk/clerk-expo';
+import { PropertyProvider, RenterProvider } from '@/src/context';
 
 function TabBarLtr(props: BottomTabBarProps) {
   return (
@@ -24,6 +25,8 @@ export default function TabLayout() {
   if (!isSignedIn) return <Redirect href={'/(auth)/sign-in' as any} />;
 
   return (
+    <PropertyProvider>
+    <RenterProvider>
     <Tabs
       tabBar={(props) => <TabBarLtr {...props} />}
       screenOptions={{
@@ -70,5 +73,7 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </RenterProvider>
+    </PropertyProvider>
   );
 }

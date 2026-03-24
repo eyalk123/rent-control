@@ -10,8 +10,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
 import {
-  PropertyProvider,
-  RenterProvider,
   ThemeProvider,
   useThemeContext,
   LanguageProvider,
@@ -46,12 +44,8 @@ function DirectionalContent() {
   const { isRtl } = useLanguageContext();
   return (
     <View style={{ direction: isRtl ? 'rtl' : 'ltr', flex: 1 }}>
-      <PropertyProvider>
-        <RenterProvider>
-          <AuthTokenSync />
-          <Stack screenOptions={{ headerShown: false }} />
-        </RenterProvider>
-      </PropertyProvider>
+      <AuthTokenSync />
+      <Stack screenOptions={{ headerShown: false }} />
     </View>
   );
 }
