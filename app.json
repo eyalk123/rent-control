@@ -13,6 +13,7 @@
       "bundleIdentifier": "com.eyalk123.rentcontrol"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "launchMode": "singleTask",
       "package": "com.eyalk123.rentcontrol",
       "adaptiveIcon": {
