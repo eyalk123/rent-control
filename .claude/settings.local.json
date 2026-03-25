@@ -6,7 +6,10 @@
       "Bash(grep -r CLERK /c/Users/eyalk/Desktop/PythonProjects/rent-control --include=*.json --include=*.ts --include=*.tsx)",
       "Bash(grep -r \"publishable\\\\|secret\\\\|CLERK\" /c/Users/eyalk/Desktop/PythonProjects/rent-control --include=*.json --include=*.env* --include=*.ts --include=*.tsx)",
       "Bash(xargs grep:*)",
-      "Bash(npx expo:*)"
+      "Bash(npx expo:*)",
+      "Bash(npx eas:*)",
+      "Bash(find /c/Users/eyalk/Desktop/PythonProjects/rent-control/node_modules/@clerk/clerk-expo/dist -name useSSO*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

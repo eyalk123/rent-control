@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Text, TextInput, Button, useTheme, Divider } from 'react-native-paper';
-import { useSignIn, useSSO } from '@clerk/clerk-expo';
+import { useSignIn } from '@clerk/clerk-expo';
+import { ssoUrlStore } from '@/src/core/ssoUrlStore';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
@@ -18,7 +19,6 @@ type Step = 'email' | 'code';
 
 export default function SignInScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
-  const { startSSOFlow } = useSSO();
   const router = useRouter();
   const theme = useTheme();
   const colors = theme.colors;
@@ -70,26 +70,45 @@ export default function SignInScreen() {
   }
 
   async function signInWithGoogle() {
+    if (!isLoaded) return;
     setError('');
     setGoogleLoading(true);
+    ssoUrlStore.clearAll();
+
     try {
-      const redirectUrl = Linking.createURL('/sso-callback');
-      console.log('[SSO] redirectUrl:', redirectUrl);
-      console.log('[SSO] startSSOFlow starting');
-      const result = await startSSOFlow({ strategy: 'oauth_google', redirectUrl });
-      console.log('[SSO] startSSOFlow resolved, createdSessionId:', result.createdSessionId);
-      const { createdSessionId, setActive: ssoSetActive } = result;
-      if (createdSessionId) {
-        console.log('[SSO] calling setActive');
-        await ssoSetActive!({ session: createdSessionId });
-        console.log('[SSO] setActive done, navigating');
-        router.replace('/(tabs)/properties' as any);
-      } else {
-        console.log('[SSO] createdSessionId null — relying on sso-callback auth watch');
+      const redirectUrl = Linking.createURL('sso-callback');
+
+      // Step 1: create the sign-in to get the authorization URL from Clerk
+      console.log('[SSO] creating sign-in, redirectUrl:', redirectUrl);
+      await signIn!.create({ strategy: 'oauth_google', redirectUrl });
+      const { externalVerificationRedirectURL } = signIn!.firstFactorVerification;
+      if (!externalVerificationRedirectURL) throw new Error('No OAuth URL returned from Clerk');
+
+      // Step 2: open the browser — polyfill races AppState vs Linking.addEventListener
+      console.log('[SSO] opening browser:', externalVerificationRedirectURL.toString().substring(0, 80));
+      const authResult = await WebBrowser.openAuthSessionAsync(
+        externalVerificationRedirectURL.toString(),
+        redirectUrl,
+      );
+      console.log('[SSO] openAuthSessionAsync result type:', authResult.type,
+        authResult.type === 'success' ? '| url:' + (authResult as any).url?.substring(0, 80) : '');
+
+      // Step 3: if the polyfill captured the redirect URL, store the nonce for sso-callback
+      if (authResult.type === 'success' && (authResult as any).url) {
+        const nonce = new URL((authResult as any).url).searchParams.get('rotating_token_nonce');
+        console.log('[SSO] nonce from openAuthSessionAsync:', nonce ? 'found' : 'missing');
+        if (nonce) ssoUrlStore.setNonce(nonce);
       }
+
+      // Step 4: navigate to sso-callback which handles auth completion and final navigation.
+      // We never navigate directly to tabs from here — doing so races with Clerk's React
+      // state update and causes (tabs)/_layout to see isSignedIn=false → redirect to sign-in.
+      console.log('[SSO] navigating to sso-callback, nonce stored:', !!ssoUrlStore.getNonce());
+      router.replace('/(auth)/sso-callback' as any);
     } catch (err: any) {
-      console.warn('[SSO] signInWithGoogle error:', err?.errors?.[0]?.longMessage ?? err?.message);
-      setError(err?.errors?.[0]?.longMessage ?? err?.message ?? 'Google sign-in failed.');
+      const msg = err?.errors?.[0]?.longMessage ?? err?.message ?? 'Google sign-in failed.';
+      console.warn('[SSO] signInWithGoogle error:', msg);
+      setError(msg);
     } finally {
       setGoogleLoading(false);
     }

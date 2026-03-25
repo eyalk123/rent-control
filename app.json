@@ -56,7 +56,9 @@
         {
           "contactsPermission": "Allow $(PRODUCT_NAME) to access contacts to quickly add renters."
         }
-      ]
+      ],
+      "./plugins/withAndroidLaunchMode",
+      "./plugins/withAndroidOnNewIntentFix"
     ],
     "extra": {},
     "experiments": {

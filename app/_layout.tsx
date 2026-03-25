@@ -1,9 +1,11 @@
 import '@/src/core/i18n';
 import React, { useEffect } from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, AppState } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
+import * as Linking from 'expo-linking';
+import { ssoUrlStore } from '@/src/core/ssoUrlStore';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -40,11 +42,51 @@ function AuthTokenSync() {
   return null;
 }
 
+/** Logs all deep links received by this activity — confirms whether launchMode=singleTask is active. */
+function DeepLinkDebug() {
+  useEffect(() => {
+    Linking.getInitialURL().then(url => {
+      console.log('[LINK] initial URL:', url);
+    });
+
+    const linkSub = Linking.addEventListener('url', ({ url }) => {
+      console.log('[LINK] addEventListener fired:', url);
+      // Capture SSO callback URLs immediately — before Expo Router processes the
+      // URL and potentially strips query params from useLocalSearchParams.
+      if (url.includes('sso-callback')) {
+        ssoUrlStore.set(url);
+        console.log('[LINK] SSO URL captured in store:', url);
+      }
+    });
+
+    // AppState-based fallback: when the app returns to foreground after OAuth, try to
+    // read the deep-link URL. On standard RN builds getInitialURL() returns the new intent;
+    // on the Expo dev client it may still return the launch URL — logged either way.
+    const appStateSub = AppState.addEventListener('change', async (nextState) => {
+      if (nextState === 'active') {
+        const url = await Linking.getInitialURL();
+        console.log('[LINK] AppState→active, getInitialURL:', url);
+        if (url && url.includes('sso-callback') && !ssoUrlStore.get()) {
+          ssoUrlStore.set(url);
+          console.log('[LINK] SSO URL captured via AppState→getInitialURL:', url);
+        }
+      }
+    });
+
+    return () => {
+      linkSub.remove();
+      appStateSub.remove();
+    };
+  }, []);
+  return null;
+}
+
 function DirectionalContent() {
   const { isRtl } = useLanguageContext();
   return (
     <View style={{ direction: isRtl ? 'rtl' : 'ltr', flex: 1 }}>
       <AuthTokenSync />
+      <DeepLinkDebug />
       <Stack screenOptions={{ headerShown: false }} />
     </View>
   );
