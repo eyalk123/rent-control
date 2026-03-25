@@ -10,7 +10,7 @@ import {
 import { Text, TextInput, Button, useTheme, Divider } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import auth from '@react-native-firebase/auth';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 type Step = 'login' | 'register';
@@ -71,16 +71,14 @@ export default function SignInScreen() {
     setGoogleLoading(true);
     try {
       await GoogleSignin.hasPlayServices();
-      const { data } = await GoogleSignin.signIn();
-      const googleCredential = auth.GoogleAuthProvider.credential(data!.idToken);
+      const signInResult = await GoogleSignin.signIn();
+      if (signInResult.type === 'cancelled') return;
+      const { idToken } = await GoogleSignin.getTokens();
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       await auth().signInWithCredential(googleCredential);
       router.replace('/(tabs)/properties' as any);
     } catch (err: any) {
-      if (err?.code === statusCodes.SIGN_IN_CANCELLED) {
-        // user cancelled — no error shown
-      } else {
-        setError(firebaseErrorMessage(err));
-      }
+      setError(firebaseErrorMessage(err));
     } finally {
       setGoogleLoading(false);
     }
