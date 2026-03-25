@@ -8,113 +8,86 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Text, TextInput, Button, useTheme, Divider } from 'react-native-paper';
-import { useSignIn } from '@clerk/clerk-expo';
-import { ssoUrlStore } from '@/src/core/ssoUrlStore';
 import { useRouter } from 'expo-router';
-import * as Linking from 'expo-linking';
-import * as WebBrowser from 'expo-web-browser';
+import auth from '@react-native-firebase/auth';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
-type Step = 'email' | 'code';
+type Step = 'login' | 'register';
 
 export default function SignInScreen() {
-  const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
   const theme = useTheme();
   const colors = theme.colors;
 
-  const [step, setStep] = useState<Step>('email');
+  const [step, setStep] = useState<Step>('login');
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
-  async function sendCode() {
-    if (!isLoaded) return;
+  function firebaseErrorMessage(err: any): string {
+    const code: string = err?.code ?? '';
+    if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') return 'No account found with this email.';
+    if (code === 'auth/wrong-password') return 'Incorrect password.';
+    if (code === 'auth/email-already-in-use') return 'An account with this email already exists.';
+    if (code === 'auth/weak-password') return 'Password must be at least 6 characters.';
+    if (code === 'auth/invalid-email') return 'Invalid email address.';
+    if (code === 'auth/too-many-requests') return 'Too many attempts. Please try again later.';
+    return err?.message ?? 'Something went wrong.';
+  }
+
+  async function signIn() {
+    if (!email.trim() || !password.trim()) return;
     setError('');
     setLoading(true);
     try {
-      await signIn.create({ identifier: email });
-      const factor = signIn.supportedFirstFactors?.find(
-        (f) => f.strategy === 'email_code'
-      );
-      if (!factor || factor.strategy !== 'email_code') throw new Error('Email code not supported');
-      await signIn.prepareFirstFactor({
-        strategy: 'email_code',
-        emailAddressId: factor.emailAddressId,
-      });
-      setStep('code');
+      await auth().signInWithEmailAndPassword(email.trim(), password);
+      router.replace('/(tabs)/properties' as any);
     } catch (err: any) {
-      setError(err?.errors?.[0]?.longMessage ?? err?.message ?? 'Something went wrong.');
+      setError(firebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }
   }
 
-  async function verifyCode() {
-    if (!isLoaded) return;
+  async function register() {
+    if (!email.trim() || !password.trim()) return;
     setError('');
     setLoading(true);
     try {
-      const result = await signIn.attemptFirstFactor({ strategy: 'email_code', code });
-      if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId });
-        router.replace('/(tabs)/properties' as any);
-      }
+      await auth().createUserWithEmailAndPassword(email.trim(), password);
+      router.replace('/(tabs)/properties' as any);
     } catch (err: any) {
-      setError(err?.errors?.[0]?.longMessage ?? err?.message ?? 'Invalid code.');
+      setError(firebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }
   }
 
   async function signInWithGoogle() {
-    if (!isLoaded) return;
     setError('');
     setGoogleLoading(true);
-    ssoUrlStore.clearAll();
-
     try {
-      const redirectUrl = Linking.createURL('sso-callback');
-
-      // Step 1: create the sign-in to get the authorization URL from Clerk
-      console.log('[SSO] creating sign-in, redirectUrl:', redirectUrl);
-      await signIn!.create({ strategy: 'oauth_google', redirectUrl });
-      const { externalVerificationRedirectURL } = signIn!.firstFactorVerification;
-      if (!externalVerificationRedirectURL) throw new Error('No OAuth URL returned from Clerk');
-
-      // Step 2: open the browser — polyfill races AppState vs Linking.addEventListener
-      console.log('[SSO] opening browser:', externalVerificationRedirectURL.toString().substring(0, 80));
-      const authResult = await WebBrowser.openAuthSessionAsync(
-        externalVerificationRedirectURL.toString(),
-        redirectUrl,
-      );
-      console.log('[SSO] openAuthSessionAsync result type:', authResult.type,
-        authResult.type === 'success' ? '| url:' + (authResult as any).url?.substring(0, 80) : '');
-
-      // Step 3: if the polyfill captured the redirect URL, store the nonce for sso-callback
-      if (authResult.type === 'success' && (authResult as any).url) {
-        const nonce = new URL((authResult as any).url).searchParams.get('rotating_token_nonce');
-        console.log('[SSO] nonce from openAuthSessionAsync:', nonce ? 'found' : 'missing');
-        if (nonce) ssoUrlStore.setNonce(nonce);
-      }
-
-      // Step 4: navigate to sso-callback which handles auth completion and final navigation.
-      // We never navigate directly to tabs from here — doing so races with Clerk's React
-      // state update and causes (tabs)/_layout to see isSignedIn=false → redirect to sign-in.
-      console.log('[SSO] navigating to sso-callback, nonce stored:', !!ssoUrlStore.getNonce());
-      router.replace('/(auth)/sso-callback' as any);
+      await GoogleSignin.hasPlayServices();
+      const { data } = await GoogleSignin.signIn();
+      const googleCredential = auth.GoogleAuthProvider.credential(data!.idToken);
+      await auth().signInWithCredential(googleCredential);
+      router.replace('/(tabs)/properties' as any);
     } catch (err: any) {
-      const msg = err?.errors?.[0]?.longMessage ?? err?.message ?? 'Google sign-in failed.';
-      console.warn('[SSO] signInWithGoogle error:', msg);
-      setError(msg);
+      if (err?.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled — no error shown
+      } else {
+        setError(firebaseErrorMessage(err));
+      }
     } finally {
       setGoogleLoading(false);
     }
   }
 
   const isDark = theme.dark;
+  const isLogin = step === 'login';
 
   return (
     <KeyboardAvoidingView
@@ -133,107 +106,82 @@ export default function SignInScreen() {
             Rent Control
           </Text>
           <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}>
-            {step === 'email' ? 'Sign in to your account' : `Enter the code sent to\n${email}`}
+            {isLogin ? 'Sign in to your account' : 'Create a new account'}
           </Text>
         </View>
 
         {/* Card */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-          {step === 'email' ? (
-            <>
-              {/* Google button */}
-              <TouchableOpacity
-                style={[styles.googleBtn, { borderColor: colors.outline, backgroundColor: isDark ? colors.surfaceVariant : '#fff' }]}
-                onPress={signInWithGoogle}
-                disabled={googleLoading}
-                activeOpacity={0.75}
-              >
-                <MaterialCommunityIcons name="google" size={20} color="#4285F4" />
-                <Text variant="labelLarge" style={[styles.googleBtnText, { color: colors.onSurface }]}>
-                  {googleLoading ? 'Connecting…' : 'Continue with Google'}
-                </Text>
-              </TouchableOpacity>
+          {/* Google button */}
+          <TouchableOpacity
+            style={[styles.googleBtn, { borderColor: colors.outline, backgroundColor: isDark ? colors.surfaceVariant : '#fff' }]}
+            onPress={signInWithGoogle}
+            disabled={googleLoading}
+            activeOpacity={0.75}
+          >
+            <MaterialCommunityIcons name="google" size={20} color="#4285F4" />
+            <Text variant="labelLarge" style={[styles.googleBtnText, { color: colors.onSurface }]}>
+              {googleLoading ? 'Connecting…' : 'Continue with Google'}
+            </Text>
+          </TouchableOpacity>
 
-              <View style={styles.dividerRow}>
-                <Divider style={styles.dividerLine} />
-                <Text variant="bodySmall" style={[styles.dividerText, { color: colors.onSurfaceVariant }]}>
-                  or
-                </Text>
-                <Divider style={styles.dividerLine} />
-              </View>
+          <View style={styles.dividerRow}>
+            <Divider style={styles.dividerLine} />
+            <Text variant="bodySmall" style={[styles.dividerText, { color: colors.onSurfaceVariant }]}>
+              or
+            </Text>
+            <Divider style={styles.dividerLine} />
+          </View>
 
-              <TextInput
-                mode="outlined"
-                label="Email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                returnKeyType="done"
-                onSubmitEditing={sendCode}
-                style={styles.input}
-              />
+          <TextInput
+            mode="outlined"
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            returnKeyType="next"
+            style={styles.input}
+          />
 
-              {error ? (
-                <Text variant="bodySmall" style={[styles.error, { color: colors.error }]}>
-                  {error}
-                </Text>
-              ) : null}
+          <TextInput
+            mode="outlined"
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
+            returnKeyType="done"
+            onSubmitEditing={isLogin ? signIn : register}
+            style={styles.input}
+          />
 
-              <Button
-                mode="contained"
-                onPress={sendCode}
-                loading={loading}
-                disabled={loading || !email.trim()}
-                style={styles.submitBtn}
-                contentStyle={styles.submitBtnContent}
-              >
-                Send code
-              </Button>
-            </>
-          ) : (
-            <>
-              <TextInput
-                mode="outlined"
-                label="One-time code"
-                value={code}
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                autoComplete="one-time-code"
-                returnKeyType="done"
-                onSubmitEditing={verifyCode}
-                style={styles.input}
-                autoFocus
-              />
+          {error ? (
+            <Text variant="bodySmall" style={[styles.error, { color: colors.error }]}>
+              {error}
+            </Text>
+          ) : null}
 
-              {error ? (
-                <Text variant="bodySmall" style={[styles.error, { color: colors.error }]}>
-                  {error}
-                </Text>
-              ) : null}
+          <Button
+            mode="contained"
+            onPress={isLogin ? signIn : register}
+            loading={loading}
+            disabled={loading || !email.trim() || !password.trim()}
+            style={styles.submitBtn}
+            contentStyle={styles.submitBtnContent}
+          >
+            {isLogin ? 'Sign in' : 'Create account'}
+          </Button>
 
-              <Button
-                mode="contained"
-                onPress={verifyCode}
-                loading={loading}
-                disabled={loading || !code.trim()}
-                style={styles.submitBtn}
-                contentStyle={styles.submitBtnContent}
-              >
-                Verify
-              </Button>
-
-              <Button
-                mode="text"
-                onPress={() => { setStep('email'); setCode(''); setError(''); }}
-                disabled={loading}
-                style={{ marginTop: 4 }}
-              >
-                Use a different email
-              </Button>
-            </>
-          )}
+          <Button
+            mode="text"
+            onPress={() => { setStep(isLogin ? 'register' : 'login'); setError(''); }}
+            disabled={loading}
+            style={{ marginTop: 4 }}
+          >
+            {isLogin ? 'New here? Create an account' : 'Already have an account? Sign in'}
+          </Button>
         </View>
       </View>
     </KeyboardAvoidingView>

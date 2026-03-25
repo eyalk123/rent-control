@@ -5,7 +5,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useAuth } from '@clerk/clerk-expo';
+import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { PropertyProvider, RenterProvider } from '@/src/context';
 
 function TabBarLtr(props: BottomTabBarProps) {
@@ -19,7 +19,7 @@ function TabBarLtr(props: BottomTabBarProps) {
 export default function TabLayout() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useAppAuth();
 
   if (!isLoaded) return null;
   if (!isSignedIn) return <Redirect href={'/(auth)/sign-in' as any} />;

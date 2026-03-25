@@ -9,7 +9,11 @@
       "Bash(npx expo:*)",
       "Bash(npx eas:*)",
       "Bash(find /c/Users/eyalk/Desktop/PythonProjects/rent-control/node_modules/@clerk/clerk-expo/dist -name useSSO*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(ls -la /c/Users/eyalk/Desktop/PythonProjects/rent-control/.env*)",
+      "Bash(grep -l \"getToken\\\\|setActive\\\\|AuthTokenSync\" /c/Users/eyalk/Desktop/PythonProjects/rent-control/app/*.tsx /c/Users/eyalk/Desktop/PythonProjects/rent-control/app/**/*.tsx /c/Users/eyalk/Desktop/PythonProjects/rent-control/src/**/*.ts*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

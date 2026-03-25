@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { List, SegmentedButtons, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@clerk/clerk-expo';
+import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
 import { spacing } from '@/src/core/theme';
@@ -13,7 +13,7 @@ export function SettingsScreen() {
   const router = useRouter();
   const { themeMode, setThemeMode } = useThemeContext();
   const { language, setLanguage } = useLanguageContext();
-  const { signOut } = useAuth();
+  const { signOut } = useAppAuth();
   const rtlLabelStyle = useRtlLabelStyle();
 
   return (
