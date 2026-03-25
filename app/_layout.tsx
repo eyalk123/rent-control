@@ -7,13 +7,22 @@ import {
 import { AuthProvider } from "@/src/core/auth/AuthContext";
 import "@/src/core/i18n";
 import * as NavigationBar from "expo-navigation-bar";
-import { Stack } from "expo-router";
+import { Stack, useNavigationContainerRef } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as Sentry from "@sentry/react-native";
+
+const routingInstrumentation = Sentry.reactNavigationIntegration();
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  integrations: [routingInstrumentation],
+  enabled: !__DEV__,
+});
 
 function DirectionalContent() {
   const { isRtl } = useLanguageContext();
@@ -46,7 +55,15 @@ function AppContent() {
   );
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
+  const ref = useNavigationContainerRef();
+
+  useEffect(() => {
+    if (ref?.current) {
+      routingInstrumentation.registerNavigationContainer(ref);
+    }
+  }, [ref]);
+
   return (
     <AuthProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -58,4 +75,4 @@ export default function RootLayout() {
       </GestureHandlerRootView>
     </AuthProvider>
   );
-}
+});

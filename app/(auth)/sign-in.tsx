@@ -14,6 +14,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithCredential,
+  sendPasswordResetEmail,
   GoogleAuthProvider,
 } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -32,6 +33,7 @@ export default function SignInScreen() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const [resetSent, setResetSent] = useState(false);
 
   function firebaseErrorMessage(err: any): string {
     const code: string = err?.code ?? '';
@@ -42,6 +44,23 @@ export default function SignInScreen() {
     if (code === 'auth/invalid-email') return 'Invalid email address.';
     if (code === 'auth/too-many-requests') return 'Too many attempts. Please try again later.';
     return err?.message ?? 'Something went wrong.';
+  }
+
+  async function forgotPassword() {
+    if (!email.trim()) {
+      setError('Enter your email above first.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(getAuth(), email.trim());
+      setResetSent(true);
+    } catch (err: any) {
+      setError(firebaseErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function signIn() {
@@ -107,7 +126,7 @@ export default function SignInScreen() {
         {/* Logo + title */}
         <View style={styles.header}>
           <Image
-            source={require('@/assets/images/icon.png')}
+            source={require('@/assets/images/rent-control-icon-no-text.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -172,6 +191,12 @@ export default function SignInScreen() {
             </Text>
           ) : null}
 
+          {resetSent ? (
+            <Text variant="bodySmall" style={[styles.error, { color: colors.primary }]}>
+              Password reset email sent. Check your inbox.
+            </Text>
+          ) : null}
+
           <Button
             mode="contained"
             onPress={isLogin ? signIn : register}
@@ -183,9 +208,20 @@ export default function SignInScreen() {
             {isLogin ? 'Sign in' : 'Create account'}
           </Button>
 
+          {isLogin ? (
+            <Button
+              mode="text"
+              onPress={forgotPassword}
+              disabled={loading}
+              style={{ marginTop: 0 }}
+            >
+              Forgot password?
+            </Button>
+          ) : null}
+
           <Button
             mode="text"
-            onPress={() => { setStep(isLogin ? 'register' : 'login'); setError(''); }}
+            onPress={() => { setStep(isLogin ? 'register' : 'login'); setError(''); setResetSent(false); }}
             disabled={loading}
             style={{ marginTop: 4 }}
           >

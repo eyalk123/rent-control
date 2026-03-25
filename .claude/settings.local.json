@@ -21,7 +21,8 @@
       "Bash(grep -n \"/*\\\\|//\" \"/c/Users/eyalk/Desktop/PythonProjects/rent-control/app/\\(tabs\\)/_layout.tsx\")",
       "Bash(grep -r \"Clerk\\\\|CLERK\" /c/Users/eyalk/Desktop/PythonProjects/rent-control --include=*.json --include=*.ts --include=*.tsx)",
       "Bash(grep -r ^import.*$ /c/Users/eyalk/Desktop/PythonProjects/rent-control/src --include=*.tsx --include=*.ts)",
-      "Bash(find /c/Users/eyalk/Desktop/PythonProjects/rent-control -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) ! -path \"*/node_modules/*\" ! -path \"*/.expo/*\" ! -path \"*/.git/*\" -exec wc -l {} +)"
+      "Bash(find /c/Users/eyalk/Desktop/PythonProjects/rent-control -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) ! -path \"*/node_modules/*\" ! -path \"*/.expo/*\" ! -path \"*/.git/*\" -exec wc -l {} +)",
+      "Bash(xargs -I {} ls -la {})"
     ]
   }
 }
