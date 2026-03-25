@@ -29,10 +29,9 @@ function AppContent() {
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      NavigationBar.setBackgroundColorAsync(theme.colors.background);
-      NavigationBar.setStyle(theme.dark ? 'light' : 'dark');
+      NavigationBar.setStyle(theme.dark ? 'dark' : 'light');
     }
-  }, [theme.dark, theme.colors.background]);
+  }, [theme.dark]);
 
   return (
     <PaperProvider theme={theme}>

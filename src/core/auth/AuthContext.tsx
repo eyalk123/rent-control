@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { getAuth, onAuthStateChanged, signOut, FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { setAuthTokenGetter } from '@/src/core/api/client';
 
 GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID,
+  webClientId: '934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com',
 });
 
 type AuthContextValue = {
@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    return auth().onAuthStateChanged((u) => {
+    return onAuthStateChanged(getAuth(), (u) => {
       setUser(u);
       setIsLoaded(true);
       setAuthTokenGetter(() => u?.getIdToken() ?? Promise.resolve(null));
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isSignedIn: !!user,
         isLoaded,
         getToken: () => user?.getIdToken() ?? Promise.resolve(null),
-        signOut: () => auth().signOut(),
+        signOut: () => signOut(getAuth()),
       }}
     >
       {children}

@@ -9,7 +9,13 @@ import {
 } from 'react-native';
 import { Text, TextInput, Button, useTheme, Divider } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import auth from '@react-native-firebase/auth';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithCredential,
+  GoogleAuthProvider,
+} from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
@@ -43,7 +49,7 @@ export default function SignInScreen() {
     setError('');
     setLoading(true);
     try {
-      await auth().signInWithEmailAndPassword(email.trim(), password);
+      await signInWithEmailAndPassword(getAuth(), email.trim(), password);
       router.replace('/(tabs)/properties' as any);
     } catch (err: any) {
       setError(firebaseErrorMessage(err));
@@ -57,7 +63,7 @@ export default function SignInScreen() {
     setError('');
     setLoading(true);
     try {
-      await auth().createUserWithEmailAndPassword(email.trim(), password);
+      await createUserWithEmailAndPassword(getAuth(), email.trim(), password);
       router.replace('/(tabs)/properties' as any);
     } catch (err: any) {
       setError(firebaseErrorMessage(err));
@@ -71,13 +77,18 @@ export default function SignInScreen() {
     setGoogleLoading(true);
     try {
       await GoogleSignin.hasPlayServices();
+      console.log('[Google] hasPlayServices ok');
       const signInResult = await GoogleSignin.signIn();
+      console.log('[Google] signIn type:', signInResult.type);
       if (signInResult.type === 'cancelled') return;
       const { idToken } = await GoogleSignin.getTokens();
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      await auth().signInWithCredential(googleCredential);
+      console.log('[Google] idToken:', idToken ? 'present' : 'null');
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+      const result = await signInWithCredential(getAuth(), googleCredential);
+      console.log('[Google] signInWithCredential ok, uid:', result.user.uid);
       router.replace('/(tabs)/properties' as any);
     } catch (err: any) {
+      console.log('[Google] error:', err?.code, err?.message);
       setError(firebaseErrorMessage(err));
     } finally {
       setGoogleLoading(false);

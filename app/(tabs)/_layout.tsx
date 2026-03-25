@@ -9,8 +9,9 @@ import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { PropertyProvider, RenterProvider } from '@/src/context';
 
 function TabBarLtr(props: BottomTabBarProps) {
+  const theme = useTheme();
   return (
-    <View style={{ direction: 'ltr' }}>
+    <View style={{ direction: 'ltr', backgroundColor: theme.colors.surface }}>
       <BottomTabBar {...props} />
     </View>
   );

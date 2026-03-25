@@ -13,7 +13,8 @@
       "Bash(ls -la /c/Users/eyalk/Desktop/PythonProjects/rent-control/.env*)",
       "Bash(grep -l \"getToken\\\\|setActive\\\\|AuthTokenSync\" /c/Users/eyalk/Desktop/PythonProjects/rent-control/app/*.tsx /c/Users/eyalk/Desktop/PythonProjects/rent-control/app/**/*.tsx /c/Users/eyalk/Desktop/PythonProjects/rent-control/src/**/*.ts*)",
       "Bash(npm uninstall:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(python:*)"
     ]
   }
 }
