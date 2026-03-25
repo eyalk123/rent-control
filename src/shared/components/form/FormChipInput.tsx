@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Chip, TextInput, Text, useTheme } from 'react-native-paper';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { useRtlInputStyle, useLanguageContext, useRtlLabelStyle } from '@/src/core/context';
+import { useRtlInputStyle, useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
 
 type FormChipInputProps<TFieldValues extends FieldValues> = {

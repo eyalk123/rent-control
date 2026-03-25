@@ -4,7 +4,7 @@ import { Controller } from 'react-hook-form';
 import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button, Text, useTheme } from 'react-native-paper';
-import { useRtlLabelStyle } from '@/src/core/context';
+import { useRtlLabelStyle } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 
 type FormMonthYearPickerFieldProps<TFieldValues extends FieldValues> = {

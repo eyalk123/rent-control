@@ -9,7 +9,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { useLanguageContext, useRtlInputStyle, useRtlLabelStyle } from '@/src/core/context';
+import { useLanguageContext, useRtlInputStyle, useRtlLabelStyle } from '@/src/context';
 import { usePropertyContext, useRenterContext } from '@/src/context';
 import {
   getRenterMonthlyRent,

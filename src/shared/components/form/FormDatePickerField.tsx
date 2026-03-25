@@ -7,7 +7,7 @@ import { Button, Text, useTheme } from 'react-native-paper';
 import {
   useLanguageContext,
   useRtlLabelStyle,
-} from '@/src/core/context';
+} from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 
 type FormDatePickerFieldProps<TFieldValues extends FieldValues> = {

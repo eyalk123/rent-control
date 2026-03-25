@@ -11,6 +11,9 @@ import { PropertyProvider, RenterProvider } from '@/src/context';
 function TabBarLtr(props: BottomTabBarProps) {
   const theme = useTheme();
   return (
+    /* This View ensures that the area behind the Android system navigation 
+       buttons matches your app's surface color in both light and dark modes.
+    */
     <View style={{ direction: 'ltr', backgroundColor: theme.colors.surface }}>
       <BottomTabBar {...props} />
     </View>
@@ -27,54 +30,58 @@ export default function TabLayout() {
 
   return (
     <PropertyProvider>
-    <RenterProvider>
-    <Tabs
-      tabBar={(props) => <TabBarLtr {...props} />}
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
-        tabBarStyle: { backgroundColor: theme.colors.surface },
-      }}
-    >
-      <Tabs.Screen
-        name="properties"
-        options={{
-          title: t('tabs.properties'),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="transactions"
-        options={{
-          title: t('tabs.transactions', { defaultValue: 'Transactions' }),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="cash-multiple" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="renters"
-        options={{
-          title: t('tabs.renters'),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-group" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: t('tabs.settings'),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="cog" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
-    </RenterProvider>
+      <RenterProvider>
+        <Tabs
+          tabBar={(props) => <TabBarLtr {...props} />}
+          screenOptions={{
+            headerShown: false,
+            tabBarActiveTintColor: theme.colors.primary,
+            tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+            tabBarStyle: { 
+                backgroundColor: theme.colors.surface,
+                // We are NOT overriding borderTopWidth or elevation here 
+                // to keep the default border and shadows as you requested.
+            },
+          }}
+        >
+          <Tabs.Screen
+            name="properties"
+            options={{
+              title: t('tabs.properties'),
+              tabBarIcon: ({ color, size }) => (
+                <MaterialCommunityIcons name="home" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="renters"
+            options={{
+              title: t('tabs.renters'),
+              tabBarIcon: ({ color, size }) => (
+                <MaterialCommunityIcons name="account-group" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="transactions"
+            options={{
+              title: t('tabs.transactions', { defaultValue: 'Transactions' }),
+              tabBarIcon: ({ color, size }) => (
+                <MaterialCommunityIcons name="cash-multiple" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="settings"
+            options={{
+              title: t('tabs.settings'),
+              tabBarIcon: ({ color, size }) => (
+                <MaterialCommunityIcons name="cog" size={size} color={color} />
+              ),
+            }}
+          />
+        </Tabs>
+      </RenterProvider>
     </PropertyProvider>
   );
 }
