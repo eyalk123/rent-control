@@ -24,7 +24,15 @@
       "Bash(find /c/Users/eyalk/Desktop/PythonProjects/rent-control -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) ! -path \"*/node_modules/*\" ! -path \"*/.expo/*\" ! -path \"*/.git/*\" -exec wc -l {} +)",
       "Bash(xargs -I {} ls -la {})",
       "Bash(grep -r \"import.*usePropertyContext\\\\|import.*PropertyProvider\" /c/Users/eyalk/Desktop/PythonProjects/rent-control/app --include=*.tsx)",
-      "Bash(ls -la /c/Users/eyalk/Desktop/PythonProjects/rent-control/app/\\\\\\(auth\\\\\\)/)"
+      "Bash(ls -la /c/Users/eyalk/Desktop/PythonProjects/rent-control/app/\\\\\\(auth\\\\\\)/)",
+      "Bash(find /c/Users/eyalk/Desktop/PythonProjects/rent-control -name *.json -path *firebase* -o -name *firebase*)",
+      "Bash(ls -la \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control\\\\assets\\\\images\"\" | grep -E \"icon)",
+      "Bash(favicon)",
+      "Bash(splash)",
+      "Bash(identify assets/images/rent-control-icon-no-text.png)",
+      "Bash(magick identify:*)",
+      "Bash(node:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
