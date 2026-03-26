@@ -9,6 +9,7 @@ import type { Property } from '@/src/shared/types';
 import { getProperties } from '@/src/features/properties/api/properties';
 import { getRenters } from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
+import { useAppAuth } from '@/src/core/auth/AuthContext';
 
 export interface PropertyContextType {
   properties: Property[];
@@ -22,6 +23,7 @@ const PropertyContext = createContext<PropertyContextType | undefined>(
 );
 
 export function PropertyProvider({ children }: { children: React.ReactNode }) {
+  const { isLoaded, isSignedIn } = useAppAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +55,10 @@ export function PropertyProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refreshProperties();
-  }, [refreshProperties]);
+    if (isLoaded && isSignedIn) {
+      refreshProperties();
+    }
+  }, [isLoaded, isSignedIn, refreshProperties]);
 
   return (
     <PropertyContext.Provider

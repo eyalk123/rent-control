@@ -8,6 +8,7 @@ import React, {
 import type { Renter } from '@/src/shared/types';
 import { getRenters } from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
+import { useAppAuth } from '@/src/core/auth/AuthContext';
 
 export interface RenterContextType {
   renters: Renter[];
@@ -19,6 +20,7 @@ export interface RenterContextType {
 const RenterContext = createContext<RenterContextType | undefined>(undefined);
 
 export function RenterProvider({ children }: { children: React.ReactNode }) {
+  const { isLoaded, isSignedIn } = useAppAuth();
   const [renters, setRenters] = useState<Renter[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +40,10 @@ export function RenterProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refreshRenters();
-  }, [refreshRenters]);
+    if (isLoaded && isSignedIn) {
+      refreshRenters();
+    }
+  }, [isLoaded, isSignedIn, refreshRenters]);
 
   return (
     <RenterContext.Provider
