@@ -3,6 +3,8 @@ import {
   ThemeProvider,
   useLanguageContext,
   useThemeContext,
+  PropertyProvider,
+  RenterProvider,
 } from "@/src/context";
 import { AuthProvider } from "@/src/core/auth/AuthContext";
 import "@/src/core/i18n";
@@ -48,9 +50,13 @@ function AppContent() {
   return (
     <PaperProvider theme={theme}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
-      <LanguageProvider>
-        <DirectionalContent />
-      </LanguageProvider>
+      <PropertyProvider>
+        <RenterProvider>
+          <LanguageProvider>
+            <DirectionalContent />
+          </LanguageProvider>
+        </RenterProvider>
+      </PropertyProvider>
     </PaperProvider>
   );
 }
