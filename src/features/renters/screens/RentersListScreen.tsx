@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { FAB, Searchbar, Text, useTheme } from 'react-native-paper';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Checkbox, FAB, IconButton, Searchbar, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -17,6 +18,7 @@ import {
   ScreenContainer,
 } from '@/src/shared/components/ui';
 import { RenterCard } from '@/src/features/renters/components/RenterCard';
+import { deleteRenter } from '@/src/features/renters/api/renters';
 import { spacing } from '@/src/core/theme';
 
 export function RentersListScreen() {
@@ -30,6 +32,18 @@ export function RentersListScreen() {
   const { properties } = usePropertyContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setIsSelectMode(false);
+        setSelectedIds(new Set());
+      };
+    }, [])
+  );
 
   const propertyOwnerLowerById = useMemo(() => {
     const m = new Map<number, string>();
@@ -59,8 +73,74 @@ export function RentersListScreen() {
     return list;
   }, [renters, searchQuery, propertyOwnerLowerById]);
 
+  const allSelected = filteredRenters.length > 0 && filteredRenters.every((r) => selectedIds.has(r.id));
+  const someSelected = !allSelected && filteredRenters.some((r) => selectedIds.has(r.id));
+
   const handleRenterPress = (id: number) => {
+    if (isSelectMode) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+      return;
+    }
     router.push(`/renters/${id}` as any);
+  };
+
+  const handleLongPress = (id: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsSelectMode(true);
+    setSelectedIds(new Set([id]));
+  };
+
+  const handleToggleAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredRenters.map((r) => r.id)));
+    }
+  };
+
+  const handleCancelSelect = () => {
+    setIsSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleDeleteSelected = () => {
+    const count = selectedIds.size;
+    Alert.alert(
+      t('bulkDelete.deleteConfirmTitle', { count }),
+      t('bulkDelete.deleteConfirmMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('bulkDelete.deleteButton'),
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            const ids = Array.from(selectedIds);
+            let success = 0;
+            let failed = 0;
+            for (const id of ids) {
+              try {
+                await deleteRenter(id);
+                success++;
+              } catch {
+                failed++;
+              }
+            }
+            await refreshRenters();
+            setDeleting(false);
+            setIsSelectMode(false);
+            setSelectedIds(new Set());
+            if (failed > 0) {
+              Alert.alert(t('bulkDelete.partialError', { success, failed }));
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleAddPress = () => {
@@ -112,11 +192,24 @@ export function RentersListScreen() {
 
   return (
     <ScreenContainer>
-      <LoadingOverlay visible={loading} />
+      <LoadingOverlay visible={loading || deleting} />
       <View style={styles.header}>
-        <Text variant="headlineLarge" style={styles.heroTitle}>
-          {t('screens.renters')}
-        </Text>
+        {isSelectMode ? (
+          <View style={styles.selectionHeader}>
+            <Checkbox
+              status={allSelected ? 'checked' : someSelected ? 'indeterminate' : 'unchecked'}
+              onPress={handleToggleAll}
+            />
+            <Text variant="headlineMedium" style={styles.heroTitle}>
+              {t('bulkDelete.selected', { count: selectedIds.size })}
+            </Text>
+            <IconButton icon="close" onPress={handleCancelSelect} />
+          </View>
+        ) : (
+          <Text variant="headlineLarge" style={styles.heroTitle}>
+            {t('screens.renters')}
+          </Text>
+        )}
         <Searchbar
           placeholder={rtlPlaceholder(t('search.placeholder'))}
           onChangeText={setSearchQuery}
@@ -135,6 +228,9 @@ export function RentersListScreen() {
           <RenterCard
             renter={item}
             onPress={() => handleRenterPress(item.id)}
+            onLongPress={() => handleLongPress(item.id)}
+            isSelectMode={isSelectMode}
+            isSelected={selectedIds.has(item.id)}
           />
         )}
         contentContainerStyle={[
@@ -149,13 +245,25 @@ export function RentersListScreen() {
           />
         }
       />
-      <FAB
-        icon="plus"
-        style={[styles.fab, { bottom: insets.bottom }]}
-        onPress={handleAddPress}
-        accessibilityLabel={t('renter.addRenter')}
-        accessibilityRole="button"
-      />
+      {isSelectMode ? (
+        <FAB
+          icon="trash-can"
+          style={[styles.fab, { bottom: insets.bottom, backgroundColor: theme.colors.error }]}
+          color={theme.colors.onError}
+          onPress={handleDeleteSelected}
+          disabled={selectedIds.size === 0}
+          accessibilityLabel={t('bulkDelete.deleteButton')}
+          accessibilityRole="button"
+        />
+      ) : (
+        <FAB
+          icon="plus"
+          style={[styles.fab, { bottom: insets.bottom }]}
+          onPress={handleAddPress}
+          accessibilityLabel={t('renter.addRenter')}
+          accessibilityRole="button"
+        />
+      )}
     </ScreenContainer>
   );
 }
@@ -166,10 +274,16 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
   },
+  selectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
   heroTitle: {
     fontWeight: '700',
     marginBottom: spacing.sm,
     fontSize: 28,
+    flex: 1,
   },
   searchbar: {
     minHeight: 40,

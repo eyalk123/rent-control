@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { Card, Checkbox, Text } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
@@ -11,17 +11,26 @@ import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 interface RenterCardProps {
   renter: Renter;
   onPress: () => void;
+  onLongPress?: () => void;
+  isSelectMode?: boolean;
+  isSelected?: boolean;
 }
 
-export function RenterCard({ renter, onPress }: RenterCardProps) {
+export function RenterCard({ renter, onPress, onLongPress, isSelectMode = false, isSelected = false }: RenterCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity onPress={onPress} onLongPress={onLongPress} activeOpacity={0.7}>
       <Card style={styles.card} mode="outlined">
         <Card.Content style={styles.content}>
+          {isSelectMode && (
+            <Checkbox
+              status={isSelected ? 'checked' : 'unchecked'}
+              onPress={onPress}
+            />
+          )}
           <RenterAvatar renter={renter} size={40} style={styles.avatar} />
           <View style={styles.info}>
             <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
@@ -40,11 +49,13 @@ export function RenterCard({ renter, onPress }: RenterCardProps) {
               </Text>
             </View>
           </View>
-          <MaterialCommunityIcons
-            name="chevron-right"
-            size={24}
-            color={colors.textSecondary}
-          />
+          {!isSelectMode && (
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={24}
+              color={colors.textSecondary}
+            />
+          )}
         </Card.Content>
       </Card>
     </TouchableOpacity>

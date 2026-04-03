@@ -121,6 +121,11 @@ export async function createExpenseCategory(
   return response.data;
 }
 
+export async function deleteTransaction(id: number): Promise<void> {
+  if (USE_MOCK_API) return;
+  await apiClient.delete(`/transactions/${id}`);
+}
+
 export async function getPropertyRenters(
   propertyId: number,
 ): Promise<PropertyRenterSummary[]> {

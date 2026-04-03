@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
+import { Card, Checkbox, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
@@ -10,9 +10,12 @@ import { getPropertyImageSource } from '@/src/features/properties/utils/property
 interface PropertyCardProps {
   property: Property;
   onPress: () => void;
+  onLongPress?: () => void;
+  isSelectMode?: boolean;
+  isSelected?: boolean;
 }
 
-export function PropertyCard({ property, onPress }: PropertyCardProps) {
+export function PropertyCard({ property, onPress, onLongPress, isSelectMode = false, isSelected = false }: PropertyCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const isDark = theme.dark;
@@ -22,9 +25,19 @@ export function PropertyCard({ property, onPress }: PropertyCardProps) {
   const imageSource = getPropertyImageSource(property.image_url);
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={onLongPress}
+      activeOpacity={0.7}
+    >
       <Card style={styles.card} mode="outlined">
         <Card.Content style={styles.content}>
+          {isSelectMode && (
+            <Checkbox
+              status={isSelected ? 'checked' : 'unchecked'}
+              onPress={onPress}
+            />
+          )}
           {imageSource ? (
             <Image
               source={imageSource}
@@ -78,11 +91,13 @@ export function PropertyCard({ property, onPress }: PropertyCardProps) {
               </Text>
             </View>
           </View>
-          <MaterialCommunityIcons
-            name="chevron-right"
-            size={24}
-            color={colors.textSecondary}
-          />
+          {!isSelectMode && (
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={24}
+              color={colors.textSecondary}
+            />
+          )}
         </Card.Content>
       </Card>
     </TouchableOpacity>

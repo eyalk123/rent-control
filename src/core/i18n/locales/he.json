@@ -306,5 +306,12 @@
   "permission": {
     "title": "נדרשות הרשאות",
     "photoLibrary": "אנא אשר גישה לספריית תמונות להעלאה."
+  },
+  "bulkDelete": {
+    "selected": "{{count}} נבחרו",
+    "deleteConfirmTitle": "למחוק {{count}} פריט(ים)?",
+    "deleteConfirmMessage": "לא ניתן לבטל פעולה זו.",
+    "deleteButton": "מחק",
+    "partialError": "{{success}} נמחקו, {{failed}} נכשלו."
   }
 }

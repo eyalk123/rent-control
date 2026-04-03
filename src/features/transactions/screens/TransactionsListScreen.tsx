@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { FAB, Searchbar, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import { Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Checkbox, FAB, IconButton, Searchbar, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
 import { TransactionSummaryCards } from '@/src/features/transactions/components/TransactionSummaryCards';
+import { deleteTransaction } from '@/src/features/transactions/api/transactions';
 import { formatMoney } from '@/src/shared/utils/money';
 
 type TransactionTypeFilter = 'all' | 'revenue' | 'expense';
@@ -57,6 +58,18 @@ export function TransactionsListScreen() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setIsSelectMode(false);
+        setSelectedIds(new Set());
+      };
+    }, [])
+  );
 
   const searchFilteredTransactions = useMemo(() => {
     if (!searchQuery.trim()) return transactions;
@@ -97,6 +110,9 @@ export function TransactionsListScreen() {
     return { revenue, expenses, profitLoss: revenue - expenses };
   }, [searchFilteredTransactions]);
 
+  const allSelected = filteredTransactions.length > 0 && filteredTransactions.every((tx) => selectedIds.has(tx.id));
+  const someSelected = !allSelected && filteredTransactions.some((tx) => selectedIds.has(tx.id));
+
   const searchPlaceholder = rtlPlaceholder(t('search.placeholderTransactions', {
     defaultValue: 'Search transactions',
   }));
@@ -104,6 +120,71 @@ export function TransactionsListScreen() {
   const handleAddPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push('/transactions/add' as any);
+  };
+
+  const handleTransactionPress = (id: number) => {
+    if (isSelectMode) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+    }
+  };
+
+  const handleLongPress = (id: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsSelectMode(true);
+    setSelectedIds(new Set([id]));
+  };
+
+  const handleToggleAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredTransactions.map((tx) => tx.id)));
+    }
+  };
+
+  const handleCancelSelect = () => {
+    setIsSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleDeleteSelected = () => {
+    const count = selectedIds.size;
+    Alert.alert(
+      t('bulkDelete.deleteConfirmTitle', { count }),
+      t('bulkDelete.deleteConfirmMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('bulkDelete.deleteButton'),
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            const ids = Array.from(selectedIds);
+            let success = 0;
+            let failed = 0;
+            for (const id of ids) {
+              try {
+                await deleteTransaction(id);
+                success++;
+              } catch {
+                failed++;
+              }
+            }
+            await refreshTransactions();
+            setDeleting(false);
+            setIsSelectMode(false);
+            setSelectedIds(new Set());
+            if (failed > 0) {
+              Alert.alert(t('bulkDelete.partialError', { success, failed }));
+            }
+          },
+        },
+      ]
+    );
   };
 
   const onRefresh = async () => {
@@ -118,61 +199,75 @@ export function TransactionsListScreen() {
 
     const amountColor = isRevenue ? colors.chooseRevenueIcon : colors.chooseExpenseIcon;
     const cardBg = isRevenue ? colors.chooseRevenueBg : colors.chooseExpenseBg;
+    const isSelected = selectedIds.has(item.id);
 
     return (
-      <View
-        style={[
-          styles.card,
-          {
-            backgroundColor: cardBg,
-            borderColor: colors.outline,
-          },
-        ]}
+      <TouchableOpacity
+        onPress={() => handleTransactionPress(item.id)}
+        onLongPress={() => handleLongPress(item.id)}
+        activeOpacity={isSelectMode ? 0.6 : 1}
       >
-        <View style={styles.cardHeader}>
-          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
-            {item.property_name}
-          </Text>
-          <Text style={[styles.amount, { color: amountColor }]}>
-            {formatMoney(item.amount)}
-          </Text>
-        </View>
-        <View style={styles.cardRow}>
-          <Text style={[styles.chip, { color: colors.textPrimary }]}>
-            {typeLabel}
-          </Text>
-          {item.renter_name ? (
-            <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-              {item.renter_name}
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: cardBg,
+              borderColor: colors.outline,
+            },
+          ]}
+        >
+          {isSelectMode && (
+            <Checkbox
+              status={isSelected ? 'checked' : 'unchecked'}
+              onPress={() => handleTransactionPress(item.id)}
+              style={styles.checkbox}
+            />
+          )}
+          <View style={styles.cardHeader}>
+            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
+              {item.property_name}
             </Text>
-          ) : null}
-          {item.category_name ? (
-            <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-              {t(`expenseCategories.${item.category_name.toLowerCase()}`, {
-                defaultValue: item.category_name,
-              })}
+            <Text style={[styles.amount, { color: amountColor }]}>
+              {formatMoney(item.amount)}
             </Text>
-          ) : null}
-          {item.supplier_name ? (
-            <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-              {item.supplier_name}
+          </View>
+          <View style={styles.cardRow}>
+            <Text style={[styles.chip, { color: colors.textPrimary }]}>
+              {typeLabel}
             </Text>
-          ) : null}
-        </View>
-        <View style={styles.cardFooter}>
-          <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            {item.date_of_payment}
-          </Text>
-          {item.month_for ? (
+            {item.renter_name ? (
+              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                {item.renter_name}
+              </Text>
+            ) : null}
+            {item.category_name ? (
+              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                {t(`expenseCategories.${item.category_name.toLowerCase()}`, {
+                  defaultValue: item.category_name,
+                })}
+              </Text>
+            ) : null}
+            {item.supplier_name ? (
+              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                {item.supplier_name}
+              </Text>
+            ) : null}
+          </View>
+          <View style={styles.cardFooter}>
             <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-              {t('transactions.monthFor', {
-                defaultValue: 'For: {{month}}',
-                month: item.month_for,
-              })}
+              {item.date_of_payment}
             </Text>
-          ) : null}
+            {item.month_for ? (
+              <Text style={[styles.footerText, { color: colors.textSecondary }]}>
+                {t('transactions.monthFor', {
+                  defaultValue: 'For: {{month}}',
+                  month: item.month_for,
+                })}
+              </Text>
+            ) : null}
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -221,11 +316,24 @@ export function TransactionsListScreen() {
 
   return (
     <ScreenContainer>
-      <LoadingOverlay visible={loading} />
+      <LoadingOverlay visible={loading || deleting} />
       <View style={styles.header}>
-        <Text variant="headlineLarge" style={styles.heroTitle}>
-          {t('screens.transactions', { defaultValue: 'Transactions' })}
-        </Text>
+        {isSelectMode ? (
+          <View style={styles.selectionHeader}>
+            <Checkbox
+              status={allSelected ? 'checked' : someSelected ? 'indeterminate' : 'unchecked'}
+              onPress={handleToggleAll}
+            />
+            <Text variant="headlineMedium" style={styles.heroTitle}>
+              {t('bulkDelete.selected', { count: selectedIds.size })}
+            </Text>
+            <IconButton icon="close" onPress={handleCancelSelect} />
+          </View>
+        ) : (
+          <Text variant="headlineLarge" style={styles.heroTitle}>
+            {t('screens.transactions', { defaultValue: 'Transactions' })}
+          </Text>
+        )}
         <Searchbar
           placeholder={searchPlaceholder}
           onChangeText={setSearchQuery}
@@ -278,15 +386,27 @@ export function TransactionsListScreen() {
           />
         }
       />
-      <FAB
-        icon="plus"
-        style={[styles.fab, { bottom: insets.bottom }]}
-        onPress={handleAddPress}
-        accessibilityLabel={t('transactions.addTransaction', {
-          defaultValue: 'Add transaction',
-        })}
-        accessibilityRole="button"
-      />
+      {isSelectMode ? (
+        <FAB
+          icon="trash-can"
+          style={[styles.fab, { bottom: insets.bottom, backgroundColor: theme.colors.error }]}
+          color={theme.colors.onError}
+          onPress={handleDeleteSelected}
+          disabled={selectedIds.size === 0}
+          accessibilityLabel={t('bulkDelete.deleteButton')}
+          accessibilityRole="button"
+        />
+      ) : (
+        <FAB
+          icon="plus"
+          style={[styles.fab, { bottom: insets.bottom }]}
+          onPress={handleAddPress}
+          accessibilityLabel={t('transactions.addTransaction', {
+            defaultValue: 'Add transaction',
+          })}
+          accessibilityRole="button"
+        />
+      )}
     </ScreenContainer>
   );
 }
@@ -298,10 +418,15 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
     gap: spacing.sm,
   },
+  selectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   heroTitle: {
     fontWeight: '700',
     marginBottom: spacing.xs,
     fontSize: 28,
+    flex: 1,
   },
   searchbar: {
     minHeight: 40,
@@ -319,6 +444,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: spacing.md,
     borderWidth: 1,
+  },
+  checkbox: {
+    marginBottom: spacing.xs,
   },
   cardHeader: {
     flexDirection: 'row',

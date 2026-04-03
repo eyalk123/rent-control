@@ -306,5 +306,12 @@
   "permission": {
     "title": "Permission required",
     "photoLibrary": "Please grant photo library access to upload images."
+  },
+  "bulkDelete": {
+    "selected": "{{count}} selected",
+    "deleteConfirmTitle": "Delete {{count}} item(s)?",
+    "deleteConfirmMessage": "This cannot be undone.",
+    "deleteButton": "Delete",
+    "partialError": "{{success}} deleted, {{failed}} failed."
   }
 }
