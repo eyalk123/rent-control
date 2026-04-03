@@ -67,6 +67,16 @@ export function getRenterMonthlyRent(renter: Renter): number {
   return first.amount;
 }
 
+/** Lease end date calculated from lease_start + number of contract (non-option) years. */
+export function getLeaseEndDate(renter: Renter): Date | null {
+  if (!renter.lease_start || !renter.lease_years?.length) return null;
+  const contractYears = renter.lease_years.filter((y) => y.type === 'contract').length;
+  if (contractYears === 0) return null;
+  const start = new Date(renter.lease_start);
+  if (isNaN(start.getTime())) return null;
+  return new Date(start.getFullYear() + contractYears, start.getMonth(), start.getDate());
+}
+
 // Transactions
 
 export type TransactionType = 'revenue' | 'expense';

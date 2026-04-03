@@ -12,6 +12,7 @@ import {
   useRtlInputStyle,
   useRtlPlaceholder,
 } from '@/src/context';
+import { getLeaseEndDate } from '@/src/shared/types';
 import {
   LoadingOverlay,
   EmptyState,
@@ -70,6 +71,14 @@ export function RentersListScreen() {
         );
       });
     }
+    list = [...list].sort((a, b) => {
+      const da = getLeaseEndDate(a);
+      const db = getLeaseEndDate(b);
+      if (da == null && db == null) return 0;
+      if (da == null) return 1;
+      if (db == null) return -1;
+      return da.getTime() - db.getTime();
+    });
     return list;
   }, [renters, searchQuery, propertyOwnerLowerById]);
 

@@ -105,6 +105,7 @@
     "dateOfEnd": "Date of end",
     "dateOfPayment": "Date of payment",
     "leaseStart": "Lease Start",
+    "leaseEnd": "Lease ends: {{date}}",
     "numberOfPayments": "Number of payments",
     "paymentType": "Payment type",
     "paymentTypePlaceholder": "e.g. monthly, bimonthly",

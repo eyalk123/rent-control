@@ -105,6 +105,7 @@
     "dateOfEnd": "תאריך סיום",
     "dateOfPayment": "תאריך תשלום",
     "leaseStart": "תחילת חכירה",
+    "leaseEnd": "תאריך סיום: {{date}}",
     "numberOfPayments": "מספר תשלומים",
     "paymentType": "סוג תשלום",
     "paymentTypePlaceholder": "למשל חודשי, דו-חודשי",

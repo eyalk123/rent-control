@@ -5,6 +5,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 import type { Renter } from '@/src/shared/types';
+import { getLeaseEndDate } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 
@@ -17,9 +18,19 @@ interface RenterCardProps {
 }
 
 export function RenterCard({ renter, onPress, onLongPress, isSelectMode = false, isSelected = false }: RenterCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+
+  const leaseEndDate = getLeaseEndDate(renter);
+  const isExpiringSoon = leaseEndDate != null && (() => {
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+    return leaseEndDate <= threeMonthsFromNow;
+  })();
+  const leaseEndLabel = leaseEndDate
+    ? t('renter.leaseEnd', { date: leaseEndDate.toLocaleDateString(i18n.language) })
+    : null;
 
   return (
     <TouchableOpacity onPress={onPress} onLongPress={onLongPress} activeOpacity={0.7}>
@@ -48,6 +59,15 @@ export function RenterCard({ renter, onPress, onLongPress, isSelectMode = false,
                 {t('renter.status.active')}
               </Text>
             </View>
+            {leaseEndLabel && (
+              <Text
+                variant="labelSmall"
+                style={[styles.leaseEndText, isExpiringSoon && styles.leaseEndUrgent]}
+                numberOfLines={1}
+              >
+                {leaseEndLabel}
+              </Text>
+            )}
           </View>
           {!isSelectMode && (
             <MaterialCommunityIcons
@@ -94,5 +114,14 @@ const styles = StyleSheet.create({
   badgeText: {
     color: '#FFFFFF',
     fontSize: 11,
+  },
+  leaseEndText: {
+    marginTop: 2,
+    fontSize: 11,
+    color: '#888888',
+  },
+  leaseEndUrgent: {
+    color: '#D32F2F',
+    fontWeight: '700',
   },
 });
