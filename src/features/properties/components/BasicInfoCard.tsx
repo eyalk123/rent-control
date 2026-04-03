@@ -75,7 +75,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
       <FormNumericField
         control={control}
         name={"zipCode" as any}
-        label={`${t("property.zipCode")} *`}
+        label={t("property.zipCode")}
         keyboardType="numeric"
       />
       <FormDropdownOptions
@@ -92,7 +92,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
             key={f.name}
             control={control}
             name={f.name as any}
-            label={`${t(f.labelKey)} *`}
+            label={t(f.labelKey)}
             keyboardType={f.keyboardType}
           />
         ))}

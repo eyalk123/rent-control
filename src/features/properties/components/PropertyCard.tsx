@@ -67,7 +67,7 @@ export function PropertyCard({ property, onPress, onLongPress, isSelectMode = fa
               style={[styles.detail, { color: colors.textSecondary }]}
               numberOfLines={1}
             >
-              {property.city}, {property.zip_code} • {property.type}
+              {property.city}{property.zip_code ? `, ${property.zip_code}` : ''} • {t(`property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`)}
             </Text>
             <View style={styles.statusRow}>
               <View

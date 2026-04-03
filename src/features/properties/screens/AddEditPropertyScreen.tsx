@@ -81,10 +81,7 @@ export function AddEditPropertyScreen() {
     const isValid = await trigger([
       "address",
       "city",
-      "zipCode",
       "type",
-      "sqFt",
-      "purchasePrice",
     ]);
     if (!isValid) return;
     setStep("lease");

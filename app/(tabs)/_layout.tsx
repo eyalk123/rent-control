@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
 import { BottomTabBar } from '@react-navigation/bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { CommonActions } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -30,6 +31,23 @@ export default function TabLayout() {
   return (
     <Tabs
       tabBar={(props) => <TabBarLtr {...props} />}
+      screenListeners={({ navigation, route }) => ({
+        tabPress: (e) => {
+          e.preventDefault();
+          const state = navigation.getState();
+          navigation.dispatch(
+            CommonActions.reset({
+              ...state,
+              index: state.routes.findIndex((r) => r.name === route.name),
+              routes: state.routes.map((r) =>
+                r.name === route.name
+                  ? { key: r.key, name: r.name } // clear nested stack state
+                  : r
+              ),
+            })
+          );
+        },
+      })}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,
