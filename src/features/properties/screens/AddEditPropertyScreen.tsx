@@ -17,7 +17,7 @@ import {
   View,
 } from "react-native";
 import { Button, useTheme } from "react-native-paper";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { FormScrollView } from "@/src/shared/components/form";
 
 export function AddEditPropertyScreen() {
   const { t } = useTranslation();
@@ -103,14 +103,9 @@ export function AddEditPropertyScreen() {
   return (
     <ScreenContainer>
       <View style={styles.wrapper}>
-        <KeyboardAwareScrollView
+        <FormScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          enableOnAndroid={true}
-          keyboardShouldPersistTaps="handled"
-          extraScrollHeight={spacing.keyboardExtraScrollHeight}
-          bounces={false}
         >
           <View
             style={[
@@ -144,7 +139,7 @@ export function AddEditPropertyScreen() {
             />
           )}
           {step === "lease" && <LeaseInfoCard control={control} t={t} />}
-        </KeyboardAwareScrollView>
+        </FormScrollView>
         <View style={styles.fixedButtonBar}>
           {step === "basic" && (
             <Button

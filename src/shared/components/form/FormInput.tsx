@@ -11,7 +11,12 @@ import {
   type FieldValues,
   type Path,
 } from "react-hook-form";
-import { StyleSheet, View, TextInput as RNTextInput } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  TextInput as RNTextInput,
+} from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
 type FormInputProps<TFieldValues extends FieldValues> = {
@@ -38,6 +43,8 @@ function FormInputInner<TFieldValues extends FieldValues>({
   const rtlInputStyle = useRtlInputStyle();
   const { isRtl } = useLanguageContext();
   const rtlLabelStyle = useRtlLabelStyle();
+  const inputRef = React.useRef<RNTextInput>(null);
+  const [isFocused, setIsFocused] = React.useState(false);
 
   return (
     <Controller
@@ -59,12 +66,17 @@ function FormInputInner<TFieldValues extends FieldValues>({
           >
             {label}
           </Text>
-          
-          <View style={{ direction: 'ltr' }}>
+
+          <View>
             <RNTextInput
+              ref={inputRef}
               value={value as string}
               onChangeText={onChange}
-              onBlur={onBlur}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => {
+                setIsFocused(false);
+                onBlur();
+              }}
               keyboardType={keyboardType}
               multiline={multiline}
               placeholder={placeholder}
@@ -81,8 +93,14 @@ function FormInputInner<TFieldValues extends FieldValues>({
                 rtlInputStyle,
               ]}
             />
+            {!isFocused && (
+              <Pressable
+                style={StyleSheet.absoluteFill}
+                onPress={() => inputRef.current?.focus()}
+              />
+            )}
           </View>
-          
+
           {error ? (
             <Text
               variant="bodySmall"

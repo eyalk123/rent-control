@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React, { useMemo } from "react";
 import {
   StyleSheet,
@@ -77,7 +78,7 @@ export function RenterPicker({
       </Text>
 
       <View style={{ direction: "ltr" }}>
-        <Dropdown
+      <Dropdown
           data={dropdownData}
           labelField="label"
           valueField="value"
@@ -86,6 +87,18 @@ export function RenterPicker({
             allowNone
               ? rtlPlaceholder(t("renter.unassigned"))
               : rtlPlaceholder("")
+          }
+          renderRightIcon={isRtl ? () => null : undefined}
+          renderLeftIcon={
+            isRtl
+              ? () => (
+                  <MaterialCommunityIcons
+                    name="chevron-down"
+                    size={20}
+                    color={colors.placeholder}
+                  />
+                )
+              : undefined
           }
           placeholderStyle={[
             styles.placeholder,

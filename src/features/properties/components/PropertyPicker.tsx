@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React, { useMemo } from "react";
 import {
   StyleSheet,
@@ -67,12 +68,24 @@ export function PropertyPicker({
       </Text>
 
       <View style={{ direction: "ltr" }}>
-        <Dropdown
+      <Dropdown
           data={dropdownData}
           labelField="label"
           valueField="value"
           value={value}
           placeholder={rtlPlaceholder(t("renter.unassigned"))}
+          renderRightIcon={isRtl ? () => null : undefined}
+          renderLeftIcon={
+            isRtl
+              ? () => (
+                  <MaterialCommunityIcons
+                    name="chevron-down"
+                    size={20}
+                    color={colors.placeholder}
+                  />
+                )
+              : undefined
+          }
           placeholderStyle={[
             styles.placeholder,
             rtlInputStyle,

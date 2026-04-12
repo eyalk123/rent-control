@@ -4,6 +4,7 @@ import {
   useRtlLabelStyle,
 } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React from "react";
 import {
   Controller,
@@ -60,12 +61,24 @@ export function FormDropdownOptions<TFieldValues extends FieldValues>({
           </Text>
 
           <View style={{ direction: "ltr" }}>
-            <Dropdown
+          <Dropdown
               data={options}
               labelField="label"
               valueField="value"
               value={(value as string) ?? null}
               placeholder={placeholder}
+              renderRightIcon={isRtl ? () => null : undefined}
+              renderLeftIcon={
+                isRtl
+                  ? () => (
+                      <MaterialCommunityIcons
+                        name="chevron-down"
+                        size={20}
+                        color={colors.placeholder}
+                      />
+                    )
+                  : undefined
+              }
               placeholderStyle={[
                 styles.placeholder,
                 rtlInputStyle,

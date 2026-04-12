@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Dropdown } from 'react-native-element-dropdown';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { FormScrollView } from '@/src/shared/components/form';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useLanguageContext, useRtlInputStyle, useRtlLabelStyle } from '@/src/context';
@@ -505,14 +505,9 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
 
   return (
     <View style={styles.container}>
-      <KeyboardAwareScrollView
+      <FormScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        enableOnAndroid
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={spacing.keyboardExtraScrollHeight}
-        bounces={false}
       >
         {/* ── Filters ──────────────────────────────────────────────────── */}
         <View style={styles.filtersSection}>
@@ -526,32 +521,44 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
                 {t('transactions.bulkRevenue.ownerFilter', { defaultValue: 'Owner' })}
               </Text>
               <View style={{ direction: 'ltr' }}>
-                <Dropdown
-                  data={ownerOptions}
-                  labelField="label"
-                  valueField="value"
-                  value={ownerFilter}
-                  onChange={(item) => setOwnerFilter(item.value)}
-                  style={[
-                    styles.dropdown,
-                    { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
-                  ]}
-                  containerStyle={[
-                    styles.dropdownContainer,
-                    { backgroundColor: colors.surface, borderColor: colors.outline },
-                  ]}
-                  selectedTextStyle={[
-                    styles.dropdownText,
-                    rtlInputStyle,
-                    { color: colors.textPrimary, textAlign: isRtl ? 'right' : 'left' },
-                  ]}
-                  itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
-                  placeholderStyle={[
-                    styles.dropdownText,
-                    { color: colors.placeholder, textAlign: isRtl ? 'right' : 'left' },
-                  ]}
-                  placeholder={t('transactions.bulkRevenue.allOwners', { defaultValue: 'All owners' })}
-                />
+              <Dropdown
+                data={ownerOptions}
+                labelField="label"
+                valueField="value"
+                value={ownerFilter}
+                onChange={(item) => setOwnerFilter(item.value)}
+                renderRightIcon={isRtl ? () => null : undefined}
+                renderLeftIcon={
+                  isRtl
+                    ? () => (
+                        <MaterialCommunityIcons
+                          name="chevron-down"
+                          size={20}
+                          color={colors.placeholder}
+                        />
+                      )
+                    : undefined
+                }
+                style={[
+                  styles.dropdown,
+                  { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
+                ]}
+                containerStyle={[
+                  styles.dropdownContainer,
+                  { backgroundColor: colors.surface, borderColor: colors.outline },
+                ]}
+                selectedTextStyle={[
+                  styles.dropdownText,
+                  rtlInputStyle,
+                  { color: colors.textPrimary, textAlign: isRtl ? 'right' : 'left' },
+                ]}
+                itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
+                placeholderStyle={[
+                  styles.dropdownText,
+                  { color: colors.placeholder, textAlign: isRtl ? 'right' : 'left' },
+                ]}
+                placeholder={t('transactions.bulkRevenue.allOwners', { defaultValue: 'All owners' })}
+              />
               </View>
             </View>
           )}
@@ -591,27 +598,39 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
           {/* Period value dropdown (not shown for custom) */}
           {periodType !== 'custom' && (
             <View style={{ direction: 'ltr' }}>
-              <Dropdown
-                data={periodValueOptions}
-                labelField="label"
-                valueField="value"
-                value={periodValue}
-                onChange={(item) => setPeriodValue(item.value)}
-                style={[
-                  styles.dropdown,
-                  { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
-                ]}
-                containerStyle={[
-                  styles.dropdownContainer,
-                  { backgroundColor: colors.surface, borderColor: colors.outline },
-                ]}
-                selectedTextStyle={[
-                  styles.dropdownText,
-                  rtlInputStyle,
-                  { color: colors.textPrimary, textAlign: isRtl ? 'right' : 'left' },
-                ]}
-                itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
-              />
+            <Dropdown
+              data={periodValueOptions}
+              labelField="label"
+              valueField="value"
+              value={periodValue}
+              onChange={(item) => setPeriodValue(item.value)}
+              renderRightIcon={isRtl ? () => null : undefined}
+              renderLeftIcon={
+                isRtl
+                  ? () => (
+                      <MaterialCommunityIcons
+                        name="chevron-down"
+                        size={20}
+                        color={colors.placeholder}
+                      />
+                    )
+                  : undefined
+              }
+              style={[
+                styles.dropdown,
+                { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
+              ]}
+              containerStyle={[
+                styles.dropdownContainer,
+                { backgroundColor: colors.surface, borderColor: colors.outline },
+              ]}
+              selectedTextStyle={[
+                styles.dropdownText,
+                rtlInputStyle,
+                { color: colors.textPrimary, textAlign: isRtl ? 'right' : 'left' },
+              ]}
+              itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
+            />
             </View>
           )}
 
@@ -696,7 +715,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
             </View>
           ))
         )}
-      </KeyboardAwareScrollView>
+      </FormScrollView>
 
       {/* ── Bottom area ──────────────────────────────────────────────── */}
       <View

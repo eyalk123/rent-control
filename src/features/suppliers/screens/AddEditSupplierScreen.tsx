@@ -13,7 +13,7 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { FormScrollView } from "@/src/shared/components/form";
 import { Button, Text, useTheme } from "react-native-paper";
 
 export function AddEditSupplierScreen() {
@@ -158,21 +158,16 @@ export function AddEditSupplierScreen() {
           </Text>
           <View style={styles.headerSpacer} />
         </View>
-        <KeyboardAwareScrollView
+        <FormScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          enableOnAndroid
-          keyboardShouldPersistTaps="handled"
-          extraScrollHeight={spacing.keyboardExtraScrollHeight}
-          bounces={false}
         >
           <SupplierForm
             control={control}
             isEdit={isEdit}
             onPickFromContacts={handlePickFromContacts}
           />
-        </KeyboardAwareScrollView>
+        </FormScrollView>
         <View style={styles.fixedButtonBar}>
           <Button
             mode="contained"

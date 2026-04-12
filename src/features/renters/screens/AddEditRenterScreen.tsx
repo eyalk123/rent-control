@@ -17,7 +17,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { FormScrollView } from "@/src/shared/components/form";
 import { Button, useTheme } from "react-native-paper";
 
 export function AddEditRenterScreen() {
@@ -126,14 +126,9 @@ export function AddEditRenterScreen() {
   return (
     <ScreenContainer>
       <View style={styles.wrapper}>
-        <KeyboardAwareScrollView
+        <FormScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          enableOnAndroid={true}
-          keyboardShouldPersistTaps="handled"
-          extraScrollHeight={spacing.keyboardExtraScrollHeight}
-          bounces={false}
         >
           <View
             style={[
@@ -168,7 +163,7 @@ export function AddEditRenterScreen() {
             />
           )}
           {step === "lease" && <RenterLeaseInfoCard control={control} t={t} />}
-        </KeyboardAwareScrollView>
+        </FormScrollView>
         <View style={styles.fixedButtonBar}>
           {step === "basic" && (
             <Button

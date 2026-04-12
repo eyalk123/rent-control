@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { FormScrollView } from '@/src/shared/components/form';
 import { Controller, type Control } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { PropertyPicker } from '@/src/features/properties/components/PropertyPicker';
@@ -11,7 +11,7 @@ import {
   FormTextField,
   FormWheelDateField,
 } from '@/src/shared/components/form';
-import { spacing } from '@/src/core/theme';
+
 import type { RevenueFormValues } from '@/src/features/transactions/screens/types';
 import { PaymentMethodRadios } from '@/src/features/transactions/components/PaymentMethodRadios';
 
@@ -31,14 +31,9 @@ export function RevenueForm({
   const { t } = useTranslation();
 
   return (
-    <KeyboardAwareScrollView
+    <FormScrollView
       style={styles.scrollView}
       contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
-      showsVerticalScrollIndicator={false}
-      enableOnAndroid
-      keyboardShouldPersistTaps="handled"
-      extraScrollHeight={spacing.keyboardExtraScrollHeight}
-      bounces={false}
     >
       <FormSectionCard
         title={t('transactions.revenueTitle', { defaultValue: 'Revenue' })}
@@ -101,7 +96,7 @@ export function RevenueForm({
           label={t('transactions.notes', { defaultValue: 'Notes (optional)' })}
         />
       </FormSectionCard>
-    </KeyboardAwareScrollView>
+    </FormScrollView>
   );
 }
 
