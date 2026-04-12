@@ -18,7 +18,6 @@ export interface Property {
   zip_code: string;
   type: PropertyType;
   sq_ft: number;
-  purchase_price: number;
   image_url: string | null;
   number_of_rooms?: number | null;
   parking_numbers?: string[] | null;
@@ -30,6 +29,11 @@ export interface Property {
   renters: Renter[] | null;
   /** Enriched on list when renters are fetched; used for occupancy display */
   hasRenters?: boolean;
+}
+
+export interface ExtraContact {
+  name: string;
+  phone: string;
 }
 
 // Lease: per-year amount and type (option vs contract) - matches FormLeaseYearsField UI
@@ -58,6 +62,7 @@ export interface Renter {
   property: PropertyBrief | null;
   /** Device-specific system contact ID; used to fetch avatar from contacts. */
   contact_id?: string | null;
+  extra_contacts?: ExtraContact[] | null;
 }
 
 /** Monthly rent derived from first lease year amount. Use for display or default transaction amount. */
@@ -182,7 +187,6 @@ export interface PropertyCreate {
   zip_code: string;
   type: PropertyType;
   sq_ft: number;
-  purchase_price: number;
   image_url?: string | null;
   number_of_rooms?: number | null;
   parking_numbers?: string[] | null;
@@ -200,7 +204,6 @@ export interface PropertyUpdate {
   zip_code?: string;
   type?: PropertyType;
   sq_ft?: number;
-  purchase_price?: number;
   image_url?: string | null;
   number_of_rooms?: number | null;
   parking_numbers?: string[] | null;
@@ -226,6 +229,7 @@ export interface RenterCreate {
   insurance_type?: string | null;
   insurance_amount?: number | null;
   contact_id?: string | null;
+  extra_contacts?: ExtraContact[] | null;
 }
 
 // Update payload (PATCH /renters/{id}) - all fields optional
@@ -243,6 +247,7 @@ export interface RenterUpdate {
   insurance_type?: string | null;
   insurance_amount?: number | null;
   contact_id?: string | null;
+  extra_contacts?: ExtraContact[] | null;
 }
 
 // API response wrapper (if backend returns { data: T })

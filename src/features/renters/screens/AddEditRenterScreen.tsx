@@ -61,6 +61,15 @@ export function AddEditRenterScreen() {
     }
   }, [requestPermission, pickContact, setValue, t]);
 
+  const handlePickExtraContact = React.useCallback(async () => {
+    const status = await requestPermission();
+    if (status !== "granted") return null;
+    const picked = await pickContact();
+    if (!picked) return null;
+    const name = [picked.firstName, picked.lastName].filter(Boolean).join(" ");
+    return { name, phone: picked.phone };
+  }, [requestPermission, pickContact]);
+
   React.useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e) => {
       if (!formState.isDirty) return;
@@ -155,6 +164,7 @@ export function AddEditRenterScreen() {
               t={t}
               isEdit={isEdit}
               onPickFromContacts={handlePickFromContacts}
+              onPickExtraContact={handlePickExtraContact}
             />
           )}
           {step === "lease" && <RenterLeaseInfoCard control={control} t={t} />}

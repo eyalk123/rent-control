@@ -28,7 +28,6 @@ export const propertyFormSchema = z.object({
     message: 'invalidType',
   }),
   sqFt: optionalNumericString,
-  purchasePrice: optionalNumericString,
   numberOfRooms: optionalNumericString,
   parkingNumbersStr: z.string().transform((val) => val ?? ''),
   propertyOwner: z.string().transform((val) => val.trim()),

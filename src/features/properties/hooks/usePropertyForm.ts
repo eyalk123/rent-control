@@ -36,7 +36,6 @@ function propertyToFormValues(prop: Property): PropertyFormValues {
       ? (prop.type as PropertyType)
       : ('' as unknown as PropertyType),
     sqFt: prop.sq_ft != null ? String(prop.sq_ft) : '',
-    purchasePrice: prop.purchase_price != null ? String(prop.purchase_price) : '',
     numberOfRooms: prop.number_of_rooms != null ? String(prop.number_of_rooms) : '',
     parkingNumbersStr:
       Array.isArray(prop.parking_numbers) && prop.parking_numbers.length > 0
@@ -68,7 +67,6 @@ export function usePropertyForm({
       zipCode: '',
       type: '' as unknown as PropertyType,
       sqFt: '',
-      purchasePrice: '',
       numberOfRooms: '',
       parkingNumbersStr: '',
       propertyOwner: '',
@@ -108,7 +106,6 @@ export function usePropertyForm({
       zip_code: values.zipCode,
       type: values.type,
       sq_ft: Number(values.sqFt),
-      purchase_price: Number(values.purchasePrice),
       image_url: imageUri,
       number_of_rooms: toOptionalNumber(values.numberOfRooms),
       water_meter_tax: toOptionalNumber(values.waterMeterTax),

@@ -144,6 +144,31 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
         />
       </View>
 
+      {/* Extra contacts card */}
+      {renter.extra_contacts && renter.extra_contacts.length > 0 && (
+        <Card style={styles.card} mode="outlined">
+          <View style={[styles.sectionHeader, { backgroundColor: colors.secondary }]}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+              {t('renter.extraContacts')}
+            </Text>
+          </View>
+          <Card.Content style={styles.cardContent}>
+            {renter.extra_contacts.map((contact, idx) => (
+              <View key={idx} style={styles.extraContactRow}>
+                <Text variant="bodyMedium" style={[styles.extraContactName, { color: colors.textPrimary }]}>
+                  {contact.name}
+                </Text>
+                <ContactActionsRow
+                  phone={contact.phone}
+                  variant="compact"
+                  contentAlign="flex-end"
+                />
+              </View>
+            ))}
+          </Card.Content>
+        </Card>
+      )}
+
       {/* Lease info card */}
       <Card style={styles.card} mode="outlined">
         <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
@@ -285,5 +310,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'right',
     flexShrink: 0,
+  },
+  extraContactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+  },
+  extraContactName: {
+    fontWeight: '500',
+    flexShrink: 1,
+    marginEnd: spacing.sm,
   },
 });

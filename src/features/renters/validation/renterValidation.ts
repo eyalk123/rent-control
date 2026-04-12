@@ -35,6 +35,11 @@ const leaseYearSchema = z.object({
   type: z.enum(["option", "contract"]).optional(),
 });
 
+const extraContactSchema = z.object({
+  name: z.string().transform((v) => v.trim()),
+  phone: z.string().transform((v) => v.trim()),
+});
+
 export const renterFormSchema = z.object({
   firstName: nonEmptyTrimmed,
   lastName: nonEmptyTrimmed,
@@ -55,6 +60,7 @@ export const renterFormSchema = z.object({
   contractYears: optionalNumericString,
   leaseYears: z.array(leaseYearSchema).optional(),
   contactId: z.string().nullable().optional(),
+  extraContacts: z.array(extraContactSchema).optional(),
 });
 
 export type RenterFormValues = z.infer<typeof renterFormSchema>;

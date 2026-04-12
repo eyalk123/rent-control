@@ -52,6 +52,7 @@ export function useRenterForm({
       contractYears: "",
       leaseYears: [],
       contactId: null,
+      extraContacts: [],
     },
     mode: "onBlur",
   });
@@ -104,6 +105,10 @@ export function useRenterForm({
             type: y.type,
           })),
           contactId: renter.contact_id ?? null,
+          extraContacts: (renter.extra_contacts ?? []).map((c) => ({
+            name: c.name ?? "",
+            phone: c.phone ?? "",
+          })),
         });
       })
       .finally(() => setIsFetching(false));
@@ -126,6 +131,10 @@ export function useRenterForm({
     const insuranceAmt = values.insuranceAmount
       ? Number(values.insuranceAmount)
       : null;
+    const extra_contacts = (values.extraContacts ?? [])
+      .filter((c) => c.name.trim() || c.phone.trim())
+      .map((c) => ({ name: c.name.trim(), phone: c.phone.trim() }));
+
     const leaseYearsForm = values.leaseYears ?? [];
     const lease_years: LeaseYear[] = leaseYearsForm
       .map((row) => {
@@ -147,6 +156,7 @@ export function useRenterForm({
       property_id: values.propertyId ?? undefined,
       lease_years,
       contact_id: values.contactId ?? undefined,
+      extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseCreate.number_of_payments = numPayments;
@@ -172,6 +182,7 @@ export function useRenterForm({
       lease_start: leaseStartTrimmed,
       property_id: values.propertyId ?? null,
       lease_years,
+      extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseUpdate.number_of_payments = numPayments;

@@ -12,3 +12,4 @@ export { FormWheelDateField } from "./FormWheelDateField";
 export { FormDropdownOptions } from "./FormDropdownOptions";
 export { FormChipInput } from "./FormChipInput";
 export { FormLeaseYearsField } from "./FormLeaseYearsField";
+export { FormExtraContactsField } from "./FormExtraContactsField";

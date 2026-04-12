@@ -154,13 +154,6 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
               secondaryColor={colors.textSecondary}
             />
           )}
-          <IconDetailRow
-            icon="cash"
-            label={t('property.purchasePrice')}
-            value={formatMoney(property.purchase_price)}
-            iconColor={colors.primary}
-            secondaryColor={colors.textSecondary}
-          />
         </Card.Content>
       </Card>
 

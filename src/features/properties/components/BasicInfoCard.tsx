@@ -55,11 +55,6 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
       labelKey: "property.sqFt",
       keyboardType: "numeric" as const,
     },
-    {
-      name: "purchasePrice",
-      labelKey: "property.purchasePrice",
-      keyboardType: "decimal-pad" as const,
-    },
   ];
 
   return (

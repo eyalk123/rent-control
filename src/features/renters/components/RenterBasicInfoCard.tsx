@@ -4,6 +4,7 @@ import type { Control, FieldValues } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { spacing } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
+import { FormExtraContactsField } from "@/src/shared/components/form";
 import type { TFunction } from "i18next";
 import {
   FormTextField,
@@ -20,6 +21,7 @@ type RenterBasicInfoCardProps<TFieldValues extends FieldValues> = {
   t: TFunction;
   isEdit?: boolean;
   onPickFromContacts?: () => void;
+  onPickExtraContact?: () => Promise<{ name: string; phone: string } | null>;
 };
 
 function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
@@ -27,6 +29,7 @@ function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
   t,
   isEdit = false,
   onPickFromContacts,
+  onPickExtraContact,
 }: RenterBasicInfoCardProps<TFieldValues>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -86,6 +89,12 @@ function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
           )}
         />
       </View>
+      <FormExtraContactsField
+        control={control}
+        name={"extraContacts" as any}
+        t={t}
+        onPickContact={onPickExtraContact ?? (() => Promise.resolve(null))}
+      />
     </FormSectionCard>
   );
 }

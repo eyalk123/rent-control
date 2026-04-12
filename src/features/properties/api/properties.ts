@@ -21,7 +21,6 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
     zip_code,
     type,
     sq_ft,
-    purchase_price,
     image_url,
     number_of_rooms,
     parking_numbers,
@@ -37,7 +36,6 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
     zip_code,
     type,
     sq_ft,
-    purchase_price,
   };
   if (image_url !== undefined) out.image_url = image_url;
   if (number_of_rooms !== undefined) out.number_of_rooms = number_of_rooms;
@@ -57,7 +55,6 @@ function sanitizePropertyUpdate(data: PropertyUpdate): Record<string, unknown> {
     'zip_code',
     'type',
     'sq_ft',
-    'purchase_price',
     'image_url',
     'number_of_rooms',
     'parking_numbers',
