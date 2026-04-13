@@ -109,6 +109,7 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
                 { backgroundColor: colors.inputFilledBackground },
                 rtlInputStyle,
               ]}
+              outlineStyle={styles.inputOutline}
               contentStyle={rtlInputStyle}
               textAlign={isRtl ? 'right' : 'left'}
               returnKeyType="done"
@@ -170,6 +171,9 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 4,
+  },
+  inputOutline: {
+    borderRadius: 4,
   },
   errorText: {
     marginTop: 2,
