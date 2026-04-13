@@ -11,7 +11,7 @@ import { usePropertyContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/c
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
-import { TransactionSummaryCards } from '@/src/features/transactions/components/TransactionSummaryCards';
+import { TransactionSummaryCards } from '@/src/features/transactions/components/shared/TransactionSummaryCards';
 import { deleteTransaction } from '@/src/features/transactions/api/transactions';
 import { formatMoney } from '@/src/shared/utils/money';
 

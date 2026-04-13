@@ -33,7 +33,12 @@
       "Bash(magick identify:*)",
       "Bash(node:*)",
       "Bash(npm run:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(find C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control:*)",
+      "Bash(grep -l \"Dropdown\\\\|Picker\\\\|Select\\\\|Menu\" \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control/src/features/transactions/components\"/*.tsx)",
+      "Bash(npx eslint:*)",
+      "Bash(git checkout:*)",
+      "Bash(wc:*)"
     ]
   }
 }

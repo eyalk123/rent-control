@@ -7,7 +7,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { FormTextField } from '@/src/shared/components/form/FormFields';
-import { CategoryTagPicker } from '@/src/features/transactions/components/CategoryTagPicker';
+import { CategoryTagPicker } from '@/src/features/transactions/components/expense/CategoryTagPicker';
 import type { SupplierFormValues } from '@/src/features/suppliers/validation/supplierValidation';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 

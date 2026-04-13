@@ -24,9 +24,9 @@ import {
   type ExpenseFormValues,
   type TransactionMode,
 } from '@/src/features/transactions/screens/types';
-import { TransactionChooseStep } from '@/src/features/transactions/components/TransactionChooseStep';
-import { BulkRevenueForm } from '@/src/features/transactions/components/BulkRevenueForm';
-import { ExpenseForm } from '@/src/features/transactions/components/ExpenseForm';
+import { TransactionChooseStep } from '@/src/features/transactions/components/shared/TransactionChooseStep';
+import { BulkRevenueForm } from '@/src/features/transactions/components/revenue/BulkRevenueForm';
+import { ExpenseForm } from '@/src/features/transactions/components/expense/ExpenseForm';
 
 export function AddTransactionScreen() {
   const { t } = useTranslation();

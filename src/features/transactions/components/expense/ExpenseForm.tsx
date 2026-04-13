@@ -1,10 +1,12 @@
 import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { FormScrollView } from '@/src/shared/components/form';
-import { Controller, type Control } from 'react-hook-form';
+import { Controller, type Control, type UseFormSetValue } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { PropertyPicker } from '@/src/features/properties/components/PropertyPicker';
 import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
+import { ExpenseCategoryPicker } from '@/src/features/transactions/components/expense/ExpenseCategoryPicker';
+import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import {
   FormNumericField,
@@ -12,22 +14,24 @@ import {
   FormWheelDateField,
 } from '@/src/shared/components/form';
 
-import type { RevenueFormValues } from '@/src/features/transactions/screens/types';
-import { PaymentMethodRadios } from '@/src/features/transactions/components/PaymentMethodRadios';
+import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
+import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
 
-type RevenueFormProps = {
-  control: Control<RevenueFormValues>;
+type ExpenseFormProps = {
+  control: Control<ExpenseFormValues>;
   propertyId: number | null;
-  autoFillRevenueForProperty: (propertyId: number | null) => void;
+  categoryId: number | null;
+  setValue: UseFormSetValue<ExpenseFormValues>;
   contentContainerStyle?: ViewStyle;
 };
 
-export function RevenueForm({
+export function ExpenseForm({
   control,
   propertyId,
-  autoFillRevenueForProperty,
+  categoryId,
+  setValue,
   contentContainerStyle,
-}: RevenueFormProps) {
+}: ExpenseFormProps) {
   const { t } = useTranslation();
 
   return (
@@ -36,7 +40,7 @@ export function RevenueForm({
       contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
     >
       <FormSectionCard
-        title={t('transactions.revenueTitle', { defaultValue: 'Revenue' })}
+        title={t('transactions.expenseTitle', { defaultValue: 'Expense' })}
       >
         <Controller
           control={control}
@@ -44,10 +48,7 @@ export function RevenueForm({
           render={({ field: { value, onChange } }) => (
             <PropertyPicker
               value={value}
-              onChange={(id) => {
-                onChange(id);
-                autoFillRevenueForProperty(id);
-              }}
+              onChange={onChange}
               label={t('transactions.property', { defaultValue: 'Property' })}
             />
           )}
@@ -60,7 +61,7 @@ export function RevenueForm({
               propertyId={propertyId}
               value={value}
               onChange={onChange}
-              label={t('transactions.renter', { defaultValue: 'Renter' })}
+              label={t('transactions.renterOptional', { defaultValue: 'Renter (optional)' })}
               allowNone
             />
           )}
@@ -69,13 +70,6 @@ export function RevenueForm({
           control={control}
           name="amount"
           label={t('transactions.amount', { defaultValue: 'Amount' })}
-        />
-        <FormWheelDateField
-          control={control}
-          name="monthFor"
-          label={t('transactions.monthForLabel', { defaultValue: 'Month' })}
-          placeholder={t('transactions.monthForPlaceholder', { defaultValue: 'Month, Year' })}
-          mode="monthYear"
         />
         <FormWheelDateField
           control={control}
@@ -88,6 +82,33 @@ export function RevenueForm({
           name="paymentMethod"
           render={({ field: { value, onChange } }) => (
             <PaymentMethodRadios value={value} onChange={onChange} />
+          )}
+        />
+        <Controller
+          control={control}
+          name="categoryId"
+          render={({ field: { value, onChange } }) => (
+            <ExpenseCategoryPicker
+              value={value}
+              onChange={(id) => {
+                onChange(id);
+                setValue('supplierId', null);
+              }}
+              label={t('transactions.category', { defaultValue: 'Category' })}
+            />
+          )}
+        />
+        <Controller
+          control={control}
+          name="supplierId"
+          render={({ field: { value, onChange } }) => (
+            <SupplierPicker
+              categoryId={categoryId}
+              value={value}
+              onChange={onChange}
+              label={t('transactions.supplier', { defaultValue: 'Supplier' })}
+              allowNone
+            />
           )}
         />
         <FormTextField

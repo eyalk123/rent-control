@@ -9,6 +9,8 @@ export {
 export { FormDatePickerField } from "./FormDatePickerField";
 export { FormMonthYearPickerField } from "./FormMonthYearPickerField";
 export { FormWheelDateField } from "./FormWheelDateField";
+export { DropdownField } from "./DropdownField";
+export type { DropdownItem } from "./DropdownField";
 export { FormDropdownOptions } from "./FormDropdownOptions";
 export { FormCreatableDropdown } from "./FormCreatableDropdown";
 export { FormChipInput } from "./FormChipInput";
