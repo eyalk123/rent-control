@@ -42,6 +42,10 @@
     "address": "כתובת",
     "city": "עיר",
     "propertyOwner": "בעל הנכס",
+    "ownerPlaceholder": "בחר בעלים",
+    "ownerCreate": "הוסף בעלים חדש...",
+    "createOwnerTitle": "הוסף בעל נכס",
+    "ownerNamePlaceholder": "שם הבעלים",
     "zipCode": "מיקוד",
     "type": "סוג נכס",
     "typePlaceholder": "למשל דירה, בית",
@@ -185,7 +189,8 @@
     "cancel": "ביטול",
     "next": "הבא",
     "tryAgain": "נסה שוב",
-    "create": "צור"
+    "create": "צור",
+    "add": "הוסף"
   },
   "validation": {
     "title": "אימות",

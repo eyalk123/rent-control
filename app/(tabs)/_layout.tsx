@@ -60,20 +60,20 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="properties"
-        options={{
-          title: t('tabs.properties'),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="renters"
         options={{
           title: t('tabs.renters'),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="account-group" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="properties"
+        options={{
+          title: t('tabs.properties'),
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="home" size={size} color={color} />
           ),
         }}
       />

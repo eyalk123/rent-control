@@ -5,12 +5,14 @@ import {
   FormTextField,
   FormNumericField,
   FormDropdownOptions,
+  FormCreatableDropdown,
 } from "@/src/shared/components/form";
 import { useRtlPlaceholder } from "@/src/core/context";
 import { PropertyHouseImageField } from "@/src/features/properties/components/PropertyHouseImageField";
 import { PROPERTY_TYPES } from "@/src/features/properties/validation/propertyValidation";
 import type { PropertyType } from "@/src/shared/types";
 import type { TFunction } from "i18next";
+import { usePropertyContext } from "@/src/context";
 
 type BasicInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -26,8 +28,21 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   setImageUri,
 }: BasicInfoCardProps<TFieldValues>) {
   const rtlPlaceholder = useRtlPlaceholder();
+  const { properties } = usePropertyContext();
   const translateTypeLabel = (type: PropertyType) =>
     t(`property.type${type.charAt(0).toUpperCase() + type.slice(1)}`);
+
+  const ownerOptions = React.useMemo(
+    () =>
+      Array.from(
+        new Set(
+          properties
+            .map((p) => p.property_owner?.trim())
+            .filter((o): o is string => !!o),
+        ),
+      ).sort(),
+    [properties],
+  );
 
   const propertyTypeOptions = React.useMemo(
     () =>
@@ -41,7 +56,6 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   const textFields = [
     { name: "address", labelKey: "property.address", required: true },
     { name: "city", labelKey: "property.city", required: true },
-    { name: "propertyOwner", labelKey: "property.propertyOwner", required: false },
   ] as const;
 
   const numericFields = [
@@ -67,6 +81,16 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
           label={`${t(f.labelKey)}${f.required ? " *" : ""}`}
         />
       ))}
+      <FormCreatableDropdown
+        control={control}
+        name={"propertyOwner" as any}
+        label={t("property.propertyOwner")}
+        options={ownerOptions}
+        placeholder={rtlPlaceholder(t("property.ownerPlaceholder"))}
+        createLabel={t("property.ownerCreate")}
+        createModalTitle={t("property.createOwnerTitle")}
+        createModalPlaceholder={t("property.ownerNamePlaceholder")}
+      />
       <FormNumericField
         control={control}
         name={"zipCode" as any}
@@ -76,7 +100,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
       <FormDropdownOptions
         control={control}
         name={"type" as any}
-        label={`${t("property.type")} *`}
+        label={t("property.type")}
         options={propertyTypeOptions}
         placeholder={rtlPlaceholder(t("property.typePlaceholder"))}
       />

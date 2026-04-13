@@ -10,6 +10,7 @@ export { FormDatePickerField } from "./FormDatePickerField";
 export { FormMonthYearPickerField } from "./FormMonthYearPickerField";
 export { FormWheelDateField } from "./FormWheelDateField";
 export { FormDropdownOptions } from "./FormDropdownOptions";
+export { FormCreatableDropdown } from "./FormCreatableDropdown";
 export { FormChipInput } from "./FormChipInput";
 export { FormLeaseYearsField } from "./FormLeaseYearsField";
 export { FormExtraContactsField } from "./FormExtraContactsField";

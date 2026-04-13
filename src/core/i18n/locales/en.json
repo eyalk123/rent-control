@@ -42,6 +42,10 @@
     "address": "Address",
     "city": "City",
     "propertyOwner": "Property owner",
+    "ownerPlaceholder": "Select an owner",
+    "ownerCreate": "Add new owner...",
+    "createOwnerTitle": "Add property owner",
+    "ownerNamePlaceholder": "Owner name",
     "zipCode": "Zip Code",
     "type": "Property Type",
     "typePlaceholder": "e.g. Apartment, House",
@@ -185,7 +189,8 @@
     "cancel": "Cancel",
     "next": "Next",
     "tryAgain": "Try Again",
-    "create": "Create"
+    "create": "Create",
+    "add": "Add"
   },
   "validation": {
     "title": "Validation",
