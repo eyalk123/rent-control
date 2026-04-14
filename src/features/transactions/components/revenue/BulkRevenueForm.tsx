@@ -1,11 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { useTheme } from 'react-native-paper';
-import { Checkbox, Text } from 'react-native-paper';
+import { Button, Checkbox, Text, useTheme } from 'react-native-paper';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { FormScrollView } from '@/src/shared/components/form';
+import {
+  FormScrollView,
+  FormSectionCard,
+  FormWheelDateField,
+} from '@/src/shared/components/form';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { usePropertyContext, useRenterContext } from '@/src/context';
 import {
@@ -17,9 +21,9 @@ import {
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
 import type { TimePeriodType } from '@/src/features/transactions/screens/types';
+import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
 import { RenterContractCard } from './RenterContractCard';
 import { BulkRevenueFilters } from './BulkRevenueFilters';
-import { BulkRevenuePaymentSection } from './BulkRevenuePaymentSection';
 import { getDefaultPeriodValue, getMonthsForPeriod } from './periodHelpers';
 
 type PropertyGroup = {
@@ -38,6 +42,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const insets = useSafeAreaInsets();
   const { properties } = usePropertyContext();
   const { renters } = useRenterContext();
 
@@ -55,7 +60,6 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
 
   // Payment details
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
-  const [paymentOpen, setPaymentOpen] = useState(false);
   const dateForm = useForm<DateFormValues>({
     defaultValues: { dateOfPayment: new Date().toISOString().slice(0, 10) },
   });
@@ -256,6 +260,8 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   // Render
   // ---------------------------------------------------------------------------
 
+  const submitDisabled = submitting || checkedIds.size === 0;
+
   return (
     <View style={styles.container}>
       <FormScrollView
@@ -276,10 +282,16 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
           onGridYearChange={setGridYear}
         />
 
-        <View style={[styles.divider, { backgroundColor: colors.outline }]} />
-
         {allRenters.length > 0 && (
-          <View style={styles.selectAllRow}>
+          <View
+            style={[
+              styles.selectAllRow,
+              {
+                borderTopColor: colors.outline,
+                borderBottomColor: colors.outline,
+              },
+            ]}
+          >
             <Checkbox
               status={allChecked ? 'checked' : someChecked ? 'indeterminate' : 'unchecked'}
               onPress={handleToggleAll}
@@ -315,7 +327,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
                   style={[styles.propertyAccent, { backgroundColor: colors.sectionAccent }]}
                 />
                 <Text
-                  variant="titleSmall"
+                  variant="titleMedium"
                   style={[styles.propertyHeaderText, { color: colors.textPrimary }]}
                   numberOfLines={1}
                 >
@@ -339,19 +351,46 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
             </View>
           ))
         )}
+
+        {filteredGroups.length > 0 && (
+          <FormSectionCard
+            title={t('transactions.bulkRevenue.paymentDetails', {
+              defaultValue: 'Payment details',
+            })}
+            containerStyle={styles.paymentCard}
+          >
+            <FormWheelDateField
+              control={dateForm.control}
+              name="dateOfPayment"
+              label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
+              mode="full"
+            />
+            <PaymentMethodRadios
+              value={paymentMethod}
+              onChange={(v) => setPaymentMethod(v)}
+            />
+          </FormSectionCard>
+        )}
       </FormScrollView>
 
-      <BulkRevenuePaymentSection
-        dateControl={dateForm.control}
-        dateOfPayment={dateOfPayment}
-        paymentMethod={paymentMethod}
-        onPaymentMethodChange={setPaymentMethod}
-        paymentOpen={paymentOpen}
-        onTogglePayment={() => setPaymentOpen((v) => !v)}
-        submitting={submitting}
-        submitDisabled={submitting || checkedIds.size === 0}
-        onSubmit={handleSubmit}
-      />
+      <View
+        style={[
+          styles.fixedButtonBar,
+          { paddingBottom: (insets.bottom ?? 0) + spacing.sm },
+        ]}
+      >
+        <Button
+          mode="contained"
+          onPress={handleSubmit}
+          loading={submitting}
+          disabled={submitDisabled}
+          style={styles.saveButton}
+          contentStyle={styles.saveButtonContent}
+          accessibilityRole="button"
+        >
+          {t('transactions.save', { defaultValue: 'Save' })}
+        </Button>
+      </View>
     </View>
   );
 }
@@ -364,16 +403,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
-  },
-  divider: {
-    height: 1,
-    marginBottom: spacing.md,
+    paddingBottom: spacing.lg,
   },
   selectAllRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+    paddingVertical: spacing.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     gap: spacing.xs,
   },
   selectAllLabel: {
@@ -383,17 +422,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   propertyGroup: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   propertyHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.sm + 2,
   },
   propertyAccent: {
     width: 4,
-    height: 18,
+    height: 22,
     borderRadius: 2,
   },
   propertyHeaderText: {
@@ -403,5 +442,18 @@ const styles = StyleSheet.create({
   emptyText: {
     textAlign: 'center',
     marginTop: spacing.lg,
+  },
+  paymentCard: {
+    marginTop: spacing.sm,
+    marginBottom: 0,
+  },
+  fixedButtonBar: {
+    paddingTop: spacing.sm,
+  },
+  saveButton: {
+    borderRadius: 12,
+  },
+  saveButtonContent: {
+    minHeight: 48,
   },
 });
