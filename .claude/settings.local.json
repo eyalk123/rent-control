@@ -38,7 +38,10 @@
       "Bash(grep -l \"Dropdown\\\\|Picker\\\\|Select\\\\|Menu\" \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control/src/features/transactions/components\"/*.tsx)",
       "Bash(npx eslint:*)",
       "Bash(git checkout:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")",
+      "Bash(grep -l \"Revenue\\\\|Expense\" /c/Users/eyalk/Desktop/PythonProjects/rent-control/src/features/transactions/components/**/*.tsx)",
+      "Bash(grep -n \"BulkRevenuePaymentSection\" /c/Users/eyalk/Desktop/PythonProjects/rent-control/src/features/transactions/components/revenue/*.tsx)"
     ]
   }
 }

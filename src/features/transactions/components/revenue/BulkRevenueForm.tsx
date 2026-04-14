@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { Button, Checkbox, Text, useTheme } from 'react-native-paper';
+import { Button, Checkbox, Divider, Text, useTheme } from 'react-native-paper';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -268,109 +268,117 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
       >
-        <BulkRevenueFilters
-          ownerOptions={ownerOptions}
-          ownerFilter={ownerFilter}
-          onOwnerChange={setOwnerFilter}
-          periodType={periodType}
-          onPeriodTypeChange={handleChangePeriodType}
-          periodValue={periodValue}
-          onPeriodValueChange={setPeriodValue}
-          customMonths={customMonths}
-          onToggleCustomMonth={handleToggleCustomMonth}
-          gridYear={gridYear}
-          onGridYearChange={setGridYear}
-        />
+        <FormSectionCard
+          title={t('transactions.revenueTitle', { defaultValue: 'Revenue' })}
+        >
+          {/* ── Billing period ── */}
+          <BulkRevenueFilters
+            ownerOptions={ownerOptions}
+            ownerFilter={ownerFilter}
+            onOwnerChange={setOwnerFilter}
+            periodType={periodType}
+            onPeriodTypeChange={handleChangePeriodType}
+            periodValue={periodValue}
+            onPeriodValueChange={setPeriodValue}
+            customMonths={customMonths}
+            onToggleCustomMonth={handleToggleCustomMonth}
+            gridYear={gridYear}
+            onGridYearChange={setGridYear}
+          />
 
-        {allRenters.length > 0 && (
-          <View
-            style={[
-              styles.selectAllRow,
-              {
-                borderTopColor: colors.outline,
-                borderBottomColor: colors.outline,
-              },
-            ]}
+          <Divider style={styles.sectionDivider} />
+
+          {/* ── Tenants ── */}
+          <Text
+            variant="labelMedium"
+            style={[styles.sectionSubLabel, { color: colors.textSecondary }]}
           >
-            <Checkbox
-              status={allChecked ? 'checked' : someChecked ? 'indeterminate' : 'unchecked'}
-              onPress={handleToggleAll}
-            />
+            {t('transactions.bulkRevenue.tenantsSection', { defaultValue: 'Tenants' })}
+          </Text>
+
+          {filteredGroups.length === 0 ? (
             <Text
               variant="bodyMedium"
-              style={[styles.selectAllLabel, { color: colors.textPrimary }]}
+              style={[styles.emptyText, { color: colors.textSecondary }]}
             >
-              {t('transactions.bulkRevenue.selectAll', { defaultValue: 'Select all' })}
+              {t('transactions.bulkRevenue.noContracts', { defaultValue: 'No contracts found.' })}
             </Text>
-            <View style={styles.spacer} />
-            <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
-              {t('transactions.bulkRevenue.selectedCount', {
-                count: checkedIds.size,
-                defaultValue: '{{count}} selected',
-              })}
-            </Text>
-          </View>
-        )}
-
-        {filteredGroups.length === 0 ? (
-          <Text
-            variant="bodyMedium"
-            style={[styles.emptyText, { color: colors.textSecondary }]}
-          >
-            {t('transactions.bulkRevenue.noContracts', { defaultValue: 'No contracts found.' })}
-          </Text>
-        ) : (
-          filteredGroups.map((group) => (
-            <View key={group.property.id} style={styles.propertyGroup}>
-              <View style={styles.propertyHeaderRow}>
-                <View
-                  style={[styles.propertyAccent, { backgroundColor: colors.sectionAccent }]}
-                />
-                <Text
-                  variant="titleMedium"
-                  style={[styles.propertyHeaderText, { color: colors.textPrimary }]}
-                  numberOfLines={1}
-                >
-                  {group.property.address}
-                  {group.property.city ? `, ${group.property.city}` : ''}
-                </Text>
-              </View>
-              {group.renters.map((renter) => (
-                <RenterContractCard
-                  key={renter.id}
-                  renter={renter}
-                  checked={checkedIds.has(renter.id)}
-                  amount={
-                    amounts.get(renter.id) ??
-                    String(getRenterMonthlyRent(renter) || '')
-                  }
-                  onToggle={() => handleToggleRenter(renter)}
-                  onAmountChange={(v) => handleAmountChange(renter.id, v)}
-                />
+          ) : (
+            <>
+              {allRenters.length > 0 && (
+                <View style={styles.selectAllRow}>
+                  <Checkbox
+                    status={allChecked ? 'checked' : someChecked ? 'indeterminate' : 'unchecked'}
+                    onPress={handleToggleAll}
+                  />
+                  <Text
+                    variant="bodyMedium"
+                    style={[styles.selectAllLabel, { color: colors.textPrimary }]}
+                  >
+                    {t('transactions.bulkRevenue.selectAll', { defaultValue: 'Select all' })}
+                  </Text>
+                  <View style={styles.spacer} />
+                  <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
+                    {t('transactions.bulkRevenue.selectedCount', {
+                      count: checkedIds.size,
+                      defaultValue: '{{count}} selected',
+                    })}
+                  </Text>
+                </View>
+              )}
+              {filteredGroups.map((group) => (
+                <View key={group.property.id} style={styles.propertyGroup}>
+                  <View style={styles.propertyHeaderRow}>
+                    <View
+                      style={[styles.propertyAccent, { backgroundColor: colors.sectionAccent }]}
+                    />
+                    <Text
+                      variant="titleMedium"
+                      style={[styles.propertyHeaderText, { color: colors.textPrimary }]}
+                      numberOfLines={1}
+                    >
+                      {group.property.address}
+                      {group.property.city ? `, ${group.property.city}` : ''}
+                    </Text>
+                  </View>
+                  {group.renters.map((renter) => (
+                    <RenterContractCard
+                      key={renter.id}
+                      renter={renter}
+                      checked={checkedIds.has(renter.id)}
+                      amount={
+                        amounts.get(renter.id) ??
+                        String(getRenterMonthlyRent(renter) || '')
+                      }
+                      onToggle={() => handleToggleRenter(renter)}
+                      onAmountChange={(v) => handleAmountChange(renter.id, v)}
+                    />
+                  ))}
+                </View>
               ))}
-            </View>
-          ))
-        )}
+            </>
+          )}
 
-        {filteredGroups.length > 0 && (
-          <FormSectionCard
-            title={t('transactions.bulkRevenue.paymentDetails', {
-              defaultValue: 'Payment details',
-            })}
-            containerStyle={styles.paymentCard}
+          <Divider style={styles.sectionDivider} />
+
+          {/* ── Payment details ── */}
+          <Text
+            variant="labelMedium"
+            style={[styles.sectionSubLabel, { color: colors.textSecondary }]}
           >
-            <FormWheelDateField
-              control={dateForm.control}
-              name="dateOfPayment"
-              label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
-              mode="full"
-            />
-            <PaymentMethodRadios
-              value={paymentMethod}
-              onChange={(v) => setPaymentMethod(v)}
-            />
-          </FormSectionCard>
-        )}
+            {t('transactions.bulkRevenue.paymentDetails', { defaultValue: 'Payment details' })}
+          </Text>
+          <FormWheelDateField
+            control={dateForm.control}
+            name="dateOfPayment"
+            label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
+            mode="full"
+          />
+          <PaymentMethodRadios
+            value={paymentMethod}
+            onChange={(v) => setPaymentMethod(v)}
+          />
+        </FormSectionCard>
       </FormScrollView>
 
       <View
@@ -405,14 +413,21 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: spacing.lg,
   },
+  sectionDivider: {
+    marginVertical: spacing.lg,
+    marginHorizontal: -spacing.lg,
+  },
+  sectionSubLabel: {
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    fontSize: 11,
+    marginBottom: spacing.md,
+  },
   selectAllRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.sm,
     marginBottom: spacing.md,
-    paddingVertical: spacing.xs,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
     gap: spacing.xs,
   },
   selectAllLabel: {
@@ -441,11 +456,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: 'center',
-    marginTop: spacing.lg,
-  },
-  paymentCard: {
-    marginTop: spacing.sm,
-    marginBottom: 0,
+    marginVertical: spacing.md,
   },
   fixedButtonBar: {
     paddingTop: spacing.sm,

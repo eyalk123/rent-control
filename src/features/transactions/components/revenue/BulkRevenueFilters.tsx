@@ -118,7 +118,7 @@ export function BulkRevenueFilters({
           variant="labelMedium"
           style={[styles.fieldLabel, rtlLabelStyle, { color: colors.textSecondary }]}
         >
-          {t('transactions.bulkRevenue.timePeriod', { defaultValue: 'Period' })}
+          {t('transactions.bulkRevenue.timePeriod', { defaultValue: 'Billing period' })}
         </Text>
         <SegmentedButtons
           value={periodType}
@@ -145,15 +145,27 @@ export function BulkRevenueFilters({
       </View>
 
       {periodType !== 'custom' && (
-        <View style={{ direction: 'ltr' }}>
-          <Dropdown
-            data={periodValueOptions}
-            labelField="label"
-            valueField="value"
-            value={periodValue}
-            onChange={(item) => onPeriodValueChange(item.value)}
-            {...dropdownTheme}
-          />
+        <View style={styles.fieldWrap}>
+          <Text
+            variant="labelMedium"
+            style={[styles.fieldLabel, rtlLabelStyle, { color: colors.textSecondary }]}
+          >
+            {periodType === '1month'
+              ? t('transactions.bulkRevenue.selectMonth', { defaultValue: 'Month' })
+              : periodType === 'quarter'
+                ? t('transactions.bulkRevenue.selectQuarter', { defaultValue: 'Quarter' })
+                : t('transactions.bulkRevenue.selectYear', { defaultValue: 'Year' })}
+          </Text>
+          <View style={{ direction: 'ltr' }}>
+            <Dropdown
+              data={periodValueOptions}
+              labelField="label"
+              valueField="value"
+              value={periodValue}
+              onChange={(item) => onPeriodValueChange(item.value)}
+              {...dropdownTheme}
+            />
+          </View>
         </View>
       )}
 
