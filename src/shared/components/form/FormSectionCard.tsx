@@ -28,7 +28,7 @@ export function FormSectionCard({
         {
           backgroundColor: colors.cardBackground,
           borderColor: colors.outline,
-          borderWidth: 1,
+          borderWidth: 0,
         },
         containerStyle,
       ]}

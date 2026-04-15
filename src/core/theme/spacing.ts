@@ -6,7 +6,7 @@ export const spacing = {
   xl: 24,
   xxl: 32,
   /** Horizontal padding for form screens (add/edit) */
-  formPaddingHorizontal: 24,
+  formPaddingHorizontal: 18,
   /** Extra scroll height so focused input stays visible above keyboard + fixed button bar */
   keyboardExtraScrollHeight: 100,
 } as const;

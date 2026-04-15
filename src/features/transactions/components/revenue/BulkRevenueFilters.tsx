@@ -123,22 +123,32 @@ export function BulkRevenueFilters({
         <SegmentedButtons
           value={periodType}
           onValueChange={(v) => onPeriodTypeChange(v as TimePeriodType)}
+          // density="high"
+          style={{ alignSelf: 'stretch' }}
           buttons={[
             {
               value: '1month',
-              label: t('transactions.bulkRevenue.oneMonth', { defaultValue: '1 Month' }),
+              label: t('transactions.bulkRevenue.oneMonth', { defaultValue: 'Month' }),
+              labelStyle: { fontSize: 12 },
+              style: { flex: 1, minWidth: 0 },
             },
             {
               value: 'quarter',
-              label: t('transactions.bulkRevenue.lastQuarter', { defaultValue: 'Quarter' }),
+              label: t('transactions.bulkRevenue.lastQuarter', { defaultValue: 'Qtr' }),
+              labelStyle: { fontSize: 12 },
+              style: { flex: 1, minWidth: 0 },
             },
             {
               value: 'year',
               label: t('transactions.bulkRevenue.calendarYear', { defaultValue: 'Year' }),
+              labelStyle: { fontSize: 12 },
+              style: { flex: 1, minWidth: 0 },
             },
             {
               value: 'custom',
               label: t('transactions.bulkRevenue.custom', { defaultValue: 'Custom' }),
+              labelStyle: { fontSize: 12 },
+              style: { flex: 1, minWidth: 0 },
             },
           ]}
         />

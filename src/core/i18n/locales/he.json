@@ -274,7 +274,11 @@
       "custom": "מותאם",
       "paymentDetails": "פרטי תשלום",
       "monthsSelected": "{{count}} חודשים נבחרו",
-      "noMonthsError": "יש לבחור לפחות חודש אחד."
+      "noMonthsError": "יש לבחור לפחות חודש אחד.",
+      "tenantsSection": "דיירים",
+      "selectMonth": "חודש",
+      "selectQuarter": "רבעון",
+      "selectYear": "שנה"
     }
   },
   "expenseCategories": {

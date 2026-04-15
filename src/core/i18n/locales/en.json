@@ -274,7 +274,11 @@
       "custom": "Custom",
       "paymentDetails": "Payment details",
       "monthsSelected": "{{count}} months selected",
-      "noMonthsError": "Please select at least one month."
+      "noMonthsError": "Please select at least one month.",
+      "tenantsSection": "Tenants",
+      "selectMonth": "Month",
+      "selectQuarter": "Quarter",
+      "selectYear": "Year"
     }
   },
   "expenseCategories": {
