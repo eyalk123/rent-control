@@ -42,7 +42,8 @@
       "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")",
       "Bash(grep -l \"Revenue\\\\|Expense\" /c/Users/eyalk/Desktop/PythonProjects/rent-control/src/features/transactions/components/**/*.tsx)",
       "Bash(grep -n \"BulkRevenuePaymentSection\" /c/Users/eyalk/Desktop/PythonProjects/rent-control/src/features/transactions/components/revenue/*.tsx)",
-      "Bash(find *)"
+      "Bash(find *)",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }

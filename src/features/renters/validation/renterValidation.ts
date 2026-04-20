@@ -44,7 +44,7 @@ export const renterFormSchema = z.object({
   firstName: nonEmptyTrimmed,
   lastName: nonEmptyTrimmed,
   phone: nonEmptyTrimmed,
-  email: nonEmptyTrimmed,
+  email: optionalString,
   leaseStart: dateString,
   propertyId: z.number().nullable(),
   paymentType: optionalString,

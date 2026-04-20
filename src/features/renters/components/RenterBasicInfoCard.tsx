@@ -72,7 +72,7 @@ function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
       <FormTextField
         control={control}
         name={"email" as any}
-        label={`${t("renter.email")} *`}
+        label={t("renter.email")}
         keyboardType="email-address"
       />
       <View style={styles.inputWrap}>
