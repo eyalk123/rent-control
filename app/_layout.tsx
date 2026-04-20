@@ -52,12 +52,9 @@ function AppContent() {
   // Inside app/_layout.tsx
   useEffect(() => {
     if (Platform.OS === "android") {
-      // 'light' means WHITE icons (for dark theme)
-      // 'dark' means BLACK icons (for light theme)
       NavigationBar.setStyle(theme.dark ? "dark" : "light");
-      NavigationBar.setBackgroundColorAsync(theme.colors.surface);
     }
-  }, [theme.dark, theme.colors.surface]);
+  }, [theme.dark]);
 
   return (
     <PaperProvider theme={theme}>

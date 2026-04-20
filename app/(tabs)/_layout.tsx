@@ -11,9 +11,6 @@ import { useAppAuth } from '@/src/core/auth/AuthContext';
 function TabBarLtr(props: BottomTabBarProps) {
   const theme = useTheme();
   return (
-    /* This View ensures that the area behind the Android system navigation 
-       buttons matches your app's surface color in both light and dark modes.
-    */
     <View style={{ direction: 'ltr', backgroundColor: theme.colors.surface }}>
       <BottomTabBar {...props} />
     </View>
@@ -57,8 +54,6 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
-          // We are NOT overriding borderTopWidth or elevation here
-          // to keep the default border and shadows as you requested.
         },
       }}
     >
