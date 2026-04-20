@@ -9,6 +9,7 @@ import {
 import { AuthProvider } from "@/src/core/auth/AuthContext";
 import "@/src/core/i18n";
 import * as NavigationBar from "expo-navigation-bar";
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
 import { Stack, useNavigationContainerRef } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
@@ -28,9 +29,10 @@ Sentry.init({
 
 function DirectionalContent() {
   const { isRtl } = useLanguageContext();
+  const { theme } = useThemeContext();
   return (
-    <View style={{ direction: isRtl ? "rtl" : "ltr", flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }} />
+    <View style={{ direction: isRtl ? "rtl" : "ltr", flex: 1, backgroundColor: theme.colors.background }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }} />
     </View>
   );
 }
@@ -38,25 +40,37 @@ function DirectionalContent() {
 function AppContent() {
   const { theme } = useThemeContext();
 
+  const navigationTheme = {
+    ...(theme.dark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(theme.dark ? DarkTheme.colors : DefaultTheme.colors),
+      background: theme.colors.background,
+      card: theme.colors.surface,
+    },
+  };
+
   // Inside app/_layout.tsx
   useEffect(() => {
     if (Platform.OS === "android") {
       // 'light' means WHITE icons (for dark theme)
       // 'dark' means BLACK icons (for light theme)
       NavigationBar.setStyle(theme.dark ? "dark" : "light");
+      NavigationBar.setBackgroundColorAsync(theme.colors.surface);
     }
-  }, [theme.dark]);
+  }, [theme.dark, theme.colors.surface]);
 
   return (
     <PaperProvider theme={theme}>
-      <StatusBar style={theme.dark ? "light" : "dark"} />
-      <PropertyProvider>
-        <RenterProvider>
-          <LanguageProvider>
-            <DirectionalContent />
-          </LanguageProvider>
-        </RenterProvider>
-      </PropertyProvider>
+      <NavigationThemeProvider value={navigationTheme}>
+        <StatusBar style={theme.dark ? "light" : "dark"} />
+        <PropertyProvider>
+          <RenterProvider>
+            <LanguageProvider>
+              <DirectionalContent />
+            </LanguageProvider>
+          </RenterProvider>
+        </PropertyProvider>
+      </NavigationThemeProvider>
     </PaperProvider>
   );
 }

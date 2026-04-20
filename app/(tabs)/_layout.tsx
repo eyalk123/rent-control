@@ -30,6 +30,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="renters"
       tabBar={(props) => <TabBarLtr {...props} />}
       screenListeners={({ navigation, route }) => ({
         tabPress: (e) => {
@@ -49,6 +50,8 @@ export default function TabLayout() {
         },
       })}
       screenOptions={{
+        animation: 'shift',
+        sceneStyle: { backgroundColor: theme.colors.background },
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
