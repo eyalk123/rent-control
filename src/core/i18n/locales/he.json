@@ -191,7 +191,8 @@
     "next": "הבא",
     "tryAgain": "נסה שוב",
     "create": "צור",
-    "add": "הוסף"
+    "add": "הוסף",
+    "selectItem": "בחר פריט"
   },
   "validation": {
     "title": "אימות",

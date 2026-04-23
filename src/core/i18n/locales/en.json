@@ -191,7 +191,8 @@
     "next": "Next",
     "tryAgain": "Try Again",
     "create": "Create",
-    "add": "Add"
+    "add": "Add",
+    "selectItem": "Select item"
   },
   "validation": {
     "title": "Validation",

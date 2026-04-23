@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { Dropdown } from "react-native-element-dropdown";
+import { useTranslation } from "react-i18next";
 import {
   useLanguageContext,
   useRtlInputStyle,
@@ -41,6 +42,7 @@ export function DropdownField<T extends string | number | null>({
   disabled = false,
   inputStyle,
 }: DropdownFieldProps<T>) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
@@ -69,7 +71,7 @@ export function DropdownField<T extends string | number | null>({
           labelField="label"
           valueField="value"
           value={value}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t("common.selectItem")}
           disable={disabled}
           autoScroll={false}
           mode="default"
