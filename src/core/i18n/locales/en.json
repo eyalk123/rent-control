@@ -14,7 +14,8 @@
     "language": "Language",
     "languageEn": "English",
     "languageHe": "Hebrew",
-    "suppliers": "Suppliers"
+    "suppliers": "Suppliers",
+    "signOut": "Sign out"
   },
   "restart": {
     "title": "Restart Required",
@@ -224,7 +225,9 @@
     "propertyNotFound": "Property not found",
     "renterNotFound": "Renter not found",
     "saveTransactionFailed": "Failed to save transaction",
-    "saveFailed": "Failed to save"
+    "saveFailed": "Failed to save",
+    "createCategoryFailed": "Failed to create category",
+    "deleteSupplierFailed": "Failed to delete supplier"
   },
   "transactions": {
     "addTransaction": "Add transaction",
@@ -251,6 +254,7 @@
     "paymentMethodBit": "Bit",
     "paymentMethodCash": "Cash",
     "paymentMethodBankTransfer": "Bank transfer",
+    "paymentMethodCheck": "Check",
     "category": "Category",
     "supplier": "Supplier",
     "notes": "Notes (optional)",
@@ -328,5 +332,28 @@
     "deleteConfirmMessage": "This cannot be undone.",
     "deleteButton": "Delete",
     "partialError": "{{success}} deleted, {{failed}} failed."
+  },
+  "auth": {
+    "signInSubtitle": "Sign in to your account",
+    "createAccountSubtitle": "Create a new account",
+    "connecting": "Connecting…",
+    "continueWithGoogle": "Continue with Google",
+    "or": "or",
+    "email": "Email",
+    "password": "Password",
+    "resetEmailSent": "Password reset email sent. Check your inbox.",
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "forgotPassword": "Forgot password?",
+    "newHere": "New here? Create an account",
+    "alreadyHaveAccount": "Already have an account? Sign in",
+    "enterEmailFirst": "Enter your email above first.",
+    "errorUserNotFound": "No account found with this email.",
+    "errorWrongPassword": "Incorrect password.",
+    "errorEmailInUse": "An account with this email already exists.",
+    "errorWeakPassword": "Password must be at least 6 characters.",
+    "errorInvalidEmail": "Invalid email address.",
+    "errorTooManyRequests": "Too many attempts. Please try again later.",
+    "errorGeneric": "Something went wrong."
   }
 }

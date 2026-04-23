@@ -93,7 +93,7 @@ export function SettingsScreen() {
 
         <List.Section>
           <List.Item
-            title="Sign out"
+            title={t('settings.signOut')}
             left={(props) => <List.Icon {...props} icon="logout" />}
             onPress={() => signOut()}
             style={styles.listItem}

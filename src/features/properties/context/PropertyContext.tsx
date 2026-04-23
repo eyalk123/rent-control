@@ -10,6 +10,7 @@ import { getProperties } from '@/src/features/properties/api/properties';
 import { getRenters } from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export interface PropertyContextType {
   properties: Property[];
@@ -24,6 +25,7 @@ const PropertyContext = createContext<PropertyContextType | undefined>(
 
 export function PropertyProvider({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useAppAuth();
+  const { t } = useTranslation();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function PropertyProvider({ children }: { children: React.ReactNode }) {
       setProperties(enriched);
     } catch (err) {
       setError(
-        getApiErrorMessage(err, 'Failed to load properties')
+        getApiErrorMessage(err, t('error.loadFailed'))
       );
       setProperties([]);
     } finally {

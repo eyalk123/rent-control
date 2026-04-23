@@ -2,8 +2,10 @@ import React from 'react';
 import { getSuppliers } from '@/src/features/suppliers/api/suppliers';
 import type { Supplier } from '@/src/shared/types';
 import { getApiErrorMessage } from '@/src/core/api/client';
+import { useTranslation } from 'react-i18next';
 
 export function useSuppliersList() {
+  const { t } = useTranslation();
   const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [refreshing, setRefreshing] = React.useState<boolean>(false);
@@ -20,7 +22,7 @@ export function useSuppliersList() {
       const data = await getSuppliers({ includeInactive: false });
       setSuppliers(data);
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to load suppliers'));
+      setError(getApiErrorMessage(err, t('error.loadFailed')));
       setSuppliers([]);
     } finally {
       if (forRefresh) {

@@ -14,7 +14,8 @@
     "language": "שפה",
     "languageEn": "אנגלית",
     "languageHe": "עברית",
-    "suppliers": "ספקים"
+    "suppliers": "ספקים",
+    "signOut": "התנתק"
   },
   "restart": {
     "title": "נדרש הפעלה מחדש",
@@ -38,7 +39,7 @@
   },
   "property": {
     "basicInfo": "מידע בסיסי",
-    "leaseInfo": "פרטי חכירה",
+    "leaseInfo": "פרטי שכירות",
     "address": "כתובת",
     "city": "עיר",
     "propertyOwner": "בעל הנכס",
@@ -61,7 +62,7 @@
     },
     "renters": "דיירים",
     "noRenters": "אין דיירים משויכים",
-    "lease": "חכירה",
+    "lease": "שכירות",
     "editProperty": "עריכת נכס",
     "saveProperty": "שמירת נכס",
     "addProperty": "הוספת נכס",
@@ -91,7 +92,7 @@
   },
   "renter": {
     "basicInfo": "מידע בסיסי",
-    "leaseInfo": "מידע חכירה",
+    "leaseInfo": "מידע שכירות",
     "firstName": "שם פרטי",
     "lastName": "שם משפחה",
     "phone": "טלפון",
@@ -107,7 +108,7 @@
     "dateOfStart": "תאריך התחלה",
     "dateOfEnd": "תאריך סיום",
     "dateOfPayment": "תאריך תשלום",
-    "leaseStart": "תחילת חכירה",
+    "leaseStart": "תחילת שכירות",
     "leaseEnd": "תאריך סיום: {{date}}",
     "numberOfPayments": "מספר תשלומים",
     "paymentType": "סוג תשלום",
@@ -205,7 +206,7 @@
     "phoneRequired": "טלפון נדרש.",
     "emailRequired": "אימייל נדרש.",
     "rentRequired": "שכר דירה חודשי תקין נדרש.",
-    "leaseStartRequired": "תאריך תחילת חכירה נדרש.",
+    "leaseStartRequired": "תאריך תחילת שכירות נדרש.",
     "paymentDayInvalid": "תאריך התשלום חייב להיות בין 1 ל-31.",
     "dateFormatInvalid": "השתמש בפורמט YYYY-MM-DD.",
     "propertyRequired": "נדרש לבחור נכס.",
@@ -224,7 +225,9 @@
     "propertyNotFound": "הנכס לא נמצא",
     "renterNotFound": "הדייר לא נמצא",
     "saveTransactionFailed": "שמירת התנועה נכשלה",
-    "saveFailed": "השמירה נכשלה"
+    "saveFailed": "השמירה נכשלה",
+    "createCategoryFailed": "יצירת הקטגוריה נכשלה",
+    "deleteSupplierFailed": "מחיקת הספק נכשלה"
   },
   "transactions": {
     "addTransaction": "הוספת תנועה",
@@ -251,6 +254,7 @@
     "paymentMethodBit": "ביט",
     "paymentMethodCash": "מזומן",
     "paymentMethodBankTransfer": "העברה בנקאית",
+    "paymentMethodCheck": "צ'ק",
     "category": "קטגוריה",
     "supplier": "ספק",
     "notes": "הערות (אופציונלי)",
@@ -328,5 +332,28 @@
     "deleteConfirmMessage": "לא ניתן לבטל פעולה זו.",
     "deleteButton": "מחק",
     "partialError": "{{success}} נמחקו, {{failed}} נכשלו."
+  },
+  "auth": {
+    "signInSubtitle": "התחבר לחשבונך",
+    "createAccountSubtitle": "צור חשבון חדש",
+    "connecting": "מתחבר…",
+    "continueWithGoogle": "המשך עם Google",
+    "or": "או",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "resetEmailSent": "נשלח אימייל לאיפוס סיסמה. בדוק את תיבת הדואר שלך.",
+    "signIn": "התחבר",
+    "createAccount": "צור חשבון",
+    "forgotPassword": "שכחת סיסמה?",
+    "newHere": "חדש כאן? צור חשבון",
+    "alreadyHaveAccount": "כבר יש לך חשבון? התחבר",
+    "enterEmailFirst": "הזן את האימייל שלך למעלה תחילה.",
+    "errorUserNotFound": "לא נמצא חשבון עם האימייל הזה.",
+    "errorWrongPassword": "סיסמה שגויה.",
+    "errorEmailInUse": "קיים כבר חשבון עם האימייל הזה.",
+    "errorWeakPassword": "הסיסמה חייבת להכיל לפחות 6 תווים.",
+    "errorInvalidEmail": "כתובת אימייל לא תקינה.",
+    "errorTooManyRequests": "יותר מדי ניסיונות. נסה שוב מאוחר יותר.",
+    "errorGeneric": "משהו השתבש."
   }
 }

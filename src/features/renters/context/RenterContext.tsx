@@ -9,6 +9,7 @@ import type { Renter } from '@/src/shared/types';
 import { getRenters } from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export interface RenterContextType {
   renters: Renter[];
@@ -21,6 +22,7 @@ const RenterContext = createContext<RenterContextType | undefined>(undefined);
 
 export function RenterProvider({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useAppAuth();
+  const { t } = useTranslation();
   const [renters, setRenters] = useState<Renter[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export function RenterProvider({ children }: { children: React.ReactNode }) {
       const data = await getRenters();
       setRenters(data);
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to load renters'));
+      setError(getApiErrorMessage(err, t('error.loadFailed')));
       setRenters([]);
     } finally {
       setLoading(false);

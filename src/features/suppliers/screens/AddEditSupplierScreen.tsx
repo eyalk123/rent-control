@@ -63,7 +63,7 @@ export function AddEditSupplierScreen() {
             } catch (err) {
               Alert.alert(
                 t("error.title"),
-                getApiErrorMessage(err, "Failed to delete supplier"),
+                getApiErrorMessage(err, t('error.deleteSupplierFailed')),
               );
             } finally {
               setIsDeleting(false);

@@ -86,7 +86,7 @@ export function getLeaseEndDate(renter: Renter): Date | null {
 
 export type TransactionType = 'revenue' | 'expense';
 
-export type PaymentMethod = 'bit' | 'cash' | 'bank_transfer';
+export type PaymentMethod = 'bit' | 'cash' | 'bank_transfer' | 'check';
 
 export interface Transaction {
   id: number;

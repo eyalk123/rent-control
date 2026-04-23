@@ -33,6 +33,11 @@ export function PaymentMethodRadios({ value, onChange }: PaymentMethodRadiosProp
           value="bank_transfer"
           position="leading"
         />
+        <RadioButton.Item
+          label={t('transactions.paymentMethodCheck', { defaultValue: 'Check' })}
+          value="check"
+          position="leading"
+        />
       </View>
     </RadioButton.Group>
   );

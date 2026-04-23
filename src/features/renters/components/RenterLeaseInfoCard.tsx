@@ -59,6 +59,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
             { value: "cash", label: t("transactions.paymentMethodCash") },
             { value: "wire_transfer", label: t("transactions.paymentMethodBankTransfer") },
             { value: "bit", label: t("transactions.paymentMethodBit") },
+            { value: "check", label: t("transactions.paymentMethodCheck") },
           ]}
         />
       </View>

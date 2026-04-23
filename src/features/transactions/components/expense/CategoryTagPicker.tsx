@@ -117,7 +117,7 @@ export function CategoryTagPicker({
       setCreateModalVisible(false);
       setMenuVisible(false);
     } catch (err) {
-      setCreateError(getApiErrorMessage(err, "Failed to create category"));
+      setCreateError(getApiErrorMessage(err, t('error.createCategoryFailed')));
     } finally {
       setCreateLoading(false);
     }

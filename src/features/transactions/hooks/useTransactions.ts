@@ -7,8 +7,10 @@ import {
 import { getSuppliers } from '@/src/features/suppliers/api/suppliers';
 import type { ExpenseCategory, Supplier, Transaction } from '@/src/shared/types';
 import { getApiErrorMessage } from '@/src/core/api/client';
+import { useTranslation } from 'react-i18next';
 
 export function useTransactionsList(params: TransactionsListParams = {}) {
+  const { t } = useTranslation();
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [refreshing, setRefreshing] = React.useState<boolean>(false);
@@ -31,7 +33,7 @@ export function useTransactionsList(params: TransactionsListParams = {}) {
         const data = await getTransactions({ type, propertyId, renterId, search });
         setTransactions(data);
       } catch (err) {
-        setError(getApiErrorMessage(err, 'Failed to load transactions'));
+        setError(getApiErrorMessage(err, t('error.loadFailed')));
         setTransactions([]);
       } finally {
         if (forRefresh) {
@@ -41,7 +43,7 @@ export function useTransactionsList(params: TransactionsListParams = {}) {
         }
       }
     },
-    [type, propertyId, renterId, search],
+    [type, propertyId, renterId, search, t],
   );
 
   const refreshTransactions = React.useCallback(() => load(true), [load]);
@@ -62,6 +64,7 @@ export function useTransactionsList(params: TransactionsListParams = {}) {
 }
 
 export function useExpenseCategories() {
+  const { t } = useTranslation();
   const [categories, setCategories] = React.useState<ExpenseCategory[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -73,12 +76,12 @@ export function useExpenseCategories() {
       const data = await getExpenseCategories();
       setCategories(data);
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to load categories'));
+      setError(getApiErrorMessage(err, t('error.loadFailed')));
       setCategories([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   React.useEffect(() => {
     load();
@@ -88,6 +91,7 @@ export function useExpenseCategories() {
 }
 
 export function useSuppliers(categoryId?: number) {
+  const { t } = useTranslation();
   const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -112,7 +116,7 @@ export function useSuppliers(categoryId?: number) {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(getApiErrorMessage(err, 'Failed to load suppliers'));
+          setError(getApiErrorMessage(err, t('error.loadFailed')));
           setSuppliers([]);
         }
       } finally {
@@ -125,7 +129,7 @@ export function useSuppliers(categoryId?: number) {
     return () => {
       cancelled = true;
     };
-  }, [categoryId]);
+  }, [categoryId, t]);
 
   return { suppliers, loading, error };
 }

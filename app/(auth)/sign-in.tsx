@@ -19,6 +19,7 @@ import {
 } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 
 type Step = 'login' | 'register';
 
@@ -26,6 +27,7 @@ export default function SignInScreen() {
   const router = useRouter();
   const theme = useTheme();
   const colors = theme.colors;
+  const { t } = useTranslation();
 
   const [step, setStep] = useState<Step>('login');
   const [email, setEmail] = useState('');
@@ -37,18 +39,18 @@ export default function SignInScreen() {
 
   function firebaseErrorMessage(err: any): string {
     const code: string = err?.code ?? '';
-    if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') return 'No account found with this email.';
-    if (code === 'auth/wrong-password') return 'Incorrect password.';
-    if (code === 'auth/email-already-in-use') return 'An account with this email already exists.';
-    if (code === 'auth/weak-password') return 'Password must be at least 6 characters.';
-    if (code === 'auth/invalid-email') return 'Invalid email address.';
-    if (code === 'auth/too-many-requests') return 'Too many attempts. Please try again later.';
-    return err?.message ?? 'Something went wrong.';
+    if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') return t('auth.errorUserNotFound');
+    if (code === 'auth/wrong-password') return t('auth.errorWrongPassword');
+    if (code === 'auth/email-already-in-use') return t('auth.errorEmailInUse');
+    if (code === 'auth/weak-password') return t('auth.errorWeakPassword');
+    if (code === 'auth/invalid-email') return t('auth.errorInvalidEmail');
+    if (code === 'auth/too-many-requests') return t('auth.errorTooManyRequests');
+    return err?.message ?? t('auth.errorGeneric');
   }
 
   async function forgotPassword() {
     if (!email.trim()) {
-      setError('Enter your email above first.');
+      setError(t('auth.enterEmailFirst'));
       return;
     }
     setError('');
@@ -134,7 +136,7 @@ export default function SignInScreen() {
             Rent Control
           </Text>
           <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}>
-            {isLogin ? 'Sign in to your account' : 'Create a new account'}
+            {isLogin ? t('auth.signInSubtitle') : t('auth.createAccountSubtitle')}
           </Text>
         </View>
 
@@ -149,21 +151,21 @@ export default function SignInScreen() {
           >
             <MaterialCommunityIcons name="google" size={20} color="#4285F4" />
             <Text variant="labelLarge" style={[styles.googleBtnText, { color: colors.onSurface }]}>
-              {googleLoading ? 'Connecting…' : 'Continue with Google'}
+              {googleLoading ? t('auth.connecting') : t('auth.continueWithGoogle')}
             </Text>
           </TouchableOpacity>
 
           <View style={styles.dividerRow}>
             <Divider style={styles.dividerLine} />
             <Text variant="bodySmall" style={[styles.dividerText, { color: colors.onSurfaceVariant }]}>
-              or
+              {t('auth.or')}
             </Text>
             <Divider style={styles.dividerLine} />
           </View>
 
           <TextInput
             mode="outlined"
-            label="Email"
+            label={t('auth.email')}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -175,7 +177,7 @@ export default function SignInScreen() {
 
           <TextInput
             mode="outlined"
-            label="Password"
+            label={t('auth.password')}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -193,7 +195,7 @@ export default function SignInScreen() {
 
           {resetSent ? (
             <Text variant="bodySmall" style={[styles.error, { color: colors.primary }]}>
-              Password reset email sent. Check your inbox.
+              {t('auth.resetEmailSent')}
             </Text>
           ) : null}
 
@@ -205,7 +207,7 @@ export default function SignInScreen() {
             style={styles.submitBtn}
             contentStyle={styles.submitBtnContent}
           >
-            {isLogin ? 'Sign in' : 'Create account'}
+            {isLogin ? t('auth.signIn') : t('auth.createAccount')}
           </Button>
 
           {isLogin ? (
@@ -215,7 +217,7 @@ export default function SignInScreen() {
               disabled={loading}
               style={{ marginTop: 0 }}
             >
-              Forgot password?
+              {t('auth.forgotPassword')}
             </Button>
           ) : null}
 
@@ -225,7 +227,7 @@ export default function SignInScreen() {
             disabled={loading}
             style={{ marginTop: 4 }}
           >
-            {isLogin ? 'New here? Create an account' : 'Already have an account? Sign in'}
+            {isLogin ? t('auth.newHere') : t('auth.alreadyHaveAccount')}
           </Button>
         </View>
       </View>
