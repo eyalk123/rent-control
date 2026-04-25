@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   FlatList,
   Image,
   Modal,
@@ -8,8 +9,9 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { Button, IconButton, Text, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Button, IconButton, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import * as ImagePicker from 'expo-image-picker';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
 import {
   HOUSE_IMAGE_PRESETS,
@@ -19,24 +21,28 @@ import {
   type HouseImagePreset,
 } from '@/src/features/properties/constants/houseImagePresets';
 import type { TFunction } from 'i18next';
+import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 
 type Props = {
   imageUrl: string | null;
   onChangeImageUrl: (url: string | null) => void;
   t: TFunction;
+  ownerId: string;
 };
 
 const NUM_COLUMNS = 3;
 const GRID_GAP = spacing.sm;
 
-export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t }: Props) {
+export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId }: Props) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const [modalVisible, setModalVisible] = useState(false);
   const { width: screenWidth } = useWindowDimensions();
+  const { uploadFile, uploading } = useFirebaseUpload('properties', ownerId);
 
   const selectedKey = imageUrl ? parseImageUrlKey(imageUrl) : null;
   const selectedPreset = selectedKey ? getPresetByKey(selectedKey) : null;
+  const isCustomPhoto = imageUrl && !selectedKey;
 
   const tileSize =
     (screenWidth - spacing.lg * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
@@ -44,6 +50,32 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t }: Props
   const handleSelect = (preset: HouseImagePreset) => {
     onChangeImageUrl(toImageUrlKey(preset.key));
     setModalVisible(false);
+  };
+
+  const handleUploadFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(t('permission.title'), t('permission.photoLibrary'));
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setModalVisible(false);
+      const asset = result.assets[0];
+      const filename = asset.uri.split('/').pop() ?? 'property.jpg';
+      const mimeType = asset.mimeType ?? 'image/jpeg';
+      try {
+        const url = await uploadFile(asset.uri, filename, mimeType);
+        onChangeImageUrl(url);
+      } catch {
+        Alert.alert(t('error.title'), t('documents.uploadFailed'));
+      }
+    }
   };
 
   const renderGridItem = ({ item }: { item: HouseImagePreset }) => {
@@ -83,10 +115,42 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t }: Props
 
   return (
     <View style={styles.wrapper}>
-      {selectedPreset ? (
+      {uploading ? (
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="small" />
+        </View>
+      ) : selectedPreset ? (
         <View style={styles.previewContainer}>
           <Image
             source={selectedPreset.source}
+            style={styles.previewImage}
+            resizeMode="cover"
+          />
+          <View style={styles.previewActions}>
+            <Button
+              mode="outlined"
+              onPress={() => setModalVisible(true)}
+              style={styles.actionBtn}
+              icon="image-edit"
+              compact
+            >
+              {t('property.changeImage')}
+            </Button>
+            <Button
+              mode="outlined"
+              onPress={() => onChangeImageUrl(null)}
+              style={styles.actionBtn}
+              icon="close"
+              compact
+            >
+              {t('property.removePhoto')}
+            </Button>
+          </View>
+        </View>
+      ) : isCustomPhoto ? (
+        <View style={styles.previewContainer}>
+          <Image
+            source={{ uri: imageUrl! }}
             style={styles.previewImage}
             resizeMode="cover"
           />
@@ -143,6 +207,15 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t }: Props
               />
             </View>
 
+            <Button
+              mode="outlined"
+              icon="image-plus"
+              onPress={handleUploadFromGallery}
+              style={styles.galleryButton}
+              compact
+            >
+              {t('documents.uploadFromGallery')}
+            </Button>
             <FlatList
               data={HOUSE_IMAGE_PRESETS}
               keyExtractor={(item) => item.key}
@@ -203,6 +276,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
+  },
+  loadingWrap: {
+    marginBottom: spacing.md,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  galleryButton: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    borderRadius: 8,
   },
   gridContainer: {
     padding: spacing.lg,

@@ -1,5 +1,6 @@
 import { FormInput } from "@/src/shared/components/form/FormInput";
 import { FormChipInput } from "@/src/shared/components/form/FormChipInput";
+import { FormSingleFileField } from "@/src/shared/components/form/FormSingleFileField";
 import { useRtlPlaceholder } from "@/src/core/context";
 import { spacing } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
@@ -12,11 +13,13 @@ import { View } from "react-native";
 type LeaseInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   t: TFunction;
+  ownerId: string;
 };
 
 function LeaseInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
+  ownerId,
 }: LeaseInfoCardProps<TFieldValues>) {
   const rtlPlaceholder = useRtlPlaceholder();
 
@@ -71,6 +74,15 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
             keyboardType={f.decimal ? "decimal-pad" : "numeric"}
           />
         ))}
+      <FormSingleFileField
+        control={control}
+        name={"basicContractUrl" as any}
+        label={t("documents.basicContract")}
+        t={t}
+        entityType="properties"
+        ownerId={ownerId}
+        accept="document"
+      />
     </FormSectionCard>
   );
 }

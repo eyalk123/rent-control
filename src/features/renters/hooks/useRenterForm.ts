@@ -1,5 +1,6 @@
 import React from "react";
 import { Alert } from "react-native";
+import { useAppAuth } from "@/src/core/auth/AuthContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { TFunction } from "i18next";
@@ -33,6 +34,7 @@ export function useRenterForm({
   onSuccess,
 }: UseRenterFormParams) {
   const isEdit = Boolean(id);
+  const { user } = useAppAuth();
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
 
   const formMethods = useForm<RenterFormValues>({
@@ -53,6 +55,7 @@ export function useRenterForm({
       leaseYears: [],
       contactId: null,
       extraContacts: [],
+      fullContractUrl: null,
     },
     mode: "onBlur",
   });
@@ -109,6 +112,7 @@ export function useRenterForm({
             name: c.name ?? "",
             phone: c.phone ?? "",
           })),
+          fullContractUrl: renter.full_contract_url ?? null,
         });
       })
       .finally(() => setIsFetching(false));
@@ -157,6 +161,7 @@ export function useRenterForm({
       lease_years,
       contact_id: values.contactId ?? undefined,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
+      full_contract_url: values.fullContractUrl ?? null,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseCreate.number_of_payments = numPayments;
@@ -183,6 +188,7 @@ export function useRenterForm({
       property_id: values.propertyId ?? null,
       lease_years,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
+      full_contract_url: values.fullContractUrl ?? null,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseUpdate.number_of_payments = numPayments;
@@ -224,5 +230,6 @@ export function useRenterForm({
     onSubmit: submit,
     isSubmitting: formState.isSubmitting,
     isFetching,
+    ownerId: user?.uid ?? '',
   };
 }

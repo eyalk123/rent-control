@@ -9,16 +9,19 @@ import {
   FormDropdownOptions,
   FormLeaseYearsField,
   FormWheelDateField,
+  FormSingleFileField,
 } from "@/src/shared/components/form";
 
 type RenterLeaseInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   t: TFunction;
+  ownerId: string;
 };
 
 function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
+  ownerId,
 }: RenterLeaseInfoCardProps<TFieldValues>) {
   return (
     <FormSectionCard title={t("renter.leaseInfo")}>
@@ -101,6 +104,18 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           name={"insuranceAmount" as any}
           label={t("renter.insuranceAmount")}
           keyboardType="decimal-pad"
+        />
+      </View>
+
+      <View style={styles.inputWrap}>
+        <FormSingleFileField
+          control={control}
+          name={"fullContractUrl" as any}
+          label={t("documents.fullContract")}
+          t={t}
+          entityType="renters"
+          ownerId={ownerId}
+          accept="document"
         />
       </View>
 

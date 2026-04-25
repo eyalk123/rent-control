@@ -27,6 +27,7 @@ export interface Property {
   house_committee?: number | null;
   property_owner?: string | null;
   inventory_notes?: string | null;
+  basic_contract_url?: string | null;
   renters: Renter[] | null;
   /** Enriched on list when renters are fetched; used for occupancy display */
   hasRenters?: boolean;
@@ -64,6 +65,7 @@ export interface Renter {
   /** Device-specific system contact ID; used to fetch avatar from contacts. */
   contact_id?: string | null;
   extra_contacts?: ExtraContact[] | null;
+  full_contract_url?: string | null;
 }
 
 /** Monthly rent derived from first lease year amount. Use for display or default transaction amount. */
@@ -197,6 +199,7 @@ export interface PropertyCreate {
   house_committee?: number | null;
   property_owner?: string | null;
   inventory_notes?: string | null;
+  basic_contract_url?: string | null;
 }
 
 // Update payload (PATCH /properties/{id}) - all fields optional
@@ -215,6 +218,7 @@ export interface PropertyUpdate {
   house_committee?: number | null;
   property_owner?: string | null;
   inventory_notes?: string | null;
+  basic_contract_url?: string | null;
 }
 
 // Create payload (POST /renters)
@@ -233,6 +237,7 @@ export interface RenterCreate {
   insurance_amount?: number | null;
   contact_id?: string | null;
   extra_contacts?: ExtraContact[] | null;
+  full_contract_url?: string | null;
 }
 
 // Update payload (PATCH /renters/{id}) - all fields optional
@@ -251,6 +256,7 @@ export interface RenterUpdate {
   insurance_amount?: number | null;
   contact_id?: string | null;
   extra_contacts?: ExtraContact[] | null;
+  full_contract_url?: string | null;
 }
 
 // API response wrapper (if backend returns { data: T })

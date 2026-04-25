@@ -61,6 +61,7 @@ export const renterFormSchema = z.object({
   leaseYears: z.array(leaseYearSchema).optional(),
   contactId: z.string().nullable().optional(),
   extraContacts: z.array(extraContactSchema).optional(),
+  fullContractUrl: z.string().nullable().optional(),
 });
 
 export type RenterFormValues = z.infer<typeof renterFormSchema>;

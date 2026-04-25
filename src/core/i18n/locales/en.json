@@ -327,6 +327,14 @@
     "deleteConfirmTitle": "Delete supplier?",
     "deleteConfirmMessage": "This will deactivate the supplier. You can reactivate it later by editing."
   },
+  "documents": {
+    "basicContract": "Basic Contract",
+    "fullContract": "Full Contract",
+    "upload": "Upload File",
+    "uploadFromGallery": "Upload from Gallery",
+    "uploading": "Uploading...",
+    "uploadFailed": "Upload failed. Please try again."
+  },
   "permission": {
     "title": "Permission required",
     "photoLibrary": "Please grant photo library access to upload images."

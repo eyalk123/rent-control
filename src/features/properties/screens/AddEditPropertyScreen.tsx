@@ -38,6 +38,7 @@ export function AddEditPropertyScreen() {
     isFetching,
     imageUri,
     setImageUri,
+    ownerId,
   } = usePropertyForm({
     id,
     t,
@@ -136,9 +137,10 @@ export function AddEditPropertyScreen() {
               t={t}
               imageUri={imageUri}
               setImageUri={setImageUri}
+              ownerId={ownerId}
             />
           )}
-          {step === "lease" && <LeaseInfoCard control={control} t={t} />}
+          {step === "lease" && <LeaseInfoCard control={control} t={t} ownerId={ownerId} />}
         </FormScrollView>
         <View style={styles.fixedButtonBar}>
           {step === "basic" && (

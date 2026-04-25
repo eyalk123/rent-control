@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { TFunction } from 'i18next';
+import { useAppAuth } from '@/src/core/auth/AuthContext';
 import {
   createProperty,
   updateProperty,
@@ -47,6 +48,7 @@ function propertyToFormValues(prop: Property): PropertyFormValues {
     waterMeterTax: prop.water_meter_tax != null ? String(prop.water_meter_tax) : '',
     propertyTax: prop.property_tax != null ? String(prop.property_tax) : '',
     houseCommittee: prop.house_committee != null ? String(prop.house_committee) : '',
+    basicContractUrl: prop.basic_contract_url ?? null,
   };
 }
 
@@ -57,6 +59,7 @@ export function usePropertyForm({
   onSuccess,
 }: UsePropertyFormParams) {
   const isEdit = Boolean(id);
+  const { user } = useAppAuth();
   const [imageUri, setImageUri] = React.useState<string | null>(null);
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
 
@@ -76,6 +79,7 @@ export function usePropertyForm({
       waterMeterTax: '',
       propertyTax: '',
       houseCommittee: '',
+      basicContractUrl: null,
     },
     mode: 'onBlur',
   });
@@ -123,6 +127,7 @@ export function usePropertyForm({
       electricity_meter_number: values.electricityMeterNumber || null,
       property_owner: values.propertyOwner?.trim() || null,
       inventory_notes: values.inventoryNotes?.trim() || null,
+      basic_contract_url: values.basicContractUrl ?? null,
     };
 
     try {
@@ -148,5 +153,6 @@ export function usePropertyForm({
     isFetching,
     imageUri,
     setImageUri,
+    ownerId: user?.uid ?? '',
   };
 }

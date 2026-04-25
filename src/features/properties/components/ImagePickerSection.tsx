@@ -1,23 +1,27 @@
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
-import { Button, useTheme } from 'react-native-paper';
+import { Alert, Image, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Button, useTheme } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
 import type { TFunction } from 'i18next';
+import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 
 type ImagePickerSectionProps = {
   imageUri: string | null;
   setImageUri: (uri: string | null) => void;
   t: TFunction;
+  ownerId: string;
 };
 
-export function ImagePickerSection({ imageUri, setImageUri, t }: ImagePickerSectionProps) {
+export function ImagePickerSection({ imageUri, setImageUri, t, ownerId }: ImagePickerSectionProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const { uploadFile, uploading } = useFirebaseUpload('properties', ownerId);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
+      Alert.alert(t('permission.title'), t('permission.photoLibrary'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -27,13 +31,25 @@ export function ImagePickerSection({ imageUri, setImageUri, t }: ImagePickerSect
       quality: 0.8,
     });
     if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
+      const asset = result.assets[0];
+      const filename = asset.uri.split('/').pop() ?? 'image.jpg';
+      const mimeType = asset.mimeType ?? 'image/jpeg';
+      try {
+        const url = await uploadFile(asset.uri, filename, mimeType);
+        setImageUri(url);
+      } catch {
+        Alert.alert(t('error.title'), t('documents.uploadFailed'));
+      }
     }
   };
 
   return (
     <View style={styles.centerWrap}>
-      {imageUri ? (
+      {uploading ? (
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator size="small" />
+        </View>
+      ) : imageUri ? (
         <View style={styles.imagePreview}>
           <Image
             source={{ uri: imageUri }}
@@ -80,6 +96,13 @@ const styles = StyleSheet.create({
   centerWrap: {
     width: '100%',
     alignItems: 'center',
+  },
+  loadingWrap: {
+    marginBottom: spacing.md,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
   },
   imageButton: {
     marginBottom: spacing.md,

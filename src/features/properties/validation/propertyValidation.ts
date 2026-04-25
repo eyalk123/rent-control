@@ -36,6 +36,7 @@ export const propertyFormSchema = z.object({
   waterMeterTax: optionalNumericString,
   propertyTax: optionalNumericString,
   houseCommittee: optionalNumericString,
+  basicContractUrl: z.string().nullable().optional(),
 });
 
 export type PropertyFormValues = z.infer<typeof propertyFormSchema>;

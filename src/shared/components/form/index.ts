@@ -16,4 +16,5 @@ export { FormCreatableDropdown } from "./FormCreatableDropdown";
 export { FormChipInput } from "./FormChipInput";
 export { FormLeaseYearsField } from "./FormLeaseYearsField";
 export { FormExtraContactsField } from "./FormExtraContactsField";
+export { FormSingleFileField } from "./FormSingleFileField";
 export { FormScrollView } from "./FormScrollView";

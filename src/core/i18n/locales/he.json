@@ -327,6 +327,14 @@
     "deleteConfirmTitle": "למחוק ספק?",
     "deleteConfirmMessage": "פעולה זו תבטל את הספק. תוכל להפעיל אותו מחדש על ידי עריכה."
   },
+  "documents": {
+    "basicContract": "חוזה בסיסי",
+    "fullContract": "חוזה מלא",
+    "upload": "העלאת קובץ",
+    "uploadFromGallery": "העלאה מהגלריה",
+    "uploading": "מעלה...",
+    "uploadFailed": "ההעלאה נכשלה. נסה שוב."
+  },
   "permission": {
     "title": "נדרשות הרשאות",
     "photoLibrary": "אנא אשר גישה לספריית תמונות להעלאה."

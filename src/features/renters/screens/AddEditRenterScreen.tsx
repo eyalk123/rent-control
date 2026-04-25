@@ -31,7 +31,7 @@ export function AddEditRenterScreen() {
   const isEdit = Boolean(id);
   const navigation = useNavigation();
 
-  const { formMethods, onSubmit, isSubmitting, isFetching } = useRenterForm({
+  const { formMethods, onSubmit, isSubmitting, isFetching, ownerId } = useRenterForm({
     id,
     t,
     refreshRenters,
@@ -162,7 +162,7 @@ export function AddEditRenterScreen() {
               onPickExtraContact={handlePickExtraContact}
             />
           )}
-          {step === "lease" && <RenterLeaseInfoCard control={control} t={t} />}
+          {step === "lease" && <RenterLeaseInfoCard control={control} t={t} ownerId={ownerId} />}
         </FormScrollView>
         <View style={styles.fixedButtonBar}>
           {step === "basic" && (

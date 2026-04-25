@@ -19,6 +19,7 @@ type BasicInfoCardProps<TFieldValues extends FieldValues> = {
   t: TFunction;
   imageUri: string | null;
   setImageUri: (uri: string | null) => void;
+  ownerId: string;
 };
 
 function BasicInfoCardInner<TFieldValues extends FieldValues>({
@@ -26,6 +27,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   t,
   imageUri,
   setImageUri,
+  ownerId,
 }: BasicInfoCardProps<TFieldValues>) {
   const rtlPlaceholder = useRtlPlaceholder();
   const { properties } = usePropertyContext();
@@ -119,6 +121,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
         imageUrl={imageUri}
         onChangeImageUrl={setImageUri}
         t={t}
+        ownerId={ownerId}
       />
     </FormSectionCard>
   );
