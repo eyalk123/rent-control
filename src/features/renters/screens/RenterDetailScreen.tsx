@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
 import { IconButton, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getRenterById } from '@/src/features/renters/api/renters';
@@ -33,25 +34,29 @@ export function RenterDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>('info');
 
-  useEffect(() => {
-    async function fetchRenter() {
-      const numericId = Number(id);
-      if (isNaN(numericId)) {
-        setError(t('error.invalidRenterId'));
-        setLoading(false);
-        return;
+  useFocusEffect(
+    useCallback(() => {
+      async function fetchRenter() {
+        const numericId = Number(id);
+        if (isNaN(numericId)) {
+          setError(t('error.invalidRenterId'));
+          setLoading(false);
+          return;
+        }
+        setLoading(true);
+        setError(null);
+        try {
+          const data = await getRenterById(numericId);
+          setRenter(data);
+        } catch (err) {
+          setError(getApiErrorMessage(err, t('error.loadFailed')));
+        } finally {
+          setLoading(false);
+        }
       }
-      try {
-        const data = await getRenterById(numericId);
-        setRenter(data);
-      } catch (err) {
-        setError(getApiErrorMessage(err, t('error.loadFailed')));
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchRenter();
-  }, [id, t]);
+      fetchRenter();
+    }, [id, t])
+  );
 
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

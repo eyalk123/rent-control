@@ -328,12 +328,15 @@
     "deleteConfirmMessage": "This will deactivate the supplier. You can reactivate it later by editing."
   },
   "documents": {
+    "title": "Documents",
     "basicContract": "Basic Contract",
     "fullContract": "Full Contract",
     "upload": "Upload File",
     "uploadFromGallery": "Upload from Gallery",
     "uploading": "Uploading...",
-    "uploadFailed": "Upload failed. Please try again."
+    "uploadFailed": "Upload failed. Please try again.",
+    "landRegistry": "Land Registry Extract",
+    "idImage": "Tenant ID Image"
   },
   "permission": {
     "title": "Permission required",

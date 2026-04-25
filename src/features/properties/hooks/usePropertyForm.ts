@@ -49,6 +49,7 @@ function propertyToFormValues(prop: Property): PropertyFormValues {
     propertyTax: prop.property_tax != null ? String(prop.property_tax) : '',
     houseCommittee: prop.house_committee != null ? String(prop.house_committee) : '',
     basicContractUrl: prop.basic_contract_url ?? null,
+    landRegistryUrl: prop.land_registry_url ?? null,
   };
 }
 
@@ -80,6 +81,7 @@ export function usePropertyForm({
       propertyTax: '',
       houseCommittee: '',
       basicContractUrl: null,
+      landRegistryUrl: null,
     },
     mode: 'onBlur',
   });
@@ -128,6 +130,7 @@ export function usePropertyForm({
       property_owner: values.propertyOwner?.trim() || null,
       inventory_notes: values.inventoryNotes?.trim() || null,
       basic_contract_url: values.basicContractUrl ?? null,
+      land_registry_url: values.landRegistryUrl ?? null,
     };
 
     try {

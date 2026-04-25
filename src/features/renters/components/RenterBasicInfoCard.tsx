@@ -4,7 +4,7 @@ import type { Control, FieldValues } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { spacing } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
-import { FormExtraContactsField } from "@/src/shared/components/form";
+import { FormExtraContactsField, FormSingleFileField } from "@/src/shared/components/form";
 import type { TFunction } from "i18next";
 import {
   FormTextField,
@@ -19,6 +19,7 @@ import { lightColors, darkColors } from "@/src/core/theme";
 type RenterBasicInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   t: TFunction;
+  ownerId: string;
   isEdit?: boolean;
   onPickFromContacts?: () => void;
   onPickExtraContact?: () => Promise<{ name: string; phone: string } | null>;
@@ -27,6 +28,7 @@ type RenterBasicInfoCardProps<TFieldValues extends FieldValues> = {
 function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
+  ownerId,
   isEdit = false,
   onPickFromContacts,
   onPickExtraContact,
@@ -89,6 +91,15 @@ function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
           )}
         />
       </View>
+      <FormSingleFileField
+        control={control}
+        name={"idImageUrl" as any}
+        label={t("documents.idImage")}
+        t={t}
+        entityType="renters"
+        ownerId={ownerId}
+        accept="image"
+      />
       <FormExtraContactsField
         control={control}
         name={"extraContacts" as any}

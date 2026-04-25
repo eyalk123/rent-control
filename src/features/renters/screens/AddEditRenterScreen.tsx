@@ -157,6 +157,7 @@ export function AddEditRenterScreen() {
             <RenterBasicInfoCard
               control={control}
               t={t}
+              ownerId={ownerId}
               isEdit={isEdit}
               onPickFromContacts={handlePickFromContacts}
               onPickExtraContact={handlePickExtraContact}

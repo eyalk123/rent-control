@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
@@ -194,6 +194,49 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
           )}
         </Card.Content>
       </Card>
+
+      {/* Documents card */}
+      {(property.basic_contract_url || property.land_registry_url) && (
+        <Card style={styles.card} mode="outlined">
+          <View style={[styles.sectionHeader, { backgroundColor: colors.secondary }]}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+              {t('documents.title')}
+            </Text>
+          </View>
+          <Card.Content style={styles.cardContent}>
+            {property.basic_contract_url && (
+              <TouchableOpacity
+                style={styles.iconRow}
+                onPress={() => Linking.openURL(property.basic_contract_url!)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.iconRowLeft}>
+                  <MaterialCommunityIcons name="file-document-outline" size={20} color={colors.secondary} />
+                  <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
+                    {t('documents.basicContract')}
+                  </Text>
+                </View>
+                <MaterialCommunityIcons name="open-in-new" size={18} color={colors.secondary} />
+              </TouchableOpacity>
+            )}
+            {property.land_registry_url && (
+              <TouchableOpacity
+                style={styles.iconRow}
+                onPress={() => Linking.openURL(property.land_registry_url!)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.iconRowLeft}>
+                  <MaterialCommunityIcons name="bank-outline" size={20} color={colors.secondary} />
+                  <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
+                    {t('documents.landRegistry')}
+                  </Text>
+                </View>
+                <MaterialCommunityIcons name="open-in-new" size={18} color={colors.secondary} />
+              </TouchableOpacity>
+            )}
+          </Card.Content>
+        </Card>
+      )}
 
       {/* Property Details card */}
       {hasPropertyDetails && (

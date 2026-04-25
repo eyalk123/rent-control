@@ -83,6 +83,15 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
         ownerId={ownerId}
         accept="document"
       />
+      <FormSingleFileField
+        control={control}
+        name={"landRegistryUrl" as any}
+        label={t("documents.landRegistry")}
+        t={t}
+        entityType="properties"
+        ownerId={ownerId}
+        accept="document"
+      />
     </FormSectionCard>
   );
 }

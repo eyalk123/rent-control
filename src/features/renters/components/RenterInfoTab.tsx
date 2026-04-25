@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
@@ -85,6 +85,21 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
         return t("renter.insuranceTypeBankGuarantee");
       default:
         return insuranceType;
+    }
+  };
+
+  const paymentTypeLabel = (paymentType: string) => {
+    switch (paymentType) {
+      case "wire_transfer":
+        return t("renter.paymentTypeWireTransfer");
+      case "cash":
+        return t("renter.paymentTypeCash");
+      case "bit":
+        return t("renter.paymentTypeBit");
+      case "check":
+        return t("transactions.paymentMethodCheck");
+      default:
+        return paymentType;
     }
   };
 
@@ -206,7 +221,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
             <IconDetailRow
               icon="bank-transfer"
               label={t('renter.paymentType')}
-              value={renter.payment_type}
+              value={paymentTypeLabel(renter.payment_type)}
               iconColor={colors.primary}
               secondaryColor={colors.textSecondary}
             />
@@ -222,6 +237,49 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
           )}
         </Card.Content>
       </Card>
+
+      {/* Documents card */}
+      {(renter.full_contract_url || renter.id_image_url) && (
+        <Card style={styles.card} mode="outlined">
+          <View style={[styles.sectionHeader, { backgroundColor: colors.secondary }]}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+              {t('documents.title')}
+            </Text>
+          </View>
+          <Card.Content style={styles.cardContent}>
+            {renter.full_contract_url && (
+              <TouchableOpacity
+                style={styles.iconRow}
+                onPress={() => Linking.openURL(renter.full_contract_url!)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.iconRowLeft}>
+                  <MaterialCommunityIcons name="file-document-outline" size={20} color={colors.secondary} />
+                  <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
+                    {t('documents.fullContract')}
+                  </Text>
+                </View>
+                <MaterialCommunityIcons name="open-in-new" size={18} color={colors.secondary} />
+              </TouchableOpacity>
+            )}
+            {renter.id_image_url && (
+              <TouchableOpacity
+                style={styles.iconRow}
+                onPress={() => Linking.openURL(renter.id_image_url!)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.iconRowLeft}>
+                  <MaterialCommunityIcons name="card-account-details-outline" size={20} color={colors.secondary} />
+                  <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
+                    {t('documents.idImage')}
+                  </Text>
+                </View>
+                <MaterialCommunityIcons name="open-in-new" size={18} color={colors.secondary} />
+              </TouchableOpacity>
+            )}
+          </Card.Content>
+        </Card>
+      )}
 
       {/* Insurance card */}
       {hasInsurance && (

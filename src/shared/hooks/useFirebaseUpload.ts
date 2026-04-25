@@ -13,10 +13,7 @@ export function useFirebaseUpload(entityType: EntityType, ownerId: string) {
       const uuid = Crypto.randomUUID();
       const storagePath = `${entityType}/${ownerId}/${uuid}/${filename}`;
       const ref = storage().ref(storagePath);
-
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      await ref.put(blob, { contentType: mimeType });
+      await ref.putFile(uri, { contentType: mimeType });
       return await ref.getDownloadURL();
     } finally {
       setUploading(false);

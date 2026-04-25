@@ -328,12 +328,15 @@
     "deleteConfirmMessage": "פעולה זו תבטל את הספק. תוכל להפעיל אותו מחדש על ידי עריכה."
   },
   "documents": {
+    "title": "מסמכים",
     "basicContract": "חוזה בסיסי",
     "fullContract": "חוזה מלא",
     "upload": "העלאת קובץ",
     "uploadFromGallery": "העלאה מהגלריה",
     "uploading": "מעלה...",
-    "uploadFailed": "ההעלאה נכשלה. נסה שוב."
+    "uploadFailed": "ההעלאה נכשלה. נסה שוב.",
+    "landRegistry": "נסח טאבו",
+    "idImage": "תמונת תעודת זהות"
   },
   "permission": {
     "title": "נדרשות הרשאות",

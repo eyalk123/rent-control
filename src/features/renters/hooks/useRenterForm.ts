@@ -56,6 +56,7 @@ export function useRenterForm({
       contactId: null,
       extraContacts: [],
       fullContractUrl: null,
+      idImageUrl: null,
     },
     mode: "onBlur",
   });
@@ -113,6 +114,7 @@ export function useRenterForm({
             phone: c.phone ?? "",
           })),
           fullContractUrl: renter.full_contract_url ?? null,
+          idImageUrl: renter.id_image_url ?? null,
         });
       })
       .finally(() => setIsFetching(false));
@@ -162,6 +164,7 @@ export function useRenterForm({
       contact_id: values.contactId ?? undefined,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
       full_contract_url: values.fullContractUrl ?? null,
+      id_image_url: values.idImageUrl ?? null,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseCreate.number_of_payments = numPayments;
@@ -189,6 +192,7 @@ export function useRenterForm({
       lease_years,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
       full_contract_url: values.fullContractUrl ?? null,
+      id_image_url: values.idImageUrl ?? null,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseUpdate.number_of_payments = numPayments;

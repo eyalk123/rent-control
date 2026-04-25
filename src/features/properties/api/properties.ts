@@ -31,6 +31,7 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
     property_owner,
     inventory_notes,
     basic_contract_url,
+    land_registry_url,
   } = data;
   const out: PropertyCreate = {
     address,
@@ -49,6 +50,7 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
   if (property_owner !== undefined) out.property_owner = property_owner;
   if (inventory_notes !== undefined) out.inventory_notes = inventory_notes;
   if (basic_contract_url !== undefined) out.basic_contract_url = basic_contract_url;
+  if (land_registry_url !== undefined) out.land_registry_url = land_registry_url;
   return out;
 }
 
@@ -69,6 +71,7 @@ function sanitizePropertyUpdate(data: PropertyUpdate): Record<string, unknown> {
     'property_owner',
     'inventory_notes',
     'basic_contract_url',
+    'land_registry_url',
   ];
   const out: Record<string, unknown> = {};
   for (const key of allowed) {

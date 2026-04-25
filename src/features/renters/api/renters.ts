@@ -30,6 +30,7 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     insurance_amount,
     contact_id,
     full_contract_url,
+    id_image_url,
   } = data;
   const out: RenterCreate = {
     property_id: property_id ?? null,
@@ -47,6 +48,7 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
   if (insurance_amount !== undefined) out.insurance_amount = insurance_amount;
   if (contact_id !== undefined) out.contact_id = contact_id ?? null;
   if (full_contract_url !== undefined) out.full_contract_url = full_contract_url;
+  if (id_image_url !== undefined) out.id_image_url = id_image_url;
   return out;
 }
 
@@ -66,6 +68,7 @@ function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
     'insurance_amount',
     'contact_id',
     'full_contract_url',
+    'id_image_url',
   ];
   const out: Record<string, unknown> = {};
   for (const key of allowed) {
