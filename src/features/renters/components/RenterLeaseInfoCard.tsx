@@ -78,15 +78,6 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
       </View>
 
       <View style={styles.inputWrap}>
-        <FormNumericField
-          control={control}
-          name={"insuranceAmount" as any}
-          label={t("renter.insuranceAmount")}
-          keyboardType="decimal-pad"
-        />
-      </View>
-
-      <View style={styles.inputWrap}>
         <FormDropdownOptions
           control={control}
           name={"insuranceType" as any}
@@ -101,6 +92,15 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
               label: t("renter.insuranceTypeBankGuarantee"),
             },
           ]}
+        />
+      </View>
+
+      <View style={styles.inputWrap}>
+        <FormNumericField
+          control={control}
+          name={"insuranceAmount" as any}
+          label={t("renter.insuranceAmount")}
+          keyboardType="decimal-pad"
         />
       </View>
 

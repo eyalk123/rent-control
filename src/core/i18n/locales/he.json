@@ -88,6 +88,8 @@
       "renters": "דיירים",
       "transactions": "תנועות"
     },
+    "inventoryNotes": "הערות ופירוט חפצים בדירה",
+    "inventoryNotesPlaceholder": "ריהוט, מכשירים, חפצים...",
     "noTransactions": "אין תנועות לנכס זה"
   },
   "renter": {
@@ -119,10 +121,10 @@
     "frequencyMonthly": "חודשי",
     "frequencyQuarterly": "רבעוני",
     "frequencyYearly": "שנתי",
-    "insuranceType": "סוג ביטוח",
+    "insuranceType": "סוג בטחונות",
     "insuranceTypeWireTransfer": "העברה בנקאית",
     "insuranceTypeBankGuarantee": "ערבות בנקאית",
-    "insuranceAmount": "סכום ביטוח",
+    "insuranceAmount": "סכום הביטחון",
     "leaseStartPlaceholder": "למשל 2024-01-01",
     "property": "נכס",
     "propertyOptional": "נכס (אופציונלי)",
@@ -192,7 +194,9 @@
     "tryAgain": "נסה שוב",
     "create": "צור",
     "add": "הוסף",
-    "selectItem": "בחר פריט"
+    "selectItem": "בחר פריט",
+    "showMore": "הצג עוד",
+    "showLess": "הצג פחות"
   },
   "validation": {
     "title": "אימות",

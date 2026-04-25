@@ -1,57 +1,23 @@
 import React from 'react';
 import {
-  getTransactions,
   type TransactionsListParams,
   getExpenseCategories,
 } from '@/src/features/transactions/api/transactions';
 import { getSuppliers } from '@/src/features/suppliers/api/suppliers';
-import type { ExpenseCategory, Supplier, Transaction } from '@/src/shared/types';
+import type { ExpenseCategory, Supplier } from '@/src/shared/types';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { useTranslation } from 'react-i18next';
+import { useTransactionContext } from '@/src/features/transactions/context/TransactionContext';
 
-export function useTransactionsList(params: TransactionsListParams = {}) {
-  const { t } = useTranslation();
-  const [transactions, setTransactions] = React.useState<Transaction[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(true);
+export function useTransactionsList(_params: TransactionsListParams = {}) {
+  const { transactions, loading, error, refreshTransactions: contextRefresh } = useTransactionContext();
   const [refreshing, setRefreshing] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<string | null>(null);
 
-  const type = params.type;
-  const propertyId = params.propertyId;
-  const renterId = params.renterId;
-  const search = params.search;
-
-  const load = React.useCallback(
-    async (forRefresh = false) => {
-      if (forRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
-      try {
-        const data = await getTransactions({ type, propertyId, renterId, search });
-        setTransactions(data);
-      } catch (err) {
-        setError(getApiErrorMessage(err, t('error.loadFailed')));
-        setTransactions([]);
-      } finally {
-        if (forRefresh) {
-          setRefreshing(false);
-        } else {
-          setLoading(false);
-        }
-      }
-    },
-    [type, propertyId, renterId, search, t],
-  );
-
-  const refreshTransactions = React.useCallback(() => load(true), [load]);
-  const retryLoad = React.useCallback(() => load(false), [load]);
-
-  React.useEffect(() => {
-    load(false);
-  }, [load]);
+  const refreshTransactions = React.useCallback(async () => {
+    setRefreshing(true);
+    await contextRefresh();
+    setRefreshing(false);
+  }, [contextRefresh]);
 
   return {
     transactions,
@@ -59,7 +25,7 @@ export function useTransactionsList(params: TransactionsListParams = {}) {
     refreshing,
     error,
     refreshTransactions,
-    retryLoad,
+    retryLoad: contextRefresh,
   };
 }
 

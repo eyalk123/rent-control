@@ -5,6 +5,7 @@ import {
   useThemeContext,
   PropertyProvider,
   RenterProvider,
+  TransactionProvider,
 } from "@/src/context";
 import { AuthProvider } from "@/src/core/auth/AuthContext";
 import "@/src/core/i18n";
@@ -62,9 +63,11 @@ function AppContent() {
         <StatusBar style={theme.dark ? "light" : "dark"} />
         <PropertyProvider>
           <RenterProvider>
-            <LanguageProvider>
-              <DirectionalContent />
-            </LanguageProvider>
+            <TransactionProvider>
+              <LanguageProvider>
+                <DirectionalContent />
+              </LanguageProvider>
+            </TransactionProvider>
           </RenterProvider>
         </PropertyProvider>
       </NavigationThemeProvider>

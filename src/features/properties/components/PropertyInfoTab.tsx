@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
@@ -75,6 +75,43 @@ function IconDetailRow({
   );
 }
 
+function ExpandableNotesRow({
+  label,
+  value,
+  iconColor,
+  secondaryColor,
+}: {
+  label: string;
+  value: string;
+  iconColor: string;
+  secondaryColor: string;
+}) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = React.useState(false);
+  return (
+    <View style={styles.notesRow}>
+      <View style={styles.iconRowLeft}>
+        <MaterialCommunityIcons name="note-text" size={20} color={iconColor} />
+        <Text variant="bodyMedium" style={{ color: secondaryColor }}>
+          {label}
+        </Text>
+      </View>
+      <Text
+        variant="bodyMedium"
+        numberOfLines={expanded ? undefined : 2}
+        style={styles.notesText}
+      >
+        {value}
+      </Text>
+      <TouchableOpacity onPress={() => setExpanded((v) => !v)}>
+        <Text variant="labelSmall" style={[styles.notesToggle, { color: iconColor }]}>
+          {expanded ? t('common.showLess') : t('common.showMore')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -90,7 +127,8 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
     (property.electricity_meter_number != null && property.electricity_meter_number !== '') ||
     property.water_meter_tax != null ||
     property.property_tax != null ||
-    property.house_committee != null;
+    property.house_committee != null ||
+    (property.inventory_notes != null && property.inventory_notes !== '');
 
   return (
     <ScrollView
@@ -211,6 +249,14 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
                 secondaryColor={colors.textSecondary}
               />
             )}
+            {property.inventory_notes != null && property.inventory_notes !== '' && (
+              <ExpandableNotesRow
+                label={t('property.inventoryNotes')}
+                value={property.inventory_notes}
+                iconColor={colors.sectionAccent}
+                secondaryColor={colors.textSecondary}
+              />
+            )}
           </Card.Content>
         </Card>
       )}
@@ -271,5 +317,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'right',
     flexShrink: 0,
+  },
+  notesRow: {
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+  },
+  notesText: {
+    flexShrink: 1,
+  },
+  notesToggle: {
+    fontWeight: '600',
+    alignSelf: 'flex-end',
   },
 });

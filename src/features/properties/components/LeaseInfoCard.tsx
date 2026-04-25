@@ -42,6 +42,13 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
         name={"numberOfRooms" as any}
         label={t("property.numberOfRooms")}
       />
+      <FormInput
+        control={control}
+        name={"inventoryNotes" as any}
+        label={t("property.inventoryNotes")}
+        placeholder={rtlPlaceholder(t("property.inventoryNotesPlaceholder"))}
+        multiline
+      />
       <FormChipInput
         control={control}
         name={"parkingNumbersStr" as any}

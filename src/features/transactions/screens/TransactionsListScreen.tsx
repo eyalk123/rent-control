@@ -45,17 +45,6 @@ export function TransactionsListScreen() {
     return m;
   }, [properties]);
 
-  const isFirstFocus = React.useRef(true);
-  useFocusEffect(
-    React.useCallback(() => {
-      if (isFirstFocus.current) {
-        isFirstFocus.current = false;
-        return;
-      }
-      refreshTransactions();
-    }, [refreshTransactions]),
-  );
-
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
   const [isSelectMode, setIsSelectMode] = useState(false);

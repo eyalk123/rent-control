@@ -26,6 +26,7 @@ export interface Property {
   property_tax?: number | null;
   house_committee?: number | null;
   property_owner?: string | null;
+  inventory_notes?: string | null;
   renters: Renter[] | null;
   /** Enriched on list when renters are fetched; used for occupancy display */
   hasRenters?: boolean;
@@ -195,6 +196,7 @@ export interface PropertyCreate {
   property_tax?: number | null;
   house_committee?: number | null;
   property_owner?: string | null;
+  inventory_notes?: string | null;
 }
 
 // Update payload (PATCH /properties/{id}) - all fields optional
@@ -212,6 +214,7 @@ export interface PropertyUpdate {
   property_tax?: number | null;
   house_committee?: number | null;
   property_owner?: string | null;
+  inventory_notes?: string | null;
 }
 
 // Create payload (POST /renters)

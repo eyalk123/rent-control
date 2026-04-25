@@ -42,6 +42,7 @@ function propertyToFormValues(prop: Property): PropertyFormValues {
         ? prop.parking_numbers.join(', ')
         : '',
     propertyOwner: prop.property_owner ?? '',
+    inventoryNotes: prop.inventory_notes ?? '',
     electricityMeterNumber: prop.electricity_meter_number ?? '',
     waterMeterTax: prop.water_meter_tax != null ? String(prop.water_meter_tax) : '',
     propertyTax: prop.property_tax != null ? String(prop.property_tax) : '',
@@ -70,6 +71,7 @@ export function usePropertyForm({
       numberOfRooms: '',
       parkingNumbersStr: '',
       propertyOwner: '',
+      inventoryNotes: '',
       electricityMeterNumber: '',
       waterMeterTax: '',
       propertyTax: '',
@@ -120,6 +122,7 @@ export function usePropertyForm({
               .filter(Boolean),
       electricity_meter_number: values.electricityMeterNumber || null,
       property_owner: values.propertyOwner?.trim() || null,
+      inventory_notes: values.inventoryNotes?.trim() || null,
     };
 
     try {

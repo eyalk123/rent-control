@@ -88,6 +88,8 @@
       "renters": "Renters",
       "transactions": "Transactions"
     },
+    "inventoryNotes": "Apartment Notes",
+    "inventoryNotesPlaceholder": "Furniture, appliances, items...",
     "noTransactions": "No transactions for this property"
   },
   "renter": {
@@ -192,7 +194,9 @@
     "tryAgain": "Try Again",
     "create": "Create",
     "add": "Add",
-    "selectItem": "Select item"
+    "selectItem": "Select item",
+    "showMore": "Show more",
+    "showLess": "Show less"
   },
   "validation": {
     "title": "Validation",

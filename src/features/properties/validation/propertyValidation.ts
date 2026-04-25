@@ -31,6 +31,7 @@ export const propertyFormSchema = z.object({
   numberOfRooms: optionalNumericString,
   parkingNumbersStr: z.string().transform((val) => val ?? ''),
   propertyOwner: z.string().transform((val) => val.trim()),
+  inventoryNotes: z.string().transform((val) => val ?? ''),
   electricityMeterNumber: z.string().transform((val) => val.trim()),
   waterMeterTax: optionalNumericString,
   propertyTax: optionalNumericString,
