@@ -20,6 +20,7 @@ import {
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
+import { useRtlInputStyle, useRtlPlaceholder } from '@/src/core/context';
 
 type Step = 'login' | 'register';
 
@@ -116,6 +117,9 @@ export default function SignInScreen() {
     }
   }
 
+  const rtlInputStyle = useRtlInputStyle();
+  const rtlPlaceholder = useRtlPlaceholder();
+
   const isDark = theme.dark;
   const isLogin = step === 'login';
 
@@ -165,7 +169,7 @@ export default function SignInScreen() {
 
           <TextInput
             mode="outlined"
-            label={t('auth.email')}
+            label={rtlPlaceholder(t('auth.email'))}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -173,11 +177,12 @@ export default function SignInScreen() {
             autoComplete="email"
             returnKeyType="next"
             style={styles.input}
+            contentStyle={rtlInputStyle}
           />
 
           <TextInput
             mode="outlined"
-            label={t('auth.password')}
+            label={rtlPlaceholder(t('auth.password'))}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -185,6 +190,7 @@ export default function SignInScreen() {
             returnKeyType="done"
             onSubmitEditing={isLogin ? signIn : register}
             style={styles.input}
+            contentStyle={rtlInputStyle}
           />
 
           {error ? (

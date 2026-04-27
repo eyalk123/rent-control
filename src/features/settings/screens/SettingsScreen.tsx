@@ -7,6 +7,7 @@ import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
 import { spacing } from '@/src/core/theme';
+import { AccountPreviewCard } from '../components/AccountPreviewCard';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
@@ -19,7 +20,8 @@ export function SettingsScreen() {
   return (
     <ScreenContainer>
       <ScrollView style={styles.container}>
-        
+        <AccountPreviewCard />
+
         {/* 2. Move the Theme title OUTSIDE of LtrSection so it respects the global RTL layout */}
         <Text
           variant="titleMedium"

@@ -1,12 +1,10 @@
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Text, useTheme } from 'react-native-paper';
-import { useLanguageContext } from '@/src/context';
+import { useTheme } from 'react-native-paper';
 
 export default function SettingsLayout() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { isRtl } = useLanguageContext();
 
   return (
     <Stack
@@ -19,21 +17,7 @@ export default function SettingsLayout() {
     >
       <Stack.Screen
         name="index"
-        options={{
-          headerTitle: () => (
-            <Text
-              variant="titleLarge"
-              style={{
-                fontWeight: 'bold',
-                color: theme.colors.onSurface,
-                textAlign: isRtl ? 'right' : 'left',
-                width: '100%',
-              }}
-            >
-              {t('settings.title')}
-            </Text>
-          ),
-        }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="suppliers/index"
