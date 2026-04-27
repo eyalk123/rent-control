@@ -18,7 +18,7 @@
       "package": "com.eyalk123.rentcontrol",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/rent-control-icon-android-foreground.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#F1E8D6"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
