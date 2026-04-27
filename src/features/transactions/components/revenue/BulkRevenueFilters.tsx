@@ -77,6 +77,7 @@ export function BulkRevenueFilters({
       styles.dropdownText,
       { color: colors.placeholder, textAlign: isRtl ? ('right' as const) : ('left' as const) },
     ],
+    activeColor: colors.inputFilledBackground,
     renderRightIcon: isRtl ? () => null : undefined,
     renderLeftIcon: isRtl
       ? () => (
