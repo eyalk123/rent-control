@@ -1,16 +1,7 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
 import type { Property } from '@/src/shared/types';
 import { getProperties } from '@/src/features/properties/api/properties';
 import { getRenters } from '@/src/features/renters/api/renters';
-import { getApiErrorMessage } from '@/src/core/api/client';
-import { useAppAuth } from '@/src/core/auth/AuthContext';
-import { useTranslation } from 'react-i18next';
+import { createDataContext } from '@/src/core/context/createDataContext';
 
 export interface PropertyContextType {
   properties: Property[];
@@ -19,62 +10,27 @@ export interface PropertyContextType {
   refreshProperties: () => Promise<void>;
 }
 
-const PropertyContext = createContext<PropertyContextType | undefined>(
-  undefined
-);
-
-export function PropertyProvider({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn } = useAppAuth();
-  const { t } = useTranslation();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refreshProperties = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const propertiesData = await getProperties();
-      let rentersData: { property_id: number | null }[] = [];
-      try {
-        rentersData = await getRenters();
-      } catch (e) {
-        console.warn('[PropertyContext] Failed to fetch renters for occupancy:', e);
-      }
-      const enriched = propertiesData.map((p) => ({
-        ...p,
-        hasRenters: rentersData.some((r) => r.property_id === p.id),
-      }));
-      setProperties(enriched);
-    } catch (err) {
-      setError(
-        getApiErrorMessage(err, t('error.loadFailed'))
-      );
-      setProperties([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      refreshProperties();
-    }
-  }, [isLoaded, isSignedIn, refreshProperties]);
-
-  return (
-    <PropertyContext.Provider
-      value={{ properties, loading, error, refreshProperties }}
-    >
-      {children}
-    </PropertyContext.Provider>
-  );
+async function fetchEnrichedProperties(): Promise<Property[]> {
+  const [propertiesResult, rentersResult] = await Promise.allSettled([
+    getProperties(),
+    getRenters(),
+  ]);
+  if (propertiesResult.status === 'rejected') throw propertiesResult.reason;
+  const renters = rentersResult.status === 'fulfilled' ? rentersResult.value : [];
+  return propertiesResult.value.map((p) => ({
+    ...p,
+    hasRenters: renters.some((r) => r.property_id === p.id),
+  }));
 }
 
+const { Provider: PropertyProvider, useData } = createDataContext<Property>(
+  fetchEnrichedProperties,
+  'Property',
+);
+
+export { PropertyProvider };
+
 export function usePropertyContext(): PropertyContextType {
-  const context = useContext(PropertyContext);
-  if (context === undefined) {
-    throw new Error('usePropertyContext must be used within a PropertyProvider');
-  }
-  return context;
+  const { data, loading, error, refresh } = useData();
+  return { properties: data, loading, error, refreshProperties: refresh };
 }

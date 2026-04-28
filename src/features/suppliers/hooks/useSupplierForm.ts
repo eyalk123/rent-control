@@ -30,6 +30,7 @@ export function useSupplierForm({
 }: UseSupplierFormParams) {
   const isEdit = Boolean(id);
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
+  const [fetchError, setFetchError] = React.useState<string | null>(null);
 
   const formMethods = useForm<SupplierFormValues>({
     resolver: zodResolver(supplierFormSchema) as Resolver<SupplierFormValues>,
@@ -66,8 +67,8 @@ export function useSupplierForm({
           categoryIds: supplier.category_ids ?? [],
         });
       })
-      .catch(() => {
-        setIsFetching(false);
+      .catch((err) => {
+        setFetchError(getApiErrorMessage(err, t('error.loadFailed')));
       })
       .finally(() => {
         setIsFetching(false);
@@ -115,5 +116,6 @@ export function useSupplierForm({
     onSubmit: submit,
     isSubmitting: formState.isSubmitting,
     isFetching,
+    fetchError,
   };
 }

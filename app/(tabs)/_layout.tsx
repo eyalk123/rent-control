@@ -23,7 +23,7 @@ export default function TabLayout() {
   const { isSignedIn, isLoaded } = useAppAuth();
 
   if (!isLoaded) return null;
-  if (!isSignedIn) return <Redirect href={'/(auth)/sign-in' as any} />;
+  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
 
   return (
     <Tabs

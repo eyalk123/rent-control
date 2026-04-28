@@ -20,7 +20,10 @@ import {
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRtlInputStyle, useRtlPlaceholder } from '@/src/core/context';
+import { loginSchema, type LoginFormValues } from '@/src/core/auth/authFormSchema';
 
 type Step = 'login' | 'register';
 
@@ -31,12 +34,16 @@ export default function SignInScreen() {
   const { t } = useTranslation();
 
   const [step, setStep] = useState<Step>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [resetSent, setResetSent] = useState(false);
+
+  const { control, handleSubmit, getValues, formState: { errors } } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+    mode: 'onBlur',
+  });
 
   function firebaseErrorMessage(err: any): string {
     const code: string = err?.code ?? '';
@@ -50,6 +57,7 @@ export default function SignInScreen() {
   }
 
   async function forgotPassword() {
+    const email = getValues('email');
     if (!email.trim()) {
       setError(t('auth.enterEmailFirst'));
       return;
@@ -66,51 +74,44 @@ export default function SignInScreen() {
     }
   }
 
-  async function signIn() {
-    if (!email.trim() || !password.trim()) return;
+  const signIn = handleSubmit(async ({ email, password }) => {
     setError('');
     setLoading(true);
     try {
       await signInWithEmailAndPassword(getAuth(), email.trim(), password);
-      router.replace('/(tabs)/properties' as any);
+      router.replace('/(tabs)/properties');
     } catch (err: any) {
       setError(firebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }
-  }
+  });
 
-  async function register() {
-    if (!email.trim() || !password.trim()) return;
+  const register = handleSubmit(async ({ email, password }) => {
     setError('');
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(getAuth(), email.trim(), password);
-      router.replace('/(tabs)/properties' as any);
+      router.replace('/(tabs)/properties');
     } catch (err: any) {
       setError(firebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }
-  }
+  });
 
   async function signInWithGoogle() {
     setError('');
     setGoogleLoading(true);
     try {
       await GoogleSignin.hasPlayServices();
-      console.log('[Google] hasPlayServices ok');
       const signInResult = await GoogleSignin.signIn();
-      console.log('[Google] signIn type:', signInResult.type);
       if (signInResult.type === 'cancelled') return;
       const { idToken } = await GoogleSignin.getTokens();
-      console.log('[Google] idToken:', idToken ? 'present' : 'null');
       const googleCredential = GoogleAuthProvider.credential(idToken);
-      const result = await signInWithCredential(getAuth(), googleCredential);
-      console.log('[Google] signInWithCredential ok, uid:', result.user.uid);
-      router.replace('/(tabs)/properties' as any);
+      await signInWithCredential(getAuth(), googleCredential);
+      router.replace('/(tabs)/properties');
     } catch (err: any) {
-      console.log('[Google] error:', err?.code, err?.message);
       setError(firebaseErrorMessage(err));
     } finally {
       setGoogleLoading(false);
@@ -167,30 +168,60 @@ export default function SignInScreen() {
             <Divider style={styles.dividerLine} />
           </View>
 
-          <TextInput
-            mode="outlined"
-            label={rtlPlaceholder(t('auth.email'))}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            returnKeyType="next"
-            style={styles.input}
-            contentStyle={rtlInputStyle}
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { value, onChange, onBlur } }) => (
+              <>
+                <TextInput
+                  mode="outlined"
+                  label={rtlPlaceholder(t('auth.email'))}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  returnKeyType="next"
+                  style={styles.input}
+                  contentStyle={rtlInputStyle}
+                  error={!!errors.email}
+                />
+                {errors.email ? (
+                  <Text variant="bodySmall" style={[styles.fieldError, { color: colors.error }]}>
+                    {errors.email.message}
+                  </Text>
+                ) : null}
+              </>
+            )}
           />
 
-          <TextInput
-            mode="outlined"
-            label={rtlPlaceholder(t('auth.password'))}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete={isLogin ? 'current-password' : 'new-password'}
-            returnKeyType="done"
-            onSubmitEditing={isLogin ? signIn : register}
-            style={styles.input}
-            contentStyle={rtlInputStyle}
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { value, onChange, onBlur } }) => (
+              <>
+                <TextInput
+                  mode="outlined"
+                  label={rtlPlaceholder(t('auth.password'))}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  secureTextEntry
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
+                  returnKeyType="done"
+                  onSubmitEditing={isLogin ? signIn : register}
+                  style={styles.input}
+                  contentStyle={rtlInputStyle}
+                  error={!!errors.password}
+                />
+                {errors.password ? (
+                  <Text variant="bodySmall" style={[styles.fieldError, { color: colors.error }]}>
+                    {errors.password.message}
+                  </Text>
+                ) : null}
+              </>
+            )}
           />
 
           {error ? (
@@ -209,7 +240,7 @@ export default function SignInScreen() {
             mode="contained"
             onPress={isLogin ? signIn : register}
             loading={loading}
-            disabled={loading || !email.trim() || !password.trim()}
+            disabled={loading}
             style={styles.submitBtn}
             contentStyle={styles.submitBtnContent}
           >
@@ -298,6 +329,10 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 2,
+  },
+  fieldError: {
+    marginTop: -8,
+    marginBottom: 4,
   },
   error: {
     marginTop: -4,

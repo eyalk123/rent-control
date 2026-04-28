@@ -1,15 +1,6 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
 import type { Renter } from '@/src/shared/types';
 import { getRenters } from '@/src/features/renters/api/renters';
-import { getApiErrorMessage } from '@/src/core/api/client';
-import { useAppAuth } from '@/src/core/auth/AuthContext';
-import { useTranslation } from 'react-i18next';
+import { createDataContext } from '@/src/core/context/createDataContext';
 
 export interface RenterContextType {
   renters: Renter[];
@@ -18,48 +9,11 @@ export interface RenterContextType {
   refreshRenters: () => Promise<void>;
 }
 
-const RenterContext = createContext<RenterContextType | undefined>(undefined);
+const { Provider: RenterProvider, useData } = createDataContext<Renter>(getRenters, 'Renter');
 
-export function RenterProvider({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn } = useAppAuth();
-  const { t } = useTranslation();
-  const [renters, setRenters] = useState<Renter[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refreshRenters = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getRenters();
-      setRenters(data);
-    } catch (err) {
-      setError(getApiErrorMessage(err, t('error.loadFailed')));
-      setRenters([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      refreshRenters();
-    }
-  }, [isLoaded, isSignedIn, refreshRenters]);
-
-  return (
-    <RenterContext.Provider
-      value={{ renters, loading, error, refreshRenters }}
-    >
-      {children}
-    </RenterContext.Provider>
-  );
-}
+export { RenterProvider };
 
 export function useRenterContext(): RenterContextType {
-  const context = useContext(RenterContext);
-  if (context === undefined) {
-    throw new Error('useRenterContext must be used within a RenterProvider');
-  }
-  return context;
+  const { data, loading, error, refresh } = useData();
+  return { renters: data, loading, error, refreshRenters: refresh };
 }

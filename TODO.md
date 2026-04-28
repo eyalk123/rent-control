@@ -4,31 +4,6 @@ Ordered by importance: critical issues first, polish last.
 
 ---
 
-## CRITICAL
-
-### 1. Fix pervasive `as any` type casts in routing
-Every route push/redirect uses `as any` to bypass Expo Router's strict types.
-- `app/(tabs)/_layout.tsx`, `app/index.tsx`, `app/(tabs)/properties/_layout.tsx`, `app/(tabs)/properties/[id].tsx`, `app/(auth)/sign-in.tsx`
-- Fix: generate Expo Router typed routes (`npx expo customize tsconfig.json`) and remove all `as any` casts on `href` props and `router.push/replace` calls.
-
-### 2. Extract a generic context factory — stop duplicating async state logic
-`PropertyContext.tsx`, `RenterContext.tsx`, `TransactionContext.tsx` are ~80% identical (loading, error, refresh, useEffect on `isSignedIn`).
-- Fix: create `src/core/context/createDataContext.ts` factory that takes a fetcher and returns `{data, loading, error, refresh}`. Each feature wraps it with its own type.
-
-### 3. Move all manual validation in `AddTransactionScreen` into Zod schema
-`src/features/transactions/screens/AddTransactionScreen.tsx` manually checks `propertyIds.length === 0`, `amount`, `category`, etc. after submission instead of at the schema level.
-- Fix: add `propertyIds: z.array(z.string()).min(1)` and required `amount`/`category` to the Zod schemas in `src/features/transactions/schemas/`.
-
-### 4. Form in `sign-in.tsx` uses manual state — convert to React Hook Form + Zod
-`app/(auth)/sign-in.tsx` uses `useState` for email/password with manual `trim()` checks, while the rest of the app uses RHF + Zod.
-- Fix: extract `LoginForm` and `RegisterForm` components using RHF; add Zod schema with email format and min-length password validation.
-
-### 5. Silent catch blocks — set error state
-`src/features/suppliers/hooks/useSupplierForm.ts:69-70` catches fetch errors and clears loading without setting an error message. User sees blank state with no explanation.
-- Fix: every `catch` must call `setError(getDetailMessage(e))` or similar before clearing loading.
-
----
-
 ## HIGH PRIORITY
 
 ### 6. Break up God screens

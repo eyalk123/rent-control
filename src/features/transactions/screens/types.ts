@@ -14,13 +14,4 @@ export type RevenueFormValues = {
   notes: string;
 };
 
-export type ExpenseFormValues = {
-  propertyIds: number[];
-  renterId: number | null;
-  amount: string;
-  dateOfPayment: string;
-  paymentMethod: PaymentMethod | '';
-  categoryId: number | null;
-  supplierId: number | null;
-  notes: string;
-};
+export type { ExpenseFormValues } from '@/src/features/transactions/schemas/expenseFormSchema';

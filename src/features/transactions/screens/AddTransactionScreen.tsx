@@ -5,7 +5,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { Button, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +26,7 @@ import {
   type ExpenseFormValues,
   type TransactionMode,
 } from '@/src/features/transactions/screens/types';
+import { expenseFormSchema } from '@/src/features/transactions/schemas/expenseFormSchema';
 import { TransactionChooseStep } from '@/src/features/transactions/components/shared/TransactionChooseStep';
 import { BulkRevenueForm } from '@/src/features/transactions/components/revenue/BulkRevenueForm';
 import { ExpenseForm } from '@/src/features/transactions/components/expense/ExpenseForm';
@@ -46,6 +48,7 @@ export function AddTransactionScreen() {
   const allowRemoveRef = React.useRef(false);
 
   const expenseForm = useForm<ExpenseFormValues>({
+    resolver: zodResolver(expenseFormSchema) as Resolver<ExpenseFormValues>,
     defaultValues: {
       propertyIds: [],
       renterId: null,
@@ -96,43 +99,13 @@ export function AddTransactionScreen() {
   };
 
   const submitExpense = expenseForm.handleSubmit(async (values) => {
-    if (values.propertyIds.length === 0) {
-      Alert.alert(t('validation.title'), t('validation.propertyRequired', { defaultValue: 'Property is required.' }));
-      return;
-    }
-    if (!values.amount || Number.isNaN(Number(values.amount))) {
-      Alert.alert(t('validation.title'), t('validation.amountRequired', { defaultValue: 'Valid amount is required.' }));
-      return;
-    }
-    if (!values.dateOfPayment) {
-      Alert.alert(
-        t('validation.title'),
-        t('validation.dateRequired', { defaultValue: 'Date of payment is required.' }),
-      );
-      return;
-    }
-    if (!values.paymentMethod) {
-      Alert.alert(
-        t('validation.title'),
-        t('validation.paymentMethodRequired', { defaultValue: 'Payment method is required.' }),
-      );
-      return;
-    }
-    if (!values.categoryId) {
-      Alert.alert(
-        t('validation.title'),
-        t('validation.categoryRequired', { defaultValue: 'Category is required.' }),
-      );
-      return;
-    }
-
     const totalAmount = Number(values.amount);
     const perPropertyAmount = Math.round((totalAmount / values.propertyIds.length) * 100) / 100;
 
     setSubmitting(true);
     try {
       await Promise.all(
-        values.propertyIds.map((propertyId) =>
+        values.propertyIds.map((propertyId: number) =>
           createExpenseTransaction({
             property_id: propertyId,
             renter_id: values.propertyIds.length === 1 ? (values.renterId ?? undefined) : undefined,
@@ -200,6 +173,7 @@ export function AddTransactionScreen() {
         {mode === 'expense' && (
           <ExpenseForm
             control={expenseForm.control}
+            errors={expenseForm.formState.errors}
             propertyIds={expenseForm.watch('propertyIds')}
             categoryId={expenseForm.watch('categoryId')}
             setValue={expenseForm.setValue}

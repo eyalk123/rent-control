@@ -10,6 +10,7 @@ interface ExpenseCategoryPickerProps {
   onChange: (id: number | null) => void;
   label?: string;
   inputStyle?: StyleProp<ViewStyle>;
+  error?: { message?: string };
 }
 
 export function ExpenseCategoryPicker({
@@ -17,6 +18,7 @@ export function ExpenseCategoryPicker({
   onChange,
   label,
   inputStyle,
+  error,
 }: ExpenseCategoryPickerProps) {
   const { t } = useTranslation();
   const { categories } = useExpenseCategories();
@@ -37,6 +39,7 @@ export function ExpenseCategoryPicker({
       onChange={onChange}
       label={label ?? t('transactions.category', { defaultValue: 'Category' })}
       inputStyle={inputStyle}
+      error={error}
     />
   );
 }

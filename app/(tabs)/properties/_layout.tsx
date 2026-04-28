@@ -10,7 +10,7 @@ function PropertyDetailHeaderRight() {
   const { id } = useLocalSearchParams<{ id: string }>();
   return (
     <TouchableOpacity
-      onPress={() => id && router.push(`/properties/edit/${id}` as any)}
+      onPress={() => id && router.push(`/properties/edit/${id}`)}
       style={{ padding: 8, marginRight: 4 }}
     >
       <MaterialCommunityIcons name="pencil" size={22} color="#FFF" />

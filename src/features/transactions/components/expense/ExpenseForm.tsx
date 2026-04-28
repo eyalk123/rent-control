@@ -8,7 +8,7 @@ import {
   FormWheelDateField,
 } from '@/src/shared/components/form';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
-import { Controller, type Control, type UseFormSetValue } from 'react-hook-form';
+import { Controller, type Control, type UseFormSetValue, type FieldErrors } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { usePropertyContext } from '@/src/context';
 import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
@@ -16,10 +16,12 @@ import { ExpenseCategoryPicker } from '@/src/features/transactions/components/ex
 import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
 
 import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
+import type { PaymentMethod } from '@/src/shared/types';
 import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
 
 type ExpenseFormProps = {
   control: Control<ExpenseFormValues>;
+  errors?: FieldErrors<ExpenseFormValues>;
   propertyIds: number[];
   categoryId: number | null;
   setValue: UseFormSetValue<ExpenseFormValues>;
@@ -28,6 +30,7 @@ type ExpenseFormProps = {
 
 export function ExpenseForm({
   control,
+  errors,
   propertyIds,
   categoryId,
   setValue,
@@ -65,6 +68,7 @@ export function ExpenseForm({
               value={value}
               onChange={onChange}
               label={t('transactions.property', { defaultValue: 'Property' })}
+              error={errors?.propertyIds}
             />
           )}
         />
@@ -97,7 +101,7 @@ export function ExpenseForm({
           control={control}
           name="paymentMethod"
           render={({ field: { value, onChange } }) => (
-            <PaymentMethodRadios value={value} onChange={onChange} />
+            <PaymentMethodRadios value={value as PaymentMethod | ''} onChange={onChange} />
           )}
         />
         <Controller
@@ -111,6 +115,7 @@ export function ExpenseForm({
                 setValue('supplierId', null);
               }}
               label={t('transactions.category', { defaultValue: 'Category' })}
+              error={errors?.categoryId}
             />
           )}
         />

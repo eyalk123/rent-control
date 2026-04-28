@@ -4,6 +4,6 @@ import { useAppAuth } from '@/src/core/auth/AuthContext';
 export default function Index() {
   const { isSignedIn, isLoaded } = useAppAuth();
   if (!isLoaded) return null;
-  if (!isSignedIn) return <Redirect href={'/(auth)/sign-in' as any} />;
-  return <Redirect href={'/(tabs)/renters' as any} />;
+  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
+  return <Redirect href="/(tabs)/renters" />;
 }

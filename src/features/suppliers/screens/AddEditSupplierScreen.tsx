@@ -27,7 +27,7 @@ export function AddEditSupplierScreen() {
   const isEdit = Boolean(id);
   const navigation = useNavigation();
 
-  const { formMethods, onSubmit, isSubmitting, isFetching } = useSupplierForm({
+  const { formMethods, onSubmit, isSubmitting, isFetching, fetchError } = useSupplierForm({
     id,
     t,
     refreshSuppliers,
@@ -126,6 +126,33 @@ export function AddEditSupplierScreen() {
     return (
       <ScreenContainer>
         <LoadingOverlay visible={true} />
+      </ScreenContainer>
+    );
+  }
+
+  if (isEdit && fetchError) {
+    return (
+      <ScreenContainer>
+        <View style={styles.wrapper}>
+          <View style={[styles.header, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityLabel={t('common.back')}
+              accessibilityRole="button"
+            >
+              <MaterialCommunityIcons
+                name={isRtl ? 'chevron-right' : 'chevron-left'}
+                size={28}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+            <View style={styles.headerSpacer} />
+          </View>
+          <Text style={[{ textAlign: 'center', marginTop: 40, color: colors.textSecondary }]}>
+            {fetchError}
+          </Text>
+        </View>
       </ScreenContainer>
     );
   }
