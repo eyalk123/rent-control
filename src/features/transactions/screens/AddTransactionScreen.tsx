@@ -14,6 +14,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRouter } from 'expo-router';
 import { ScreenContainer } from '@/src/shared/components/ui';
 import { useLanguageContext } from '@/src/context';
+import { useTransactionContext } from '@/src/features/transactions/context/TransactionContext';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import {
   createExpenseTransaction,
@@ -36,6 +37,8 @@ export function AddTransactionScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+
+  const { refreshTransactions } = useTransactionContext();
 
   const [mode, setMode] = useState<TransactionMode>('choose');
   const [submitting, setSubmitting] = useState(false);
@@ -136,6 +139,7 @@ export function AddTransactionScreen() {
         notes: values.notes || undefined,
       });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await refreshTransactions();
       allowRemoveRef.current = true;
       router.back();
     } catch (err) {
