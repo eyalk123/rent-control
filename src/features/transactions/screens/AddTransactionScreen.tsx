@@ -47,11 +47,11 @@ export function AddTransactionScreen() {
 
   const expenseForm = useForm<ExpenseFormValues>({
     defaultValues: {
-      propertyId: null,
+      propertyIds: [],
       renterId: null,
       amount: '',
       dateOfPayment: new Date().toISOString().slice(0, 10),
-      paymentMethod: '',
+      paymentMethod: 'cash',
       categoryId: null,
       supplierId: null,
       notes: '',
@@ -96,7 +96,7 @@ export function AddTransactionScreen() {
   };
 
   const submitExpense = expenseForm.handleSubmit(async (values) => {
-    if (!values.propertyId) {
+    if (values.propertyIds.length === 0) {
       Alert.alert(t('validation.title'), t('validation.propertyRequired', { defaultValue: 'Property is required.' }));
       return;
     }
@@ -126,18 +126,25 @@ export function AddTransactionScreen() {
       return;
     }
 
+    const totalAmount = Number(values.amount);
+    const perPropertyAmount = Math.round((totalAmount / values.propertyIds.length) * 100) / 100;
+
     setSubmitting(true);
     try {
-      await createExpenseTransaction({
-        property_id: values.propertyId,
-        renter_id: values.renterId ?? undefined,
-        amount: Number(values.amount),
-        date_of_payment: values.dateOfPayment,
-        payment_method: values.paymentMethod as PaymentMethod,
-        category_id: values.categoryId,
-        supplier_id: values.supplierId ?? undefined,
-        notes: values.notes || undefined,
-      });
+      await Promise.all(
+        values.propertyIds.map((propertyId) =>
+          createExpenseTransaction({
+            property_id: propertyId,
+            renter_id: values.propertyIds.length === 1 ? (values.renterId ?? undefined) : undefined,
+            amount: perPropertyAmount,
+            date_of_payment: values.dateOfPayment,
+            payment_method: values.paymentMethod as PaymentMethod,
+            category_id: values.categoryId!,
+            supplier_id: values.supplierId ?? undefined,
+            notes: values.notes || undefined,
+          }),
+        ),
+      );
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await refreshTransactions();
       allowRemoveRef.current = true;
@@ -193,7 +200,7 @@ export function AddTransactionScreen() {
         {mode === 'expense' && (
           <ExpenseForm
             control={expenseForm.control}
-            propertyId={expenseForm.watch('propertyId')}
+            propertyIds={expenseForm.watch('propertyIds')}
             categoryId={expenseForm.watch('categoryId')}
             setValue={expenseForm.setValue}
             contentContainerStyle={formContentPadding}

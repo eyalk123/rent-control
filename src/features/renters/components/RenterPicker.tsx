@@ -11,6 +11,7 @@ interface RenterPickerProps {
   label?: string;
   inputStyle?: StyleProp<ViewStyle>;
   allowNone?: boolean;
+  disabled?: boolean;
   error?: { message?: string };
 }
 
@@ -21,6 +22,7 @@ export function RenterPicker({
   label,
   inputStyle,
   allowNone = true,
+  disabled = false,
   error,
 }: RenterPickerProps) {
   const { t } = useTranslation();
@@ -48,6 +50,7 @@ export function RenterPicker({
       placeholder={allowNone ? t("renter.unassigned") : undefined}
       error={error}
       inputStyle={inputStyle}
+      disabled={disabled}
     />
   );
 }

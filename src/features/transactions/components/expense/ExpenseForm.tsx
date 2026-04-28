@@ -1,25 +1,26 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
-import { FormScrollView } from '@/src/shared/components/form';
-import { Controller, type Control, type UseFormSetValue } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { PropertyPicker } from '@/src/features/properties/components/PropertyPicker';
-import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
-import { ExpenseCategoryPicker } from '@/src/features/transactions/components/expense/ExpenseCategoryPicker';
-import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
-import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import {
+  FormScrollView,
+  MultiSelectField,
   FormNumericField,
   FormTextField,
   FormWheelDateField,
 } from '@/src/shared/components/form';
+import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
+import { Controller, type Control, type UseFormSetValue } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { usePropertyContext } from '@/src/context';
+import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
+import { ExpenseCategoryPicker } from '@/src/features/transactions/components/expense/ExpenseCategoryPicker';
+import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
 
 import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
 import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
 
 type ExpenseFormProps = {
   control: Control<ExpenseFormValues>;
-  propertyId: number | null;
+  propertyIds: number[];
   categoryId: number | null;
   setValue: UseFormSetValue<ExpenseFormValues>;
   contentContainerStyle?: ViewStyle;
@@ -27,12 +28,25 @@ type ExpenseFormProps = {
 
 export function ExpenseForm({
   control,
-  propertyId,
+  propertyIds,
   categoryId,
   setValue,
   contentContainerStyle,
 }: ExpenseFormProps) {
   const { t } = useTranslation();
+  const { properties } = usePropertyContext();
+
+  const propertyData = useMemo(
+    () =>
+      properties.map((p) => ({
+        label: `${p.address} - ${p.city}`,
+        value: p.id,
+      })),
+    [properties],
+  );
+
+  const renterPropertyId = propertyIds.length === 1 ? propertyIds[0] : null;
+  const renterDisabled = propertyIds.length > 1;
 
   return (
     <FormScrollView
@@ -44,9 +58,10 @@ export function ExpenseForm({
       >
         <Controller
           control={control}
-          name="propertyId"
+          name="propertyIds"
           render={({ field: { value, onChange } }) => (
-            <PropertyPicker
+            <MultiSelectField
+              data={propertyData}
               value={value}
               onChange={onChange}
               label={t('transactions.property', { defaultValue: 'Property' })}
@@ -58,11 +73,12 @@ export function ExpenseForm({
           name="renterId"
           render={({ field: { value, onChange } }) => (
             <RenterPicker
-              propertyId={propertyId}
-              value={value}
+              propertyId={renterPropertyId}
+              value={renterDisabled ? null : value}
               onChange={onChange}
               label={t('transactions.renterOptional', { defaultValue: 'Renter (optional)' })}
               allowNone
+              disabled={renterDisabled}
             />
           )}
         />

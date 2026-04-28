@@ -15,7 +15,7 @@ export type RevenueFormValues = {
 };
 
 export type ExpenseFormValues = {
-  propertyId: number | null;
+  propertyIds: number[];
   renterId: number | null;
   amount: string;
   dateOfPayment: string;
