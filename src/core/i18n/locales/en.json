@@ -183,7 +183,13 @@
     "commercial": "Commercial",
     "active": "Active",
     "pending": "Pending",
-    "delinquent": "Delinquent"
+    "delinquent": "Delinquent",
+    "property": "Property",
+    "renter": "Renter",
+    "owner": "Owner",
+    "category": "Category",
+    "supplier": "Supplier",
+    "clear": "Clear filter"
   },
   "common": {
     "back": "Back",

@@ -183,7 +183,13 @@
     "commercial": "מסחרי",
     "active": "פעיל",
     "pending": "ממתין",
-    "delinquent": "באיחור"
+    "delinquent": "באיחור",
+    "property": "נכס",
+    "renter": "דייר",
+    "owner": "בעלים",
+    "category": "קטגוריה",
+    "supplier": "ספק",
+    "clear": "נקה סינון"
   },
   "common": {
     "back": "חזרה",

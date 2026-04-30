@@ -6,7 +6,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Checkbox, IconButton, Searchbar, Text, useTheme } from 'react-native-paper';
+import { Checkbox, IconButton, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,7 +18,7 @@ import {
   LoadingOverlay,
   ScreenContainer,
 } from '@/src/shared/components/ui';
-import { usePropertyContext, useLanguageContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
+import { usePropertyContext, useLanguageContext } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
@@ -37,6 +37,16 @@ import {
   type TransactionTypeFilter,
 } from '@/src/features/transactions/components/list/TypeFilterChips';
 import { TransactionRow } from '@/src/features/transactions/components/list/TransactionRow';
+import {
+  FilterChipsBar,
+  type FilterChip,
+} from '@/src/features/transactions/components/list/FilterChipsBar';
+import {
+  FilterBottomSheet,
+  type FilterOption,
+} from '@/src/features/transactions/components/list/FilterBottomSheet';
+
+type ActiveSheet = 'property' | 'renter' | 'owner' | 'category' | 'supplier' | null;
 
 const currentMonthKey = (): string => {
   const d = new Date();
@@ -49,8 +59,6 @@ export function TransactionsListScreen() {
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const rtlInputStyle = useRtlInputStyle();
-  const rtlPlaceholder = useRtlPlaceholder();
   const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
 
@@ -64,16 +72,16 @@ export function TransactionsListScreen() {
   } = useTransactionsList();
 
   const { properties } = usePropertyContext();
-  const propertyOwnerLowerById = useMemo(() => {
-    const m = new Map<number, string>();
-    for (const p of properties) {
-      const o = (p.property_owner ?? '').trim();
-      if (o) m.set(p.id, o.toLowerCase());
-    }
-    return m;
-  }, [properties]);
 
-  const [searchQuery, setSearchQuery] = useState('');
+  // Filter state
+  const [propertyFilter, setPropertyFilter] = useState<number | null>(null);
+  const [renterFilter, setRenterFilter] = useState<number | null>(null);
+  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<number | null>(null);
+  const [supplierFilter, setSupplierFilter] = useState<number | null>(null);
+  const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
+
+  const [chipScrollSignal, setChipScrollSignal] = useState(0);
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -81,6 +89,7 @@ export function TransactionsListScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
+      setChipScrollSignal((s) => s + 1);
       return () => {
         setIsSelectMode(false);
         setSelectedIds(new Set());
@@ -88,33 +97,89 @@ export function TransactionsListScreen() {
     }, [])
   );
 
-  const searchFiltered = useMemo(() => {
-    if (!searchQuery.trim()) return transactions;
-    const q = searchQuery.toLowerCase().trim();
+  React.useEffect(() => {
+    setChipScrollSignal((s) => s + 1);
+  }, [language]);
+
+  // Derive filter options from transaction data — only shows values present in the list
+  const propertyOptions = useMemo<FilterOption[]>(() => {
+    const seen = new Map<number, string>();
+    for (const tx of transactions) {
+      if (!seen.has(tx.property_id)) seen.set(tx.property_id, tx.property_name);
+    }
+    return [...seen.entries()].map(([id, label]) => ({ id, label }));
+  }, [transactions]);
+
+  const renterOptions = useMemo<FilterOption[]>(() => {
+    const seen = new Map<number, string>();
+    for (const tx of transactions) {
+      if (tx.renter_id !== null && tx.renter_name && !seen.has(tx.renter_id)) {
+        seen.set(tx.renter_id, tx.renter_name);
+      }
+    }
+    return [...seen.entries()].map(([id, label]) => ({ id, label }));
+  }, [transactions]);
+
+  const ownerOptions = useMemo<FilterOption[]>(() => {
+    const seen = new Set<string>();
+    for (const p of properties) {
+      const o = (p.property_owner ?? '').trim();
+      if (o) seen.add(o);
+    }
+    return [...seen].map((o) => ({ id: o, label: o }));
+  }, [properties]);
+
+  const categoryOptions = useMemo<FilterOption[]>(() => {
+    const seen = new Map<number, string>();
+    for (const tx of transactions) {
+      if (tx.category_id !== null && tx.category_name && !seen.has(tx.category_id)) {
+        seen.set(tx.category_id, tx.category_name);
+      }
+    }
+    return [...seen.entries()].map(([id, rawName]) => ({
+      id,
+      label: t(`expenseCategories.${rawName}`, { defaultValue: rawName }),
+    }));
+  }, [transactions, t]);
+
+  const supplierOptions = useMemo<FilterOption[]>(() => {
+    const seen = new Map<number, string>();
+    for (const tx of transactions) {
+      if (tx.supplier_id !== null && tx.supplier_name && !seen.has(tx.supplier_id)) {
+        seen.set(tx.supplier_id, tx.supplier_name);
+      }
+    }
+    return [...seen.entries()].map(([id, label]) => ({ id, label }));
+  }, [transactions]);
+
+  // Owner lookup by property_id for filtering
+  const ownerByPropertyId = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const p of properties) {
+      const o = (p.property_owner ?? '').trim();
+      if (o) m.set(p.id, o);
+    }
+    return m;
+  }, [properties]);
+
+  const baseFiltered = useMemo(() => {
     return transactions.filter((tx) => {
-      const property = tx.property_name.toLowerCase();
-      const propertyOwner = propertyOwnerLowerById.get(tx.property_id) ?? '';
-      const renter = (tx.renter_name ?? '').toLowerCase();
-      const category = (tx.category_name ?? '').toLowerCase();
-      const supplier = (tx.supplier_name ?? '').toLowerCase();
-      return (
-        property.includes(q) ||
-        propertyOwner.includes(q) ||
-        renter.includes(q) ||
-        category.includes(q) ||
-        supplier.includes(q)
-      );
+      if (propertyFilter !== null && tx.property_id !== propertyFilter) return false;
+      if (renterFilter !== null && tx.renter_id !== renterFilter) return false;
+      if (ownerFilter !== null && ownerByPropertyId.get(tx.property_id) !== ownerFilter) return false;
+      if (categoryFilter !== null && tx.category_id !== categoryFilter) return false;
+      if (supplierFilter !== null && tx.supplier_id !== supplierFilter) return false;
+      return true;
     });
-  }, [transactions, searchQuery, propertyOwnerLowerById]);
+  }, [transactions, propertyFilter, renterFilter, ownerFilter, categoryFilter, supplierFilter, ownerByPropertyId]);
 
   const typeFiltered = useMemo(() => {
-    if (typeFilter === 'all') return searchFiltered;
-    return searchFiltered.filter((tx) => tx.type === typeFilter);
-  }, [searchFiltered, typeFilter]);
+    if (typeFilter === 'all') return baseFiltered;
+    return baseFiltered.filter((tx) => tx.type === typeFilter);
+  }, [baseFiltered, typeFilter]);
 
-  // Hero / chart use the searched (not type-filtered) set so that switching
-  // the chip doesn't mutate the P&L story at the top of the screen.
-  const allBuckets = useMemo(() => bucketByMonth(searchFiltered), [searchFiltered]);
+  // Hero / chart use the base-filtered (not type-filtered) set
+  const allBuckets = useMemo(() => bucketByMonth(baseFiltered), [baseFiltered]);
   const sixMonthBuckets = useMemo(() => lastNMonths(allBuckets, 6), [allBuckets]);
   const currentKey = currentMonthKey();
   const heroBucket: MonthBucket = useMemo(
@@ -124,7 +189,6 @@ export function TransactionsListScreen() {
     [sixMonthBuckets, currentKey],
   );
 
-  // List sections respect the type filter.
   const listSections = useMemo(() => {
     const buckets = bucketByMonth(typeFiltered);
     return buckets.map((b) => ({
@@ -140,11 +204,44 @@ export function TransactionsListScreen() {
   const someSelected =
     !allSelected && typeFiltered.some((tx) => selectedIds.has(tx.id));
 
-  const searchPlaceholder = rtlPlaceholder(
-    t('search.placeholderTransactions', {
-      defaultValue: 'Search transactions',
-    }),
-  );
+  const filterChips = useMemo<FilterChip[]>(() => [
+    {
+      key: 'property',
+      label: t('filters.property', { defaultValue: 'Property' }),
+      selectedLabel: propertyOptions.find((o) => o.id === propertyFilter)?.label ?? null,
+      onPress: () => setActiveSheet('property'),
+      onClear: () => setPropertyFilter(null),
+    },
+    {
+      key: 'renter',
+      label: t('filters.renter', { defaultValue: 'Renter' }),
+      selectedLabel: renterOptions.find((o) => o.id === renterFilter)?.label ?? null,
+      onPress: () => setActiveSheet('renter'),
+      onClear: () => setRenterFilter(null),
+    },
+    {
+      key: 'owner',
+      label: t('filters.owner', { defaultValue: 'Owner' }),
+      selectedLabel: ownerFilter,
+      onPress: () => setActiveSheet('owner'),
+      onClear: () => setOwnerFilter(null),
+    },
+    {
+      key: 'category',
+      label: t('filters.category', { defaultValue: 'Category' }),
+      selectedLabel: categoryOptions.find((o) => o.id === categoryFilter)?.label ?? null,
+      onPress: () => setActiveSheet('category'),
+      onClear: () => setCategoryFilter(null),
+    },
+    {
+      key: 'supplier',
+      label: t('filters.supplier', { defaultValue: 'Supplier' }),
+      selectedLabel: supplierOptions.find((o) => o.id === supplierFilter)?.label ?? null,
+      onPress: () => setActiveSheet('supplier'),
+      onClear: () => setSupplierFilter(null),
+    },
+  ], [t, propertyOptions, renterOptions, ownerOptions, categoryOptions, supplierOptions,
+      propertyFilter, renterFilter, ownerFilter, categoryFilter, supplierFilter]);
 
   const handleAddPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -269,7 +366,7 @@ export function TransactionsListScreen() {
     expense: 'empty.noExpenseThisPeriod',
   };
   const emptyDefault: Record<TransactionTypeFilter, string> = {
-    all: 'No transactions match your search.',
+    all: 'No transactions match your filters.',
     revenue: 'No revenue in this period.',
     expense: 'No expenses in this period.',
   };
@@ -278,7 +375,6 @@ export function TransactionsListScreen() {
     <ScreenContainer edges={['top', 'left', 'right']}>
       <LoadingOverlay visible={loading || deleting} />
 
-      {/* Top header — title or selection-count */}
       <View style={styles.titleRow}>
         {isSelectMode ? (
           <View style={styles.selectionHeader}>
@@ -305,13 +401,7 @@ export function TransactionsListScreen() {
             <TransactionsHero bucket={heroBucket} />
             <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} />
             <View style={[styles.filterCard, { backgroundColor: theme.colors.surface }]}>
-              <Searchbar
-                placeholder={searchPlaceholder}
-                onChangeText={setSearchQuery}
-                value={searchQuery}
-                style={[styles.searchbar, { backgroundColor: colors.inputFilledBackground }]}
-                inputStyle={rtlInputStyle}
-              />
+              <FilterChipsBar chips={filterChips} resetSignal={chipScrollSignal} />
               <TypeFilterChips value={typeFilter} onChange={setTypeFilter} />
             </View>
           </View>
@@ -362,7 +452,7 @@ export function TransactionsListScreen() {
             message={t(emptyKey[typeFilter], {
               defaultValue: emptyDefault[typeFilter],
             })}
-            icon={typeFilter === 'all' ? 'search' : 'wallet'}
+            icon={typeFilter === 'all' ? 'filter' : 'wallet'}
           />
         }
       />
@@ -386,6 +476,47 @@ export function TransactionsListScreen() {
           bottomInset={insets.bottom}
         />
       )}
+
+      <FilterBottomSheet
+        visible={activeSheet === 'property'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.property', { defaultValue: 'Property' })}
+        options={propertyOptions}
+        selectedId={propertyFilter}
+        onSelect={(id) => setPropertyFilter(id as number | null)}
+      />
+      <FilterBottomSheet
+        visible={activeSheet === 'renter'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.renter', { defaultValue: 'Renter' })}
+        options={renterOptions}
+        selectedId={renterFilter}
+        onSelect={(id) => setRenterFilter(id as number | null)}
+      />
+      <FilterBottomSheet
+        visible={activeSheet === 'owner'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.owner', { defaultValue: 'Owner' })}
+        options={ownerOptions}
+        selectedId={ownerFilter}
+        onSelect={(id) => setOwnerFilter(id as string | null)}
+      />
+      <FilterBottomSheet
+        visible={activeSheet === 'category'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.category', { defaultValue: 'Category' })}
+        options={categoryOptions}
+        selectedId={categoryFilter}
+        onSelect={(id) => setCategoryFilter(id as number | null)}
+      />
+      <FilterBottomSheet
+        visible={activeSheet === 'supplier'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.supplier', { defaultValue: 'Supplier' })}
+        options={supplierOptions}
+        selectedId={supplierFilter}
+        onSelect={(id) => setSupplierFilter(id as number | null)}
+      />
     </ScreenContainer>
   );
 }
@@ -415,11 +546,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
-  },
-  searchbar: {
-    minHeight: 40,
-    borderRadius: 10,
-    elevation: 0,
   },
   list: {
     paddingHorizontal: spacing.lg,
