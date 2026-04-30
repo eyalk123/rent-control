@@ -33,11 +33,11 @@ export function MonthsBarChart({ buckets, currentKey }: MonthsBarChartProps) {
   const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
 
-  const maxRevenue = buckets.reduce(
-    (max, b) => (b.revenue > max ? b.revenue : max),
+  const maxValue = buckets.reduce(
+    (max, b) => Math.max(max, b.revenue, b.expenses),
     0,
   );
-  const denom = maxRevenue > 0 ? maxRevenue : 1;
+  const denom = maxValue > 0 ? maxValue : 1;
 
   return (
     <View style={styles.container}>

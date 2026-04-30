@@ -1,14 +1,10 @@
-/**
- * Three pill chips: All / Revenue / Expense.
- * Active chip is filled navy; inactive chips have a hairline outline.
- */
 import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, lightColors } from '@/src/core/theme';
 
 export type TransactionTypeFilter = 'all' | 'revenue' | 'expense';
 
@@ -22,18 +18,24 @@ export function TypeFilterChips({ value, onChange }: TypeFilterChipsProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const options: { value: TransactionTypeFilter; label: string }[] = [
+  const options: { value: TransactionTypeFilter; label: string; activeColor: string; activeBg: string }[] = [
     {
       value: 'all',
       label: t('transactions.filterAll', { defaultValue: 'All' }),
+      activeColor: colors.onPrimary,
+      activeBg: colors.primary,
     },
     {
       value: 'revenue',
       label: t('transactions.filterRevenue', { defaultValue: 'Revenue' }),
+      activeColor: colors.revFg,
+      activeBg: colors.revBg,
     },
     {
       value: 'expense',
       label: t('transactions.filterExpense', { defaultValue: 'Expense' }),
+      activeColor: colors.expFg,
+      activeBg: colors.expBg,
     },
   ];
 
@@ -43,8 +45,10 @@ export function TypeFilterChips({ value, onChange }: TypeFilterChipsProps) {
     onChange(next);
   };
 
+  const trackColor = theme.dark ? 'rgba(241,236,223,0.08)' : 'rgba(26,45,74,0.07)';
+
   return (
-    <View style={styles.row}>
+    <View style={[styles.track, { backgroundColor: trackColor }]}>
       {options.map((opt) => {
         const active = opt.value === value;
         return (
@@ -54,18 +58,16 @@ export function TypeFilterChips({ value, onChange }: TypeFilterChipsProps) {
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             style={({ pressed }) => [
-              styles.chip,
-              {
-                backgroundColor: active ? colors.primary : 'transparent',
-                borderColor: active ? colors.primary : colors.outline,
-                opacity: pressed ? 0.85 : 1,
-              },
+              styles.segment,
+              active && { backgroundColor: opt.activeBg },
+              pressed && !active && { opacity: 0.6 },
             ]}
           >
             <Text
               style={[
                 styles.label,
-                { color: active ? colors.onPrimary : colors.textPrimary },
+                { color: active ? opt.activeColor : colors.textSecondary },
+                active && styles.labelActive,
               ]}
             >
               {opt.label}
@@ -78,20 +80,23 @@ export function TypeFilterChips({ value, onChange }: TypeFilterChipsProps) {
 }
 
 const styles = StyleSheet.create({
-  row: {
+  track: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xs,
+    borderRadius: 10,
+    padding: 3,
   },
-  chip: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    borderWidth: 1,
+  segment: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 7,
+    borderRadius: 8,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  labelActive: {
+    fontWeight: '700',
   },
 });

@@ -223,7 +223,7 @@ export function TransactionsListScreen() {
 
   if (loading && transactions.length === 0) {
     return (
-      <ScreenContainer>
+      <ScreenContainer edges={['top', 'left', 'right']}>
         <LoadingOverlay visible={true} />
       </ScreenContainer>
     );
@@ -231,7 +231,7 @@ export function TransactionsListScreen() {
 
   if (error && transactions.length === 0) {
     return (
-      <ScreenContainer>
+      <ScreenContainer edges={['top', 'left', 'right']}>
         <EmptyState
           message={error}
           icon="alert-circle"
@@ -244,7 +244,7 @@ export function TransactionsListScreen() {
 
   if (transactions.length === 0) {
     return (
-      <ScreenContainer>
+      <ScreenContainer edges={['top', 'left', 'right']}>
         <EmptyState
           message={t('empty.noTransactions', {
             defaultValue: 'No transactions yet. Tap + to add one.',
@@ -275,7 +275,7 @@ export function TransactionsListScreen() {
   };
 
   return (
-    <ScreenContainer>
+    <ScreenContainer edges={['top', 'left', 'right']}>
       <LoadingOverlay visible={loading || deleting} />
 
       {/* Top header — title or selection-count */}
@@ -304,16 +304,16 @@ export function TransactionsListScreen() {
           <View>
             <TransactionsHero bucket={heroBucket} />
             <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} />
-            <View style={styles.searchWrapper}>
+            <View style={[styles.filterCard, { backgroundColor: theme.colors.surface }]}>
               <Searchbar
                 placeholder={searchPlaceholder}
                 onChangeText={setSearchQuery}
                 value={searchQuery}
-                style={styles.searchbar}
+                style={[styles.searchbar, { backgroundColor: colors.inputFilledBackground }]}
                 inputStyle={rtlInputStyle}
               />
+              <TypeFilterChips value={typeFilter} onChange={setTypeFilter} />
             </View>
-            <TypeFilterChips value={typeFilter} onChange={setTypeFilter} />
           </View>
         }
         renderSectionHeader={({ section }) => {
@@ -404,13 +404,22 @@ const styles = StyleSheet.create({
     fontSize: 28,
     flex: 1,
   },
-  searchWrapper: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+  filterCard: {
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+    borderRadius: 16,
+    padding: spacing.sm,
+    gap: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   searchbar: {
     minHeight: 40,
     borderRadius: 10,
+    elevation: 0,
   },
   list: {
     paddingHorizontal: spacing.lg,
