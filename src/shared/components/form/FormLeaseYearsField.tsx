@@ -6,22 +6,19 @@ import {
   type FieldValues,
   type Path,
 } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import type { TFunction } from "i18next";
 import { spacing } from "@/src/core/theme";
+import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
 import { FormNumericField } from "./FormFields";
 import { FormDropdownOptions } from "./FormDropdownOptions";
-
-type LeaseYearRow = {
-  amount: string;
-  type: "option" | "contract" | "";
-};
 
 type FormLeaseYearsFieldProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   name: Path<TFieldValues>;
   yearsCountName: Path<TFieldValues>;
+  leaseStart?: string;
   t: TFunction;
 };
 
@@ -29,6 +26,7 @@ function FormLeaseYearsFieldInner<TFieldValues extends FieldValues>({
   control,
   name,
   yearsCountName,
+  leaseStart,
   t,
 }: FormLeaseYearsFieldProps<TFieldValues>) {
   const theme = useTheme();
@@ -93,43 +91,61 @@ function FormLeaseYearsFieldInner<TFieldValues extends FieldValues>({
         keyboardType="number-pad"
       />
 
-      {fields.map((field, index) => (
-        <View key={field.id} style={styles.row}>
-          <Text
-            variant="bodyMedium"
-            style={styles.yearLabel}
-          >
-            {t("renter.leaseYearLabel", { year: index + 1 })}
-          </Text>
-          <View style={styles.rowInputs}>
-            <View style={styles.rowInput}>
-              <FormNumericField
-                control={control}
-                name={`${name}.${index}.amount` as Path<TFieldValues>}
-                label={t("renter.leaseYearAmount")}
-                keyboardType="decimal-pad"
-              />
+      <ScrollView
+        style={styles.yearsScroll}
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
+      >
+        {[...fields].reverse().map((field, reversedIdx) => {
+          const index = fields.length - 1 - reversedIdx;
+          const isCurrent = isCurrentLeaseYear(leaseStart, index);
+          return (
+            <View
+              key={field.id}
+              style={[
+                styles.row,
+                isCurrent && { backgroundColor: theme.colors.primary + '4D', borderRadius: 6, paddingHorizontal: spacing.xs },
+              ]}
+            >
+              <View style={styles.yearLabelRow}>
+                <Text
+                  variant="bodyMedium"
+                  style={[styles.yearLabel, isCurrent && { color: '#C17F00' }]}
+                >
+                  {getLeaseYearLabel(leaseStart, index)}
+                </Text>
+              </View>
+              <View style={styles.rowInputs}>
+                <View style={styles.rowInput}>
+                  <FormNumericField
+                    control={control}
+                    name={`${name}.${index}.amount` as Path<TFieldValues>}
+                    label={t("renter.leaseYearAmount")}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <View style={styles.rowInput}>
+                  <FormDropdownOptions
+                    control={control}
+                    name={`${name}.${index}.type` as Path<TFieldValues>}
+                    label={t("renter.leaseYearType")}
+                    options={[
+                      {
+                        value: "option",
+                        label: t("renter.leaseYearTypeOption"),
+                      },
+                      {
+                        value: "contract",
+                        label: t("renter.leaseYearTypeContract"),
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
             </View>
-            <View style={styles.rowInput}>
-              <FormDropdownOptions
-                control={control}
-                name={`${name}.${index}.type` as Path<TFieldValues>}
-                label={t("renter.leaseYearType")}
-                options={[
-                  {
-                    value: "option",
-                    label: t("renter.leaseYearTypeOption"),
-                  },
-                  {
-                    value: "contract",
-                    label: t("renter.leaseYearTypeContract"),
-                  },
-                ]}
-              />
-            </View>
-          </View>
-        </View>
-      ))}
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
@@ -146,11 +162,21 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     gap: 0,
   },
+  yearsScroll: {
+    maxHeight: 260,
+  },
   row: {
     marginBottom: 0,
+    paddingVertical: spacing.xs,
+  },
+  yearLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    marginBottom: 4,
   },
   yearLabel: {
-    marginBottom: 4,
+    fontWeight: "700",
   },
   rowInputs: {
     flexDirection: "row",

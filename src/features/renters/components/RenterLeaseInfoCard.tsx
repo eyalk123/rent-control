@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import type { Control, FieldValues } from "react-hook-form";
+import { useWatch, type Control, type FieldValues } from "react-hook-form";
 import type { TFunction } from "i18next";
 import { spacing } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
@@ -23,6 +23,8 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   t,
   ownerId,
 }: RenterLeaseInfoCardProps<TFieldValues>) {
+  const leaseStart = useWatch({ control, name: "leaseStart" as any }) as string | undefined;
+
   return (
     <FormSectionCard title={t("renter.leaseInfo")}>
       <View style={styles.inputWrap}>
@@ -40,6 +42,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           control={control}
           name={"leaseYears" as any}
           yearsCountName={"contractYears" as any}
+          leaseStart={leaseStart}
           t={t}
         />
       </View>

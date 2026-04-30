@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { getRenterMonthlyRent, type Renter } from '@/src/shared/types';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
+import { getLeaseYearLabel, isCurrentLeaseYear } from '@/src/shared/utils/leaseYear';
 import { ContactActionsRow } from '@/src/shared/components/ui';
 
 interface RenterInfoTabProps {
@@ -192,22 +193,46 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
           </Text>
         </View>
         <Card.Content style={styles.cardContent}>
-          {renter.lease_years && renter.lease_years.length > 0
-            ? renter.lease_years.map((year, idx) => (
-                <IconDetailRow
-                  key={idx}
-                  icon="file-text"
-                  label={t('renter.leaseYearLabel', { year: idx + 1 })}
-                  value={`${formatMoney(year.amount)} (${
-                    year.type === 'contract'
-                      ? t('renter.leaseYearTypeContract')
-                      : t('renter.leaseYearTypeOption')
-                  })`}
-                  iconColor={colors.primary}
-                  secondaryColor={colors.textSecondary}
-                />
-              ))
-            : null}
+          {renter.lease_years && renter.lease_years.length > 0 && (
+            <ScrollView
+              style={styles.leaseYearsScroll}
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={false}
+            >
+              {[...renter.lease_years].reverse().map((year, reversedIdx) => {
+                const idx = renter.lease_years.length - 1 - reversedIdx;
+                const isCurrent = isCurrentLeaseYear(renter.lease_start, idx);
+                return (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.leaseYearRow,
+                      isCurrent && { backgroundColor: colors.primary + '4D', borderRadius: 6, paddingHorizontal: spacing.xs },
+                    ]}
+                  >
+                    <View style={styles.leaseYearLabelRow}>
+                      <Icon name="file-text" size={20} color={isCurrent ? colors.primary : colors.primary} />
+                      <View style={styles.leaseYearLabelWrap}>
+                        <Text
+                          variant="bodyMedium"
+                          style={{ color: isCurrent ? '#C17F00' : colors.textSecondary, fontWeight: isCurrent ? '700' : '400' }}
+                        >
+                          {getLeaseYearLabel(renter.lease_start, idx)}
+                        </Text>
+                        <Text variant="bodyMedium" style={[styles.leaseYearValue, { color: colors.textPrimary }]}>
+                          {`${formatMoney(year.amount)} (${
+                            year.type === 'contract'
+                              ? t('renter.leaseYearTypeContract')
+                              : t('renter.leaseYearTypeOption')
+                          })`}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          )}
           {renter.payment_day_of_month != null && (
             <IconDetailRow
               icon="calendar-clock"
@@ -379,5 +404,27 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flexShrink: 1,
     marginEnd: spacing.sm,
+  },
+  leaseYearsScroll: {
+    maxHeight: 220,
+  },
+  leaseYearRow: {
+    paddingVertical: spacing.xs,
+  },
+  leaseYearLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  leaseYearLabelWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  leaseYearValue: {
+    fontWeight: '600',
+    textAlign: 'right',
+    flexShrink: 0,
   },
 });
