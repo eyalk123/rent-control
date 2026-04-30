@@ -9,9 +9,20 @@ import { getApiErrorMessage } from '@/src/core/api/client';
 import { useTranslation } from 'react-i18next';
 import { useTransactionContext } from '@/src/features/transactions/context/TransactionContext';
 
-export function useTransactionsList(_params: TransactionsListParams = {}) {
+export function useTransactionsList(params: TransactionsListParams = {}) {
   const { transactions, loading, error, refreshTransactions: contextRefresh } = useTransactionContext();
   const [refreshing, setRefreshing] = React.useState<boolean>(false);
+
+  const filteredTransactions = React.useMemo(() => {
+    let result = transactions;
+    if (params.propertyId != null) {
+      result = result.filter((tx) => tx.property_id === params.propertyId);
+    }
+    if (params.renterId != null) {
+      result = result.filter((tx) => tx.renter_id === params.renterId);
+    }
+    return result;
+  }, [transactions, params.propertyId, params.renterId]);
 
   const refreshTransactions = React.useCallback(async () => {
     setRefreshing(true);
@@ -20,7 +31,7 @@ export function useTransactionsList(_params: TransactionsListParams = {}) {
   }, [contextRefresh]);
 
   return {
-    transactions,
+    transactions: filteredTransactions,
     loading,
     refreshing,
     error,

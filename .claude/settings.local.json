@@ -54,7 +54,8 @@
       "Bash(adb devices *)",
       "Bash(adb logcat *)",
       "Bash(kill %1)",
-      "Bash(pkill -f \"adb logcat\")"
+      "Bash(pkill -f \"adb logcat\")",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
     ]
   }
 }

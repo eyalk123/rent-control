@@ -1,42 +1,45 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { Checkbox, IconButton, Searchbar, Text, useTheme } from 'react-native-paper';
+import { Checkbox, IconButton, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  usePropertyContext,
-  useRenterContext,
-  useRtlInputStyle,
-  useRtlPlaceholder,
-} from '@/src/context';
+import { usePropertyContext, useRenterContext } from '@/src/context';
 import { getLeaseEndDate } from '@/src/shared/types';
 import {
   AppFab,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
+  FilterChipsBar,
+  FilterChip,
+  FilterBottomSheet,
+  FilterOption,
 } from '@/src/shared/components/ui';
 import { RenterCard } from '@/src/features/renters/components/RenterCard';
 import { deleteRenter } from '@/src/features/renters/api/renters';
 import { spacing } from '@/src/core/theme';
 
+type ActiveSheet = 'property' | 'renter' | 'owner' | null;
+
 export function RentersListScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const rtlInputStyle = useRtlInputStyle();
-  const rtlPlaceholder = useRtlPlaceholder();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { renters, loading, error, refreshRenters } = useRenterContext();
   const { properties } = usePropertyContext();
-  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [deleting, setDeleting] = useState(false);
+
+  const [propertyFilter, setPropertyFilter] = useState<number | null>(null);
+  const [renterFilter, setRenterFilter] = useState<number | null>(null);
+  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
+  const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,31 +50,56 @@ export function RentersListScreen() {
     }, [])
   );
 
-  const propertyOwnerLowerById = useMemo(() => {
+  const ownerByPropertyId = useMemo(() => {
     const m = new Map<number, string>();
     for (const p of properties) {
-      const o = (p.property_owner ?? '').trim();
-      if (o) m.set(p.id, o.toLowerCase());
+      const o = p.property_owner?.trim();
+      if (o) m.set(p.id, o);
     }
     return m;
   }, [properties]);
 
-  const filteredRenters = useMemo(() => {
-    let list = renters;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter((renter) => {
-        const fullName = `${renter.first_name} ${renter.last_name}`.toLowerCase();
-        const address = (renter.property?.address ?? '').toLowerCase();
-        const propertyOwner =
-          renter.property_id != null
-            ? (propertyOwnerLowerById.get(renter.property_id) ?? '')
-            : '';
-        return (
-          fullName.includes(q) || address.includes(q) || propertyOwner.includes(q)
-        );
-      });
+  const propertyOptions = useMemo<FilterOption[]>(() => {
+    const seen = new Set<number>();
+    const opts: FilterOption[] = [];
+    for (const r of renters) {
+      if (r.property && !seen.has(r.property.id)) {
+        seen.add(r.property.id);
+        opts.push({ id: r.property.id, label: r.property.address });
+      }
     }
+    return opts;
+  }, [renters]);
+
+  const renterOptions = useMemo<FilterOption[]>(
+    () => renters.map((r) => ({ id: r.id, label: `${r.first_name} ${r.last_name}` })),
+    [renters],
+  );
+
+  const ownerOptions = useMemo<FilterOption[]>(() => {
+    const seen = new Set<string>();
+    const opts: FilterOption[] = [];
+    for (const p of properties) {
+      const o = p.property_owner?.trim();
+      if (o && !seen.has(o)) {
+        seen.add(o);
+        opts.push({ id: o, label: o });
+      }
+    }
+    return opts;
+  }, [properties]);
+
+  const filteredRenters = useMemo(() => {
+    let list = renters.filter((renter) => {
+      if (propertyFilter !== null && renter.property_id !== propertyFilter) return false;
+      if (renterFilter !== null && renter.id !== renterFilter) return false;
+      if (ownerFilter !== null) {
+        const owner =
+          renter.property_id != null ? ownerByPropertyId.get(renter.property_id) : undefined;
+        if (owner !== ownerFilter) return false;
+      }
+      return true;
+    });
     list = [...list].sort((a, b) => {
       const da = getLeaseEndDate(a);
       const db = getLeaseEndDate(b);
@@ -81,16 +109,44 @@ export function RentersListScreen() {
       return da.getTime() - db.getTime();
     });
     return list;
-  }, [renters, searchQuery, propertyOwnerLowerById]);
+  }, [renters, propertyFilter, renterFilter, ownerFilter, ownerByPropertyId]);
 
-  const allSelected = filteredRenters.length > 0 && filteredRenters.every((r) => selectedIds.has(r.id));
+  const filterChips = useMemo<FilterChip[]>(
+    () => [
+      {
+        key: 'property',
+        label: t('filters.property', { defaultValue: 'Property' }),
+        selectedLabel: propertyOptions.find((o) => o.id === propertyFilter)?.label ?? null,
+        onPress: () => setActiveSheet('property'),
+        onClear: () => setPropertyFilter(null),
+      },
+      {
+        key: 'renter',
+        label: t('filters.renter', { defaultValue: 'Renter' }),
+        selectedLabel: renterOptions.find((o) => o.id === renterFilter)?.label ?? null,
+        onPress: () => setActiveSheet('renter'),
+        onClear: () => setRenterFilter(null),
+      },
+      {
+        key: 'owner',
+        label: t('filters.owner', { defaultValue: 'Owner' }),
+        selectedLabel: ownerFilter,
+        onPress: () => setActiveSheet('owner'),
+        onClear: () => setOwnerFilter(null),
+      },
+    ],
+    [t, propertyOptions, renterOptions, propertyFilter, renterFilter, ownerFilter],
+  );
+
+  const allSelected =
+    filteredRenters.length > 0 && filteredRenters.every((r) => selectedIds.has(r.id));
   const someSelected = !allSelected && filteredRenters.some((r) => selectedIds.has(r.id));
 
   const handleRenterPress = (id: number) => {
     if (isSelectMode) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
-        next.has(id) ? next.delete(id) : next.add(id);
+        if (next.has(id)) { next.delete(id); } else { next.add(id); }
         return next;
       });
       return;
@@ -219,13 +275,7 @@ export function RentersListScreen() {
             {t('screens.renters')}
           </Text>
         )}
-        <Searchbar
-          placeholder={rtlPlaceholder(t('search.placeholder'))}
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          style={styles.searchbar}
-          inputStyle={rtlInputStyle}
-        />
+        <FilterChipsBar chips={filterChips} stretch />
       </View>
       <FlatList
         data={filteredRenters}
@@ -271,6 +321,30 @@ export function RentersListScreen() {
           bottomInset={insets.bottom}
         />
       )}
+      <FilterBottomSheet
+        visible={activeSheet === 'property'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.property', { defaultValue: 'Property' })}
+        options={propertyOptions}
+        selectedId={propertyFilter}
+        onSelect={(id) => setPropertyFilter(id as number | null)}
+      />
+      <FilterBottomSheet
+        visible={activeSheet === 'renter'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.renter', { defaultValue: 'Renter' })}
+        options={renterOptions}
+        selectedId={renterFilter}
+        onSelect={(id) => setRenterFilter(id as number | null)}
+      />
+      <FilterBottomSheet
+        visible={activeSheet === 'owner'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.owner', { defaultValue: 'Owner' })}
+        options={ownerOptions}
+        selectedId={ownerFilter}
+        onSelect={(id) => setOwnerFilter(id as string | null)}
+      />
     </ScreenContainer>
   );
 }
@@ -291,11 +365,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     fontSize: 28,
     flex: 1,
-  },
-  searchbar: {
-    minHeight: 40,
-    marginBottom: spacing.sm,
-    borderRadius: 10,
   },
   list: {
     paddingBottom: 80,
