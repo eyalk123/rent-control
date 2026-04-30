@@ -157,7 +157,7 @@ export default function SignInScreen() {
         <View style={styles.header}>
           <Image
             source={require('@/assets/images/rent-control-icon-no-text.png')}
-            style={styles.logo}
+            style={[styles.logo, isDark && { tintColor: colors.secondary }]}
             resizeMode="contain"
           />
           <Text variant="headlineMedium" style={[styles.appName, { color: colors.onBackground }]}>

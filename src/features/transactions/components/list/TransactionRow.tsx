@@ -124,7 +124,7 @@ export function TransactionRow({
 
         <View style={styles.trailing}>
           <Text style={[styles.amount, { color: fg }]}>
-            {`${sign}${formatMoney(transaction.amount)}`}
+            {`‪${sign}${formatMoney(transaction.amount)}‬`}
           </Text>
           <Text style={[styles.date, { color: colors.textSecondary }]}>
             {formattedDate}
@@ -175,6 +175,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
+    writingDirection: 'ltr',
+    textAlign: 'right',
   },
   date: {
     fontSize: 11,

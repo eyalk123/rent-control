@@ -1,12 +1,9 @@
-const ilsFormatter = new Intl.NumberFormat('he-IL', {
-  style: 'currency',
-  currency: 'ILS',
-  currencyDisplay: 'narrowSymbol',
+const numberFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 });
 
 export function formatMoney(amount: number | null | undefined): string {
   if (amount == null) return '₪0';
-  return ilsFormatter.format(amount);
+  return `${numberFormatter.format(amount)}₪`;
 }
