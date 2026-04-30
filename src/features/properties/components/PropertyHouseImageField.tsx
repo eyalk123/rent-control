@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { ActivityIndicator, Button, IconButton, Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon } from '@/src/shared/components/ui';
 import * as ImagePicker from 'expo-image-picker';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
 import {
@@ -106,7 +106,7 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
         </Text>
         {isSelected && (
           <View style={[styles.checkBadge, { backgroundColor: colors.primary }]}>
-            <MaterialCommunityIcons name="check" size={14} color="#FFF" />
+            <Icon name="check" size={14} color={colors.onPrimary} strokeWidth={3} />
           </View>
         )}
       </Pressable>

@@ -6,8 +6,7 @@ import { updateSupplier } from "@/src/features/suppliers/api/suppliers";
 import { SupplierForm } from "@/src/features/suppliers/components/SupplierForm";
 import { useSupplierForm } from "@/src/features/suppliers/hooks/useSupplierForm";
 import { useSuppliersList } from "@/src/features/suppliers/hooks/useSuppliersList";
-import { LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Icon, LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
@@ -141,9 +140,9 @@ export function AddEditSupplierScreen() {
               accessibilityLabel={t('common.back')}
               accessibilityRole="button"
             >
-              <MaterialCommunityIcons
+              <Icon
                 name={isRtl ? 'chevron-right' : 'chevron-left'}
-                size={28}
+                size={24}
                 color={colors.textSecondary}
               />
             </TouchableOpacity>
@@ -172,9 +171,9 @@ export function AddEditSupplierScreen() {
             accessibilityLabel={t("common.back")}
             accessibilityRole="button"
           >
-            <MaterialCommunityIcons
+            <Icon
               name={isRtl ? "chevron-right" : "chevron-left"}
-              size={28}
+              size={24}
               color={colors.textSecondary}
             />
           </TouchableOpacity>

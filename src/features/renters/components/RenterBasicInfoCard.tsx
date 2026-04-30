@@ -2,7 +2,7 @@ import React from "react";
 import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import type { Control, FieldValues } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import { spacing } from "@/src/core/theme";
+import { spacing, lightColors, darkColors } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
 import { FormExtraContactsField, FormSingleFileField } from "@/src/shared/components/form";
 import type { TFunction } from "i18next";
@@ -11,10 +11,8 @@ import {
   FormNumericField,
 } from "@/src/shared/components/form/FormFields";
 import { PropertyPicker } from "@/src/features/properties/components/PropertyPicker";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme } from "react-native-paper";
-import { Text } from "react-native-paper";
-import { lightColors, darkColors } from "@/src/core/theme";
+import { Icon } from "@/src/shared/components/ui";
+import { Text, useTheme } from "react-native-paper";
 
 type RenterBasicInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -44,12 +42,13 @@ function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
           onPress={onPickFromContacts}
           activeOpacity={0.7}
         >
-          <MaterialCommunityIcons
-            name="account-multiple"
-            size={22}
-            color={colors.primary}
-            style={styles.contactIcon}
-          />
+          <View style={styles.contactIcon}>
+            <Icon
+              name="users"
+              size={22}
+              color={colors.primary}
+            />
+          </View>
           <Text variant="bodyMedium" style={{ color: colors.primary }}>
             {t("renter.chooseFromContacts")}
           </Text>

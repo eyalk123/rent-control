@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon, type IconName } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import { getRenterMonthlyRent, type Renter } from '@/src/shared/types';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
@@ -21,7 +21,7 @@ function StatBox({
   textColor,
   secondaryColor,
 }: {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  icon: IconName;
   value: string;
   label: string;
   backgroundColor: string;
@@ -31,7 +31,7 @@ function StatBox({
 }) {
   return (
     <View style={[styles.statBox, { backgroundColor }]}>
-      <MaterialCommunityIcons name={icon} size={24} color={iconColor} />
+      <Icon name={icon} size={24} color={iconColor} />
       <Text variant="bodyLarge" style={[styles.statValue, { color: textColor }]}>
         {value}
       </Text>
@@ -49,7 +49,7 @@ function IconDetailRow({
   iconColor,
   secondaryColor,
 }: {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  icon: IconName;
   label: string;
   value: string;
   iconColor: string;
@@ -58,7 +58,7 @@ function IconDetailRow({
   return (
     <View style={styles.iconRow}>
       <View style={styles.iconRowLeft}>
-        <MaterialCommunityIcons name={icon} size={20} color={iconColor} />
+        <Icon name={icon} size={20} color={iconColor} />
         <Text variant="bodyMedium" style={{ color: secondaryColor }}>
           {label}
         </Text>
@@ -127,7 +127,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
       {/* Stat boxes */}
       <View style={styles.statsRow}>
         <StatBox
-          icon="cash"
+          icon="wallet"
           value={monthlyRent > 0 ? formatMoney(monthlyRent) : '—'}
           label={t('renter.monthlyRent')}
           backgroundColor={colors.inputBackground}
@@ -136,7 +136,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
           secondaryColor={colors.textSecondary}
         />
         <StatBox
-          icon="calendar-start"
+          icon="calendar"
           value={renter.lease_start ? formatDate(renter.lease_start) : '—'}
           label={t('renter.dateOfStart')}
           backgroundColor={colors.inputBackground}
@@ -145,7 +145,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
           secondaryColor={colors.textSecondary}
         />
         <StatBox
-          icon="credit-card-outline"
+          icon="credit-card"
           value={
             renter.number_of_payments != null
               ? String(renter.number_of_payments)
@@ -163,7 +163,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
       {renter.extra_contacts && renter.extra_contacts.length > 0 && (
         <Card style={styles.card} mode="outlined">
           <View style={[styles.sectionHeader, { backgroundColor: colors.secondary }]}>
-            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
               {t('renter.extraContacts')}
             </Text>
           </View>
@@ -187,7 +187,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
       {/* Lease info card */}
       <Card style={styles.card} mode="outlined">
         <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-          <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+          <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
             {t('renter.leaseInfo')}
           </Text>
         </View>
@@ -196,7 +196,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
             ? renter.lease_years.map((year, idx) => (
                 <IconDetailRow
                   key={idx}
-                  icon="file-document-outline"
+                  icon="file-text"
                   label={t('renter.leaseYearLabel', { year: idx + 1 })}
                   value={`${formatMoney(year.amount)} (${
                     year.type === 'contract'
@@ -219,7 +219,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
           )}
           {renter.payment_type != null && renter.payment_type !== '' && (
             <IconDetailRow
-              icon="bank-transfer"
+              icon="arrow-right-left"
               label={t('renter.paymentType')}
               value={paymentTypeLabel(renter.payment_type)}
               iconColor={colors.primary}
@@ -228,7 +228,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
           )}
           {renter.number_of_payments != null && (
             <IconDetailRow
-              icon="counter"
+              icon="hash"
               label={t('renter.numberOfPayments')}
               value={String(renter.number_of_payments)}
               iconColor={colors.primary}
@@ -242,7 +242,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
       {(renter.full_contract_url || renter.id_image_url) && (
         <Card style={styles.card} mode="outlined">
           <View style={[styles.sectionHeader, { backgroundColor: colors.secondary }]}>
-            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
               {t('documents.title')}
             </Text>
           </View>
@@ -254,12 +254,12 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
                 activeOpacity={0.7}
               >
                 <View style={styles.iconRowLeft}>
-                  <MaterialCommunityIcons name="file-document-outline" size={20} color={colors.secondary} />
+                  <Icon name="file-text" size={20} color={colors.secondary} />
                   <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
                     {t('documents.fullContract')}
                   </Text>
                 </View>
-                <MaterialCommunityIcons name="open-in-new" size={18} color={colors.secondary} />
+                <Icon name="external-link" size={18} color={colors.secondary} />
               </TouchableOpacity>
             )}
             {renter.id_image_url && (
@@ -269,12 +269,12 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
                 activeOpacity={0.7}
               >
                 <View style={styles.iconRowLeft}>
-                  <MaterialCommunityIcons name="card-account-details-outline" size={20} color={colors.secondary} />
+                  <Icon name="contact" size={20} color={colors.secondary} />
                   <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
                     {t('documents.idImage')}
                   </Text>
                 </View>
-                <MaterialCommunityIcons name="open-in-new" size={18} color={colors.secondary} />
+                <Icon name="external-link" size={18} color={colors.secondary} />
               </TouchableOpacity>
             )}
           </Card.Content>
@@ -285,7 +285,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
       {hasInsurance && (
         <Card style={styles.card} mode="outlined">
           <View style={[styles.sectionHeader, { backgroundColor: colors.sectionAccent }]}>
-            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
               {t('renter.insuranceType')}
             </Text>
           </View>
@@ -301,7 +301,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
             )}
             {renter.insurance_amount != null && (
               <IconDetailRow
-                icon="cash-lock"
+                icon="lock"
                 label={t('renter.insuranceAmount')}
                 value={formatMoney(renter.insurance_amount)}
                 iconColor={colors.sectionAccent}

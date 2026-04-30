@@ -1,12 +1,11 @@
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
 import { getRenterMonthlyRent } from '@/src/shared/types';
-import { EmptyState } from '@/src/shared/components/ui';
+import { EmptyState, Icon } from '@/src/shared/components/ui';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
@@ -26,7 +25,7 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
   if (renters.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <EmptyState message={t('property.noRenters')} icon="account-off" />
+        <EmptyState message={t('property.noRenters')} icon="user-x" />
       </View>
     );
   }
@@ -66,11 +65,11 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
               </View>
               <View style={styles.rightSection}>
                 <View style={[styles.badge, { backgroundColor: colors.success }]}>
-                  <Text variant="labelSmall" style={styles.badgeText}>
+                  <Text variant="labelSmall" style={[styles.badgeText, { color: colors.onPrimary }]}>
                     {t('renter.status.active')}
                   </Text>
                 </View>
-                <MaterialCommunityIcons
+                <Icon
                   name="chevron-right"
                   size={24}
                   color={colors.textSecondary}
@@ -125,7 +124,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   badgeText: {
-    color: '#FFFFFF',
     fontSize: 11,
   },
 });

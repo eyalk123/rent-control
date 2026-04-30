@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { Checkbox, FAB, IconButton, Searchbar, Text, useTheme } from 'react-native-paper';
+import { Checkbox, IconButton, Searchbar, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -14,6 +14,7 @@ import {
 } from '@/src/context';
 import { getLeaseEndDate } from '@/src/shared/types';
 import {
+  AppFab,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
@@ -187,13 +188,12 @@ export function RentersListScreen() {
   if (renters.length === 0) {
     return (
       <ScreenContainer>
-        <EmptyState message={t('empty.noRenters')} icon="account" />
-        <FAB
+        <EmptyState message={t('empty.noRenters')} icon="user" />
+        <AppFab
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('renter.addRenter')}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       </ScreenContainer>
     );
@@ -231,7 +231,7 @@ export function RentersListScreen() {
         data={filteredRenters}
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={
-          <EmptyState message={t('empty.noSearchResults')} icon="magnify" />
+          <EmptyState message={t('empty.noSearchResults')} icon="search" />
         }
         renderItem={({ item }) => (
           <RenterCard
@@ -255,22 +255,20 @@ export function RentersListScreen() {
         }
       />
       {isSelectMode ? (
-        <FAB
-          icon="trash-can"
-          style={[styles.fab, { bottom: insets.bottom, backgroundColor: theme.colors.error }]}
-          color={theme.colors.onError}
+        <AppFab
+          icon="trash"
+          variant="destructive"
           onPress={handleDeleteSelected}
           disabled={selectedIds.size === 0}
           accessibilityLabel={t('bulkDelete.deleteButton')}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       ) : (
-        <FAB
+        <AppFab
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('renter.addRenter')}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       )}
     </ScreenContainer>
@@ -301,10 +299,5 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: 80,
-  },
-  fab: {
-    position: 'absolute',
-    margin: spacing.sm,
-    right: 0,
   },
 });

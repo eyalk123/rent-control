@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Icon } from "@/src/shared/components/ui";
 import React from "react";
 import {
   StyleSheet,
@@ -79,7 +79,7 @@ export function DropdownField<T extends string | number | null>({
           renderLeftIcon={
             isRtl
               ? () => (
-                  <MaterialCommunityIcons
+                  <Icon
                     name="chevron-down"
                     size={20}
                     color={colors.placeholder}
@@ -108,7 +108,7 @@ export function DropdownField<T extends string | number | null>({
             styles.dropdown,
             {
               backgroundColor: disabled
-                ? colors.surfaceDisabled
+                ? colors.inputFilledBackground
                 : colors.inputFilledBackground,
               borderColor: error ? colors.error : colors.outline,
               opacity: disabled ? 0.6 : 1,

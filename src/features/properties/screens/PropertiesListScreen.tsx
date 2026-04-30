@@ -6,7 +6,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Checkbox, FAB, IconButton, Searchbar, Text, useTheme } from 'react-native-paper';
+import { Checkbox, IconButton, Searchbar, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePropertyContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import {
+  AppFab,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
@@ -168,12 +169,11 @@ export function PropertiesListScreen() {
     return (
       <ScreenContainer>
         <EmptyState message={t('empty.noProperties')} icon="home" />
-        <FAB
+        <AppFab
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('property.addProperty')}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       </ScreenContainer>
     );
@@ -231,26 +231,24 @@ export function PropertiesListScreen() {
           />
         }
         ListEmptyComponent={
-          <EmptyState message={t('empty.noPropertySearchResults')} icon="magnify" />
+          <EmptyState message={t('empty.noPropertySearchResults')} icon="search" />
         }
       />
       {isSelectMode ? (
-        <FAB
-          icon="trash-can"
-          style={[styles.fab, { bottom: insets.bottom, backgroundColor: theme.colors.error }]}
-          color={theme.colors.onError}
+        <AppFab
+          icon="trash"
+          variant="destructive"
           onPress={handleDeleteSelected}
           disabled={selectedIds.size === 0}
           accessibilityLabel={t('bulkDelete.deleteButton')}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       ) : (
-        <FAB
+        <AppFab
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('property.addProperty')}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       )}
     </ScreenContainer>
@@ -281,10 +279,5 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: 80,
-  },
-  fab: {
-    position: 'absolute',
-    margin: spacing.sm,
-    right: 0,
   },
 });

@@ -1,10 +1,9 @@
-import { LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
+import { Icon, LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
 import { useLanguageContext, usePropertyContext } from "@/src/context";
 import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm";
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
@@ -120,9 +119,9 @@ export function AddEditPropertyScreen() {
               accessibilityLabel={t("common.back")}
               accessibilityRole="button"
             >
-              <MaterialCommunityIcons
+              <Icon
                 name={isRtl ? "chevron-right" : "chevron-left"}
-                size={28}
+                size={24}
                 color={colors.textSecondary}
               />
             </TouchableOpacity>

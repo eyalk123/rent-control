@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon } from '@/src/shared/components/ui';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 
 type TransactionChooseStepProps = {
@@ -33,10 +33,11 @@ export function TransactionChooseStep({
           onPress={onSelectRevenue}
         >
           <View style={styles.chooseButtonInner}>
-            <MaterialCommunityIcons
-              name="cash-plus"
+            <Icon
+              name="plus-circle"
               size={40}
               color={colors.chooseRevenueIcon}
+              strokeWidth={1.75}
             />
             <Text variant="labelLarge" style={[styles.chooseButtonLabel, { color: colors.chooseRevenueIcon }]}>
               {t('transactions.addRevenue', { defaultValue: 'Add revenue' })}
@@ -49,10 +50,11 @@ export function TransactionChooseStep({
           onPress={onSelectExpense}
         >
           <View style={styles.chooseButtonInner}>
-            <MaterialCommunityIcons
-              name="cash-minus"
+            <Icon
+              name="minus-circle"
               size={40}
               color={colors.chooseExpenseIcon}
+              strokeWidth={1.75}
             />
             <Text variant="labelLarge" style={[styles.chooseButtonLabel, { color: colors.chooseExpenseIcon }]}>
               {t('transactions.addExpense', { defaultValue: 'Add expense' })}

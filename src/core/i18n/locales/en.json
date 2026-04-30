@@ -167,7 +167,9 @@
     "noPropertySearchResults": "No properties match your search.",
     "noSupplierSearchResults": "No suppliers match your search.",
     "noTransactions": "No transactions yet. Tap + to add one.",
-    "noTransactionSearchResults": "No transactions match your search."
+    "noTransactionSearchResults": "No transactions match your search.",
+    "noRevenueThisPeriod": "No revenue in this period.",
+    "noExpenseThisPeriod": "No expenses in this period."
   },
   "search": {
     "placeholder": "Search renters, property, owner...",
@@ -245,6 +247,10 @@
     "filterAll": "All",
     "filterRevenue": "Revenues",
     "filterExpense": "Expenses",
+    "profit": "Profit",
+    "loss": "Loss",
+    "revenueLowercase": "revenue",
+    "expensesLowercase": "expenses",
     "totalRevenue": "Total Revenue",
     "totalExpenses": "Total Expenses",
     "profitLoss": "Profit / Loss",

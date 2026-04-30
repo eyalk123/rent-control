@@ -8,9 +8,9 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { Icon, type IconName } from './Icon';
 
 export type ContactActionsRowProps = {
   phone?: string | null;
@@ -22,7 +22,7 @@ export type ContactActionsRowProps = {
 };
 
 type CircleProps = {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  icon: IconName;
   label: string;
   backgroundColor: string;
   iconColor: string;
@@ -40,7 +40,7 @@ function ContactActionCircle({
 }: CircleProps) {
   const isCompact = variant === 'compact';
   const size = isCompact ? 36 : 48;
-  const iconSize = isCompact ? 18 : 22;
+  const iconSize = isCompact ? 20 : 22;
 
   if (isCompact) {
     return (
@@ -51,7 +51,7 @@ function ContactActionCircle({
         accessibilityRole="button"
         accessibilityLabel={label}
       >
-        <MaterialCommunityIcons name={icon} size={iconSize} color={iconColor} />
+        <Icon name={icon} size={iconSize} color={iconColor} />
       </TouchableOpacity>
     );
   }
@@ -59,7 +59,7 @@ function ContactActionCircle({
   return (
     <TouchableOpacity style={styles.actionCircleWrapper} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.actionCircle, { backgroundColor, width: size, height: size, borderRadius: size / 2 }]}>
-        <MaterialCommunityIcons name={icon} size={iconSize} color={iconColor} />
+        <Icon name={icon} size={iconSize} color={iconColor} />
       </View>
       <Text variant="labelSmall" style={styles.actionLabel} numberOfLines={1}>
         {label}
@@ -102,17 +102,17 @@ export function ContactActionsRow({
         <ContactActionCircle
           icon="phone"
           label={t('contact.call')}
-          backgroundColor={colors.chooseRevenueBg}
-          iconColor={colors.chooseRevenueIcon}
+          backgroundColor={colors.revBg}
+          iconColor={colors.revFg}
           onPress={() => Linking.openURL(`tel:${phoneTrim}`)}
           variant={variant}
         />
       ) : null}
       {hasPhone ? (
         <ContactActionCircle
-          icon="message-text"
+          icon="message-square"
           label={t('contact.sms')}
-          backgroundColor="rgba(29, 78, 216, 0.15)"
+          backgroundColor="rgba(30,58,95,0.12)"
           iconColor={colors.primary}
           onPress={() => Linking.openURL(`sms:${phoneTrim}`)}
           variant={variant}
@@ -120,10 +120,10 @@ export function ContactActionsRow({
       ) : null}
       {hasEmail ? (
         <ContactActionCircle
-          icon="email"
+          icon="mail"
           label={t('contact.email')}
-          backgroundColor="rgba(13, 148, 136, 0.15)"
-          iconColor={colors.secondary}
+          backgroundColor="rgba(212,162,76,0.18)"
+          iconColor={colors.accent}
           onPress={() => Linking.openURL(`mailto:${emailTrim}`)}
           variant={variant}
         />

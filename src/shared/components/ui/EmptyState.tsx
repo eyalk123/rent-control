@@ -1,19 +1,19 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { lightColors, darkColors } from '@/src/core/theme';
+import { darkColors, lightColors } from '@/src/core/theme';
+import { Icon, type IconName } from './Icon';
 
 interface EmptyStateProps {
   message: string;
-  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  icon?: IconName;
   actionLabel?: string;
   onAction?: () => void;
 }
 
 export function EmptyState({
   message,
-  icon = 'inbox',
+  icon = 'info',
   actionLabel,
   onAction,
 }: EmptyStateProps) {
@@ -22,12 +22,9 @@ export function EmptyState({
 
   return (
     <View style={styles.container}>
-      <MaterialCommunityIcons
-        name={icon}
-        size={72}
-        color={colors.placeholder}
-        style={{ opacity: 0.8 }}
-      />
+      <View style={{ opacity: 0.8 }}>
+        <Icon name={icon} size={48} color={colors.placeholder} strokeWidth={1.5} />
+      </View>
       <Text
         variant="bodyLarge"
         style={[styles.message, { color: colors.textSecondary }]}

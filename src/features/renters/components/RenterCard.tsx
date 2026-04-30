@@ -1,9 +1,8 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Card, Checkbox, Text } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Card, Checkbox, Text, useTheme } from 'react-native-paper';
+import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from 'react-native-paper';
 import type { Renter } from '@/src/shared/types';
 import { getLeaseEndDate } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
@@ -55,14 +54,18 @@ export function RenterCard({ renter, onPress, onLongPress, isSelectMode = false,
               {renter.property?.address ?? t('renter.unassigned')}
             </Text>
             <View style={[styles.badge, { backgroundColor: colors.success }]}>
-              <Text variant="labelSmall" style={styles.badgeText}>
+              <Text variant="labelSmall" style={[styles.badgeText, { color: colors.onPrimary }]}>
                 {t('renter.status.active')}
               </Text>
             </View>
             {leaseEndLabel && (
               <Text
                 variant="labelSmall"
-                style={[styles.leaseEndText, isExpiringSoon && styles.leaseEndUrgent]}
+                style={[
+                  styles.leaseEndText,
+                  { color: colors.textSecondary },
+                  isExpiringSoon && { color: colors.accent, fontWeight: '700' },
+                ]}
                 numberOfLines={1}
               >
                 {leaseEndLabel}
@@ -70,7 +73,7 @@ export function RenterCard({ renter, onPress, onLongPress, isSelectMode = false,
             )}
           </View>
           {!isSelectMode && (
-            <MaterialCommunityIcons
+            <Icon
               name="chevron-right"
               size={24}
               color={colors.textSecondary}
@@ -112,16 +115,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   badgeText: {
-    color: '#FFFFFF',
     fontSize: 11,
   },
   leaseEndText: {
     marginTop: 2,
     fontSize: 11,
-    color: '#888888',
-  },
-  leaseEndUrgent: {
-    color: '#D32F2F',
-    fontWeight: '700',
   },
 });

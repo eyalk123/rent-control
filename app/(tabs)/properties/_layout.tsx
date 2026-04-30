@@ -2,18 +2,20 @@ import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Text, useTheme } from 'react-native-paper';
 import { TouchableOpacity } from 'react-native';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon } from '@/src/shared/components/ui';
+import { ICON_MD } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
 
 function PropertyDetailHeaderRight() {
   const router = useRouter();
+  const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   return (
     <TouchableOpacity
       onPress={() => id && router.push(`/properties/edit/${id}`)}
       style={{ padding: 8, marginRight: 4 }}
     >
-      <MaterialCommunityIcons name="pencil" size={22} color="#FFF" />
+      <Icon name="pencil" size={ICON_MD} color={theme.colors.onSurface} />
     </TouchableOpacity>
   );
 }

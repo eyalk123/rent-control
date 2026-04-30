@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import type { useTranslation } from 'react-i18next';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon } from '@/src/shared/components/ui';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 
 type MonthGridPickerProps = {
@@ -37,7 +37,7 @@ export function MonthGridPicker({
           onPress={() => onYearChange(gridYear - 1)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <MaterialCommunityIcons name="chevron-left" size={24} color={colors.textPrimary} />
+          <Icon name="chevron-left" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text variant="titleSmall" style={{ color: colors.textPrimary }}>
           {gridYear}
@@ -46,7 +46,7 @@ export function MonthGridPicker({
           onPress={() => onYearChange(gridYear + 1)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <MaterialCommunityIcons name="chevron-right" size={24} color={colors.textPrimary} />
+          <Icon name="chevron-right" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -69,7 +69,7 @@ export function MonthGridPicker({
               <Text
                 variant="bodySmall"
                 style={{
-                  color: selected ? '#fff' : colors.textPrimary,
+                  color: selected ? colors.onPrimary : colors.textPrimary,
                   fontWeight: selected ? '700' : '400',
                 }}
               >

@@ -167,7 +167,9 @@
     "noPropertySearchResults": "לא נמצאו נכסים התואמים לחיפוש.",
     "noSupplierSearchResults": "לא נמצאו ספקים התואמים לחיפוש.",
     "noTransactions": "אין תנועות עדיין. לחץ + להוספה.",
-    "noTransactionSearchResults": "לא נמצאו תנועות התואמות לחיפוש."
+    "noTransactionSearchResults": "לא נמצאו תנועות התואמות לחיפוש.",
+    "noRevenueThisPeriod": "אין הכנסות בתקופה זו.",
+    "noExpenseThisPeriod": "אין הוצאות בתקופה זו."
   },
   "search": {
     "placeholder": "חיפוש דיירים, נכס, בעלים...",
@@ -245,6 +247,10 @@
     "filterAll": "הכל",
     "filterRevenue": "הכנסות",
     "filterExpense": "הוצאות",
+    "profit": "רווח",
+    "loss": "הפסד",
+    "revenueLowercase": "הכנסות",
+    "expensesLowercase": "הוצאות",
     "totalRevenue": "סה״כ הכנסות",
     "totalExpenses": "סה״כ הוצאות",
     "profitLoss": "רווח / הפסד",

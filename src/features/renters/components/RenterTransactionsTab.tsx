@@ -132,7 +132,7 @@ export function RenterTransactionsTab({ renterId }: RenterTransactionsTabProps) 
         ListEmptyComponent={
           <EmptyState
             message={t('renter.noTransactions')}
-            icon="cash-multiple"
+            icon="wallet"
           />
         }
       />

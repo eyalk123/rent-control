@@ -1,21 +1,47 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Checkbox, FAB, IconButton, Searchbar, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import {
+  Alert,
+  RefreshControl,
+  SectionList,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { Checkbox, IconButton, Searchbar, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { EmptyState, LoadingOverlay, ScreenContainer } from '@/src/shared/components/ui';
-import { usePropertyContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
+import {
+  AppFab,
+  EmptyState,
+  LoadingOverlay,
+  ScreenContainer,
+} from '@/src/shared/components/ui';
+import { usePropertyContext, useLanguageContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
-import { TransactionSummaryCards } from '@/src/features/transactions/components/shared/TransactionSummaryCards';
 import { deleteTransaction } from '@/src/features/transactions/api/transactions';
 import { formatMoney } from '@/src/shared/utils/money';
+import {
+  bucketByMonth,
+  lastNMonths,
+  monthYearLabel,
+  type MonthBucket,
+} from '@/src/features/transactions/utils/aggregate';
+import { TransactionsHero } from '@/src/features/transactions/components/list/TransactionsHero';
+import { MonthsBarChart } from '@/src/features/transactions/components/list/MonthsBarChart';
+import {
+  TypeFilterChips,
+  type TransactionTypeFilter,
+} from '@/src/features/transactions/components/list/TypeFilterChips';
+import { TransactionRow } from '@/src/features/transactions/components/list/TransactionRow';
 
-type TransactionTypeFilter = 'all' | 'revenue' | 'expense';
+const currentMonthKey = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
 
 export function TransactionsListScreen() {
   const { t } = useTranslation();
@@ -25,6 +51,8 @@ export function TransactionsListScreen() {
   const router = useRouter();
   const rtlInputStyle = useRtlInputStyle();
   const rtlPlaceholder = useRtlPlaceholder();
+  const { language } = useLanguageContext();
+  const locale = language === 'he' ? 'he-IL' : 'en-US';
 
   const {
     transactions,
@@ -60,7 +88,7 @@ export function TransactionsListScreen() {
     }, [])
   );
 
-  const searchFilteredTransactions = useMemo(() => {
+  const searchFiltered = useMemo(() => {
     if (!searchQuery.trim()) return transactions;
     const q = searchQuery.toLowerCase().trim();
     return transactions.filter((tx) => {
@@ -79,32 +107,44 @@ export function TransactionsListScreen() {
     });
   }, [transactions, searchQuery, propertyOwnerLowerById]);
 
-  const filteredTransactions = useMemo(() => {
-    if (typeFilter === 'all') return searchFilteredTransactions;
-    return searchFilteredTransactions.filter((tx) => tx.type === typeFilter);
-  }, [searchFilteredTransactions, typeFilter]);
+  const typeFiltered = useMemo(() => {
+    if (typeFilter === 'all') return searchFiltered;
+    return searchFiltered.filter((tx) => tx.type === typeFilter);
+  }, [searchFiltered, typeFilter]);
 
-  const summary = useMemo(() => {
-    const toNumber = (n: unknown) => {
-      if (n == null) return 0;
-      const num = Number(n);
-      return isNaN(num) ? 0 : num;
-    };
-    const revenue = searchFilteredTransactions
-      .filter((tx) => tx.type === 'revenue')
-      .reduce((sum, tx) => sum + toNumber(tx.amount), 0);
-    const expenses = searchFilteredTransactions
-      .filter((tx) => tx.type === 'expense')
-      .reduce((sum, tx) => sum + toNumber(tx.amount), 0);
-    return { revenue, expenses, profitLoss: revenue - expenses };
-  }, [searchFilteredTransactions]);
+  // Hero / chart use the searched (not type-filtered) set so that switching
+  // the chip doesn't mutate the P&L story at the top of the screen.
+  const allBuckets = useMemo(() => bucketByMonth(searchFiltered), [searchFiltered]);
+  const sixMonthBuckets = useMemo(() => lastNMonths(allBuckets, 6), [allBuckets]);
+  const currentKey = currentMonthKey();
+  const heroBucket: MonthBucket = useMemo(
+    () =>
+      sixMonthBuckets.find((b) => b.key === currentKey) ??
+      sixMonthBuckets[sixMonthBuckets.length - 1],
+    [sixMonthBuckets, currentKey],
+  );
 
-  const allSelected = filteredTransactions.length > 0 && filteredTransactions.every((tx) => selectedIds.has(tx.id));
-  const someSelected = !allSelected && filteredTransactions.some((tx) => selectedIds.has(tx.id));
+  // List sections respect the type filter.
+  const listSections = useMemo(() => {
+    const buckets = bucketByMonth(typeFiltered);
+    return buckets.map((b) => ({
+      key: b.key,
+      title: monthYearLabel(b.key, locale),
+      profit: b.profit,
+      data: b.transactions,
+    }));
+  }, [typeFiltered, locale]);
 
-  const searchPlaceholder = rtlPlaceholder(t('search.placeholderTransactions', {
-    defaultValue: 'Search transactions',
-  }));
+  const allSelected =
+    typeFiltered.length > 0 && typeFiltered.every((tx) => selectedIds.has(tx.id));
+  const someSelected =
+    !allSelected && typeFiltered.some((tx) => selectedIds.has(tx.id));
+
+  const searchPlaceholder = rtlPlaceholder(
+    t('search.placeholderTransactions', {
+      defaultValue: 'Search transactions',
+    }),
+  );
 
   const handleAddPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -115,7 +155,8 @@ export function TransactionsListScreen() {
     if (isSelectMode) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
-        next.has(id) ? next.delete(id) : next.add(id);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
         return next;
       });
     }
@@ -131,7 +172,7 @@ export function TransactionsListScreen() {
     if (allSelected) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(filteredTransactions.map((tx) => tx.id)));
+      setSelectedIds(new Set(typeFiltered.map((tx) => tx.id)));
     }
   };
 
@@ -172,92 +213,12 @@ export function TransactionsListScreen() {
             }
           },
         },
-      ]
+      ],
     );
   };
 
   const onRefresh = async () => {
     await refreshTransactions();
-  };
-
-  const renderItem = ({ item }: { item: Transaction }) => {
-    const isRevenue = item.type === 'revenue';
-    const typeLabel = isRevenue
-      ? t('transactions.typeRevenue', { defaultValue: 'Revenue' })
-      : t('transactions.typeExpense', { defaultValue: 'Expense' });
-
-    const amountColor = isRevenue ? colors.chooseRevenueIcon : colors.chooseExpenseIcon;
-    const cardBg = isRevenue ? colors.chooseRevenueBg : colors.chooseExpenseBg;
-    const isSelected = selectedIds.has(item.id);
-
-    return (
-      <TouchableOpacity
-        onPress={() => handleTransactionPress(item.id)}
-        onLongPress={() => handleLongPress(item.id)}
-        activeOpacity={isSelectMode ? 0.6 : 1}
-      >
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: cardBg,
-              borderColor: colors.outline,
-            },
-          ]}
-        >
-          {isSelectMode && (
-            <Checkbox
-              status={isSelected ? 'checked' : 'unchecked'}
-              onPress={() => handleTransactionPress(item.id)}
-              style={styles.checkbox}
-            />
-          )}
-          <View style={styles.cardHeader}>
-            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
-              {item.property_name}
-            </Text>
-            <Text style={[styles.amount, { color: amountColor }]}>
-              {formatMoney(item.amount)}
-            </Text>
-          </View>
-          <View style={styles.cardRow}>
-            <Text style={[styles.chip, { color: colors.textPrimary }]}>
-              {typeLabel}
-            </Text>
-            {item.renter_name ? (
-              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {item.renter_name}
-              </Text>
-            ) : null}
-            {item.category_name ? (
-              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {t(`expenseCategories.${item.category_name.toLowerCase()}`, {
-                  defaultValue: item.category_name,
-                })}
-              </Text>
-            ) : null}
-            {item.supplier_name ? (
-              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {item.supplier_name}
-              </Text>
-            ) : null}
-          </View>
-          <View style={styles.cardFooter}>
-            <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-              {item.date_of_payment}
-            </Text>
-            {item.month_for ? (
-              <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-                {t('transactions.monthFor', {
-                  defaultValue: 'For: {{month}}',
-                  month: item.month_for,
-                })}
-              </Text>
-            ) : null}
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
   };
 
   if (loading && transactions.length === 0) {
@@ -288,29 +249,43 @@ export function TransactionsListScreen() {
           message={t('empty.noTransactions', {
             defaultValue: 'No transactions yet. Tap + to add one.',
           })}
-          icon="cash-multiple"
+          icon="wallet"
         />
-        <FAB
+        <AppFab
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('transactions.addTransaction', {
             defaultValue: 'Add transaction',
           })}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       </ScreenContainer>
     );
   }
 
+  const emptyKey: Record<TransactionTypeFilter, string> = {
+    all: 'empty.noTransactionSearchResults',
+    revenue: 'empty.noRevenueThisPeriod',
+    expense: 'empty.noExpenseThisPeriod',
+  };
+  const emptyDefault: Record<TransactionTypeFilter, string> = {
+    all: 'No transactions match your search.',
+    revenue: 'No revenue in this period.',
+    expense: 'No expenses in this period.',
+  };
+
   return (
     <ScreenContainer>
       <LoadingOverlay visible={loading || deleting} />
-      <View style={styles.header}>
+
+      {/* Top header — title or selection-count */}
+      <View style={styles.titleRow}>
         {isSelectMode ? (
           <View style={styles.selectionHeader}>
             <Checkbox
-              status={allSelected ? 'checked' : someSelected ? 'indeterminate' : 'unchecked'}
+              status={
+                allSelected ? 'checked' : someSelected ? 'indeterminate' : 'unchecked'
+              }
               onPress={handleToggleAll}
             />
             <Text variant="headlineMedium" style={styles.heroTitle}>
@@ -318,43 +293,59 @@ export function TransactionsListScreen() {
             </Text>
             <IconButton icon="close" onPress={handleCancelSelect} />
           </View>
-        ) : (
-          <Text variant="headlineLarge" style={styles.heroTitle}>
-            {t('screens.transactions', { defaultValue: 'Transactions' })}
-          </Text>
-        )}
-        <Searchbar
-          placeholder={searchPlaceholder}
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          style={styles.searchbar}
-          inputStyle={rtlInputStyle}
-        />
-        <TransactionSummaryCards summary={summary} />
-        <SegmentedButtons
-          value={typeFilter}
-          onValueChange={(value) => setTypeFilter(value as TransactionTypeFilter)}
-          buttons={[
-            {
-              value: 'all',
-              label: t('transactions.filterAll', { defaultValue: 'All' }),
-            },
-            {
-              value: 'revenue',
-              label: t('transactions.filterRevenue', { defaultValue: 'Revenues' }),
-            },
-            {
-              value: 'expense',
-              label: t('transactions.filterExpense', { defaultValue: 'Expenses' }),
-            },
-          ]}
-          style={styles.segmented}
-        />
+        ) : null}
       </View>
-      <FlatList
-        data={filteredTransactions}
+
+      <SectionList
+        sections={listSections}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
+        stickySectionHeadersEnabled
+        ListHeaderComponent={
+          <View>
+            <TransactionsHero bucket={heroBucket} />
+            <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} />
+            <View style={styles.searchWrapper}>
+              <Searchbar
+                placeholder={searchPlaceholder}
+                onChangeText={setSearchQuery}
+                value={searchQuery}
+                style={styles.searchbar}
+                inputStyle={rtlInputStyle}
+              />
+            </View>
+            <TypeFilterChips value={typeFilter} onChange={setTypeFilter} />
+          </View>
+        }
+        renderSectionHeader={({ section }) => {
+          const profit = (section as { profit: number }).profit;
+          const isLoss = profit < 0;
+          const sign = isLoss ? '−' : '+';
+          const color = isLoss ? colors.expFg : colors.revFg;
+          return (
+            <View
+              style={[
+                styles.sectionHeader,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+                {section.title}
+              </Text>
+              <Text style={[styles.sectionProfit, { color }]}>
+                {`${sign}${formatMoney(Math.abs(profit))}`}
+              </Text>
+            </View>
+          );
+        }}
+        renderItem={({ item }: { item: Transaction }) => (
+          <TransactionRow
+            transaction={item}
+            isSelectMode={isSelectMode}
+            isSelected={selectedIds.has(item.id)}
+            onPress={() => handleTransactionPress(item.id)}
+            onLongPress={() => handleLongPress(item.id)}
+          />
+        )}
         contentContainerStyle={[
           styles.list,
           { paddingBottom: 80 + insets.bottom },
@@ -368,32 +359,31 @@ export function TransactionsListScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            message={t('empty.noTransactionSearchResults', {
-              defaultValue: 'No transactions match your search.',
+            message={t(emptyKey[typeFilter], {
+              defaultValue: emptyDefault[typeFilter],
             })}
-            icon="magnify"
+            icon={typeFilter === 'all' ? 'search' : 'wallet'}
           />
         }
       />
+
       {isSelectMode ? (
-        <FAB
-          icon="trash-can"
-          style={[styles.fab, { bottom: insets.bottom, backgroundColor: theme.colors.error }]}
-          color={theme.colors.onError}
+        <AppFab
+          icon="trash"
+          variant="destructive"
           onPress={handleDeleteSelected}
           disabled={selectedIds.size === 0}
           accessibilityLabel={t('bulkDelete.deleteButton')}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       ) : (
-        <FAB
+        <AppFab
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('transactions.addTransaction', {
             defaultValue: 'Add transaction',
           })}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       )}
     </ScreenContainer>
@@ -401,84 +391,46 @@ export function TransactionsListScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
+  titleRow: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
-    gap: spacing.sm,
   },
   selectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingTop: spacing.sm,
   },
   heroTitle: {
     fontWeight: '700',
-    marginBottom: spacing.xs,
     fontSize: 28,
     flex: 1,
+  },
+  searchWrapper: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
   },
   searchbar: {
     minHeight: 40,
     borderRadius: 10,
   },
-  segmented: {
-    marginTop: spacing.xs,
-  },
   list: {
-    paddingBottom: 80,
     paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
   },
-  card: {
-    borderRadius: 12,
-    padding: spacing.md,
-    borderWidth: 1,
-  },
-  checkbox: {
-    marginBottom: spacing.xs,
-  },
-  cardHeader: {
+  sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    marginTop: spacing.sm,
   },
-  cardTitle: {
+  sectionTitle: {
+    fontSize: 11,
+    letterSpacing: 1.2,
     fontWeight: '600',
-    fontSize: 16,
-    flex: 1,
-    marginRight: spacing.sm,
+    textTransform: 'uppercase',
   },
-  amount: {
+  sectionProfit: {
+    fontSize: 13,
     fontWeight: '700',
-    fontSize: 16,
-  },
-  cardRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
-  },
-  chip: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  metaText: {
-    fontSize: 12,
-    color: 'gray',
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  footerText: {
-    fontSize: 12,
-    color: 'gray',
-  },
-  fab: {
-    position: 'absolute',
-    margin: spacing.sm,
-    right: 0,
+    fontVariant: ['tabular-nums'],
   },
 });

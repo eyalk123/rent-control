@@ -49,7 +49,12 @@
       "Bash(sed \"s/t\\(\\\\\"//\")",
       "Bash(sed \"s/\\\\\"\\)//\")",
       "Bash(py --version)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(grep -E \"\\\\.\\(json|ts\\)$\")",
+      "Bash(adb devices *)",
+      "Bash(adb logcat *)",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"adb logcat\")"
     ]
   }
 }

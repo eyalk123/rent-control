@@ -1,11 +1,10 @@
-import { LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
+import { Icon, LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
 import { useLanguageContext, useRenterContext } from "@/src/context";
 import { useRenterForm } from "@/src/features/renters/hooks/useRenterForm";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
 import { RenterBasicInfoCard } from "@/src/features/renters/components/RenterBasicInfoCard";
 import { RenterLeaseInfoCard } from "@/src/features/renters/components/RenterLeaseInfoCard";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
@@ -142,9 +141,9 @@ export function AddEditRenterScreen() {
               accessibilityLabel={t("common.back")}
               accessibilityRole="button"
             >
-              <MaterialCommunityIcons
+              <Icon
                 name={isRtl ? "chevron-right" : "chevron-left"}
-                size={28}
+                size={24}
                 color={colors.textSecondary}
               />
             </TouchableOpacity>

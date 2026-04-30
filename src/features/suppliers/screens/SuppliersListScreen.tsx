@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FAB, Searchbar, Text, useTheme } from 'react-native-paper';
+import { Searchbar, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import {
+  AppFab,
   ContactActionsRow,
   LoadingOverlay,
   EmptyState,
@@ -116,14 +117,13 @@ export function SuppliersListScreen() {
       <ScreenContainer>
         <EmptyState
           message={t('suppliers.noSuppliers', { defaultValue: 'No suppliers yet' })}
-          icon="truck"
+          icon="briefcase"
         />
-        <FAB
+        <AppFab
           icon="plus"
-          style={[styles.fab, { bottom: insets.bottom }]}
           onPress={handleAddPress}
           accessibilityLabel={t('suppliers.add')}
-          accessibilityRole="button"
+          bottomInset={insets.bottom}
         />
       </ScreenContainer>
     );
@@ -148,7 +148,7 @@ export function SuppliersListScreen() {
         data={filteredSuppliers}
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={
-          <EmptyState message={t('empty.noSupplierSearchResults')} icon="magnify" />
+          <EmptyState message={t('empty.noSupplierSearchResults')} icon="search" />
         }
         renderItem={({ item }) => {
           const hasContact =
@@ -225,12 +225,11 @@ export function SuppliersListScreen() {
           />
         }
       />
-      <FAB
+      <AppFab
         icon="plus"
-        style={[styles.fab, { bottom: insets.bottom }]}
         onPress={handleAddPress}
         accessibilityLabel={t('suppliers.add')}
-        accessibilityRole="button"
+        bottomInset={insets.bottom}
       />
     </ScreenContainer>
   );
@@ -289,10 +288,5 @@ const styles = StyleSheet.create({
   categories: {
     marginTop: 4,
     opacity: 0.7,
-  },
-  fab: {
-    position: 'absolute',
-    margin: spacing.sm,
-    right: 0,
   },
 });

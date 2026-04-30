@@ -1,65 +1,111 @@
 /**
- * Design tokens for rent-control app.
- * Light and dark palettes support theme switching.
- * Form-specific tokens for add/edit screens.
+ * Design tokens for rent-control app — "Landlord Ink" palette.
+ * Navy + cream + mustard. Light and dark palettes support theme switching.
+ *
+ * Token contract: every consumer reads from `colors.<token>`. Token names are
+ * stable across themes; only their values change between light and dark.
+ *
+ * `chooseRevenue*` / `chooseExpense*` are kept as aliases of `rev*` / `exp*`
+ * so the existing add-transaction choose buttons keep working untouched.
  */
 
 export const lightColors = {
-  primary: "#2563EB",
-  secondary: "rgba(13, 148, 136, 1)",
-  background: "rgba(241, 245, 249, 1)",
-  surface: "rgba(255, 255, 255, 1)",
-  textPrimary: "rgba(15, 23, 42, 1)",
-  textSecondary: "rgba(100, 116, 139, 1)",
-  placeholder: "rgba(148, 163, 184, 1)",
-  inputBackground: "rgba(248, 250, 252, 1)",
-  // Slate-100 — clearly distinct from white card surface
-  inputFilledBackground: "rgba(241, 245, 249, 1)",
-  inputBorder: "rgba(203, 213, 225, 1)",
-  success: "rgba(5, 150, 105, 1)",
-  warning: "rgba(217, 119, 6, 1)",
-  error: "rgba(220, 38, 38, 1)",
-  outline: "rgba(203, 213, 225, 1)",
-  /** Card/section background on form screens; slightly off surface for depth */
-  cardBackground: "rgba(255, 255, 255, 1)",
-  /** Accent line or highlight for section headers */
-  sectionAccent: "rgba(13, 148, 136, 1)",
-  /** Add-transaction choose buttons: light green/red backgrounds and text */
-  chooseRevenueBg: "rgba(5, 150, 105, 0.13)",
-  chooseRevenueIcon: "rgba(4, 120, 87, 1)",
-  chooseExpenseBg: "rgba(220, 38, 38, 0.13)",
-  chooseExpenseIcon: "rgba(185, 28, 28, 1)",
+  // Brand
+  primary: "#1E3A5F", // navy
+  onPrimary: "#FFFFFF",
+  secondary: "#D4A24C", // mustard accent (used as MD3 secondary)
+  accent: "#D4A24C",
+  accentFg: "#FFFFFF",
+
+  // Surfaces
+  background: "#FAF7F0", // cream — the headline change
+  surface: "#FFFFFF",
+  cardBackground: "#FFFFFF",
+
+  // Text
+  textPrimary: "#1A2D4A",
+  textSecondary: "#6B7280",
+  placeholder: "#A8AFBA",
+
+  // Inputs
+  inputBackground: "#FFFFFF",
+  inputFilledBackground: "#F1ECDF", // cream tint, distinct from page bg
+  inputBorder: "rgba(26,45,74,0.18)",
+
+  // Lines / shadows
+  outline: "rgba(26,45,74,0.10)",
+  subtleOutline: "rgba(26,45,74,0.05)",
+
+  // Semantic states
+  success: "#0F766E",
+  warning: "#D4A24C",
+  error: "#9A3412",
+
+  // Section accent (legacy)
+  sectionAccent: "#D4A24C",
+
+  // Revenue / expense — semantic encoding for transactions UI
+  revBg: "rgba(15,118,110,0.12)",
+  revFg: "#0F766E",
+  expBg: "rgba(180,83,9,0.13)",
+  expFg: "#9A3412",
+
+  // Aliases for back-compat with existing add-transaction screens
+  chooseRevenueBg: "rgba(15,118,110,0.12)",
+  chooseRevenueIcon: "#0F766E",
+  chooseExpenseBg: "rgba(180,83,9,0.13)",
+  chooseExpenseIcon: "#9A3412",
 } as const;
 
 
 export const darkColors = {
-  primary: "rgb(40, 136, 226)",
-  secondary: "rgb(70, 150, 224)",
-  background: "rgba(18, 18, 18, 1)",
-  surface: "rgba(30, 30, 32, 1)",
-  textPrimary: "rgba(240, 241, 243, 1)",
-  textSecondary: "rgba(240, 241, 243, 0.72)",
-  placeholder: "rgba(240, 241, 243, 0.55)",
-  inputBackground: "rgba(30, 30, 32, 1)",
-  // Slightly lighter than `background` for better form contrast
-  inputFilledBackground: "rgba(44, 44, 46, 1)",
-  inputBorder: "rgba(255, 255, 255, 0.15)",
-  success: "rgba(16, 185, 129, 1)",
-  warning: "rgba(245, 158, 11, 1)",
-  error: "rgba(248, 113, 113, 1)",
-  outline: "rgba(255, 255, 255, 0.12)",
-  cardBackground: "rgba(30, 30, 32, 1)",
-  sectionAccent: "rgba(86, 132, 174, 1)",
-  chooseRevenueBg: "rgba(16, 185, 129, 0.18)",
-  chooseRevenueIcon: "rgba(52, 211, 153, 1)",
-  chooseExpenseBg: "rgba(248, 113, 113, 0.18)",
-  chooseExpenseIcon: "rgba(252, 165, 165, 1)",
-  /** Elevated surface (modals, FABs) — slightly lighter than surface */
-  surfaceElevated: "rgba(44, 44, 46, 1)",
-  /** Pressed/hover overlay */
-  surfaceOverlay: "rgba(240, 241, 243, 0.06)",
-  /** Subtle separator/divider */
-  outlineSubtle: "rgba(255, 255, 255, 0.08)",
-  /** Disabled text */
-  textDisabled: "rgba(240, 241, 243, 0.38)",
+  // Brand
+  primary: "#3E6FA8", // lighter navy for dark surfaces
+  onPrimary: "#FFFFFF",
+  secondary: "#C29543", // slightly muted mustard
+  accent: "#C29543",
+  accentFg: "#1A2D4A", // dark text on mustard for AA contrast
+
+  // Surfaces — deep warm navy instead of pure black
+  background: "#0F1B2D",
+  surface: "#172A44",
+  cardBackground: "#172A44",
+  surfaceElevated: "#1F3556",
+  surfaceOverlay: "rgba(241,236,223,0.06)",
+
+  // Text — warm cream tone instead of cold white
+  textPrimary: "#F1ECDF",
+  textSecondary: "rgba(241,236,223,0.66)",
+  textDisabled: "rgba(241,236,223,0.38)",
+  placeholder: "rgba(241,236,223,0.45)",
+
+  // Inputs
+  inputBackground: "#172A44",
+  inputFilledBackground: "#1F3556",
+  inputBorder: "rgba(241,236,223,0.20)",
+
+  // Lines
+  outline: "rgba(241,236,223,0.12)",
+  outlineSubtle: "rgba(241,236,223,0.08)",
+  subtleOutline: "rgba(241,236,223,0.06)",
+
+  // Semantic states
+  success: "#34A39A",
+  warning: "#E2B26A",
+  error: "#D87559",
+
+  // Section accent
+  sectionAccent: "#C29543",
+
+  // Revenue / expense — lighter variants for dark navy surfaces
+  revBg: "rgba(52,163,154,0.18)",
+  revFg: "#34A39A",
+  expBg: "rgba(216,117,89,0.18)",
+  expFg: "#D87559",
+
+  // Aliases
+  chooseRevenueBg: "rgba(52,163,154,0.18)",
+  chooseRevenueIcon: "#34A39A",
+  chooseExpenseBg: "rgba(216,117,89,0.18)",
+  chooseExpenseIcon: "#D87559",
 } as const;

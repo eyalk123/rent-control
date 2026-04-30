@@ -7,7 +7,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { IconButton, Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,6 +15,7 @@ import { getPropertyById } from '@/src/features/properties/api/properties';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Property } from '@/src/shared/types';
 import {
+  Icon,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
@@ -82,7 +82,7 @@ export function PropertyDetailScreen() {
       <ScreenContainer>
         <EmptyState
           message={error ?? t('error.propertyNotFound')}
-          icon="home-alert"
+          icon="alert-circle"
         />
       </ScreenContainer>
     );
@@ -109,7 +109,7 @@ export function PropertyDetailScreen() {
                   { width, backgroundColor: colors.inputBackground },
                 ]}
               >
-                <MaterialCommunityIcons
+                <Icon
                   name="home"
                   size={48}
                   color={colors.placeholder}
@@ -117,8 +117,7 @@ export function PropertyDetailScreen() {
               </View>
             )}
             <IconButton
-              icon="pencil"
-              iconColor="#FFF"
+              icon={() => <Icon name="pencil" size={20} color={colors.onPrimary} />}
               size={20}
               style={[styles.editIcon, { backgroundColor: colors.primary }]}
               onPress={handleEdit}

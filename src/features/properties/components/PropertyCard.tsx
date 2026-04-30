@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
 import { Card, Checkbox, Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
@@ -51,9 +51,9 @@ export function PropertyCard({ property, onPress, onLongPress, isSelectMode = fa
                 { backgroundColor: colors.inputBackground },
               ]}
             >
-              <MaterialCommunityIcons
+              <Icon
                 name="home"
-                size={28}
+                size={24}
                 color={colors.placeholder}
               />
             </View>
@@ -92,7 +92,7 @@ export function PropertyCard({ property, onPress, onLongPress, isSelectMode = fa
             </View>
           </View>
           {!isSelectMode && (
-            <MaterialCommunityIcons
+            <Icon
               name="chevron-right"
               size={24}
               color={colors.textSecondary}

@@ -78,7 +78,7 @@ export function RenterDetailScreen() {
       <ScreenContainer>
         <EmptyState
           message={error ?? t('error.renterNotFound')}
-          icon="account-alert"
+          icon="alert-circle"
         />
       </ScreenContainer>
     );

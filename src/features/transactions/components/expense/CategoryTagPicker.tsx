@@ -167,15 +167,15 @@ export function CategoryTagPicker({
                 }
               ]}
               textStyle={[
-                styles.chipText, 
-                rtlChipTextStyle, 
-                { color: "#FFFFFF", fontWeight: "600" },
+                styles.chipText,
+                rtlChipTextStyle,
+                { color: colors.onPrimary, fontWeight: "600" },
                 isRtl && { marginLeft: 8, marginRight: 4 }
               ]}
               theme={{
                 colors: {
-                  onSurfaceVariant: "#FFFFFF", 
-                  primary: "#FFFFFF"
+                  onSurfaceVariant: colors.onPrimary,
+                  primary: colors.onPrimary
                 }
               }}
             >

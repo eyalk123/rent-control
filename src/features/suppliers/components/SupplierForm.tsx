@@ -1,9 +1,9 @@
 import React from 'react';
-import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Control } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { FormTextField } from '@/src/shared/components/form/FormFields';
@@ -36,12 +36,13 @@ export function SupplierForm({
           onPress={onPickFromContacts}
           activeOpacity={0.7}
         >
-          <MaterialCommunityIcons
-            name="account-multiple"
-            size={22}
-            color={colors.primary}
-            style={styles.contactIcon}
-          />
+          <View style={styles.contactIcon}>
+            <Icon
+              name="users"
+              size={22}
+              color={colors.primary}
+            />
+          </View>
           <Text variant="bodyMedium" style={{ color: colors.primary }}>
             {t('suppliers.chooseFromContacts', {
               defaultValue: 'Choose from contacts',

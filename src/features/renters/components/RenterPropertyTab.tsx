@@ -1,19 +1,21 @@
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon, type IconName } from '@/src/shared/components/ui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { PropertyBrief, PropertyType, Renter } from '@/src/shared/types';
 import { EmptyState } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 
+type ThemeColors = typeof lightColors | typeof darkColors;
+
 interface RenterPropertyTabProps {
   renter: Renter;
 }
 
-const TYPE_ICONS: Record<PropertyType, keyof typeof MaterialCommunityIcons.glyphMap> = {
-  apartment: 'home-city',
+const TYPE_ICONS: Record<PropertyType, IconName> = {
+  apartment: 'building',
   house: 'home',
   commercial: 'store',
 };
@@ -24,7 +26,7 @@ function PropertyCard({
   onPress,
 }: {
   property: PropertyBrief;
-  colors: typeof lightColors;
+  colors: ThemeColors;
   onPress: () => void;
 }) {
   const { t } = useTranslation();
@@ -37,9 +39,9 @@ function PropertyCard({
       <Card style={styles.card} mode="outlined">
         <Card.Content style={styles.cardContent}>
           <View style={[styles.iconBox, { backgroundColor: colors.inputBackground }]}>
-            <MaterialCommunityIcons
+            <Icon
               name={TYPE_ICONS[property.type] ?? 'home'}
-              size={28}
+              size={24}
               color={colors.primary}
             />
           </View>
@@ -57,11 +59,11 @@ function PropertyCard({
           </View>
           <View style={styles.rightSection}>
             <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-              <Text variant="labelSmall" style={styles.badgeText}>
+              <Text variant="labelSmall" style={[styles.badgeText, { color: colors.onPrimary }]}>
                 {typeLabel}
               </Text>
             </View>
-            <MaterialCommunityIcons
+            <Icon
               name="chevron-right"
               size={24}
               color={colors.textSecondary}
@@ -82,7 +84,7 @@ export function RenterPropertyTab({ renter }: RenterPropertyTabProps) {
   if (!renter.property) {
     return (
       <View style={styles.emptyContainer}>
-        <EmptyState message={t('renter.noProperty')} icon="home-off" />
+        <EmptyState message={t('renter.noProperty')} icon="home" />
       </View>
     );
   }
@@ -146,7 +148,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   badgeText: {
-    color: '#FFFFFF',
     fontSize: 11,
   },
 });

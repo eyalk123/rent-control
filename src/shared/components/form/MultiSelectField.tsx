@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Icon } from "@/src/shared/components/ui";
 import React, { useMemo } from "react";
 import {
   ScrollView,
@@ -105,7 +105,7 @@ export function MultiSelectField<T extends string | number>({
           renderLeftIcon={
             isRtl
               ? () => (
-                  <MaterialCommunityIcons
+                  <Icon
                     name="chevron-down"
                     size={20}
                     color={colors.placeholder}

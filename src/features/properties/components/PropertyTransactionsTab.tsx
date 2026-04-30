@@ -132,7 +132,7 @@ export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabP
         ListEmptyComponent={
           <EmptyState
             message={t('property.noTransactions')}
-            icon="cash-multiple"
+            icon="wallet"
           />
         }
       />

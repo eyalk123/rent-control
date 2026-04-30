@@ -5,14 +5,46 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { CommonActions } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
+import { darkColors, ICON_MD, lightColors } from '@/src/core/theme';
 
 function TabBarLtr(props: BottomTabBarProps) {
   const theme = useTheme();
   return (
     <View style={{ direction: 'ltr', backgroundColor: theme.colors.surface }}>
       <BottomTabBar {...props} />
+    </View>
+  );
+}
+
+function TabBarIcon({
+  name,
+  color,
+  focused,
+}: {
+  name: IconName;
+  color: string;
+  focused: boolean;
+}) {
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const pillBg = theme.dark
+    ? 'rgba(62,111,168,0.18)'
+    : 'rgba(30,58,95,0.13)';
+
+  return (
+    <View
+      style={{
+        width: 44,
+        height: 28,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: focused ? pillBg : 'transparent',
+      }}
+    >
+      <Icon name={name} size={ICON_MD} color={focused ? colors.primary : color} />
     </View>
   );
 }
@@ -61,8 +93,8 @@ export default function TabLayout() {
         name="renters"
         options={{
           title: t('tabs.renters'),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-group" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="users" color={color} focused={focused} />
           ),
         }}
       />
@@ -70,8 +102,8 @@ export default function TabLayout() {
         name="properties"
         options={{
           title: t('tabs.properties'),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="home" color={color} focused={focused} />
           ),
         }}
       />
@@ -79,8 +111,8 @@ export default function TabLayout() {
         name="transactions"
         options={{
           title: t('tabs.transactions', { defaultValue: 'Transactions' }),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="cash-multiple" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="wallet" color={color} focused={focused} />
           ),
         }}
       />
@@ -88,8 +120,8 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: t('tabs.settings'),
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="cog" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="settings" color={color} focused={focused} />
           ),
         }}
       />

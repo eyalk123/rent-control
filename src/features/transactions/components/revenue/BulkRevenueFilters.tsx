@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { Dropdown } from 'react-native-element-dropdown';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon } from '@/src/shared/components/ui';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useLanguageContext, useRtlInputStyle, useRtlLabelStyle } from '@/src/context';
 import type { TimePeriodType } from '@/src/features/transactions/screens/types';
@@ -81,7 +81,7 @@ export function BulkRevenueFilters({
     renderRightIcon: isRtl ? () => null : undefined,
     renderLeftIcon: isRtl
       ? () => (
-          <MaterialCommunityIcons
+          <Icon
             name="chevron-down"
             size={20}
             color={colors.placeholder}

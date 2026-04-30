@@ -4,7 +4,7 @@ import {
   useRtlLabelStyle,
 } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Icon } from "@/src/shared/components/ui";
 import React, { useState } from "react";
 import {
   Controller,
@@ -132,12 +132,13 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
                     >
                       {currentValue || placeholder || ""}
                     </Text>
-                    <MaterialCommunityIcons
-                      name="chevron-down"
-                      size={20}
-                      color={colors.placeholder}
-                      style={isRtl ? styles.iconRtl : styles.iconLtr}
-                    />
+                    <View style={isRtl ? styles.iconRtl : styles.iconLtr}>
+                      <Icon
+                        name="chevron-down"
+                        size={20}
+                        color={colors.placeholder}
+                      />
+                    </View>
                   </Pressable>
                 }
                 anchorPosition="bottom"
@@ -197,12 +198,13 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
                     ]}
                   >
                     <View style={styles.createItemRow}>
-                      <MaterialCommunityIcons
-                        name="plus"
-                        size={16}
-                        color={colors.primary}
-                        style={isRtl ? styles.createIconRtl : styles.createIconLtr}
-                      />
+                      <View style={isRtl ? styles.createIconRtl : styles.createIconLtr}>
+                        <Icon
+                          name="plus"
+                          size={16}
+                          color={colors.primary}
+                        />
+                      </View>
                       <Text
                         style={[
                           styles.itemText,

@@ -11,9 +11,8 @@ import { useTranslation } from 'react-i18next';
 import { Button, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRouter } from 'expo-router';
-import { ScreenContainer } from '@/src/shared/components/ui';
+import { Icon, ScreenContainer } from '@/src/shared/components/ui';
 import { useLanguageContext } from '@/src/context';
 import { useTransactionContext } from '@/src/features/transactions/context/TransactionContext';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
@@ -149,9 +148,9 @@ export function AddTransactionScreen() {
             accessibilityLabel={t('common.back')}
             accessibilityRole="button"
           >
-            <MaterialCommunityIcons
+            <Icon
               name={isRtl ? 'chevron-right' : 'chevron-left'}
-              size={28}
+              size={24}
               color={colors.textSecondary}
             />
           </TouchableOpacity>

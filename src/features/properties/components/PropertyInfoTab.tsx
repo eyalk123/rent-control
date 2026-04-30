@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon, type IconName } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Property, PropertyType } from '@/src/shared/types';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
@@ -11,8 +11,8 @@ interface PropertyInfoTabProps {
   property: Property;
 }
 
-const TYPE_ICONS: Record<PropertyType, keyof typeof MaterialCommunityIcons.glyphMap> = {
-  apartment: 'home-city',
+const TYPE_ICONS: Record<PropertyType, IconName> = {
+  apartment: 'building',
   house: 'home',
   commercial: 'store',
 };
@@ -26,7 +26,7 @@ function StatBox({
   textColor,
   secondaryColor,
 }: {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  icon: IconName;
   value: string;
   label: string;
   backgroundColor: string;
@@ -36,7 +36,7 @@ function StatBox({
 }) {
   return (
     <View style={[styles.statBox, { backgroundColor }]}>
-      <MaterialCommunityIcons name={icon} size={24} color={iconColor} />
+      <Icon name={icon} size={24} color={iconColor} />
       <Text variant="titleMedium" style={[styles.statValue, { color: textColor }]}>
         {value}
       </Text>
@@ -54,7 +54,7 @@ function IconDetailRow({
   iconColor,
   secondaryColor,
 }: {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  icon: IconName;
   label: string;
   value: string;
   iconColor: string;
@@ -63,7 +63,7 @@ function IconDetailRow({
   return (
     <View style={styles.iconRow}>
       <View style={styles.iconRowLeft}>
-        <MaterialCommunityIcons name={icon} size={20} color={iconColor} />
+        <Icon name={icon} size={20} color={iconColor} />
         <Text variant="bodyMedium" style={{ color: secondaryColor }}>
           {label}
         </Text>
@@ -91,7 +91,7 @@ function ExpandableNotesRow({
   return (
     <View style={styles.notesRow}>
       <View style={styles.iconRowLeft}>
-        <MaterialCommunityIcons name="note-text" size={20} color={iconColor} />
+        <Icon name="file-text" size={20} color={iconColor} />
         <Text variant="bodyMedium" style={{ color: secondaryColor }}>
           {label}
         </Text>
@@ -147,7 +147,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
           secondaryColor={colors.textSecondary}
         />
         <StatBox
-          icon="ruler-square"
+          icon="ruler"
           value={property.sq_ft.toLocaleString()}
           label={t('property.surfaceArea')}
           backgroundColor={colors.inputBackground}
@@ -156,7 +156,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
           secondaryColor={colors.textSecondary}
         />
         <StatBox
-          icon={hasRooms ? 'door-open' : 'map-marker'}
+          icon={hasRooms ? 'door-open' : 'map-pin'}
           value={hasRooms ? String(property.number_of_rooms) : property.zip_code}
           label={hasRooms ? t('property.numberOfRooms') : t('property.zipCode')}
           backgroundColor={colors.inputBackground}
@@ -169,14 +169,14 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
       {/* Overview card */}
       <Card style={styles.card} mode="outlined">
         <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-          <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+          <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
             {t('property.basicInfo')}
           </Text>
         </View>
         <Card.Content style={styles.cardContent}>
           {hasRooms && (
             <IconDetailRow
-              icon="map-marker"
+              icon="map-pin"
               label={t('property.zipCode')}
               value={property.zip_code}
               iconColor={colors.primary}
@@ -185,7 +185,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
           )}
           {property.property_owner != null && property.property_owner !== '' && (
             <IconDetailRow
-              icon="account-tie"
+              icon="briefcase"
               label={t('property.propertyOwner')}
               value={property.property_owner}
               iconColor={colors.primary}
@@ -199,7 +199,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
       {(property.basic_contract_url || property.land_registry_url) && (
         <Card style={styles.card} mode="outlined">
           <View style={[styles.sectionHeader, { backgroundColor: colors.secondary }]}>
-            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
               {t('documents.title')}
             </Text>
           </View>
@@ -211,12 +211,12 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
                 activeOpacity={0.7}
               >
                 <View style={styles.iconRowLeft}>
-                  <MaterialCommunityIcons name="file-document-outline" size={20} color={colors.secondary} />
+                  <Icon name="file-text" size={20} color={colors.secondary} />
                   <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
                     {t('documents.basicContract')}
                   </Text>
                 </View>
-                <MaterialCommunityIcons name="open-in-new" size={18} color={colors.secondary} />
+                <Icon name="external-link" size={18} color={colors.secondary} />
               </TouchableOpacity>
             )}
             {property.land_registry_url && (
@@ -226,12 +226,12 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
                 activeOpacity={0.7}
               >
                 <View style={styles.iconRowLeft}>
-                  <MaterialCommunityIcons name="bank-outline" size={20} color={colors.secondary} />
+                  <Icon name="bank" size={20} color={colors.secondary} />
                   <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
                     {t('documents.landRegistry')}
                   </Text>
                 </View>
-                <MaterialCommunityIcons name="open-in-new" size={18} color={colors.secondary} />
+                <Icon name="external-link" size={18} color={colors.secondary} />
               </TouchableOpacity>
             )}
           </Card.Content>
@@ -242,7 +242,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
       {hasPropertyDetails && (
         <Card style={styles.card} mode="outlined">
           <View style={[styles.sectionHeader, { backgroundColor: colors.sectionAccent }]}>
-            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: '#FFF' }]}>
+            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
               {t('property.details')}
             </Text>
           </View>
@@ -258,7 +258,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
             )}
             {property.electricity_meter_number != null && property.electricity_meter_number !== '' && (
               <IconDetailRow
-                icon="flash"
+                icon="zap"
                 label={t('property.electricityMeterNumber')}
                 value={property.electricity_meter_number}
                 iconColor={colors.sectionAccent}
@@ -267,7 +267,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
             )}
             {property.water_meter_tax != null && (
               <IconDetailRow
-                icon="water"
+                icon="droplet"
                 label={t('property.waterMeterTax')}
                 value={formatMoney(property.water_meter_tax)}
                 iconColor={colors.sectionAccent}
@@ -276,7 +276,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
             )}
             {property.property_tax != null && (
               <IconDetailRow
-                icon="file-document"
+                icon="file-text"
                 label={t('property.propertyTax')}
                 value={formatMoney(property.property_tax)}
                 iconColor={colors.sectionAccent}
@@ -285,7 +285,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
             )}
             {property.house_committee != null && (
               <IconDetailRow
-                icon="account-group"
+                icon="users"
                 label={t('property.houseCommittee')}
                 value={formatMoney(property.house_committee)}
                 iconColor={colors.sectionAccent}
