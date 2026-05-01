@@ -6,7 +6,7 @@ import {
   type FieldValues,
   type Path,
 } from "react-hook-form";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import type { TFunction } from "i18next";
 import { spacing } from "@/src/core/theme";
@@ -91,11 +91,7 @@ function FormLeaseYearsFieldInner<TFieldValues extends FieldValues>({
         keyboardType="number-pad"
       />
 
-      <ScrollView
-        style={styles.yearsScroll}
-        nestedScrollEnabled
-        showsVerticalScrollIndicator={false}
-      >
+      <View>
         {[...fields].reverse().map((field, reversedIdx) => {
           const index = fields.length - 1 - reversedIdx;
           const isCurrent = isCurrentLeaseYear(leaseStart, index);
@@ -145,7 +141,7 @@ function FormLeaseYearsFieldInner<TFieldValues extends FieldValues>({
             </View>
           );
         })}
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -161,9 +157,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: spacing.sm,
     gap: 0,
-  },
-  yearsScroll: {
-    maxHeight: 260,
   },
   row: {
     marginBottom: 0,

@@ -1,4 +1,3 @@
-import { useLanguageContext, useSectionHeaderStyle } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
 import React from "react";
 import { StyleSheet, View, ViewStyle } from "react-native";
@@ -6,20 +5,19 @@ import { Text, useTheme } from "react-native-paper";
 
 type FormSectionCardProps = {
   title: string;
+  subtitle?: string;
   children: React.ReactNode;
   containerStyle?: ViewStyle;
 };
 
 export function FormSectionCard({
   title,
+  subtitle,
   children,
   containerStyle,
 }: FormSectionCardProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
-  const sectionHeaderStyle = useSectionHeaderStyle();
-  
-  const { isRtl } = useLanguageContext(); 
 
   return (
     <View
@@ -34,38 +32,18 @@ export function FormSectionCard({
       ]}
     >
       <View style={styles.cardContent}>
-        <View
-          style={[
-            sectionHeaderStyle.containerStyle,
-            {
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.sm,
-              marginEnd: spacing.sm,
-            },
-          ]}
-        >
-          <View
-            style={[
-              styles.sectionAccent,
-              {
-                backgroundColor: colors.sectionAccent,
-              },
-            ]}
-          />
+        <View style={styles.titleBlock}>
           <Text
-            variant="titleLarge"
-            style={[
-              styles.sectionHeader,
-              sectionHeaderStyle.textStyle,
-              {
-                textAlign: "left",
-              },
-            ]}
+            style={[styles.sectionHeader, { color: colors.textPrimary }]}
             numberOfLines={1}
           >
             {title}
           </Text>
+          {subtitle ? (
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {subtitle}
+            </Text>
+          ) : null}
         </View>
 
         {children}
@@ -85,14 +63,16 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     paddingTop: spacing.lg,
   },
-  sectionHeader: {
-    flexShrink: 1,
-    fontWeight: "700",
-    flex: 1,
+  titleBlock: {
+    marginBottom: spacing.md,
   },
-  sectionAccent: {
-    width: 4,
-    height: 22,
-    borderRadius: 2,
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  subtitle: {
+    fontSize: 13,
+    fontWeight: "400",
+    marginTop: 2,
   },
 });

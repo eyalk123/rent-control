@@ -57,18 +57,21 @@ function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
       <FormTextField
         control={control}
         name={"firstName" as any}
-        label={`${t("renter.firstName")} *`}
+        label={t("renter.firstName")}
+        required
       />
       <FormTextField
         control={control}
         name={"lastName" as any}
-        label={`${t("renter.lastName")} *`}
+        label={t("renter.lastName")}
+        required
       />
       <FormNumericField
         control={control}
         name={"phone" as any}
-        label={`${t("renter.phone")} *`}
+        label={t("renter.phone")}
         keyboardType="phone-pad"
+        required
       />
       <FormTextField
         control={control}

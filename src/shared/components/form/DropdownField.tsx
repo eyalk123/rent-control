@@ -66,87 +66,87 @@ export function DropdownField<T extends string | number | null>({
       ) : null}
 
       <View style={{ direction: "ltr" }}>
-        <Dropdown
-          data={data}
-          labelField="label"
-          valueField="value"
-          value={value}
-          placeholder={placeholder ?? t("common.selectItem")}
-          disable={disabled}
-          autoScroll={false}
-          mode="default"
-          renderRightIcon={isRtl ? () => null : undefined}
-          renderLeftIcon={
-            isRtl
-              ? () => (
-                  <Icon
-                    name="chevron-down"
-                    size={20}
-                    color={colors.placeholder}
-                  />
-                )
-              : undefined
-          }
-          placeholderStyle={[
-            styles.placeholder,
-            rtlInputStyle,
-            {
-              color: colors.placeholder,
-              textAlign: isRtl ? "right" : "left",
-            },
-          ]}
-          selectedTextStyle={[
-            styles.selectedText,
-            rtlInputStyle,
-            {
-              textAlign: isRtl ? "right" : "left",
-              color: colors.textPrimary,
-            },
-          ]}
-          itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
-          style={[
-            styles.dropdown,
-            {
-              backgroundColor: disabled
-                ? colors.inputFilledBackground
-                : colors.inputFilledBackground,
-              borderColor: error ? colors.error : colors.outline,
-              opacity: disabled ? 0.6 : 1,
-            },
-          ]}
-          containerStyle={[
-            styles.dropdownContainer,
-            {
-              backgroundColor: colors.surface,
-              borderColor: colors.outline,
-            },
-          ]}
-          onChange={(item: DropdownItem<T>) => {
-            onChange(item.value);
-          }}
-          renderItem={(item: DropdownItem<T>) => (
-            <View
+      <Dropdown
+        data={data}
+        labelField="label"
+        valueField="value"
+        value={value}
+        placeholder={placeholder ?? t("common.selectItem")}
+        disable={disabled}
+        autoScroll={false}
+        mode="default"
+        renderRightIcon={isRtl ? () => null : undefined}
+        renderLeftIcon={
+          isRtl
+            ? () => (
+                <Icon
+                  name="chevron-down"
+                  size={20}
+                  color={colors.placeholder}
+                />
+              )
+            : undefined
+        }
+        placeholderStyle={[
+          styles.placeholder,
+          rtlInputStyle,
+          {
+            color: colors.placeholder,
+            textAlign: isRtl ? "right" : "left",
+          },
+        ]}
+        selectedTextStyle={[
+          styles.selectedText,
+          rtlInputStyle,
+          {
+            textAlign: isRtl ? "right" : "left",
+            color: colors.textPrimary,
+          },
+        ]}
+        itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
+        style={[
+          styles.dropdown,
+          {
+            backgroundColor: disabled
+              ? colors.inputFilledBackground
+              : colors.inputFilledBackground,
+            borderColor: error ? colors.error : colors.outline,
+            opacity: disabled ? 0.6 : 1,
+          },
+        ]}
+        containerStyle={[
+          styles.dropdownContainer,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.outline,
+          },
+        ]}
+        onChange={(item: DropdownItem<T>) => {
+          onChange(item.value);
+        }}
+        renderItem={(item: DropdownItem<T>) => (
+          <View
+            style={[
+              styles.itemContainer,
+              { backgroundColor: colors.surface },
+            ]}
+          >
+            <Text
               style={[
-                styles.itemContainer,
-                { backgroundColor: colors.surface },
+                styles.itemText,
+                rtlInputStyle,
+                {
+                  textAlign: isRtl ? "right" : "left",
+                  width: "100%",
+                  color: colors.textPrimary,
+                },
               ]}
             >
-              <Text
-                style={[
-                  styles.itemText,
-                  rtlInputStyle,
-                  {
-                    textAlign: isRtl ? "right" : "left",
-                    width: "100%",
-                    color: colors.textPrimary,
-                  },
-                ]}
-              >
-                {item.label}
-              </Text>
-            </View>
-          )}
-        />
+              {item.label}
+            </Text>
+          </View>
+        )}
+      />
       </View>
 
       {error?.message ? (

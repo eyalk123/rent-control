@@ -91,7 +91,11 @@
     },
     "inventoryNotes": "Apartment Notes",
     "inventoryNotesPlaceholder": "Furniture, appliances, items...",
-    "noTransactions": "No transactions for this property"
+    "noTransactions": "No transactions for this property",
+    "basicInfoSubtitle": "Where the property is and what type it is.",
+    "photo": "Photo",
+    "addAPhoto": "Add a photo",
+    "photoHelper": "Or pick a house illustration"
   },
   "renter": {
     "basicInfo": "Basic Information",
@@ -205,7 +209,8 @@
     "add": "Add",
     "selectItem": "Select item",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "step_n_of_m": "Step {{n}} of {{m}}"
   },
   "validation": {
     "title": "Validation",

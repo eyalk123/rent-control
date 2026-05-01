@@ -10,6 +10,7 @@ type CommonFieldProps<TFieldValues extends FieldValues> = {
   label: string;
   placeholder?: string;
   keyboardType?: React.ComponentProps<typeof RNTextInput>["keyboardType"];
+  required?: boolean;
 };
 
 export function FormTextField<TFieldValues extends FieldValues>(

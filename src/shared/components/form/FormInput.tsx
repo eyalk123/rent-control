@@ -27,6 +27,7 @@ type FormInputProps<TFieldValues extends FieldValues> = {
   keyboardType?: React.ComponentProps<typeof RNTextInput>["keyboardType"];
   multiline?: boolean;
   dense?: boolean;
+  required?: boolean;
 };
 
 function FormInputInner<TFieldValues extends FieldValues>({
@@ -37,6 +38,7 @@ function FormInputInner<TFieldValues extends FieldValues>({
   keyboardType,
   multiline,
   dense = true,
+  required,
 }: FormInputProps<TFieldValues>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -57,14 +59,10 @@ function FormInputInner<TFieldValues extends FieldValues>({
         <View style={styles.inputWrap}>
           <Text
             variant="bodyMedium"
-            style={[
-              styles.label,
-              rtlLabelStyle,
-              { color: error ? colors.error : colors.textPrimary },
-            ]}
+            style={[styles.label, rtlLabelStyle, { color: error ? colors.error : colors.textPrimary }]}
             numberOfLines={1}
           >
-            {label}
+            {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
           </Text>
 
           <View>
@@ -85,11 +83,18 @@ function FormInputInner<TFieldValues extends FieldValues>({
               style={[
                 styles.nativeInput,
                 {
-                  backgroundColor: colors.inputFilledBackground,
-                  borderColor: error ? colors.error : colors.outline,
+                  backgroundColor: isFocused
+                    ? colors.inputBackground
+                    : colors.inputFilledBackground,
+                  borderColor: isFocused
+                    ? colors.primary
+                    : error
+                    ? colors.error
+                    : colors.outline,
+                  borderWidth: isFocused ? 2 : 1,
                   color: colors.textPrimary,
-                  minHeight: dense ? 40 : 48,
                 },
+                isFocused && styles.focusShadow,
                 rtlInputStyle,
               ]}
             />
@@ -125,12 +130,23 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontWeight: "500",
   },
+  asterisk: {
+    color: "#B85450",
+    fontWeight: "500",
+  },
   nativeInput: {
-    borderWidth: 1,
     borderRadius: 4,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 16,
+    minHeight: 48,
+  },
+  focusShadow: {
+    shadowColor: "rgba(30,58,95,1)",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   errorText: {
     marginTop: 4,

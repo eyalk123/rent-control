@@ -8,3 +8,4 @@ export { Icon, type IconName } from './Icon';
 export { AppFab } from './AppFab';
 export { FilterChipsBar, type FilterChip } from './FilterChipsBar';
 export { FilterBottomSheet, type FilterOption } from './FilterBottomSheet';
+export { StepHeader } from './StepHeader';

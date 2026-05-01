@@ -1,9 +1,9 @@
-import { Icon, LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
-import { useLanguageContext, usePropertyContext } from "@/src/context";
+import { LoadingOverlay, ScreenContainer, StepHeader } from "@/src/shared/components/ui";
+import { usePropertyContext } from "@/src/context";
 import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm";
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
-import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import { spacing } from "@/src/core/theme";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
@@ -11,18 +11,13 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
 } from "react-native";
-import { Button, useTheme } from "react-native-paper";
+import { Button } from "react-native-paper";
 import { FormScrollView } from "@/src/shared/components/form";
 
 export function AddEditPropertyScreen() {
   const { t } = useTranslation();
-  const theme = useTheme();
-  const colors = theme.dark ? darkColors : lightColors;
-  const { isRtl } = useLanguageContext();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const { refreshProperties } = usePropertyContext();
@@ -107,29 +102,12 @@ export function AddEditPropertyScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
         >
-          <View
-            style={[
-              styles.header,
-              { flexDirection: isRtl ? "row-reverse" : "row" },
-            ]}
-          >
-            <TouchableOpacity
-              onPress={handleHeaderBack}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              accessibilityLabel={t("common.back")}
-              accessibilityRole="button"
-            >
-              <Icon
-                name={isRtl ? "chevron-right" : "chevron-left"}
-                size={24}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-              {isEdit ? t("property.updateProperty") : t("property.addProperty")}
-            </Text>
-            <View style={styles.headerSpacer} />
-          </View>
+          <StepHeader
+            title={isEdit ? t("property.updateProperty") : t("property.addProperty")}
+            currentStep={step === "basic" ? 1 : 2}
+            totalSteps={2}
+            onBack={handleHeaderBack}
+          />
           {step === "basic" && (
             <BasicInfoCard
               control={control}
@@ -189,20 +167,6 @@ const styles = StyleSheet.create({
     padding: spacing.formPaddingHorizontal,
     gap: spacing.sm,
     paddingBottom: 24,
-  },
-  header: {
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  headerSpacer: {
-    width: 28,
   },
   fixedButtonBar: {
     paddingHorizontal: spacing.formPaddingHorizontal,

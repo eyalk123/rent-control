@@ -56,8 +56,8 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   );
 
   const textFields = [
-    { name: "address", labelKey: "property.address", required: true },
-    { name: "city", labelKey: "property.city", required: true },
+    { name: "address", labelKey: "property.address", required: true as const },
+    { name: "city", labelKey: "property.city", required: true as const },
   ] as const;
 
   const numericFields = [
@@ -74,13 +74,17 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   ];
 
   return (
-    <FormSectionCard title={t("property.basicInfo")}>
+    <FormSectionCard
+      title={t("property.basicInfo")}
+      subtitle={t("property.basicInfoSubtitle")}
+    >
       {textFields.map((f) => (
         <FormTextField
           key={f.name}
           control={control}
           name={f.name as any}
-          label={`${t(f.labelKey)}${f.required ? " *" : ""}`}
+          label={t(f.labelKey)}
+          required={f.required}
         />
       ))}
       <FormCreatableDropdown

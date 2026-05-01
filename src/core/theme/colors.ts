@@ -29,7 +29,7 @@ export const lightColors = {
 
   // Inputs
   inputBackground: "#FFFFFF",
-  inputFilledBackground: "#F1ECDF", // cream tint, distinct from page bg
+  inputFilledBackground: "#F6F3EC", // lighter, slightly cooler — distinct from card bg
   inputBorder: "rgba(26,45,74,0.18)",
 
   // Lines / shadows

@@ -176,15 +176,28 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
           </View>
         </View>
       ) : (
-        <Button
-          mode="outlined"
-          onPress={() => setModalVisible(true)}
-          style={[styles.selectButton, { backgroundColor: colors.inputFilledBackground }]}
-          icon="image"
-          compact
-        >
-          {t('property.selectImage')}
-        </Button>
+        <View style={styles.photoWrap}>
+          <Text style={[styles.photoLabel, { color: colors.textSecondary }]}>
+            {t('property.photo')}
+          </Text>
+          <Pressable
+            onPress={() => setModalVisible(true)}
+            style={[
+              styles.dropzone,
+              {
+                backgroundColor: colors.inputFilledBackground,
+              },
+            ]}
+          >
+            <Icon name="image" size={22} color={colors.textSecondary} />
+            <Text style={[styles.dropzonePrimary, { color: colors.textPrimary }]}>
+              {t('property.addAPhoto')}
+            </Text>
+            <Text style={[styles.dropzoneHelper, { color: colors.textSecondary }]}>
+              {t('property.photoHelper')}
+            </Text>
+          </Pressable>
+        </View>
       )}
 
       <Modal
@@ -237,9 +250,33 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  selectButton: {
+  photoWrap: {
+    width: '100%',
     marginBottom: spacing.md,
+  },
+  photoLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  dropzone: {
+    width: '100%',
+    height: 88,
     borderRadius: 12,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(26,45,74,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  dropzonePrimary: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  dropzoneHelper: {
+    fontSize: 11,
+    fontWeight: '400',
   },
   previewContainer: {
     marginBottom: spacing.md,

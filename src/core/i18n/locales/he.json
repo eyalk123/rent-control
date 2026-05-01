@@ -91,7 +91,11 @@
     },
     "inventoryNotes": "הערות ופירוט חפצים בדירה",
     "inventoryNotesPlaceholder": "ריהוט, מכשירים, חפצים...",
-    "noTransactions": "אין תנועות לנכס זה"
+    "noTransactions": "אין תנועות לנכס זה",
+    "basicInfoSubtitle": "היכן הנכס ומה סוגו.",
+    "photo": "תמונה",
+    "addAPhoto": "הוסף תמונה",
+    "photoHelper": "או בחר איור בית"
   },
   "renter": {
     "basicInfo": "מידע בסיסי",
@@ -205,7 +209,8 @@
     "add": "הוסף",
     "selectItem": "בחר פריט",
     "showMore": "הצג עוד",
-    "showLess": "הצג פחות"
+    "showLess": "הצג פחות",
+    "step_n_of_m": "שלב {{n}} מתוך {{m}}"
   },
   "validation": {
     "title": "אימות",
