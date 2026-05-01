@@ -41,7 +41,13 @@ export function RenterCard({ renter, onPress, onLongPress, isSelectMode = false,
               onPress={onPress}
             />
           )}
-          <RenterAvatar renter={renter} size={40} style={styles.avatar} />
+          <RenterAvatar
+            renter={renter}
+            size={50}
+            backgroundColor={colors.avatarBackground}
+            textColor={colors.avatarText}
+            style={[styles.avatar, { borderWidth: 1, borderColor: colors.avatarBorder }]}
+          />
           <View style={styles.info}>
             <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
               {renter.first_name} {renter.last_name}
@@ -98,13 +104,13 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   avatar: {
-    marginEnd: 12,
+    marginEnd: 12
   },
   info: {
     flex: 1,
   },
   name: {
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 2,
   },
   badge: {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import type { Renter } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
@@ -12,7 +12,7 @@ interface RenterAvatarProps {
   backgroundColor?: string;
   /** Override text color when showing initials. */
   textColor?: string;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function RenterAvatar({
@@ -36,7 +36,7 @@ export function RenterAvatar({
       {imageUri ? (
         <Image source={{ uri: imageUri }} style={[styles.image, { width: size, height: size, borderRadius: size / 2 }]} />
       ) : (
-        <Text variant="labelLarge" style={{ color: txtColor, fontSize: size * 0.4 }}>
+        <Text variant="labelLarge" style={{ color: txtColor, fontSize: size * 0.4, lineHeight: size * 0.5 }}>
           {initials}
         </Text>
       )}

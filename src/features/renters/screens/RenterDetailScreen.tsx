@@ -98,7 +98,7 @@ export function RenterDetailScreen() {
             <RenterAvatar
               renter={renter}
               size={80}
-              backgroundColor="rgba(255,255,255,0.3)"
+              backgroundColor={colors.primary}
               textColor="#FFF"
             />
             <IconButton

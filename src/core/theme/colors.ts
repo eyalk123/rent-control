@@ -55,6 +55,11 @@ export const lightColors = {
   chooseRevenueIcon: "#0F766E",
   chooseExpenseBg: "rgba(180,83,9,0.13)",
   chooseExpenseIcon: "#9A3412",
+
+  // Avatar initials
+  avatarBackground: "#EDF0F4",
+  avatarBorder: "#D2D8E0",
+  avatarText: "#1E3A5F",
 } as const;
 
 
@@ -108,4 +113,9 @@ export const darkColors = {
   chooseRevenueIcon: "#34A39A",
   chooseExpenseBg: "rgba(216,117,89,0.18)",
   chooseExpenseIcon: "#D87559",
+
+  // Avatar initials
+  avatarBackground: "#2A3950",
+  avatarBorder: "#41506A",
+  avatarText: "#FAF7F0",
 } as const;
