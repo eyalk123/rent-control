@@ -1,1 +1,1 @@
-export { FilterChipsBar, type FilterChip } from '@/src/shared/components/ui/FilterChipsBar';
+export { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from '@/src/shared/components/ui/FilterChipsBar';

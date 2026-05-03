@@ -4,8 +4,8 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
-  useState,
 } from 'react';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
@@ -16,6 +16,20 @@ export interface DataContextValue<T> {
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+}
+
+type State<T> = { data: T[]; loading: boolean; error: string | null };
+type Action<T> =
+  | { type: 'loading' }
+  | { type: 'success'; data: T[] }
+  | { type: 'error'; message: string };
+
+function reducer<T>(state: State<T>, action: Action<T>): State<T> {
+  switch (action.type) {
+    case 'loading': return { ...state, loading: true, error: null };
+    case 'success': return { data: action.data, loading: false, error: null };
+    case 'error':   return { data: [], loading: false, error: action.message };
+  }
 }
 
 export function createDataContext<T>(
@@ -29,21 +43,15 @@ export function createDataContext<T>(
     const { t } = useTranslation();
     const tRef = useRef(t);
     tRef.current = t;
-    const [data, setData] = useState<T[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [state, dispatch] = useReducer(reducer<T>, { data: [], loading: true, error: null });
 
     const refresh = useCallback(async () => {
-      setLoading(true);
-      setError(null);
+      dispatch({ type: 'loading' });
       try {
-        const result = await fetcher();
-        setData(result);
+        const data = await fetcher();
+        dispatch({ type: 'success', data });
       } catch (err) {
-        setError(getApiErrorMessage(err, tRef.current('error.loadFailed')));
-        setData([]);
-      } finally {
-        setLoading(false);
+        dispatch({ type: 'error', message: getApiErrorMessage(err, tRef.current('error.loadFailed')) });
       }
     }, []);
 
@@ -54,8 +62,8 @@ export function createDataContext<T>(
     }, [isLoaded, isSignedIn, refresh]);
 
     const value = useMemo(
-      () => ({ data, loading, error, refresh }),
-      [data, loading, error, refresh],
+      () => ({ data: state.data, loading: state.loading, error: state.error, refresh }),
+      [state, refresh],
     );
 
     return (

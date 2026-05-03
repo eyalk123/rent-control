@@ -6,10 +6,11 @@ import { useRouter } from 'expo-router';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
+import { DevProfiler } from '@/src/shared/components/dev/DevProfiler';
 import { spacing } from '@/src/core/theme';
 import { AccountPreviewCard } from '../components/AccountPreviewCard';
 
-export function SettingsScreen() {
+export const SettingsScreen = React.memo(function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { themeMode, setThemeMode } = useThemeContext();
@@ -20,7 +21,9 @@ export function SettingsScreen() {
   return (
     <ScreenContainer>
       <ScrollView style={styles.container}>
-        <AccountPreviewCard />
+        <DevProfiler id="AccountPreviewCard">
+          <AccountPreviewCard />
+        </DevProfiler>
 
         {/* 2. Move the Theme title OUTSIDE of LtrSection so it respects the global RTL layout */}
         <Text
@@ -31,6 +34,7 @@ export function SettingsScreen() {
         </Text>
 
         {/* Keep LtrSection ONLY on the SegmentedButtons to preserve their order */}
+        <DevProfiler id="SegmentedButtons">
         <LtrSection>
           <SegmentedButtons
             value={themeMode}
@@ -45,6 +49,7 @@ export function SettingsScreen() {
             style={styles.segmented}
           />
         </LtrSection>
+        </DevProfiler>
 
         {/* 3. Apply the helper to the rest of your titles */}
         <Text
@@ -104,7 +109,7 @@ export function SettingsScreen() {
       </ScrollView>
     </ScreenContainer>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

@@ -45,7 +45,7 @@ export function RentersListScreen() {
     useCallback(() => {
       return () => {
         setIsSelectMode(false);
-        setSelectedIds(new Set());
+        setSelectedIds(prev => prev.size > 0 ? new Set() : prev);
       };
     }, [])
   );

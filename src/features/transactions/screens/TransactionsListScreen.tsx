@@ -56,6 +56,18 @@ const currentMonthKey = (): string => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
+const EMPTY_KEY: Record<TransactionTypeFilter, string> = {
+  all: 'empty.noTransactionSearchResults',
+  revenue: 'empty.noRevenueThisPeriod',
+  expense: 'empty.noExpenseThisPeriod',
+};
+
+const EMPTY_DEFAULT: Record<TransactionTypeFilter, string> = {
+  all: 'No transactions match your filters.',
+  revenue: 'No revenue in this period.',
+  expense: 'No expenses in this period.',
+};
+
 export function TransactionsListScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -95,7 +107,8 @@ export function TransactionsListScreen() {
       filterChipsRef.current?.scrollToStart();
       return () => {
         setIsSelectMode(false);
-        setSelectedIds(new Set());
+        // Avoid creating a new Set reference when already empty — prevents spurious re-renders on tab blur
+        setSelectedIds(prev => prev.size > 0 ? new Set() : prev);
       };
     }, [])
   );
@@ -256,10 +269,10 @@ export function TransactionsListScreen() {
   ], [t, propertyOptions, renterOptions, ownerOptions, categoryOptions, supplierOptions,
       propertyFilter, renterFilter, ownerFilter, categoryFilter, supplierFilter]);
 
-  const handleAddPress = () => {
+  const handleAddPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push('/transactions/add' as any);
-  };
+  }, [router]);
 
   const handleTransactionPress = useCallback((id: number) => {
     if (isSelectMode) {
@@ -281,18 +294,18 @@ export function TransactionsListScreen() {
     setSelectedIds(new Set([id]));
   }, []);
 
-  const handleToggleAll = () => {
+  const handleToggleAll = useCallback(() => {
     if (allSelected) {
       setSelectedIds(new Set());
     } else {
       setSelectedIds(new Set(typeFiltered.map((tx) => tx.id)));
     }
-  };
+  }, [allSelected, typeFiltered]);
 
-  const handleCancelSelect = () => {
+  const handleCancelSelect = useCallback(() => {
     setIsSelectMode(false);
     setSelectedIds(new Set());
-  };
+  }, []);
 
   const handleDeleteSelected = () => {
     const count = selectedIds.size;
@@ -330,9 +343,9 @@ export function TransactionsListScreen() {
     );
   };
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     await refreshTransactions();
-  };
+  }, [refreshTransactions]);
 
   if (loading && transactions.length === 0) {
     return (
@@ -376,17 +389,6 @@ export function TransactionsListScreen() {
     );
   }
 
-  const emptyKey: Record<TransactionTypeFilter, string> = {
-    all: 'empty.noTransactionSearchResults',
-    revenue: 'empty.noRevenueThisPeriod',
-    expense: 'empty.noExpenseThisPeriod',
-  };
-  const emptyDefault: Record<TransactionTypeFilter, string> = {
-    all: 'No transactions match your filters.',
-    revenue: 'No revenue in this period.',
-    expense: 'No expenses in this period.',
-  };
-
   return (
     <ScreenContainer edges={['top', 'left', 'right']}>
       <LoadingOverlay visible={loading || deleting} />
@@ -421,8 +423,12 @@ export function TransactionsListScreen() {
               <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} />
             </DevProfiler>
             <View style={[styles.filterCard, { backgroundColor: theme.colors.surface }]}>
-              <FilterChipsBar ref={filterChipsRef} chips={filterChips} />
-              <TypeFilterChips value={typeFilter} onChange={setTypeFilter} />
+              <DevProfiler id="FilterChipsBar">
+                <FilterChipsBar ref={filterChipsRef} chips={filterChips} />
+              </DevProfiler>
+              <DevProfiler id="TypeFilterChips">
+                <TypeFilterChips value={typeFilter} onChange={setTypeFilter} />
+              </DevProfiler>
             </View>
           </View>
         }
@@ -448,7 +454,7 @@ export function TransactionsListScreen() {
           );
         }}
         renderItem={({ item }: { item: Transaction & { subtitle: string; formattedDate: string } }) => (
-          <DevProfiler id="TransactionRow">
+          <DevProfiler id="TransactionRow" group="TransactionRow">
             <TransactionRow
               transaction={item}
               subtitle={item.subtitle}
@@ -473,8 +479,8 @@ export function TransactionsListScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            message={t(emptyKey[typeFilter], {
-              defaultValue: emptyDefault[typeFilter],
+            message={t(EMPTY_KEY[typeFilter], {
+              defaultValue: EMPTY_DEFAULT[typeFilter],
             })}
             icon={typeFilter === 'all' ? 'filter' : 'wallet'}
           />

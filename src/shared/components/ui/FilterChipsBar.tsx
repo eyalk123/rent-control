@@ -24,7 +24,7 @@ interface FilterChipsBarProps {
 }
 
 // React 19: ref is a plain prop — no forwardRef needed
-export function FilterChipsBar({ chips, stretch, ref }: FilterChipsBarProps) {
+export const FilterChipsBar = React.memo(function FilterChipsBar({ chips, stretch, ref }: FilterChipsBarProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const scrollRef = useRef<ScrollView>(null);
@@ -100,7 +100,7 @@ export function FilterChipsBar({ chips, stretch, ref }: FilterChipsBarProps) {
       {chipElements}
     </ScrollView>
   );
-}
+});
 
 const styles = StyleSheet.create({
   scroll: {

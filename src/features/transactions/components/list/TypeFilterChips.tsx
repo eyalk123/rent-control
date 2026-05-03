@@ -18,26 +18,26 @@ export const TypeFilterChips = React.memo(function TypeFilterChips({ value, onCh
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const options: { value: TransactionTypeFilter; label: string; activeColor: string; activeBg: string }[] = [
+  const options = React.useMemo(() => [
     {
-      value: 'all',
+      value: 'all' as TransactionTypeFilter,
       label: t('transactions.filterAll', { defaultValue: 'All' }),
       activeColor: colors.onPrimary,
       activeBg: colors.primary,
     },
     {
-      value: 'revenue',
+      value: 'revenue' as TransactionTypeFilter,
       label: t('transactions.filterRevenue', { defaultValue: 'Revenue' }),
       activeColor: colors.revFg,
       activeBg: colors.revBg,
     },
     {
-      value: 'expense',
+      value: 'expense' as TransactionTypeFilter,
       label: t('transactions.filterExpense', { defaultValue: 'Expense' }),
       activeColor: colors.expFg,
       activeBg: colors.expBg,
     },
-  ];
+  ], [t, colors]);
 
   const handlePress = (next: TransactionTypeFilter) => {
     if (next === value) return;

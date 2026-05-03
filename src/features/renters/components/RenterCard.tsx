@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Checkbox, Text, useTheme } from 'react-native-paper';
 import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Renter } from '@/src/shared/types';
 import { getLeaseEndDate } from '@/src/shared/types';
+import { formatDateFull } from '@/src/shared/utils/dates';
 import { lightColors, darkColors } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 
@@ -17,18 +18,19 @@ interface RenterCardProps {
 }
 
 export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLongPress, isSelectMode = false, isSelected = false }: RenterCardProps) {
-  const { t, i18n } = useTranslation();
+  const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
   const leaseEndDate = getLeaseEndDate(renter);
-  const isExpiringSoon = leaseEndDate != null && (() => {
+  const isExpiringSoon = useMemo(() => {
+    if (leaseEndDate == null) return false;
     const threeMonthsFromNow = new Date();
     threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
     return leaseEndDate <= threeMonthsFromNow;
-  })();
+  }, [leaseEndDate]);
   const leaseEndLabel = leaseEndDate
-    ? t('renter.leaseEnd', { date: leaseEndDate.toLocaleDateString(i18n.language) })
+    ? t('renter.leaseEnd', { date: formatDateFull(leaseEndDate, language) })
     : null;
 
   return (
