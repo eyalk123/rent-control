@@ -55,7 +55,10 @@
       "Bash(adb logcat *)",
       "Bash(kill %1)",
       "Bash(pkill -f \"adb logcat\")",
-      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control\" -Recurse -Filter \"*layout*\")",
+      "Bash(Select-Object FullName)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control\" -Recurse -Name)"
     ]
   }
 }

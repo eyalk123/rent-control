@@ -14,7 +14,6 @@ import {
   View,
 } from 'react-native';
 import { Checkbox, Text, useTheme } from 'react-native-paper';
-import { useTranslation } from 'react-i18next';
 
 import { darkColors, ICON_XS, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui';
@@ -23,20 +22,23 @@ import type { Transaction } from '@/src/shared/types';
 
 interface TransactionRowProps {
   transaction: Transaction;
+  subtitle: string;
+  formattedDate: string;
   isSelectMode: boolean;
   isSelected: boolean;
-  onPress: () => void;
-  onLongPress: () => void;
+  onPress: (id: number) => void;
+  onLongPress: (id: number) => void;
 }
 
-export function TransactionRow({
+export const TransactionRow = React.memo(function TransactionRow({
   transaction,
+  subtitle,
+  formattedDate,
   isSelectMode,
   isSelected,
   onPress,
   onLongPress,
 }: TransactionRowProps) {
-  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const isRtl = I18nManager.isRTL;
@@ -46,28 +48,6 @@ export function TransactionRow({
   const bg = isRevenue ? colors.revBg : colors.expBg;
   const sign = isRevenue ? '+' : '−'; // U+2212
 
-  const subtitle = [
-    transaction.category_name
-      ? t(`expenseCategories.${transaction.category_name.toLowerCase()}`, {
-          defaultValue: transaction.category_name,
-        })
-      : null,
-    transaction.renter_name,
-    transaction.supplier_name,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
-  const dateStr = transaction.date_of_payment;
-  const formattedDate = (() => {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString(i18n.language, {
-      day: '2-digit',
-      month: 'short',
-    });
-  })();
-
   // Leading-edge color bar: in RTL, the leading edge is on the right.
   const edgeStyle = isRtl
     ? { borderRightWidth: 3, borderRightColor: fg }
@@ -75,8 +55,8 @@ export function TransactionRow({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
-      onLongPress={onLongPress}
+      onPress={() => onPress(transaction.id)}
+      onLongPress={() => onLongPress(transaction.id)}
       activeOpacity={0.7}
     >
       <View
@@ -93,7 +73,7 @@ export function TransactionRow({
         {isSelectMode ? (
           <Checkbox
             status={isSelected ? 'checked' : 'unchecked'}
-            onPress={onPress}
+            onPress={() => onPress(transaction.id)}
           />
         ) : (
           <View style={[styles.iconCircle, { backgroundColor: bg }]}>
@@ -133,7 +113,7 @@ export function TransactionRow({
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

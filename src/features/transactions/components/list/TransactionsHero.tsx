@@ -23,7 +23,7 @@ interface TransactionsHeroProps {
   bucket: MonthBucket;
 }
 
-export function TransactionsHero({ bucket }: TransactionsHeroProps) {
+export const TransactionsHero = React.memo(function TransactionsHero({ bucket }: TransactionsHeroProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -71,7 +71,7 @@ export function TransactionsHero({ bucket }: TransactionsHeroProps) {
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

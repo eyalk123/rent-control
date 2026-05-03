@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   RefreshControl,
@@ -26,6 +26,7 @@ import { deleteTransaction } from '@/src/features/transactions/api/transactions'
 import { formatMoney } from '@/src/shared/utils/money';
 import {
   bucketByMonth,
+  formatTransactionDate,
   lastNMonths,
   monthYearLabel,
   type MonthBucket,
@@ -37,9 +38,11 @@ import {
   type TransactionTypeFilter,
 } from '@/src/features/transactions/components/list/TypeFilterChips';
 import { TransactionRow } from '@/src/features/transactions/components/list/TransactionRow';
+import { DevProfiler } from '@/src/shared/components/dev/DevProfiler';
 import {
   FilterChipsBar,
   type FilterChip,
+  type FilterChipsBarHandle,
 } from '@/src/features/transactions/components/list/FilterChipsBar';
 import {
   FilterBottomSheet,
@@ -81,7 +84,7 @@ export function TransactionsListScreen() {
   const [supplierFilter, setSupplierFilter] = useState<number | null>(null);
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
 
-  const [chipScrollSignal, setChipScrollSignal] = useState(0);
+  const filterChipsRef = useRef<FilterChipsBarHandle>(null);
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -89,7 +92,7 @@ export function TransactionsListScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      setChipScrollSignal((s) => s + 1);
+      filterChipsRef.current?.scrollToStart();
       return () => {
         setIsSelectMode(false);
         setSelectedIds(new Set());
@@ -98,7 +101,7 @@ export function TransactionsListScreen() {
   );
 
   React.useEffect(() => {
-    setChipScrollSignal((s) => s + 1);
+    filterChipsRef.current?.scrollToStart();
   }, [language]);
 
   // Derive filter options from transaction data — only shows values present in the list
@@ -195,9 +198,19 @@ export function TransactionsListScreen() {
       key: b.key,
       title: monthYearLabel(b.key, locale),
       profit: b.profit,
-      data: b.transactions,
+      data: b.transactions.map((tx) => {
+        const subtitle = [
+          tx.category_name
+            ? t(`expenseCategories.${tx.category_name.toLowerCase()}`, { defaultValue: tx.category_name })
+            : null,
+          tx.renter_name,
+          tx.supplier_name,
+        ].filter(Boolean).join(' · ');
+        const formattedDate = formatTransactionDate(tx.date_of_payment, locale);
+        return { ...tx, subtitle, formattedDate };
+      }),
     }));
-  }, [typeFiltered, locale]);
+  }, [typeFiltered, locale, t]);
 
   const allSelected =
     typeFiltered.length > 0 && typeFiltered.every((tx) => selectedIds.has(tx.id));
@@ -248,7 +261,7 @@ export function TransactionsListScreen() {
     router.push('/transactions/add' as any);
   };
 
-  const handleTransactionPress = (id: number) => {
+  const handleTransactionPress = useCallback((id: number) => {
     if (isSelectMode) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
@@ -256,14 +269,17 @@ export function TransactionsListScreen() {
         else next.add(id);
         return next;
       });
+      return;
     }
-  };
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push(`/transactions/${id}` as any);
+  }, [isSelectMode, router]);
 
-  const handleLongPress = (id: number) => {
+  const handleLongPress = useCallback((id: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsSelectMode(true);
     setSelectedIds(new Set([id]));
-  };
+  }, []);
 
   const handleToggleAll = () => {
     if (allSelected) {
@@ -398,10 +414,14 @@ export function TransactionsListScreen() {
         stickySectionHeadersEnabled
         ListHeaderComponent={
           <View>
-            <TransactionsHero bucket={heroBucket} />
-            <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} />
+            <DevProfiler id="TransactionsHero">
+              <TransactionsHero bucket={heroBucket} />
+            </DevProfiler>
+            <DevProfiler id="MonthsBarChart">
+              <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} />
+            </DevProfiler>
             <View style={[styles.filterCard, { backgroundColor: theme.colors.surface }]}>
-              <FilterChipsBar chips={filterChips} resetSignal={chipScrollSignal} />
+              <FilterChipsBar ref={filterChipsRef} chips={filterChips} />
               <TypeFilterChips value={typeFilter} onChange={setTypeFilter} />
             </View>
           </View>
@@ -427,14 +447,18 @@ export function TransactionsListScreen() {
             </View>
           );
         }}
-        renderItem={({ item }: { item: Transaction }) => (
-          <TransactionRow
-            transaction={item}
-            isSelectMode={isSelectMode}
-            isSelected={selectedIds.has(item.id)}
-            onPress={() => handleTransactionPress(item.id)}
-            onLongPress={() => handleLongPress(item.id)}
-          />
+        renderItem={({ item }: { item: Transaction & { subtitle: string; formattedDate: string } }) => (
+          <DevProfiler id="TransactionRow">
+            <TransactionRow
+              transaction={item}
+              subtitle={item.subtitle}
+              formattedDate={item.formattedDate}
+              isSelectMode={isSelectMode}
+              isSelected={selectedIds.has(item.id)}
+              onPress={handleTransactionPress}
+              onLongPress={handleLongPress}
+            />
+          </DevProfiler>
         )}
         contentContainerStyle={[
           styles.list,

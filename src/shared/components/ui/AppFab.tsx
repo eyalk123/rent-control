@@ -76,20 +76,26 @@ export function AppFab({
         style,
       ]}
     >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel}
-        accessibilityState={{ disabled }}
-        onPress={handlePress}
-        disabled={disabled}
-        style={({ pressed }) => [
-          styles.fab,
-          shadow,
-          { backgroundColor: bg, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
-        ]}
+      {/* Shadow lives on a stable View so it's composited once and cached by the GPU.
+          Keeping it off the Pressable prevents re-compositing on every press-state change. */}
+      <View
+        style={[styles.fab, shadow, { backgroundColor: bg }]}
+        renderToHardwareTextureAndroid
       >
-        <Icon name={icon} size={ICON_HERO} color={fg} />
-      </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={accessibilityLabel}
+          accessibilityState={{ disabled }}
+          onPress={handlePress}
+          disabled={disabled}
+          style={({ pressed }) => [
+            styles.fab,
+            { backgroundColor: bg, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
+          ]}
+        >
+          <Icon name={icon} size={ICON_HERO} color={fg} />
+        </Pressable>
+      </View>
     </View>
   );
 }

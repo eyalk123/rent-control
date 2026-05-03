@@ -142,7 +142,7 @@ export function RentersListScreen() {
     filteredRenters.length > 0 && filteredRenters.every((r) => selectedIds.has(r.id));
   const someSelected = !allSelected && filteredRenters.some((r) => selectedIds.has(r.id));
 
-  const handleRenterPress = (id: number) => {
+  const handleRenterPress = useCallback((id: number) => {
     if (isSelectMode) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
@@ -152,13 +152,13 @@ export function RentersListScreen() {
       return;
     }
     router.push(`/renters/${id}` as any);
-  };
+  }, [isSelectMode, router]);
 
-  const handleLongPress = (id: number) => {
+  const handleLongPress = useCallback((id: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsSelectMode(true);
     setSelectedIds(new Set([id]));
-  };
+  }, []);
 
   const handleToggleAll = () => {
     if (allSelected) {
@@ -286,8 +286,8 @@ export function RentersListScreen() {
         renderItem={({ item }) => (
           <RenterCard
             renter={item}
-            onPress={() => handleRenterPress(item.id)}
-            onLongPress={() => handleLongPress(item.id)}
+            onPress={handleRenterPress}
+            onLongPress={handleLongPress}
             isSelectMode={isSelectMode}
             isSelected={selectedIds.has(item.id)}
           />

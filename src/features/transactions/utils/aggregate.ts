@@ -82,24 +82,37 @@ export function lastNMonths(
   return result;
 }
 
-/** Localized 3-letter month abbreviation, e.g. "Apr" / "אפר". */
+// Static lookup tables — avoids the slow Intl/toLocaleDateString API in React Native.
+const MONTHS_SHORT: Record<string, string[]> = {
+  'en-US': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  'he-IL': ['ינו׳', 'פבר׳', 'מרץ', 'אפר׳', 'מאי', 'יוני', 'יולי', 'אוג׳', 'ספט׳', 'אוק׳', 'נוב׳', 'דצמ׳'],
+};
+const MONTHS_LONG: Record<string, string[]> = {
+  'en-US': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  'he-IL': ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'],
+};
+
+function shortMonth(locale: string, monthIndex: number): string {
+  return (MONTHS_SHORT[locale] ?? MONTHS_SHORT['en-US'])[monthIndex];
+}
+function longMonth(locale: string, monthIndex: number): string {
+  return (MONTHS_LONG[locale] ?? MONTHS_LONG['en-US'])[monthIndex];
+}
+
+/** "Apr" / "אפר׳" */
 export function monthLabel(key: MonthKey, locale: string): string {
-  const [year, month] = key.split('-').map(Number);
-  return new Date(year, month - 1, 1).toLocaleDateString(locale, {
-    month: 'short',
-  });
+  const month = parseInt(key.slice(5, 7), 10);
+  return shortMonth(locale, month - 1);
 }
 
-/** Localized "MAR 2026" — uppercase 3-letter month + 4-digit year. */
+/** "APR 2026" */
 export function monthYearLabel(key: MonthKey, locale: string): string {
-  const [year, month] = key.split('-').map(Number);
-  const monthShort = new Date(year, month - 1, 1).toLocaleDateString(locale, {
-    month: 'short',
-  });
-  return `${monthShort.toUpperCase()} ${year}`;
+  const year = key.slice(0, 4);
+  const month = parseInt(key.slice(5, 7), 10);
+  return `${shortMonth(locale, month - 1).toUpperCase()} ${year}`;
 }
 
-/** Localized full month name + uppercase profit/loss eyebrow text. */
+/** "APRIL · PROFIT" */
 export function heroEyebrow(
   key: MonthKey,
   locale: string,
@@ -107,10 +120,15 @@ export function heroEyebrow(
   profitLabel: string,
   lossLabel: string,
 ): string {
-  const [year, month] = key.split('-').map(Number);
-  const fullMonth = new Date(year, month - 1, 1).toLocaleDateString(locale, {
-    month: 'long',
-  });
+  const month = parseInt(key.slice(5, 7), 10);
   const word = profit < 0 ? lossLabel : profitLabel;
-  return `${fullMonth.toUpperCase()} · ${word.toUpperCase()}`;
+  return `${longMonth(locale, month - 1).toUpperCase()} · ${word.toUpperCase()}`;
+}
+
+/** "15 Apr" — fast manual format for transaction row dates. */
+export function formatTransactionDate(dateStr: string, locale: string): string {
+  if (!dateStr || dateStr.length < 10) return dateStr;
+  const day = dateStr.slice(8, 10);
+  const month = parseInt(dateStr.slice(5, 7), 10);
+  return `${day} ${shortMonth(locale, month - 1)}`;
 }

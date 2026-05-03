@@ -9,13 +9,13 @@ import { getPropertyImageSource } from '@/src/features/properties/utils/property
 
 interface PropertyCardProps {
   property: Property;
-  onPress: () => void;
-  onLongPress?: () => void;
+  onPress: (id: number) => void;
+  onLongPress?: (id: number) => void;
   isSelectMode?: boolean;
   isSelected?: boolean;
 }
 
-export function PropertyCard({ property, onPress, onLongPress, isSelectMode = false, isSelected = false }: PropertyCardProps) {
+export const PropertyCard = React.memo(function PropertyCard({ property, onPress, onLongPress, isSelectMode = false, isSelected = false }: PropertyCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const isDark = theme.dark;
@@ -26,8 +26,8 @@ export function PropertyCard({ property, onPress, onLongPress, isSelectMode = fa
 
   return (
     <TouchableOpacity
-      onPress={onPress}
-      onLongPress={onLongPress}
+      onPress={() => onPress(property.id)}
+      onLongPress={onLongPress ? () => onLongPress(property.id) : undefined}
       activeOpacity={0.7}
     >
       <Card style={styles.card} mode="outlined">
@@ -35,7 +35,7 @@ export function PropertyCard({ property, onPress, onLongPress, isSelectMode = fa
           {isSelectMode && (
             <Checkbox
               status={isSelected ? 'checked' : 'unchecked'}
-              onPress={onPress}
+              onPress={() => onPress(property.id)}
             />
           )}
           {imageSource ? (
@@ -102,7 +102,7 @@ export function PropertyCard({ property, onPress, onLongPress, isSelectMode = fa
       </Card>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

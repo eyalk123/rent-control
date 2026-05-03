@@ -121,7 +121,7 @@ export function PropertiesListScreen() {
     filteredProperties.length > 0 && filteredProperties.every((p) => selectedIds.has(p.id));
   const someSelected = !allSelected && filteredProperties.some((p) => selectedIds.has(p.id));
 
-  const handlePropertyPress = (id: number) => {
+  const handlePropertyPress = useCallback((id: number) => {
     if (isSelectMode) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
@@ -131,13 +131,13 @@ export function PropertiesListScreen() {
       return;
     }
     router.push(`/properties/${id}` as any);
-  };
+  }, [isSelectMode, router]);
 
-  const handleLongPress = (id: number) => {
+  const handleLongPress = useCallback((id: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsSelectMode(true);
     setSelectedIds(new Set([id]));
-  };
+  }, []);
 
   const handleToggleAll = () => {
     if (allSelected) {
@@ -262,8 +262,8 @@ export function PropertiesListScreen() {
         renderItem={({ item }) => (
           <PropertyCard
             property={item}
-            onPress={() => handlePropertyPress(item.id)}
-            onLongPress={() => handleLongPress(item.id)}
+            onPress={handlePropertyPress}
+            onLongPress={handleLongPress}
             isSelectMode={isSelectMode}
             isSelected={selectedIds.has(item.id)}
           />

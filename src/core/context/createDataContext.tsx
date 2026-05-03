@@ -3,6 +3,8 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
+  useRef,
   useState,
 } from 'react';
 import { getApiErrorMessage } from '@/src/core/api/client';
@@ -25,6 +27,8 @@ export function createDataContext<T>(
   function Provider({ children }: { children: React.ReactNode }) {
     const { isLoaded, isSignedIn } = useAppAuth();
     const { t } = useTranslation();
+    const tRef = useRef(t);
+    tRef.current = t;
     const [data, setData] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -36,12 +40,12 @@ export function createDataContext<T>(
         const result = await fetcher();
         setData(result);
       } catch (err) {
-        setError(getApiErrorMessage(err, t('error.loadFailed')));
+        setError(getApiErrorMessage(err, tRef.current('error.loadFailed')));
         setData([]);
       } finally {
         setLoading(false);
       }
-    }, [t]);
+    }, []);
 
     useEffect(() => {
       if (isLoaded && isSignedIn) {
@@ -49,8 +53,13 @@ export function createDataContext<T>(
       }
     }, [isLoaded, isSignedIn, refresh]);
 
+    const value = useMemo(
+      () => ({ data, loading, error, refresh }),
+      [data, loading, error, refresh],
+    );
+
     return (
-      <Context.Provider value={{ data, loading, error, refresh }}>
+      <Context.Provider value={value}>
         {children}
       </Context.Provider>
     );

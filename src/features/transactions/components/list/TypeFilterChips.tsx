@@ -13,7 +13,7 @@ interface TypeFilterChipsProps {
   onChange: (value: TransactionTypeFilter) => void;
 }
 
-export function TypeFilterChips({ value, onChange }: TypeFilterChipsProps) {
+export const TypeFilterChips = React.memo(function TypeFilterChips({ value, onChange }: TypeFilterChipsProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -77,7 +77,7 @@ export function TypeFilterChips({ value, onChange }: TypeFilterChipsProps) {
       })}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   track: {

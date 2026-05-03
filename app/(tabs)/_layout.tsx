@@ -2,12 +2,15 @@ import { View } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
 import { BottomTabBar } from '@react-navigation/bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, TabActions } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
 import { darkColors, ICON_MD, lightColors } from '@/src/core/theme';
+
+// DEV-ONLY: measures time from tab press → screen focus
+let __tabPressAt = 0;
 
 function TabBarLtr(props: BottomTabBarProps) {
   const theme = useTheme();
@@ -65,21 +68,39 @@ export default function TabLayout() {
         tabPress: (e) => {
           e.preventDefault();
           const state = navigation.getState();
+          const isActive = state.routes[state.index].name === route.name;
+
+          if (__DEV__) {
+            __tabPressAt = performance.now();
+            console.log(`[tab] press → ${route.name} (isActive=${isActive})`);
+          }
+
+          if (!isActive) {
+            navigation.dispatch(TabActions.jumpTo(route.name));
+            return;
+          }
+
           navigation.dispatch(
             CommonActions.reset({
               ...state,
               index: state.routes.findIndex((r) => r.name === route.name),
               routes: state.routes.map((r) =>
                 r.name === route.name
-                  ? { key: r.key, name: r.name } // clear nested stack state
+                  ? { key: r.key, name: r.name }
                   : r
               ),
             })
           );
         },
+        focus: () => {
+          if (__DEV__ && __tabPressAt) {
+            console.log(`[tab] focus ${route.name} +${(performance.now() - __tabPressAt).toFixed(0)}ms`);
+            __tabPressAt = 0;
+          }
+        },
       })}
       screenOptions={{
-        animation: 'shift',
+        // animation: 'fade',
         sceneStyle: { backgroundColor: theme.colors.background },
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,

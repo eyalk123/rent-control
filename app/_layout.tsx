@@ -13,7 +13,7 @@ import * as NavigationBar from "expo-navigation-bar";
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
 import { Stack, useNavigationContainerRef } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
@@ -41,14 +41,14 @@ function DirectionalContent() {
 function AppContent() {
   const { theme } = useThemeContext();
 
-  const navigationTheme = {
+  const navigationTheme = useMemo(() => ({
     ...(theme.dark ? DarkTheme : DefaultTheme),
     colors: {
       ...(theme.dark ? DarkTheme.colors : DefaultTheme.colors),
       background: theme.colors.background,
       card: theme.colors.surface,
     },
-  };
+  }), [theme.dark, theme.colors.background, theme.colors.surface]);
 
   // Inside app/_layout.tsx
   useEffect(() => {

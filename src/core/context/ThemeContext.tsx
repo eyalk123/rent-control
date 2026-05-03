@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { useColorScheme } from 'react-native';
@@ -50,11 +51,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const value: ThemeContextType = {
-    themeMode,
-    theme: resolvedTheme,
-    setThemeMode,
-  };
+  const value = useMemo<ThemeContextType>(
+    () => ({ themeMode, theme: resolvedTheme, setThemeMode }),
+    [themeMode, resolvedTheme, setThemeMode],
+  );
 
   return (
     <ThemeContext.Provider value={value}>

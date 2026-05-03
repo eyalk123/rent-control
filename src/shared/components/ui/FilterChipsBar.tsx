@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import React, { useEffect, useRef } from 'react';
+import React, { useImperativeHandle, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
@@ -13,22 +13,27 @@ export interface FilterChip {
   onClear: () => void;
 }
 
-interface FilterChipsBarProps {
-  chips: FilterChip[];
-  resetSignal?: number;
-  stretch?: boolean;
+export interface FilterChipsBarHandle {
+  scrollToStart: () => void;
 }
 
-export function FilterChipsBar({ chips, resetSignal, stretch }: FilterChipsBarProps) {
+interface FilterChipsBarProps {
+  chips: FilterChip[];
+  stretch?: boolean;
+  ref?: React.Ref<FilterChipsBarHandle>;
+}
+
+// React 19: ref is a plain prop — no forwardRef needed
+export function FilterChipsBar({ chips, stretch, ref }: FilterChipsBarProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const scrollRef = useRef<ScrollView>(null);
 
-  useEffect(() => {
-    if (!stretch) {
-      scrollRef.current?.scrollTo({ x: 0, animated: false });
-    }
-  }, [resetSignal, stretch]);
+  useImperativeHandle(ref, () => ({
+    scrollToStart: () => {
+      if (!stretch) scrollRef.current?.scrollTo({ x: 0, animated: false });
+    },
+  }), [stretch]);
 
   const chipElements = chips.map((chip) => {
     const active = chip.selectedLabel !== null;

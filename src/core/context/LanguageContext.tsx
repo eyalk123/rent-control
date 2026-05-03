@@ -11,6 +11,7 @@ import React, {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useState,
 } from "react";
 import type { TextStyle, ViewStyle } from "react-native";
@@ -93,8 +94,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguageState(lang);
   }, []);
 
+  const value = useMemo<LanguageContextType>(
+    () => ({ language, setLanguage, isRtl }),
+    [language, setLanguage, isRtl],
+  );
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, isRtl }}>
+    <LanguageContext.Provider value={value}>
       {ready ? children : null}
     </LanguageContext.Provider>
   );

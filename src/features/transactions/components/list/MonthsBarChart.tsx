@@ -27,7 +27,7 @@ interface MonthsBarChartProps {
   currentKey: string;
 }
 
-export function MonthsBarChart({ buckets, currentKey }: MonthsBarChartProps) {
+export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, currentKey }: MonthsBarChartProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { language } = useLanguageContext();
@@ -96,7 +96,7 @@ export function MonthsBarChart({ buckets, currentKey }: MonthsBarChartProps) {
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

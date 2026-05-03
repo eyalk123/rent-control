@@ -10,13 +10,13 @@ import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 
 interface RenterCardProps {
   renter: Renter;
-  onPress: () => void;
-  onLongPress?: () => void;
+  onPress: (id: number) => void;
+  onLongPress?: (id: number) => void;
   isSelectMode?: boolean;
   isSelected?: boolean;
 }
 
-export function RenterCard({ renter, onPress, onLongPress, isSelectMode = false, isSelected = false }: RenterCardProps) {
+export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLongPress, isSelectMode = false, isSelected = false }: RenterCardProps) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -32,13 +32,13 @@ export function RenterCard({ renter, onPress, onLongPress, isSelectMode = false,
     : null;
 
   return (
-    <TouchableOpacity onPress={onPress} onLongPress={onLongPress} activeOpacity={0.7}>
+    <TouchableOpacity onPress={() => onPress(renter.id)} onLongPress={onLongPress ? () => onLongPress(renter.id) : undefined} activeOpacity={0.7}>
       <Card style={styles.card} mode="outlined">
         <Card.Content style={styles.content}>
           {isSelectMode && (
             <Checkbox
               status={isSelected ? 'checked' : 'unchecked'}
-              onPress={onPress}
+              onPress={() => onPress(renter.id)}
             />
           )}
           <RenterAvatar
@@ -89,7 +89,7 @@ export function RenterCard({ renter, onPress, onLongPress, isSelectMode = false,
       </Card>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
