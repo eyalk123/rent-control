@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
+import { Icon } from '@/src/shared/components/ui';
 import { DevProfiler } from '@/src/shared/components/dev/DevProfiler';
 import { spacing } from '@/src/core/theme';
 import { AccountPreviewCard } from '../components/AccountPreviewCard';
@@ -42,9 +43,9 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
               setThemeMode(v as 'light' | 'dark' | 'system')
             }
             buttons={[
-              { value: 'light', label: t('settings.themeLight'), icon: 'white-balance-sunny' },
-              { value: 'dark', label: t('settings.themeDark'), icon: 'moon-waning-crescent' },
-              { value: 'system', label: t('settings.themeSystem'), icon: 'cellphone' },
+              { value: 'light',  label: t('settings.themeLight'),  icon: ({ color, size }: { color: string; size: number }) => <Icon name="sun"      size={size} color={color} /> },
+              { value: 'dark',   label: t('settings.themeDark'),   icon: ({ color, size }: { color: string; size: number }) => <Icon name="moon"     size={size} color={color} /> },
+              { value: 'system', label: t('settings.themeSystem'), icon: ({ color, size }: { color: string; size: number }) => <Icon name="settings" size={size} color={color} /> },
             ]}
             style={styles.segmented}
           />
@@ -61,7 +62,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
         <List.Section>
           <List.Item
             title={t('settings.suppliers')}
-            left={(props) => <List.Icon {...props} icon="truck" />}
+            left={(props) => <Icon name="store" size={20} color={props.color} style={props.style} />}
             onPress={() => router.push('/settings/suppliers' as any)}
             style={styles.listItem}
           />
@@ -76,10 +77,10 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
         <List.Section>
           <List.Item
             title={t('settings.languageEn')}
-            left={(props) => <List.Icon {...props} icon="translate" />}
+            left={(props) => <Icon name="languages" size={20} color={props.color} style={props.style} />}
             right={(props) =>
               language === 'en' ? (
-                <List.Icon {...props} icon="check" color={props.color} />
+                <Icon name="check" size={20} color={props.color} style={props.style} />
               ) : null
             }
             onPress={() => setLanguage('en')}
@@ -87,10 +88,10 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
           />
           <List.Item
             title={t('settings.languageHe')}
-            left={(props) => <List.Icon {...props} icon="translate" />}
+            left={(props) => <Icon name="languages" size={20} color={props.color} style={props.style} />}
             right={(props) =>
               language === 'he' ? (
-                <List.Icon {...props} icon="check" color={props.color} />
+                <Icon name="check" size={20} color={props.color} style={props.style} />
               ) : null
             }
             onPress={() => setLanguage('he')}
@@ -101,7 +102,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
         <List.Section>
           <List.Item
             title={t('settings.signOut')}
-            left={(props) => <List.Icon {...props} icon="logout" />}
+            left={(props) => <Icon name="door-open" size={20} color={props.color} style={props.style} />}
             onPress={() => signOut()}
             style={styles.listItem}
           />

@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { getAuth, onAuthStateChanged, signOut, FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { getAuth, onAuthStateChanged, signOut, getIdToken, FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { setAuthTokenGetter } from '@/src/core/api/client';
 
@@ -31,12 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return onAuthStateChanged(getAuth(), (u) => {
       setUser(u);
       setIsLoaded(true);
-      setAuthTokenGetter(() => u?.getIdToken() ?? Promise.resolve(null));
+      setAuthTokenGetter(() => u ? getIdToken(u) : Promise.resolve(null));
     });
   }, []);
 
   const getToken = useCallback(
-    () => user?.getIdToken() ?? Promise.resolve(null),
+    () => user ? getIdToken(user) : Promise.resolve(null),
     [user],
   );
   const handleSignOut = useCallback(() => signOut(getAuth()), []);

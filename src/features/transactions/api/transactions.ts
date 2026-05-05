@@ -14,7 +14,22 @@ export type TransactionsListParams = {
   propertyId?: number;
   renterId?: number;
   search?: string;
+  limit?: number;
+  offset?: number;
 };
+
+export interface MonthSummaryItem {
+  key: string;
+  year: number;
+  month: number;
+  revenue: number;
+  expenses: number;
+  profit: number;
+}
+
+export interface TransactionSummaryResponse {
+  six_month_buckets: MonthSummaryItem[];
+}
 
 export async function getTransactions(
   params: TransactionsListParams = {},
@@ -29,9 +44,19 @@ export async function getTransactions(
       property_id: params.propertyId,
       renter_id: params.renterId,
       q: params.search,
+      limit: params.limit,
+      offset: params.offset,
     },
   });
 
+  return response.data;
+}
+
+export async function getTransactionsSummary(): Promise<TransactionSummaryResponse> {
+  if (USE_MOCK_API) {
+    return { six_month_buckets: [] };
+  }
+  const response = await apiClient.get<TransactionSummaryResponse>('/transactions/summary');
   return response.data;
 }
 

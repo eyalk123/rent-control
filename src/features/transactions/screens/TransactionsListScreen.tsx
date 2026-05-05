@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   RefreshControl,
   SectionList,
@@ -21,15 +22,14 @@ import {
 import { usePropertyContext, useLanguageContext } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
-import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
+import { useTransactionsSummary } from '@/src/features/transactions/hooks/useTransactions';
+import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { deleteTransaction } from '@/src/features/transactions/api/transactions';
 import { formatMoney } from '@/src/shared/utils/money';
 import {
   bucketByMonth,
-  formatTransactionDate,
-  lastNMonths,
+  currentMonthKey,
   monthYearLabel,
-  type MonthBucket,
 } from '@/src/features/transactions/utils/aggregate';
 import { TransactionsHero } from '@/src/features/transactions/components/list/TransactionsHero';
 import { MonthsBarChart } from '@/src/features/transactions/components/list/MonthsBarChart';
@@ -50,11 +50,6 @@ import {
 } from '@/src/features/transactions/components/list/FilterBottomSheet';
 
 type ActiveSheet = 'property' | 'renter' | 'owner' | 'category' | 'supplier' | null;
-
-const currentMonthKey = (): string => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-};
 
 const EMPTY_KEY: Record<TransactionTypeFilter, string> = {
   all: 'empty.noTransactionSearchResults',
@@ -80,11 +75,14 @@ export function TransactionsListScreen() {
   const {
     transactions,
     loading,
+    loadingMore,
+    hasMore,
     error,
-    refreshing,
-    refreshTransactions,
-    retryLoad,
-  } = useTransactionsList();
+    loadMore,
+    refresh,
+  } = usePaginatedTransactionContext();
+
+  const { sixMonthBuckets, heroBucket, summaryLoading, refreshSummary } = useTransactionsSummary();
 
   const { properties } = usePropertyContext();
 
@@ -101,6 +99,7 @@ export function TransactionsListScreen() {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [deleting, setDeleting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -194,16 +193,7 @@ export function TransactionsListScreen() {
     return baseFiltered.filter((tx) => tx.type === typeFilter);
   }, [baseFiltered, typeFilter]);
 
-  // Hero / chart use the base-filtered (not type-filtered) set
-  const allBuckets = useMemo(() => bucketByMonth(baseFiltered), [baseFiltered]);
-  const sixMonthBuckets = useMemo(() => lastNMonths(allBuckets, 6), [allBuckets]);
   const currentKey = currentMonthKey();
-  const heroBucket: MonthBucket = useMemo(
-    () =>
-      sixMonthBuckets.find((b) => b.key === currentKey) ??
-      sixMonthBuckets[sixMonthBuckets.length - 1],
-    [sixMonthBuckets, currentKey],
-  );
 
   const listSections = useMemo(() => {
     const buckets = bucketByMonth(typeFiltered);
@@ -211,19 +201,9 @@ export function TransactionsListScreen() {
       key: b.key,
       title: monthYearLabel(b.key, locale),
       profit: b.profit,
-      data: b.transactions.map((tx) => {
-        const subtitle = [
-          tx.category_name
-            ? t(`expenseCategories.${tx.category_name.toLowerCase()}`, { defaultValue: tx.category_name })
-            : null,
-          tx.renter_name,
-          tx.supplier_name,
-        ].filter(Boolean).join(' · ');
-        const formattedDate = formatTransactionDate(tx.date_of_payment, locale);
-        return { ...tx, subtitle, formattedDate };
-      }),
+      data: b.transactions,
     }));
-  }, [typeFiltered, locale, t]);
+  }, [typeFiltered, locale]);
 
   const allSelected =
     typeFiltered.length > 0 && typeFiltered.every((tx) => selectedIds.has(tx.id));
@@ -330,7 +310,7 @@ export function TransactionsListScreen() {
                 failed++;
               }
             }
-            await refreshTransactions();
+            await Promise.all([refresh(), refreshSummary()]);
             setDeleting(false);
             setIsSelectMode(false);
             setSelectedIds(new Set());
@@ -344,16 +324,10 @@ export function TransactionsListScreen() {
   };
 
   const onRefresh = useCallback(async () => {
-    await refreshTransactions();
-  }, [refreshTransactions]);
-
-  if (loading && transactions.length === 0) {
-    return (
-      <ScreenContainer edges={['top', 'left', 'right']}>
-        <LoadingOverlay visible={true} />
-      </ScreenContainer>
-    );
-  }
+    setRefreshing(true);
+    await Promise.all([refresh(), refreshSummary()]);
+    setRefreshing(false);
+  }, [refresh, refreshSummary]);
 
   if (error && transactions.length === 0) {
     return (
@@ -362,7 +336,7 @@ export function TransactionsListScreen() {
           message={error}
           icon="alert-circle"
           actionLabel={t('common.tryAgain')}
-          onAction={retryLoad}
+          onAction={refresh}
         />
       </ScreenContainer>
     );
@@ -391,7 +365,7 @@ export function TransactionsListScreen() {
 
   return (
     <ScreenContainer edges={['top', 'left', 'right']}>
-      <LoadingOverlay visible={loading || deleting} />
+      <LoadingOverlay visible={deleting} />
 
       <View style={styles.titleRow}>
         {isSelectMode ? (
@@ -417,7 +391,7 @@ export function TransactionsListScreen() {
         ListHeaderComponent={
           <View>
             <DevProfiler id="TransactionsHero">
-              <TransactionsHero bucket={heroBucket} />
+              <TransactionsHero bucket={heroBucket} loading={summaryLoading} />
             </DevProfiler>
             <DevProfiler id="MonthsBarChart">
               <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} />
@@ -453,12 +427,12 @@ export function TransactionsListScreen() {
             </View>
           );
         }}
-        renderItem={({ item }: { item: Transaction & { subtitle: string; formattedDate: string } }) => (
+        renderItem={({ item }: { item: Transaction }) => (
           <DevProfiler id="TransactionRow" group="TransactionRow">
             <TransactionRow
               transaction={item}
-              subtitle={item.subtitle}
-              formattedDate={item.formattedDate}
+              locale={locale}
+              t={t}
               isSelectMode={isSelectMode}
               isSelected={selectedIds.has(item.id)}
               onPress={handleTransactionPress}
@@ -466,6 +440,16 @@ export function TransactionsListScreen() {
             />
           </DevProfiler>
         )}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={
+          loadingMore
+            ? <ActivityIndicator style={styles.footer} color={theme.colors.primary} />
+            : null
+        }
         contentContainerStyle={[
           styles.list,
           { paddingBottom: 80 + insets.bottom },
@@ -597,5 +581,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
+  },
+  footer: {
+    paddingVertical: spacing.lg,
   },
 });

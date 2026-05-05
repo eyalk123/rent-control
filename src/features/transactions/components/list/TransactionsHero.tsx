@@ -21,14 +21,19 @@ import {
 
 interface TransactionsHeroProps {
   bucket: MonthBucket;
+  loading?: boolean;
 }
 
-export const TransactionsHero = React.memo(function TransactionsHero({ bucket }: TransactionsHeroProps) {
+export const TransactionsHero = React.memo(function TransactionsHero({ bucket, loading = false }: TransactionsHeroProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
+
+  if (loading) {
+    return <View style={styles.skeleton} />;
+  }
 
   const isLoss = bucket.profit < 0;
   const sign = isLoss ? '−' : '+'; // U+2212 minus, not hyphen
@@ -107,5 +112,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontVariant: ['tabular-nums'],
     fontWeight: '500',
+  },
+  skeleton: {
+    height: 100,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
 });

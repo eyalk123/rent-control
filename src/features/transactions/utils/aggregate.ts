@@ -6,6 +6,11 @@ import type { Transaction } from '@/src/shared/types';
 
 export type MonthKey = string; // 'YYYY-MM'
 
+export function currentMonthKey(): MonthKey {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export interface MonthBucket {
   key: MonthKey;
   year: number;

@@ -59,7 +59,11 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control\" -Recurse -Filter \"*layout*\")",
       "Bash(Select-Object FullName)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control\" -Recurse -Name)",
-      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(Get-ChildItem -Recurse -Directory)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control\\\\app\\\\\\(tabs\\)\" -Recurse -Directory)",
+      "Bash(dir node_modules\\\\@react-native-firebase\\\\auth\\\\lib /b)",
+      "Bash(dir node_modules\\\\@react-native-firebase\\\\auth\\\\lib\\\\modular /b)"
     ]
   }
 }

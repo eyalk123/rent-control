@@ -14,7 +14,7 @@ import * as Haptics from 'expo-haptics';
 import { useNavigation, useRouter } from 'expo-router';
 import { Icon, ScreenContainer } from '@/src/shared/components/ui';
 import { useLanguageContext } from '@/src/context';
-import { useTransactionContext } from '@/src/features/transactions/context/TransactionContext';
+import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import {
   createExpenseTransaction,
@@ -39,7 +39,7 @@ export function AddTransactionScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const { refreshTransactions } = useTransactionContext();
+  const { refresh: refreshTransactions } = usePaginatedTransactionContext();
 
   const [mode, setMode] = useState<TransactionMode>('choose');
   const [submitting, setSubmitting] = useState(false);

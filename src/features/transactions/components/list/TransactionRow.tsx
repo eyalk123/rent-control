@@ -19,11 +19,13 @@ import { darkColors, ICON_XS, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui';
 import { formatMoney } from '@/src/shared/utils/money';
 import type { Transaction } from '@/src/shared/types';
+import { formatTransactionDate } from '@/src/features/transactions/utils/aggregate';
+import type { TFunction } from 'i18next';
 
 interface TransactionRowProps {
   transaction: Transaction;
-  subtitle: string;
-  formattedDate: string;
+  locale: string;
+  t: TFunction;
   isSelectMode: boolean;
   isSelected: boolean;
   onPress: (id: number) => void;
@@ -32,8 +34,8 @@ interface TransactionRowProps {
 
 export const TransactionRow = React.memo(function TransactionRow({
   transaction,
-  subtitle,
-  formattedDate,
+  locale,
+  t,
   isSelectMode,
   isSelected,
   onPress,
@@ -42,6 +44,21 @@ export const TransactionRow = React.memo(function TransactionRow({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const isRtl = I18nManager.isRTL;
+
+  const subtitle = React.useMemo(() => (
+    [
+      transaction.category_name
+        ? t(`expenseCategories.${transaction.category_name.toLowerCase()}`, { defaultValue: transaction.category_name })
+        : null,
+      transaction.renter_name,
+      transaction.supplier_name,
+    ].filter(Boolean).join(' · ')
+  ), [transaction.category_name, transaction.renter_name, transaction.supplier_name, t]);
+
+  const formattedDate = React.useMemo(
+    () => formatTransactionDate(transaction.date_of_payment, locale),
+    [transaction.date_of_payment, locale],
+  );
 
   const isRevenue = transaction.type === 'revenue';
   const fg = isRevenue ? colors.revFg : colors.expFg;
