@@ -65,7 +65,13 @@
       "Bash(dir node_modules\\\\@react-native-firebase\\\\auth\\\\lib /b)",
       "Bash(dir node_modules\\\\@react-native-firebase\\\\auth\\\\lib\\\\modular /b)",
       "Bash(xargs cat)",
-      "Bash(grep -E \"//|\\\\/\\\\*\" -A 2)"
+      "Bash(grep -E \"//|\\\\/\\\\*\" -A 2)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control\" -Force)",
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\eyalk\\\\Desktop\\\\PythonProjects\\\\rent-control-backend\" -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -First 30)",
+      "PowerShell(head *)",
+      "PowerShell(New-Item *)"
     ]
   }
 }

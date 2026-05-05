@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { List, SegmentedButtons, Text } from 'react-native-paper';
+import { List, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
@@ -18,6 +18,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   const { language, setLanguage } = useLanguageContext();
   const { signOut } = useAppAuth();
   const rtlLabelStyle = useRtlLabelStyle();
+  const theme = useTheme();
 
   return (
     <ScreenContainer>
@@ -104,6 +105,13 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
             title={t('settings.signOut')}
             left={(props) => <Icon name="door-open" size={20} color={props.color} style={props.style} />}
             onPress={() => signOut()}
+            style={styles.listItem}
+          />
+          <List.Item
+            title={t('settings.deleteAccount')}
+            titleStyle={{ color: theme.colors.error }}
+            left={(props) => <Icon name="trash" size={20} color={theme.colors.error} style={props.style} />}
+            onPress={() => router.push('/settings/delete-account' as any)}
             style={styles.listItem}
           />
         </List.Section>

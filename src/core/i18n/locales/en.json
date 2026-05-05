@@ -16,7 +16,17 @@
     "languageHe": "Hebrew",
     "suppliers": "Suppliers",
     "signOut": "Sign out",
-    "account": "Account"
+    "account": "Account",
+    "deleteAccount": "Delete Account",
+    "deleteAccountTitle": "Delete Account",
+    "deleteAccountWarning": "This will permanently delete:",
+    "deleteAccountWarningItems": "• All properties, renters, transactions, and suppliers\n• All uploaded photos and documents\n• Your login credentials",
+    "deleteAccountConfirmLabel": "Type DELETE to confirm",
+    "deleteAccountConfirmPlaceholder": "DELETE",
+    "deleteAccountConfirmButton": "Delete Account Permanently",
+    "deleteAccountSuccess": "Account deleted successfully",
+    "deleteAccountRequiresReauth": "For security, please sign out and sign back in before deleting your account.",
+    "deleteAccountFailed": "Failed to delete account. Please try again."
   },
   "restart": {
     "title": "Restart Required",

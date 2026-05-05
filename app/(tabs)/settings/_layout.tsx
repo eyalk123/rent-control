@@ -31,6 +31,10 @@ export default function SettingsLayout() {
         name="suppliers/[id]"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="delete-account"
+        options={{ headerTitle: t('settings.deleteAccountTitle') }}
+      />
     </Stack>
   );
 }

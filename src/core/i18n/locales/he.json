@@ -16,7 +16,17 @@
     "languageHe": "עברית",
     "suppliers": "ספקים",
     "signOut": "התנתק",
-    "account": "חשבון"
+    "account": "חשבון",
+    "deleteAccount": "מחק חשבון",
+    "deleteAccountTitle": "מחיקת חשבון",
+    "deleteAccountWarning": "פעולה זו תמחק לצמיתות:",
+    "deleteAccountWarningItems": "• כל הנכסים, הדיירים, התנועות והספקים\n• כל התמונות והמסמכים שהועלו\n• פרטי ההתחברות שלך",
+    "deleteAccountConfirmLabel": "הקלד DELETE לאישור",
+    "deleteAccountConfirmPlaceholder": "DELETE",
+    "deleteAccountConfirmButton": "מחק חשבון לצמיתות",
+    "deleteAccountSuccess": "החשבון נמחק בהצלחה",
+    "deleteAccountRequiresReauth": "מטעמי אבטחה, התנתק והתחבר מחדש לפני מחיקת החשבון.",
+    "deleteAccountFailed": "מחיקת החשבון נכשלה. נסה שוב."
   },
   "restart": {
     "title": "נדרש הפעלה מחדש",
