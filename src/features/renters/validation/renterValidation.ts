@@ -3,12 +3,12 @@ import { z } from "zod";
 const nonEmptyTrimmed = z
   .string()
   .transform((val) => val.trim())
-  .refine((val) => val.length > 0, { message: "required" });
+  .refine((val) => val.length > 0, { message: "common.required" });
 
 const numericString = z
   .string()
   .transform((val) => val.trim())
-  .refine((val) => val.length > 0, { message: "required" })
+  .refine((val) => val.length > 0, { message: "common.required" })
   .refine((val) => !Number.isNaN(Number(val)), { message: "mustBeNumber" });
 
 const optionalNumericString = z
@@ -22,7 +22,7 @@ const optionalNumericString = z
 const dateString = z
   .string()
   .transform((val) => val.trim())
-  .refine((val) => val.length > 0, { message: "required" })
+  .refine((val) => val.length > 0, { message: "common.required" })
   .refine(
     (val) => /^\d{4}-\d{2}-\d{2}$/.test(val),
     { message: "dateFormatInvalid" },

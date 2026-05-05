@@ -16,7 +16,7 @@ export const expenseFormSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.categoryId === null) {
-      ctx.addIssue({ code: 'custom', message: 'Category is required', path: ['categoryId'] });
+      ctx.addIssue({ code: 'custom', message: 'common.required', path: ['categoryId'] });
     }
   });
 

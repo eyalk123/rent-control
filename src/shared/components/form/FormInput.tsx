@@ -3,6 +3,7 @@ import {
   useRtlInputStyle,
   useRtlLabelStyle,
 } from "@/src/core/context";
+import { useTranslation } from "react-i18next";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
 import React from "react";
 import {
@@ -45,6 +46,7 @@ function FormInputInner<TFieldValues extends FieldValues>({
   const rtlInputStyle = useRtlInputStyle();
   const { isRtl } = useLanguageContext();
   const rtlLabelStyle = useRtlLabelStyle();
+  const { t } = useTranslation();
   const inputRef = React.useRef<RNTextInput>(null);
   const [isFocused, setIsFocused] = React.useState(false);
 
@@ -111,7 +113,7 @@ function FormInputInner<TFieldValues extends FieldValues>({
               variant="bodySmall"
               style={[styles.errorText, { color: colors.error }]}
             >
-              {error.message}
+              {t(error.message!, { defaultValue: error.message })}
             </Text>
           ) : null}
         </View>

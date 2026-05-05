@@ -3,7 +3,7 @@ import { z } from 'zod';
 const nonEmptyTrimmed = z
   .string()
   .transform((val) => val.trim())
-  .refine((val) => val.length > 0, { message: 'required' });
+  .refine((val) => val.length > 0, { message: 'common.required' });
 
 const optionalString = z.string().transform((val) => (val ?? '').trim()).default('');
 

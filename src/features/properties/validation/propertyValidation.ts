@@ -6,12 +6,12 @@ export const PROPERTY_TYPES: PropertyType[] = ['apartment', 'house', 'commercial
 const nonEmptyTrimmed = z
   .string()
   .transform((val) => val.trim())
-  .refine((val) => val.length > 0, { message: 'required' });
+  .refine((val) => val.length > 0, { message: 'common.required' });
 
 const numericString = z
   .string()
   .transform((val) => val.trim())
-  .refine((val) => val.length > 0, { message: 'required' })
+  .refine((val) => val.length > 0, { message: 'common.required' })
   .refine((val) => !Number.isNaN(Number(val)), { message: 'mustBeNumber' })
   ;
 
