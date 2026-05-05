@@ -18,6 +18,10 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Firebase native config files — contain API keys, never commit
+google-services.json
+GoogleService-Info.plist
+
 # Metro
 .metro-health-check*
 
@@ -30,14 +34,18 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files — all variants; keep only .env.example
 .env
-.env*.local
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
 
 app-example
+
+# Claude Code machine-local settings
+.claude/settings.local.json
 
 # generated native folders
 /ios

@@ -24,10 +24,6 @@ All three list screens (`PropertiesListScreen`, `RentersListScreen`, `Transactio
 `AddTransactionScreen.tsx:134-147` uses `Promise.all` with no individual error tracking. One failing property silently corrupts the success count.
 - Fix: replace with `Promise.allSettled`; count `fulfilled` vs `rejected`; surface which properties failed.
 
-### 10. Remove `console.log` statements from auth flow
-`app/(auth)/sign-in.tsx:102-113` logs Google auth tokens and credentials.
-- Fix: delete all `console.log` calls. Auth tokens must never be logged even in development.
-
 ---
 
 ## MEDIUM PRIORITY
