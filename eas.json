@@ -8,6 +8,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
+        "APP_VARIANT": "development",
         "EXPO_PUBLIC_API_URL": "https://rent-control-backend-production.up.railway.app",
         "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com"
       }

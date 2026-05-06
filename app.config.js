@@ -3,28 +3,34 @@ require('dotenv').config();
 const appJson = require('./app.json');
 
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
+const IS_DEV = process.env.APP_VARIANT === 'development';
 
 module.exports = {
   ...appJson,
   expo: {
     ...appJson.expo,
-    icon: IS_PREVIEW
+    icon: IS_DEV || IS_PREVIEW
       ? './assets/images/rent-control-icon-no-text.png'
       : appJson.expo.icon,
     ios: {
       ...appJson.expo.ios,
-      bundleIdentifier: IS_PREVIEW
+      bundleIdentifier: IS_DEV
+        ? 'com.eyalk123.rentcontrol.dev'
+        : IS_PREVIEW
         ? 'com.eyalk123.rentcontrol.preview'
         : appJson.expo.ios.bundleIdentifier,
     },
     android: {
       ...appJson.expo.android,
-      package: IS_PREVIEW
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON || appJson.expo.android.googleServicesFile,
+      package: IS_DEV
+        ? 'com.eyalk123.rentcontrol.dev'
+        : IS_PREVIEW
         ? 'com.eyalk123.rentcontrol.preview'
         : appJson.expo.android.package,
       adaptiveIcon: {
         ...appJson.expo.android.adaptiveIcon,
-        foregroundImage: IS_PREVIEW
+        foregroundImage: IS_DEV || IS_PREVIEW
           ? './assets/images/rent-control-icon-no-text.png'
           : appJson.expo.android.adaptiveIcon.foregroundImage,
       },
