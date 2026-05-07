@@ -92,7 +92,8 @@ export function AddTransactionScreen() {
     return unsub;
   }, [navigation, revenueDirty, expenseForm.formState.isDirty, t]);
 
-  const handleRevenueSuccess = () => {
+  const handleRevenueSuccess = async () => {
+    await refreshTransactions();
     allowRemoveRef.current = true;
     router.back();
   };

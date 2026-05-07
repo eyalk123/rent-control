@@ -104,12 +104,13 @@ export function TransactionsListScreen() {
   useFocusEffect(
     React.useCallback(() => {
       filterChipsRef.current?.scrollToStart();
+      refreshSummary();
       return () => {
         setIsSelectMode(false);
         // Avoid creating a new Set reference when already empty — prevents spurious re-renders on tab blur
         setSelectedIds(prev => prev.size > 0 ? new Set() : prev);
       };
-    }, [])
+    }, [refreshSummary])
   );
 
   React.useEffect(() => {
