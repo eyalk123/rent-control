@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   FlatList,
   Image,
   Modal,
@@ -13,6 +12,7 @@ import { ActivityIndicator, Button, IconButton, Text, useTheme } from 'react-nat
 import { Icon } from '@/src/shared/components/ui';
 import * as ImagePicker from 'expo-image-picker';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 import {
   HOUSE_IMAGE_PRESETS,
   toImageUrlKey,
@@ -35,6 +35,7 @@ const GRID_GAP = spacing.sm;
 
 export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId }: Props) {
   const theme = useTheme();
+  const { appAlert } = useAlert();
   const colors = theme.dark ? darkColors : lightColors;
   const [modalVisible, setModalVisible] = useState(false);
   const { width: screenWidth } = useWindowDimensions();
@@ -55,7 +56,7 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
   const handleUploadFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(t('permission.title'), t('permission.photoLibrary'));
+      appAlert(t('permission.title'), t('permission.photoLibrary'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -73,7 +74,7 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
         const url = await uploadFile(asset.uri, filename, mimeType);
         onChangeImageUrl(url);
       } catch {
-        Alert.alert(t('error.title'), t('documents.uploadFailed'));
+        appAlert(t('error.title'), t('documents.uploadFailed'));
       }
     }
   };

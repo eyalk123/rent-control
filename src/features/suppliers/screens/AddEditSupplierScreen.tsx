@@ -1,6 +1,7 @@
 import { useLanguageContext } from "@/src/context";
 import { getApiErrorMessage } from "@/src/core/api/client";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import { useAlert } from "@/src/core/context";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
 import { updateSupplier } from "@/src/features/suppliers/api/suppliers";
 import { SupplierForm } from "@/src/features/suppliers/components/SupplierForm";
@@ -11,12 +12,13 @@ import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { FormScrollView } from "@/src/shared/components/form";
 import { Button, Text, useTheme } from "react-native-paper";
 
 export function AddEditSupplierScreen() {
   const { t } = useTranslation();
+  const { appAlert } = useAlert();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { isRtl } = useLanguageContext();
@@ -42,7 +44,7 @@ export function AddEditSupplierScreen() {
     const numericId = parseInt(id, 10);
     if (Number.isNaN(numericId)) return;
 
-    Alert.alert(
+    appAlert(
       t("suppliers.deleteConfirmTitle", { defaultValue: "Delete supplier?" }),
       t("suppliers.deleteConfirmMessage", {
         defaultValue:
@@ -60,7 +62,7 @@ export function AddEditSupplierScreen() {
               await refreshSuppliers();
               router.back();
             } catch (err) {
-              Alert.alert(
+              appAlert(
                 t("error.title"),
                 getApiErrorMessage(err, t('error.deleteSupplierFailed')),
               );
@@ -76,7 +78,7 @@ export function AddEditSupplierScreen() {
   const handlePickFromContacts = React.useCallback(async () => {
     const status = await requestPermission();
     if (status !== "granted") {
-      Alert.alert(t("error.title"), t("renter.contactsPermissionDenied"));
+      appAlert(t("error.title"), t("renter.contactsPermissionDenied"));
       return;
     }
     const picked = await pickContact();
@@ -96,7 +98,7 @@ export function AddEditSupplierScreen() {
     const unsub = navigation.addListener("beforeRemove", (e) => {
       if (!formState.isDirty) return;
       e.preventDefault();
-      Alert.alert(
+      appAlert(
         t("common.discardChanges"),
         t("common.discardChangesMessage"),
         [
@@ -110,7 +112,7 @@ export function AddEditSupplierScreen() {
       );
     });
     return unsub;
-  }, [navigation, formState.isDirty, t]);
+  }, [navigation, formState.isDirty, t, appAlert]);
 
   const handleHeaderBack = () => {
     router.back();

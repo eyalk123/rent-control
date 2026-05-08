@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { Checkbox, IconButton, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -21,6 +21,7 @@ import {
 import { RenterCard } from '@/src/features/renters/components/RenterCard';
 import { deleteRenter } from '@/src/features/renters/api/renters';
 import { spacing } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 
 type ActiveSheet = 'property' | 'renter' | 'owner' | null;
 
@@ -29,6 +30,7 @@ export function RentersListScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { appAlert } = useAlert();
   const { renters, loading, error, refreshRenters } = useRenterContext();
   const { properties } = usePropertyContext();
   const [refreshing, setRefreshing] = useState(false);
@@ -175,7 +177,7 @@ export function RentersListScreen() {
 
   const handleDeleteSelected = () => {
     const count = selectedIds.size;
-    Alert.alert(
+    appAlert(
       t('bulkDelete.deleteConfirmTitle', { count }),
       t('bulkDelete.deleteConfirmMessage'),
       [
@@ -201,7 +203,7 @@ export function RentersListScreen() {
             setIsSelectMode(false);
             setSelectedIds(new Set());
             if (failed > 0) {
-              Alert.alert(t('bulkDelete.partialError', { success, failed }));
+              appAlert(t('bulkDelete.partialError', { success, failed }));
             }
           },
         },

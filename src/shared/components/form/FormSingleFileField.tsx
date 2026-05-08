@@ -1,11 +1,12 @@
 import React from 'react';
-import { Alert, Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useController, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { ActivityIndicator, Button, Chip, Text, useTheme } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import type { TFunction } from 'i18next';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 import { Icon } from '@/src/shared/components/ui';
 
@@ -31,6 +32,7 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
   accept,
 }: FormSingleFileFieldProps<TFieldValues>) {
   const theme = useTheme();
+  const { appAlert } = useAlert();
   const colors = theme.dark ? darkColors : lightColors;
   const { field } = useController({ control, name });
   const { uploadFile, uploading } = useFirebaseUpload(entityType, ownerId);
@@ -62,7 +64,7 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
       } else {
         const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!perm.granted) {
-          Alert.alert(t('permission.title'), t('permission.photoLibrary'));
+          appAlert(t('permission.title'), t('permission.photoLibrary'));
           return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -78,7 +80,7 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
       const downloadUrl = await uploadFile(uri, name, mimeType);
       field.onChange(downloadUrl);
     } catch {
-      Alert.alert(t('error.title'), t('documents.uploadFailed'));
+      appAlert(t('error.title'), t('documents.uploadFailed'));
     }
   };
 

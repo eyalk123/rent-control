@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   RefreshControl,
   SectionList,
   StyleSheet,
@@ -21,6 +20,7 @@ import {
 } from '@/src/shared/components/ui';
 import { usePropertyContext, useLanguageContext } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 import type { Transaction } from '@/src/shared/types';
 import { useTransactionSummaryContext } from '@/src/features/transactions/context/TransactionSummaryContext';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
@@ -69,6 +69,7 @@ export function TransactionsListScreen() {
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { appAlert } = useAlert();
   const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
 
@@ -288,7 +289,7 @@ export function TransactionsListScreen() {
 
   const handleDeleteSelected = () => {
     const count = selectedIds.size;
-    Alert.alert(
+    appAlert(
       t('bulkDelete.deleteConfirmTitle', { count }),
       t('bulkDelete.deleteConfirmMessage'),
       [
@@ -314,7 +315,7 @@ export function TransactionsListScreen() {
             setIsSelectMode(false);
             setSelectedIds(new Set());
             if (failed > 0) {
-              Alert.alert(t('bulkDelete.partialError', { success, failed }));
+              appAlert(t('bulkDelete.partialError', { success, failed }));
             }
           },
         },

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Text, TextInput, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -9,11 +9,13 @@ import { deleteMyAccount } from '@/src/features/settings/api/account';
 import { ScreenContainer } from '@/src/shared/components/ui';
 import { Icon } from '@/src/shared/components/ui';
 import { spacing } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 
 const CONFIRM_WORD = 'DELETE';
 
 export function DeleteAccountScreen() {
   const { t } = useTranslation();
+  const { appAlert } = useAlert();
   const router = useRouter();
   const theme = useTheme();
   const { deleteFirebaseAccount } = useAppAuth();
@@ -37,16 +39,16 @@ export function DeleteAccountScreen() {
       await AsyncStorage.multiRemove(['theme_mode', 'app_language']);
 
       // 4. Show success and navigate (auth guard will redirect to sign-in)
-      Alert.alert('', t('settings.deleteAccountSuccess'), [
+      appAlert('', t('settings.deleteAccountSuccess'), [
         { text: 'OK', onPress: () => router.replace('/(auth)/sign-in' as any) },
       ]);
     } catch (err: any) {
       setLoading(false);
 
       if (err?.code === 'auth/requires-recent-login') {
-        Alert.alert(t('error.title'), t('settings.deleteAccountRequiresReauth'));
+        appAlert(t('error.title'), t('settings.deleteAccountRequiresReauth'));
       } else {
-        Alert.alert(t('error.title'), t('settings.deleteAccountFailed'));
+        appAlert(t('error.title'), t('settings.deleteAccountFailed'));
       }
     }
   };

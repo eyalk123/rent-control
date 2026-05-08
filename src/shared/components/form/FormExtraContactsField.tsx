@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import {
   useFieldArray,
   type Control,
@@ -9,6 +9,7 @@ import {
 import { IconButton, Text, useTheme } from "react-native-paper";
 import type { TFunction } from "i18next";
 import { spacing } from "@/src/core/theme";
+import { useAlert } from "@/src/core/context";
 import { FormTextField } from "./FormFields";
 import { FormNumericField } from "./FormFields";
 
@@ -26,16 +27,18 @@ function FormExtraContactsFieldInner<TFieldValues extends FieldValues>({
   onPickContact,
 }: FormExtraContactsFieldProps<TFieldValues>) {
   const theme = useTheme();
+  const { appAlert } = useAlert();
   const { fields, append, remove } = useFieldArray({
     control,
     name: name as any,
   });
 
   const handleAdd = React.useCallback(() => {
-    Alert.alert(
+    appAlert(
       t("renter.extraContactAddTitle"),
       undefined,
       [
+        { text: t("common.cancel"), style: "cancel" },
         {
           text: t("renter.extraContactEnterManually"),
           onPress: () => append({ name: "", phone: "" } as any),
@@ -49,10 +52,9 @@ function FormExtraContactsFieldInner<TFieldValues extends FieldValues>({
             }
           },
         },
-        { text: t("common.cancel"), style: "cancel" },
       ],
     );
-  }, [t, append, onPickContact]);
+  }, [t, append, onPickContact, appAlert]);
 
   return (
     <View

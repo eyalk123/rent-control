@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert } from "react-native";
+import { useAlert } from "@/src/core/context";
 import { useAppAuth } from "@/src/core/auth/AuthContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,7 @@ export function useRenterForm({
 }: UseRenterFormParams) {
   const isEdit = Boolean(id);
   const { user } = useAppAuth();
+  const { appAlert } = useAlert();
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
 
   const formMethods = useForm<RenterFormValues>({
@@ -222,7 +223,7 @@ export function useRenterForm({
       reset(values);
       onSuccess();
     } catch (err) {
-      Alert.alert(
+      appAlert(
         t("error.title"),
         getApiErrorMessage(err, t("error.saveRenterFailed")),
       );

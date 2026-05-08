@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -17,6 +16,7 @@ import { Icon, ScreenContainer } from '@/src/shared/components/ui';
 import { useLanguageContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 import {
   createExpenseTransaction,
   updateRevenueTransaction,
@@ -39,6 +39,7 @@ import { ExpenseForm } from '@/src/features/transactions/components/expense/Expe
 
 export function AddTransactionScreen() {
   const { t } = useTranslation();
+  const { appAlert } = useAlert();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { isRtl } = useLanguageContext();
@@ -119,7 +120,7 @@ export function AddTransactionScreen() {
           }
         })
         .catch(() => {
-          Alert.alert(t('error.title'), t('error.loadFailed'));
+          appAlert(t('error.title'), t('error.loadFailed'));
           router.back();
         });
     }, [id, isEdit]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -142,7 +143,7 @@ export function AddTransactionScreen() {
         revenueForm.formState.isDirty;
       if (!hasUnsavedChanges) return;
       e.preventDefault();
-      Alert.alert(
+      appAlert(
         t('common.discardChanges'),
         t('common.discardChangesMessage'),
         [
@@ -156,7 +157,7 @@ export function AddTransactionScreen() {
       );
     });
     return unsub;
-  }, [navigation, revenueDirty, expenseForm.formState.isDirty, revenueForm.formState.isDirty, isEdit, t]);
+  }, [navigation, revenueDirty, expenseForm.formState.isDirty, revenueForm.formState.isDirty, isEdit, t, appAlert]);
 
   const handleRevenueSuccess = async () => {
     await refreshTransactions();
@@ -201,7 +202,7 @@ export function AddTransactionScreen() {
       allowRemoveRef.current = true;
       router.back();
     } catch (err) {
-      Alert.alert(
+      appAlert(
         t('error.title'),
         getApiErrorMessage(err, t(isEdit ? 'error.updateTransactionFailed' : 'error.saveTransactionFailed')),
       );
@@ -228,7 +229,7 @@ export function AddTransactionScreen() {
       allowRemoveRef.current = true;
       router.back();
     } catch (err) {
-      Alert.alert(
+      appAlert(
         t('error.title'),
         getApiErrorMessage(err, t('error.updateTransactionFailed')),
       );

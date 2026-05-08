@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { useAlert } from '@/src/core/context';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { TFunction } from 'i18next';
@@ -29,6 +29,7 @@ export function useSupplierForm({
   onSuccess,
 }: UseSupplierFormParams) {
   const isEdit = Boolean(id);
+  const { appAlert } = useAlert();
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
   const [fetchError, setFetchError] = React.useState<string | null>(null);
 
@@ -104,7 +105,7 @@ export function useSupplierForm({
       reset(values);
       onSuccess();
     } catch (err) {
-      Alert.alert(
+      appAlert(
         t('error.title'),
         getApiErrorMessage(err, t('error.saveFailed')),
       );

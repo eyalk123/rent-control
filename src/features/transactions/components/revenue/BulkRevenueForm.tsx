@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Button, Checkbox, Divider, Text, useTheme } from 'react-native-paper';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import {
   FormWheelDateField,
 } from '@/src/shared/components/form';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 import { usePropertyContext, useRenterContext } from '@/src/context';
 import {
   getRenterMonthlyRent,
@@ -40,6 +41,7 @@ type DateFormValues = { dateOfPayment: string };
 
 export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormProps) {
   const { t } = useTranslation();
+  const { appAlert } = useAlert();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
@@ -174,7 +176,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
 
   const handleSubmit = async () => {
     if (checkedIds.size === 0) {
-      Alert.alert(
+      appAlert(
         t('validation.title'),
         t('transactions.bulkRevenue.noSelectionError', {
           defaultValue: 'Please select at least one renter.',
@@ -189,7 +191,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
         : getMonthsForPeriod(periodType, periodValue);
 
     if (months.length === 0) {
-      Alert.alert(
+      appAlert(
         t('validation.title'),
         t('transactions.bulkRevenue.noMonthsError', {
           defaultValue: 'Please select at least one month.',
@@ -203,7 +205,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
     for (const r of checkedRenters) {
       const amt = amounts.get(r.id) ?? '';
       if (!amt || Number.isNaN(Number(amt)) || Number(amt) <= 0) {
-        Alert.alert(
+        appAlert(
           t('validation.title'),
           t('transactions.bulkRevenue.invalidAmount', {
             name: `${r.first_name} ${r.last_name}`,
@@ -242,7 +244,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
     setSubmitting(false);
 
     if (errors.length > 0) {
-      Alert.alert(
+      appAlert(
         t('error.title'),
         t('transactions.bulkRevenue.partialError', {
           success: successCount,

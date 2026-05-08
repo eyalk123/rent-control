@@ -8,6 +8,7 @@ import {
   PaginatedTransactionProvider,
   TransactionSummaryProvider,
 } from "@/src/context";
+import { AlertProvider } from "@/src/core/context";
 import { AuthProvider } from "@/src/core/auth/AuthContext";
 import "@/src/core/i18n";
 import * as NavigationBar from "expo-navigation-bar";
@@ -60,6 +61,7 @@ function AppContent() {
 
   return (
     <PaperProvider theme={theme}>
+      <AlertProvider>
       <NavigationThemeProvider value={navigationTheme}>
         <StatusBar style={theme.dark ? "light" : "dark"} />
         <PropertyProvider>
@@ -74,6 +76,7 @@ function AppContent() {
           </RenterProvider>
         </PropertyProvider>
       </NavigationThemeProvider>
+      </AlertProvider>
     </PaperProvider>
   );
 }

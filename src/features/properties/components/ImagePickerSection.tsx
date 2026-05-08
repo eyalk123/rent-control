@@ -1,8 +1,9 @@
 import React from 'react';
-import { Alert, Image, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, useTheme } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 import type { TFunction } from 'i18next';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 
@@ -15,13 +16,14 @@ type ImagePickerSectionProps = {
 
 export function ImagePickerSection({ imageUri, setImageUri, t, ownerId }: ImagePickerSectionProps) {
   const theme = useTheme();
+  const { appAlert } = useAlert();
   const colors = theme.dark ? darkColors : lightColors;
   const { uploadFile, uploading } = useFirebaseUpload('properties', ownerId);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(t('permission.title'), t('permission.photoLibrary'));
+      appAlert(t('permission.title'), t('permission.photoLibrary'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -38,7 +40,7 @@ export function ImagePickerSection({ imageUri, setImageUri, t, ownerId }: ImageP
         const url = await uploadFile(asset.uri, filename, mimeType);
         setImageUri(url);
       } catch {
-        Alert.alert(t('error.title'), t('documents.uploadFailed'));
+        appAlert(t('error.title'), t('documents.uploadFailed'));
       }
     }
   };

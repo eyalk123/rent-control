@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  Alert,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -26,6 +25,7 @@ import {
 import { PropertyCard } from '@/src/features/properties/components/PropertyCard';
 import { deleteProperty } from '@/src/features/properties/api/properties';
 import { spacing } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 
 type ActiveSheet = 'property' | 'renter' | 'owner' | null;
 
@@ -34,6 +34,7 @@ export function PropertiesListScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { appAlert } = useAlert();
   const { properties, loading, error, refreshProperties } = usePropertyContext();
   const { renters } = useRenterContext();
   const [refreshing, setRefreshing] = useState(false);
@@ -154,7 +155,7 @@ export function PropertiesListScreen() {
 
   const handleDeleteSelected = () => {
     const count = selectedIds.size;
-    Alert.alert(
+    appAlert(
       t('bulkDelete.deleteConfirmTitle', { count }),
       t('bulkDelete.deleteConfirmMessage'),
       [
@@ -180,7 +181,7 @@ export function PropertiesListScreen() {
             setIsSelectMode(false);
             setSelectedIds(new Set());
             if (failed > 0) {
-              Alert.alert(t('bulkDelete.partialError', { success, failed }));
+              appAlert(t('bulkDelete.partialError', { success, failed }));
             }
           },
         },

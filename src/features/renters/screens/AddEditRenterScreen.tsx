@@ -5,12 +5,12 @@ import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker"
 import { RenterBasicInfoCard } from "@/src/features/renters/components/RenterBasicInfoCard";
 import { RenterLeaseInfoCard } from "@/src/features/renters/components/RenterLeaseInfoCard";
 import { spacing } from "@/src/core/theme";
+import { useAlert } from "@/src/core/context";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Alert,
     StyleSheet,
     View,
 } from "react-native";
@@ -19,6 +19,7 @@ import { Button } from "react-native-paper";
 
 export function AddEditRenterScreen() {
   const { t } = useTranslation();
+  const { appAlert } = useAlert();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const { refreshRenters } = useRenterContext();
@@ -39,7 +40,7 @@ export function AddEditRenterScreen() {
   const handlePickFromContacts = React.useCallback(async () => {
     const status = await requestPermission();
     if (status !== "granted") {
-      Alert.alert(
+      appAlert(
         t("error.title"),
         t("renter.contactsPermissionDenied"),
       );
@@ -68,7 +69,7 @@ export function AddEditRenterScreen() {
     const unsub = navigation.addListener("beforeRemove", (e) => {
       if (!formState.isDirty) return;
       e.preventDefault();
-      Alert.alert(
+      appAlert(
         t("common.discardChanges"),
         t("common.discardChangesMessage"),
         [
@@ -82,7 +83,7 @@ export function AddEditRenterScreen() {
       );
     });
     return unsub;
-  }, [navigation, formState.isDirty, t]);
+  }, [navigation, formState.isDirty, t, appAlert]);
 
   const handleHeaderBack = () => {
     if (step === "lease") {

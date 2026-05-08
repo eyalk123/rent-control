@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { useAlert } from '@/src/core/context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { TFunction } from 'i18next';
@@ -61,6 +61,7 @@ export function usePropertyForm({
 }: UsePropertyFormParams) {
   const isEdit = Boolean(id);
   const { user } = useAppAuth();
+  const { appAlert } = useAlert();
   const [imageUri, setImageUri] = React.useState<string | null>(null);
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
 
@@ -142,7 +143,7 @@ export function usePropertyForm({
       setImageUri(savedProp.image_url ?? null);
       onSuccess();
     } catch (err) {
-      Alert.alert(
+      appAlert(
         t('error.title'),
         getApiErrorMessage(err, t('error.savePropertyFailed'))
       );
