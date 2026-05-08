@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
 import { BottomTabBar } from '@react-navigation/bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { CommonActions, TabActions } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
@@ -73,11 +73,6 @@ export default function TabLayout() {
           if (__DEV__) {
             __tabPressAt = performance.now();
             console.log(`[tab] press → ${route.name} (isActive=${isActive})`);
-          }
-
-          if (!isActive) {
-            navigation.dispatch(TabActions.jumpTo(route.name));
-            return;
           }
 
           navigation.dispatch(
