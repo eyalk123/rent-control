@@ -22,7 +22,7 @@ import {
 import { usePropertyContext, useLanguageContext } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
-import { useTransactionsSummary } from '@/src/features/transactions/hooks/useTransactions';
+import { useTransactionSummaryContext } from '@/src/features/transactions/context/TransactionSummaryContext';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { deleteTransaction } from '@/src/features/transactions/api/transactions';
 import { formatMoney } from '@/src/shared/utils/money';
@@ -82,7 +82,7 @@ export function TransactionsListScreen() {
     refresh,
   } = usePaginatedTransactionContext();
 
-  const { sixMonthBuckets, heroBucket, summaryLoading, refreshSummary } = useTransactionsSummary();
+  const { sixMonthBuckets, heroBucket, summaryLoading, refresh: refreshSummary } = useTransactionSummaryContext();
 
   const { properties } = usePropertyContext();
 
@@ -104,13 +104,11 @@ export function TransactionsListScreen() {
   useFocusEffect(
     React.useCallback(() => {
       filterChipsRef.current?.scrollToStart();
-      refreshSummary();
       return () => {
         setIsSelectMode(false);
-        // Avoid creating a new Set reference when already empty — prevents spurious re-renders on tab blur
         setSelectedIds(prev => prev.size > 0 ? new Set() : prev);
       };
-    }, [refreshSummary])
+    }, [])
   );
 
   React.useEffect(() => {

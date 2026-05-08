@@ -6,6 +6,7 @@ import {
   PropertyProvider,
   RenterProvider,
   PaginatedTransactionProvider,
+  TransactionSummaryProvider,
 } from "@/src/context";
 import { AuthProvider } from "@/src/core/auth/AuthContext";
 import "@/src/core/i18n";
@@ -64,9 +65,11 @@ function AppContent() {
         <PropertyProvider>
           <RenterProvider>
             <PaginatedTransactionProvider>
+            <TransactionSummaryProvider>
               <LanguageProvider>
                 <DirectionalContent />
               </LanguageProvider>
+            </TransactionSummaryProvider>
             </PaginatedTransactionProvider>
           </RenterProvider>
         </PropertyProvider>

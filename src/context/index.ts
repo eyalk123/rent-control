@@ -3,6 +3,7 @@ export type { PropertyContextType } from '@/src/features/properties/context/Prop
 export { RenterProvider, useRenterContext } from '@/src/features/renters/context/RenterContext';
 export type { RenterContextType } from '@/src/features/renters/context/RenterContext';
 export { PaginatedTransactionProvider } from '@/src/features/transactions/context/PaginatedTransactionContext';
+export { TransactionSummaryProvider, useTransactionSummaryContext } from '@/src/features/transactions/context/TransactionSummaryContext';
 export { ThemeProvider, useThemeContext } from '@/src/core/context';
 export type { ThemeContextType, ThemeMode } from '@/src/core/context';
 export {
