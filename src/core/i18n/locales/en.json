@@ -46,7 +46,8 @@
     "renterDetails": "Renter Details",
     "addRenter": "Add Renter",
     "editRenter": "Edit Renter",
-    "transactions": "Transactions"
+    "transactions": "Transactions",
+    "transactionDetails": "Transaction Details"
   },
   "property": {
     "basicInfo": "Basic Information",
@@ -256,7 +257,11 @@
     "saveTransactionFailed": "Failed to save transaction",
     "saveFailed": "Failed to save",
     "createCategoryFailed": "Failed to create category",
-    "deleteSupplierFailed": "Failed to delete supplier"
+    "deleteSupplierFailed": "Failed to delete supplier",
+    "invalidTransactionId": "Invalid transaction ID",
+    "transactionNotFound": "Transaction not found",
+    "deleteTransactionFailed": "Failed to delete transaction",
+    "updateTransactionFailed": "Failed to update transaction"
   },
   "transactions": {
     "addTransaction": "Add transaction",
@@ -294,6 +299,10 @@
     "revenueTitle": "Revenue",
     "expenseTitle": "Expense",
     "save": "Save",
+    "deleteTransaction": "Delete Transaction",
+    "deleteConfirm": "Are you sure you want to delete this transaction? This cannot be undone.",
+    "editTransaction": "Edit Transaction",
+    "updateTransaction": "Update Transaction",
     "bulkRevenue": {
       "filters": "Filters",
       "ownerFilter": "Owner",

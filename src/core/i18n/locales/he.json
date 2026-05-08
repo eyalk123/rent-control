@@ -46,7 +46,8 @@
     "renterDetails": "פרטי דייר",
     "addRenter": "הוספת דייר",
     "editRenter": "עריכת דייר",
-    "transactions": "תנועות"
+    "transactions": "תנועות",
+    "transactionDetails": "פרטי תנועה"
   },
   "property": {
     "basicInfo": "מידע בסיסי",
@@ -256,7 +257,11 @@
     "saveTransactionFailed": "שמירת התנועה נכשלה",
     "saveFailed": "השמירה נכשלה",
     "createCategoryFailed": "יצירת הקטגוריה נכשלה",
-    "deleteSupplierFailed": "מחיקת הספק נכשלה"
+    "deleteSupplierFailed": "מחיקת הספק נכשלה",
+    "invalidTransactionId": "מזהה תנועה לא תקין",
+    "transactionNotFound": "התנועה לא נמצאה",
+    "deleteTransactionFailed": "מחיקת התנועה נכשלה",
+    "updateTransactionFailed": "עדכון התנועה נכשל"
   },
   "transactions": {
     "addTransaction": "הוספת תנועה",
@@ -294,6 +299,10 @@
     "revenueTitle": "הכנסה",
     "expenseTitle": "הוצאה",
     "save": "שמירה",
+    "deleteTransaction": "מחיקת תנועה",
+    "deleteConfirm": "האם אתה בטוח שברצונך למחוק את התנועה? לא ניתן לבטל פעולה זו.",
+    "editTransaction": "עריכת תנועה",
+    "updateTransaction": "עדכון תנועה",
     "bulkRevenue": {
       "filters": "סינון",
       "ownerFilter": "בעלים",

@@ -7,7 +7,29 @@ import type {
   ExpenseCategory,
   ExpenseCategoryCreate,
   PropertyRenterSummary,
+  PaymentMethod,
 } from '@/src/shared/types';
+
+export interface TransactionUpdateRevenue {
+  property_id?: number;
+  renter_id?: number | null;
+  amount?: number;
+  date_of_payment?: string;
+  month_for?: string;
+  payment_method?: PaymentMethod | null;
+  notes?: string | null;
+}
+
+export interface TransactionUpdateExpense {
+  property_id?: number;
+  renter_id?: number | null;
+  amount?: number;
+  date_of_payment?: string;
+  payment_method?: PaymentMethod;
+  category_id?: number;
+  supplier_id?: number | null;
+  notes?: string | null;
+}
 
 export type TransactionsListParams = {
   type?: 'revenue' | 'expense';
@@ -143,6 +165,29 @@ export async function createExpenseCategory(
     '/expense-categories',
     payload,
   );
+  return response.data;
+}
+
+export async function updateRevenueTransaction(id: number, payload: TransactionUpdateRevenue): Promise<Transaction> {
+  if (USE_MOCK_API) return getTransactionById(id);
+  const response = await apiClient.patch<Transaction>(`/transactions/revenue/${id}`, payload);
+  return response.data;
+}
+
+export async function updateExpenseTransaction(id: number, payload: TransactionUpdateExpense): Promise<Transaction> {
+  if (USE_MOCK_API) return getTransactionById(id);
+  const response = await apiClient.patch<Transaction>(`/transactions/expense/${id}`, payload);
+  return response.data;
+}
+
+export async function getTransactionById(id: number): Promise<Transaction> {
+  if (USE_MOCK_API) {
+    const all = await mockTransactionsApi.getTransactions({});
+    const found = all.find((t) => t.id === id);
+    if (!found) throw new Error('Not found');
+    return found;
+  }
+  const response = await apiClient.get<Transaction>(`/transactions/${id}`);
   return response.data;
 }
 
