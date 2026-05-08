@@ -393,7 +393,7 @@ export function TransactionsListScreen() {
               <TransactionsHero bucket={heroBucket} loading={summaryLoading} />
             </DevProfiler>
             <DevProfiler id="MonthsBarChart">
-              <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} />
+              <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} loading={summaryLoading} />
             </DevProfiler>
             <View style={[styles.filterCard, { backgroundColor: theme.colors.surface }]}>
               <DevProfiler id="FilterChipsBar">

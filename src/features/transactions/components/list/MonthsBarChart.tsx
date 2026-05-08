@@ -7,7 +7,7 @@
  * Plain Views — no SVG / chart library dependency.
  */
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
@@ -22,16 +22,54 @@ const BAR_AREA_HEIGHT = 64;
 const BAR_WIDTH = 8;
 const MIN_BAR = 2;
 
+// Varied heights give the ghost chart a realistic silhouette
+const GHOST_BARS: [number, number][] = [
+  [28, 40], [48, 20], [32, 52], [56, 36], [20, 44], [64, 28],
+];
+
 interface MonthsBarChartProps {
   buckets: MonthBucket[];
   currentKey: string;
+  loading?: boolean;
 }
 
-export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, currentKey }: MonthsBarChartProps) {
+export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, currentKey, loading = false }: MonthsBarChartProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
+
+  const shimmer = React.useRef(new Animated.Value(0.35)).current;
+  React.useEffect(() => {
+    if (!loading) return;
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, { toValue: 1, duration: 750, useNativeDriver: true }),
+        Animated.timing(shimmer, { toValue: 0.35, duration: 750, useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [loading, shimmer]);
+
+  if (loading) {
+    const bg = colors.textSecondary;
+    return (
+      <Animated.View style={[styles.container, { opacity: shimmer }]}>
+        <View style={styles.row}>
+          {GHOST_BARS.map(([revH, expH], i) => (
+            <View key={i} style={styles.column}>
+              <View style={styles.barRow}>
+                <View style={[styles.bar, { height: revH, backgroundColor: bg }]} />
+                <View style={[styles.bar, { height: expH, backgroundColor: bg }]} />
+              </View>
+              <View style={[styles.ghostLabel, { backgroundColor: bg }]} />
+            </View>
+          ))}
+        </View>
+      </Animated.View>
+    );
+  }
 
   const maxValue = buckets.reduce(
     (max, b) => Math.max(max, b.revenue, b.expenses),
@@ -129,5 +167,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 6,
     fontVariant: ['tabular-nums'],
+  },
+  ghostLabel: {
+    height: 8,
+    width: 24,
+    borderRadius: 3,
+    marginTop: 8,
   },
 });
