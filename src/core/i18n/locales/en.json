@@ -68,6 +68,7 @@
     "typeApartment": "Apartment",
     "typeHouse": "House",
     "typeCommercial": "Commercial",
+    "typeGardenApartment": "Garden Apartment",
     "occupancy": {
       "occupied": "Occupied",
       "vacant": "Vacant"

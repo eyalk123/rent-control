@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { PropertyType } from '@/src/shared/types';
 
-export const PROPERTY_TYPES: PropertyType[] = ['apartment', 'house', 'commercial'];
+export const PROPERTY_TYPES: PropertyType[] = ['apartment', 'house', 'commercial', 'garden_apartment'];
 
 const nonEmptyTrimmed = z
   .string()

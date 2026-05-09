@@ -31,8 +31,10 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
 }: BasicInfoCardProps<TFieldValues>) {
   const rtlPlaceholder = useRtlPlaceholder();
   const { properties } = usePropertyContext();
-  const translateTypeLabel = (type: PropertyType) =>
-    t(`property.type${type.charAt(0).toUpperCase() + type.slice(1)}`);
+  const translateTypeLabel = (type: PropertyType) => {
+    const key = type.split('_').map((w, i) => i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w.charAt(0).toUpperCase() + w.slice(1)).join('');
+    return t(`property.type${key}`);
+  };
 
   const ownerOptions = React.useMemo(
     () =>

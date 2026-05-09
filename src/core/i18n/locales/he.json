@@ -68,6 +68,7 @@
     "typeApartment": "דירה",
     "typeHouse": "בית",
     "typeCommercial": "מסחרי",
+    "typeGardenApartment": "דירת גן",
     "occupancy": {
       "occupied": "נתפס",
       "vacant": "פנוי"
