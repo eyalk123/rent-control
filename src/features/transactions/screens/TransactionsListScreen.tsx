@@ -1,14 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Platform,
-  Pressable,
   RefreshControl,
   SectionList,
-  StyleSheet,
-  View,
 } from 'react-native';
-import { Checkbox, IconButton, Text, useTheme } from 'react-native-paper';
+import { useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -17,111 +13,36 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   AppFab,
   EmptyState,
-  Icon,
   LoadingOverlay,
   ScreenContainer,
 } from '@/src/shared/components/ui';
-import { usePropertyContext, useLanguageContext } from '@/src/context';
-import { darkColors, ICON_LG, lightColors, spacing } from '@/src/core/theme';
-import { useAlert } from '@/src/core/context';
-import type { Transaction } from '@/src/shared/types';
+import { useLanguageContext } from '@/src/context';
+import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useTransactionSummaryContext } from '@/src/features/transactions/context/TransactionSummaryContext';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
-import { deleteTransaction } from '@/src/features/transactions/api/transactions';
-import { formatMoney } from '@/src/shared/utils/money';
-import {
-  bucketByMonth,
-  currentMonthKey,
-  monthYearLabel,
-} from '@/src/features/transactions/utils/aggregate';
-import { TransactionsHero } from '@/src/features/transactions/components/list/TransactionsHero';
-import { MonthsBarChart } from '@/src/features/transactions/components/list/MonthsBarChart';
-import {
-  TypeFilterChips,
-  type TransactionTypeFilter,
-} from '@/src/features/transactions/components/list/TypeFilterChips';
-import { TransactionRow } from '@/src/features/transactions/components/list/TransactionRow';
+import type { Transaction } from '@/src/shared/types';
 import { DevProfiler } from '@/src/shared/components/dev/DevProfiler';
-import {
-  FilterChipsBar,
-  type FilterChip,
-  type FilterChipsBarHandle,
-} from '@/src/features/transactions/components/list/FilterChipsBar';
-import {
-  FilterBottomSheet,
-  type FilterOption,
-} from '@/src/features/transactions/components/list/FilterBottomSheet';
+import { TransactionRow } from '@/src/features/transactions/components/list/TransactionRow';
+import { useTransactionFilters } from '@/src/features/transactions/hooks/useTransactionFilters';
+import { useTransactionSelectMode } from '@/src/features/transactions/hooks/useTransactionSelectMode';
+import { SelectionHeader } from '@/src/features/transactions/components/list/SelectionHeader';
+import { TransactionsListHeader } from '@/src/features/transactions/components/list/TransactionsListHeader';
+import { TransactionSectionHeader } from '@/src/features/transactions/components/list/TransactionSectionHeader';
+import { TransactionListFABs } from '@/src/features/transactions/components/list/TransactionListFABs';
+import { TransactionFilterSheets } from '@/src/features/transactions/components/list/TransactionFilterSheets';
+import { SuppliersHeaderButton } from '@/src/features/transactions/components/list/SuppliersHeaderButton';
 
-type ActiveSheet = 'property' | 'renter' | 'owner' | 'category' | 'supplier' | null;
-
-const EMPTY_KEY: Record<TransactionTypeFilter, string> = {
+const EMPTY_KEY: Record<string, string> = {
   all: 'empty.noTransactionSearchResults',
   revenue: 'empty.noRevenueThisPeriod',
   expense: 'empty.noExpenseThisPeriod',
 };
 
-const EMPTY_DEFAULT: Record<TransactionTypeFilter, string> = {
+const EMPTY_DEFAULT: Record<string, string> = {
   all: 'No transactions match your filters.',
   revenue: 'No revenue in this period.',
   expense: 'No expenses in this period.',
 };
-
-function SuppliersHeaderButton({
-  colors,
-  onPress,
-  label,
-}: {
-  colors: typeof lightColors;
-  onPress: () => void;
-  label: string;
-}) {
-  const shadow = Platform.select({
-    ios: {
-      shadowColor: colors.primary,
-      shadowOpacity: 0.4,
-      shadowRadius: 20,
-      shadowOffset: { width: 0, height: 8 },
-    },
-    android: { elevation: 8 },
-    default: {},
-  });
-
-  return (
-    <View pointerEvents="box-none" style={suppliersStyles.wrapper}>
-      <View
-        style={[suppliersStyles.btn, shadow, { backgroundColor: colors.primary }]}
-        renderToHardwareTextureAndroid
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={label}
-          onPress={onPress}
-          style={({ pressed }) => [
-            suppliersStyles.btn,
-            { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
-          ]}
-        >
-          <Icon name="store" size={ICON_LG} color={colors.accent} />
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
-const suppliersStyles = StyleSheet.create({
-  wrapper: {
-    position: 'absolute',
-    top: spacing.xxl,
-    right: spacing.lg,
-  },
-  btn: {
-    width: 52,
-    height: 52,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 export function TransactionsListScreen() {
   const { t } = useTranslation();
@@ -129,15 +50,12 @@ export function TransactionsListScreen() {
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { appAlert } = useAlert();
   const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
 
   const {
     transactions,
-    loading,
     loadingMore,
-    hasMore,
     error,
     loadMore,
     refresh,
@@ -145,169 +63,31 @@ export function TransactionsListScreen() {
 
   const { sixMonthBuckets, heroBucket, summaryLoading, refresh: refreshSummary } = useTransactionSummaryContext();
 
-  const { properties } = usePropertyContext();
+  const filters = useTransactionFilters();
 
-  // Filter state
-  const [propertyFilter, setPropertyFilter] = useState<number | null>(null);
-  const [renterFilter, setRenterFilter] = useState<number | null>(null);
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<number | null>(null);
-  const [supplierFilter, setSupplierFilter] = useState<number | null>(null);
-  const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
+  const selectMode = useTransactionSelectMode({
+    typeFiltered: filters.typeFiltered,
+    refresh,
+    refreshSummary,
+  });
 
-  const filterChipsRef = useRef<FilterChipsBarHandle>(null);
-  const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
-  const [isSelectMode, setIsSelectMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const { filterChipsRef } = filters;
+  const { exitSelectMode } = selectMode;
 
   useFocusEffect(
     React.useCallback(() => {
       filterChipsRef.current?.scrollToStart();
       return () => {
-        setIsSelectMode(false);
-        setSelectedIds(prev => prev.size > 0 ? new Set() : prev);
+        exitSelectMode();
       };
-    }, [])
+    }, [filterChipsRef, exitSelectMode])
   );
 
   React.useEffect(() => {
     filterChipsRef.current?.scrollToStart();
-  }, [language]);
-
-  // Derive filter options from transaction data — only shows values present in the list
-  const propertyOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Map<number, string>();
-    for (const tx of transactions) {
-      if (!seen.has(tx.property_id)) seen.set(tx.property_id, tx.property_name);
-    }
-    return [...seen.entries()].map(([id, label]) => ({ id, label }));
-  }, [transactions]);
-
-  const renterOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Map<number, string>();
-    for (const tx of transactions) {
-      if (tx.renter_id !== null && tx.renter_name && !seen.has(tx.renter_id)) {
-        seen.set(tx.renter_id, tx.renter_name);
-      }
-    }
-    return [...seen.entries()].map(([id, label]) => ({ id, label }));
-  }, [transactions]);
-
-  const ownerOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Set<string>();
-    for (const p of properties) {
-      const o = (p.property_owner ?? '').trim();
-      if (o) seen.add(o);
-    }
-    return [...seen].map((o) => ({ id: o, label: o }));
-  }, [properties]);
-
-  const categoryOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Map<number, string>();
-    for (const tx of transactions) {
-      if (tx.category_id !== null && tx.category_name && !seen.has(tx.category_id)) {
-        seen.set(tx.category_id, tx.category_name);
-      }
-    }
-    return [...seen.entries()].map(([id, rawName]) => ({
-      id,
-      label: t(`expenseCategories.${rawName}`, { defaultValue: rawName }),
-    }));
-  }, [transactions, t]);
-
-  const supplierOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Map<number, string>();
-    for (const tx of transactions) {
-      if (tx.supplier_id !== null && tx.supplier_name && !seen.has(tx.supplier_id)) {
-        seen.set(tx.supplier_id, tx.supplier_name);
-      }
-    }
-    return [...seen.entries()].map(([id, label]) => ({ id, label }));
-  }, [transactions]);
-
-  // Owner lookup by property_id for filtering
-  const ownerByPropertyId = useMemo(() => {
-    const m = new Map<number, string>();
-    for (const p of properties) {
-      const o = (p.property_owner ?? '').trim();
-      if (o) m.set(p.id, o);
-    }
-    return m;
-  }, [properties]);
-
-  const baseFiltered = useMemo(() => {
-    return transactions.filter((tx) => {
-      if (propertyFilter !== null && tx.property_id !== propertyFilter) return false;
-      if (renterFilter !== null && tx.renter_id !== renterFilter) return false;
-      if (ownerFilter !== null && ownerByPropertyId.get(tx.property_id) !== ownerFilter) return false;
-      if (categoryFilter !== null && tx.category_id !== categoryFilter) return false;
-      if (supplierFilter !== null && tx.supplier_id !== supplierFilter) return false;
-      return true;
-    });
-  }, [transactions, propertyFilter, renterFilter, ownerFilter, categoryFilter, supplierFilter, ownerByPropertyId]);
-
-  const typeFiltered = useMemo(() => {
-    if (typeFilter === 'all') return baseFiltered;
-    return baseFiltered.filter((tx) => tx.type === typeFilter);
-  }, [baseFiltered, typeFilter]);
-
-  const currentKey = currentMonthKey();
-
-  const listSections = useMemo(() => {
-    const buckets = bucketByMonth(typeFiltered);
-    return buckets.map((b) => ({
-      key: b.key,
-      title: monthYearLabel(b.key, locale),
-      profit: b.profit,
-      data: b.transactions,
-    }));
-  }, [typeFiltered, locale]);
-
-  const allSelected =
-    typeFiltered.length > 0 && typeFiltered.every((tx) => selectedIds.has(tx.id));
-  const someSelected =
-    !allSelected && typeFiltered.some((tx) => selectedIds.has(tx.id));
-
-  const filterChips = useMemo<FilterChip[]>(() => [
-    {
-      key: 'property',
-      label: t('filters.property', { defaultValue: 'Property' }),
-      selectedLabel: propertyOptions.find((o) => o.id === propertyFilter)?.label ?? null,
-      onPress: () => setActiveSheet('property'),
-      onClear: () => setPropertyFilter(null),
-    },
-    {
-      key: 'renter',
-      label: t('filters.renter', { defaultValue: 'Renter' }),
-      selectedLabel: renterOptions.find((o) => o.id === renterFilter)?.label ?? null,
-      onPress: () => setActiveSheet('renter'),
-      onClear: () => setRenterFilter(null),
-    },
-    {
-      key: 'owner',
-      label: t('filters.owner', { defaultValue: 'Owner' }),
-      selectedLabel: ownerFilter,
-      onPress: () => setActiveSheet('owner'),
-      onClear: () => setOwnerFilter(null),
-    },
-    {
-      key: 'category',
-      label: t('filters.category', { defaultValue: 'Category' }),
-      selectedLabel: categoryOptions.find((o) => o.id === categoryFilter)?.label ?? null,
-      onPress: () => setActiveSheet('category'),
-      onClear: () => setCategoryFilter(null),
-    },
-    {
-      key: 'supplier',
-      label: t('filters.supplier', { defaultValue: 'Supplier' }),
-      selectedLabel: supplierOptions.find((o) => o.id === supplierFilter)?.label ?? null,
-      onPress: () => setActiveSheet('supplier'),
-      onClear: () => setSupplierFilter(null),
-    },
-  ], [t, propertyOptions, renterOptions, ownerOptions, categoryOptions, supplierOptions,
-      propertyFilter, renterFilter, ownerFilter, categoryFilter, supplierFilter]);
+  }, [language, filterChipsRef]);
 
   const handleAddPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -318,75 +98,6 @@ export function TransactionsListScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push('/transactions/suppliers' as any);
   }, [router]);
-
-  const handleTransactionPress = useCallback((id: number) => {
-    if (isSelectMode) {
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        return next;
-      });
-      return;
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(`/transactions/${id}` as any);
-  }, [isSelectMode, router]);
-
-  const handleLongPress = useCallback((id: number) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setIsSelectMode(true);
-    setSelectedIds(new Set([id]));
-  }, []);
-
-  const handleToggleAll = useCallback(() => {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(typeFiltered.map((tx) => tx.id)));
-    }
-  }, [allSelected, typeFiltered]);
-
-  const handleCancelSelect = useCallback(() => {
-    setIsSelectMode(false);
-    setSelectedIds(new Set());
-  }, []);
-
-  const handleDeleteSelected = () => {
-    const count = selectedIds.size;
-    appAlert(
-      t('bulkDelete.deleteConfirmTitle', { count }),
-      t('bulkDelete.deleteConfirmMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('bulkDelete.deleteButton'),
-          style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            const ids = Array.from(selectedIds);
-            let success = 0;
-            let failed = 0;
-            for (const id of ids) {
-              try {
-                await deleteTransaction(id);
-                success++;
-              } catch {
-                failed++;
-              }
-            }
-            await Promise.all([refresh(), refreshSummary()]);
-            setDeleting(false);
-            setIsSelectMode(false);
-            setSelectedIds(new Set());
-            if (failed > 0) {
-              appAlert(t('bulkDelete.partialError', { success, failed }));
-            }
-          },
-        },
-      ],
-    );
-  };
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -432,78 +143,50 @@ export function TransactionsListScreen() {
 
   return (
     <ScreenContainer edges={['top', 'left', 'right']}>
-      <LoadingOverlay visible={deleting} />
+      <LoadingOverlay visible={selectMode.deleting} />
 
-      {isSelectMode && (
-        <View style={styles.titleRow}>
-          <View style={styles.selectionHeader}>
-            <Checkbox
-              status={
-                allSelected ? 'checked' : someSelected ? 'indeterminate' : 'unchecked'
-              }
-              onPress={handleToggleAll}
-            />
-            <Text variant="headlineMedium" style={styles.heroTitle}>
-              {t('bulkDelete.selected', { count: selectedIds.size })}
-            </Text>
-            <IconButton icon="close" onPress={handleCancelSelect} />
-          </View>
-        </View>
+      {selectMode.isSelectMode && (
+        <SelectionHeader
+          allSelected={selectMode.allSelected}
+          someSelected={selectMode.someSelected}
+          selectedCount={selectMode.selectedIds.size}
+          onToggleAll={selectMode.handleToggleAll}
+          onCancel={selectMode.handleCancelSelect}
+        />
       )}
 
       <SectionList
-        sections={listSections}
+        sections={filters.listSections}
         keyExtractor={(item) => item.id.toString()}
         stickySectionHeadersEnabled
         ListHeaderComponent={
-          <View>
-            <DevProfiler id="TransactionsHero">
-              <TransactionsHero bucket={heroBucket} loading={summaryLoading} />
-            </DevProfiler>
-            <DevProfiler id="MonthsBarChart">
-              <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} loading={summaryLoading} />
-            </DevProfiler>
-            <View style={[styles.filterCard, { backgroundColor: theme.colors.surface }]}>
-              <DevProfiler id="FilterChipsBar">
-                <FilterChipsBar ref={filterChipsRef} chips={filterChips} />
-              </DevProfiler>
-              <DevProfiler id="TypeFilterChips">
-                <TypeFilterChips value={typeFilter} onChange={setTypeFilter} />
-              </DevProfiler>
-            </View>
-          </View>
+          <TransactionsListHeader
+            filterChipsRef={filters.filterChipsRef}
+            filterChips={filters.filterChips}
+            typeFilter={filters.typeFilter}
+            onTypeFilterChange={filters.setTypeFilter}
+            heroBucket={heroBucket}
+            sixMonthBuckets={sixMonthBuckets}
+            currentKey={filters.currentKey}
+            summaryLoading={summaryLoading}
+          />
         }
-        renderSectionHeader={({ section }) => {
-          const profit = (section as { profit: number }).profit;
-          const isLoss = profit < 0;
-          const sign = isLoss ? '−' : '+';
-          const color = isLoss ? colors.expFg : colors.revFg;
-          return (
-            <View
-              style={[
-                styles.sectionHeader,
-                { backgroundColor: colors.background },
-              ]}
-            >
-              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-                {section.title}
-              </Text>
-              <Text style={[styles.sectionProfit, { color }]}>
-                {`${sign}${formatMoney(Math.abs(profit))}`}
-              </Text>
-            </View>
-          );
-        }}
+        renderSectionHeader={({ section }) => (
+          <TransactionSectionHeader
+            title={section.title}
+            profit={(section as { profit: number }).profit}
+          />
+        )}
         renderItem={({ item }: { item: Transaction }) => (
           <DevProfiler id="TransactionRow" group="TransactionRow">
             <TransactionRow
               transaction={item}
               locale={locale}
               t={t}
-              isSelectMode={isSelectMode}
-              isSelected={selectedIds.has(item.id)}
-              onPress={handleTransactionPress}
-              onLongPress={handleLongPress}
+              isSelectMode={selectMode.isSelectMode}
+              isSelected={selectMode.selectedIds.has(item.id)}
+              onPress={selectMode.handleTransactionPress}
+              onLongPress={selectMode.handleLongPress}
             />
           </DevProfiler>
         )}
@@ -514,11 +197,11 @@ export function TransactionsListScreen() {
         onEndReachedThreshold={0.4}
         ListFooterComponent={
           loadingMore
-            ? <ActivityIndicator style={styles.footer} color={theme.colors.primary} />
+            ? <ActivityIndicator style={{ paddingVertical: spacing.lg }} color={theme.colors.primary} />
             : null
         }
         contentContainerStyle={[
-          styles.list,
+          { paddingHorizontal: spacing.lg },
           { paddingBottom: 80 + insets.bottom },
         ]}
         refreshControl={
@@ -530,130 +213,45 @@ export function TransactionsListScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            message={t(EMPTY_KEY[typeFilter], {
-              defaultValue: EMPTY_DEFAULT[typeFilter],
+            message={t(EMPTY_KEY[filters.typeFilter], {
+              defaultValue: EMPTY_DEFAULT[filters.typeFilter],
             })}
-            icon={typeFilter === 'all' ? 'filter' : 'wallet'}
+            icon={filters.typeFilter === 'all' ? 'filter' : 'wallet'}
           />
         }
       />
 
-      {isSelectMode ? (
-        <AppFab
-          icon="trash"
-          variant="destructive"
-          onPress={handleDeleteSelected}
-          disabled={selectedIds.size === 0}
-          accessibilityLabel={t('bulkDelete.deleteButton')}
-          bottomInset={insets.bottom}
-        />
-      ) : (
-        <AppFab
-          icon="plus"
-          onPress={handleAddPress}
-          accessibilityLabel={t('transactions.addTransaction', {
-            defaultValue: 'Add transaction',
-          })}
-          bottomInset={insets.bottom}
-        />
-      )}
+      <TransactionListFABs
+        isSelectMode={selectMode.isSelectMode}
+        selectedCount={selectMode.selectedIds.size}
+        onDelete={selectMode.handleDeleteSelected}
+        onAdd={handleAddPress}
+        bottomInset={insets.bottom}
+      />
 
-      {!isSelectMode && (
+      {!selectMode.isSelectMode && (
         <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
       )}
 
-      <FilterBottomSheet
-        visible={activeSheet === 'property'}
-        onDismiss={() => setActiveSheet(null)}
-        title={t('filters.property', { defaultValue: 'Property' })}
-        options={propertyOptions}
-        selectedId={propertyFilter}
-        onSelect={(id) => setPropertyFilter(id as number | null)}
-      />
-      <FilterBottomSheet
-        visible={activeSheet === 'renter'}
-        onDismiss={() => setActiveSheet(null)}
-        title={t('filters.renter', { defaultValue: 'Renter' })}
-        options={renterOptions}
-        selectedId={renterFilter}
-        onSelect={(id) => setRenterFilter(id as number | null)}
-      />
-      <FilterBottomSheet
-        visible={activeSheet === 'owner'}
-        onDismiss={() => setActiveSheet(null)}
-        title={t('filters.owner', { defaultValue: 'Owner' })}
-        options={ownerOptions}
-        selectedId={ownerFilter}
-        onSelect={(id) => setOwnerFilter(id as string | null)}
-      />
-      <FilterBottomSheet
-        visible={activeSheet === 'category'}
-        onDismiss={() => setActiveSheet(null)}
-        title={t('filters.category', { defaultValue: 'Category' })}
-        options={categoryOptions}
-        selectedId={categoryFilter}
-        onSelect={(id) => setCategoryFilter(id as number | null)}
-      />
-      <FilterBottomSheet
-        visible={activeSheet === 'supplier'}
-        onDismiss={() => setActiveSheet(null)}
-        title={t('filters.supplier', { defaultValue: 'Supplier' })}
-        options={supplierOptions}
-        selectedId={supplierFilter}
-        onSelect={(id) => setSupplierFilter(id as number | null)}
+      <TransactionFilterSheets
+        activeSheet={filters.activeSheet}
+        onClose={() => filters.setActiveSheet(null)}
+        propertyOptions={filters.propertyOptions}
+        renterOptions={filters.renterOptions}
+        ownerOptions={filters.ownerOptions}
+        categoryOptions={filters.categoryOptions}
+        supplierOptions={filters.supplierOptions}
+        onSelectProperty={filters.setPropertyFilter}
+        onSelectRenter={filters.setRenterFilter}
+        onSelectOwner={filters.setOwnerFilter}
+        onSelectCategory={filters.setCategoryFilter}
+        onSelectSupplier={filters.setSupplierFilter}
+        propertyFilter={filters.propertyFilter}
+        renterFilter={filters.renterFilter}
+        ownerFilter={filters.ownerFilter}
+        categoryFilter={filters.categoryFilter}
+        supplierFilter={filters.supplierFilter}
       />
     </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  titleRow: {
-    paddingHorizontal: spacing.lg,
-  },
-  selectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: spacing.sm,
-  },
-  heroTitle: {
-    fontWeight: '700',
-    fontSize: 28,
-    flex: 1,
-  },
-  filterCard: {
-    marginTop: spacing.md,
-    marginBottom: spacing.xs,
-    borderRadius: 16,
-    padding: spacing.sm,
-    gap: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  list: {
-    paddingHorizontal: spacing.lg,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  sectionTitle: {
-    fontSize: 11,
-    letterSpacing: 1.2,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  sectionProfit: {
-    fontSize: 13,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-  footer: {
-    paddingVertical: spacing.lg,
-  },
-});

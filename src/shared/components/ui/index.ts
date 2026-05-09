@@ -9,3 +9,6 @@ export { AppFab } from './AppFab';
 export { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
 export { FilterBottomSheet, type FilterOption } from './FilterBottomSheet';
 export { StepHeader } from './StepHeader';
+export { StatBox } from './StatBox';
+export { IconDetailRow } from './IconDetailRow';
+export { DocumentsCard, type DocumentItem } from './DocumentsCard';

@@ -1,11 +1,12 @@
 import React from 'react';
-import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import { Icon, type IconName } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Property, PropertyType } from '@/src/shared/types';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
+import { StatBox, IconDetailRow, DocumentsCard } from '@/src/shared/components/ui';
 
 interface PropertyInfoTabProps {
   property: Property;
@@ -16,64 +17,6 @@ const TYPE_ICONS: Record<PropertyType, IconName> = {
   house: 'home',
   commercial: 'store',
 };
-
-function StatBox({
-  icon,
-  value,
-  label,
-  backgroundColor,
-  iconColor,
-  textColor,
-  secondaryColor,
-}: {
-  icon: IconName;
-  value: string;
-  label: string;
-  backgroundColor: string;
-  iconColor: string;
-  textColor: string;
-  secondaryColor: string;
-}) {
-  return (
-    <View style={[styles.statBox, { backgroundColor }]}>
-      <Icon name={icon} size={24} color={iconColor} />
-      <Text variant="titleMedium" style={[styles.statValue, { color: textColor }]}>
-        {value}
-      </Text>
-      <Text variant="labelSmall" style={{ color: secondaryColor }} numberOfLines={1}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function IconDetailRow({
-  icon,
-  label,
-  value,
-  iconColor,
-  secondaryColor,
-}: {
-  icon: IconName;
-  label: string;
-  value: string;
-  iconColor: string;
-  secondaryColor: string;
-}) {
-  return (
-    <View style={styles.iconRow}>
-      <View style={styles.iconRowLeft}>
-        <Icon name={icon} size={20} color={iconColor} />
-        <Text variant="bodyMedium" style={{ color: secondaryColor }}>
-          {label}
-        </Text>
-      </View>
-      <Text variant="bodyMedium" style={styles.iconRowValue}>
-        {value}
-      </Text>
-    </View>
-  );
-}
 
 function ExpandableNotesRow({
   label,
@@ -130,12 +73,17 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
     property.house_committee != null ||
     (property.inventory_notes != null && property.inventory_notes !== '');
 
+  const documents = [
+    property.basic_contract_url
+      ? { label: t('documents.basicContract'), url: property.basic_contract_url, icon: 'file-text' as const }
+      : null,
+    property.land_registry_url
+      ? { label: t('documents.landRegistry'), url: property.land_registry_url, icon: 'bank' as const }
+      : null,
+  ].filter(Boolean) as { label: string; url: string; icon: 'file-text' | 'bank' }[];
+
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Stat boxes */}
+    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.statsRow}>
         <StatBox
           icon={TYPE_ICONS[property.type]}
@@ -145,6 +93,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
           iconColor={colors.primary}
           textColor={colors.textPrimary}
           secondaryColor={colors.textSecondary}
+          valueVariant="titleMedium"
         />
         <StatBox
           icon="ruler"
@@ -154,6 +103,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
           iconColor={colors.secondary}
           textColor={colors.textPrimary}
           secondaryColor={colors.textSecondary}
+          valueVariant="titleMedium"
         />
         <StatBox
           icon={hasRooms ? 'door-open' : 'map-pin'}
@@ -163,10 +113,10 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
           iconColor={colors.sectionAccent}
           textColor={colors.textPrimary}
           secondaryColor={colors.textSecondary}
+          valueVariant="titleMedium"
         />
       </View>
 
-      {/* Overview card */}
       <Card style={styles.card} mode="outlined">
         <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
           <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
@@ -195,50 +145,8 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
         </Card.Content>
       </Card>
 
-      {/* Documents card */}
-      {(property.basic_contract_url || property.land_registry_url) && (
-        <Card style={styles.card} mode="outlined">
-          <View style={[styles.sectionHeader, { backgroundColor: colors.secondary }]}>
-            <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
-              {t('documents.title')}
-            </Text>
-          </View>
-          <Card.Content style={styles.cardContent}>
-            {property.basic_contract_url && (
-              <TouchableOpacity
-                style={styles.iconRow}
-                onPress={() => Linking.openURL(property.basic_contract_url!)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.iconRowLeft}>
-                  <Icon name="file-text" size={20} color={colors.secondary} />
-                  <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
-                    {t('documents.basicContract')}
-                  </Text>
-                </View>
-                <Icon name="external-link" size={18} color={colors.secondary} />
-              </TouchableOpacity>
-            )}
-            {property.land_registry_url && (
-              <TouchableOpacity
-                style={styles.iconRow}
-                onPress={() => Linking.openURL(property.land_registry_url!)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.iconRowLeft}>
-                  <Icon name="bank" size={20} color={colors.secondary} />
-                  <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
-                    {t('documents.landRegistry')}
-                  </Text>
-                </View>
-                <Icon name="external-link" size={18} color={colors.secondary} />
-              </TouchableOpacity>
-            )}
-          </Card.Content>
-        </Card>
-      )}
+      <DocumentsCard documents={documents} />
 
-      {/* Property Details card */}
       {hasPropertyDetails && (
         <Card style={styles.card} mode="outlined">
           <View style={[styles.sectionHeader, { backgroundColor: colors.sectionAccent }]}>
@@ -317,17 +225,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  statBox: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
-    borderRadius: 12,
-    gap: spacing.xs,
-  },
-  statValue: {
-    fontWeight: '700',
-  },
   card: {
     marginBottom: spacing.md,
     borderRadius: 10,
@@ -344,22 +241,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
-  iconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-  },
   iconRowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     flexShrink: 1,
-  },
-  iconRowValue: {
-    fontWeight: '600',
-    textAlign: 'right',
-    flexShrink: 0,
   },
   notesRow: {
     paddingVertical: spacing.sm,
