@@ -45,7 +45,10 @@ export const renterFormSchema = z.object({
   lastName: nonEmptyTrimmed,
   phone: nonEmptyTrimmed,
   email: optionalString,
-  leaseStart: dateString,
+  leaseStart: z.string().transform((val) => val.trim()).refine(
+    (val) => val === "" || /^\d{4}-\d{2}-\d{2}$/.test(val),
+    { message: "dateFormatInvalid" },
+  ),
   propertyId: z.number().nullable(),
   paymentType: optionalString,
   paymentDate: z

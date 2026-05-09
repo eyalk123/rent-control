@@ -31,7 +31,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
         <FormWheelDateField
           control={control}
           name={"leaseStart" as any}
-          label={`${t("renter.leaseStart")} *`}
+          label={t("renter.leaseStart")}
           placeholder={t("renter.leaseStartPlaceholder")}
           mode="full"
         />

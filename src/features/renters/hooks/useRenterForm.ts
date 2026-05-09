@@ -122,7 +122,7 @@ export function useRenterForm({
   }, [id, isEdit, reset]);
 
   const submit = handleSubmit(async (values) => {
-    const leaseStartTrimmed = values.leaseStart.trim();
+    const leaseStartTrimmed = values.leaseStart?.trim() ?? "";
     const paymentDayNum =
       values.paymentDate && values.paymentDate.length >= 10
         ? Number(values.paymentDate.slice(8, 10))
@@ -159,7 +159,7 @@ export function useRenterForm({
       last_name: values.lastName.trim(),
       phone: values.phone.trim(),
       email: values.email.trim(),
-      lease_start: leaseStartTrimmed,
+      lease_start: leaseStartTrimmed || undefined,
       property_id: values.propertyId ?? undefined,
       lease_years,
       contact_id: values.contactId ?? undefined,
@@ -188,7 +188,7 @@ export function useRenterForm({
       last_name: values.lastName.trim(),
       phone: values.phone.trim(),
       email: values.email.trim(),
-      lease_start: leaseStartTrimmed,
+      lease_start: leaseStartTrimmed || undefined,
       property_id: values.propertyId ?? null,
       lease_years,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
