@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
+  Pressable,
   RefreshControl,
   SectionList,
   StyleSheet,
@@ -15,11 +17,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   AppFab,
   EmptyState,
+  Icon,
   LoadingOverlay,
   ScreenContainer,
 } from '@/src/shared/components/ui';
 import { usePropertyContext, useLanguageContext } from '@/src/context';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, ICON_LG, lightColors, spacing } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import type { Transaction } from '@/src/shared/types';
 import { useTransactionSummaryContext } from '@/src/features/transactions/context/TransactionSummaryContext';
@@ -62,6 +65,63 @@ const EMPTY_DEFAULT: Record<TransactionTypeFilter, string> = {
   revenue: 'No revenue in this period.',
   expense: 'No expenses in this period.',
 };
+
+function SuppliersHeaderButton({
+  colors,
+  onPress,
+  label,
+}: {
+  colors: typeof lightColors;
+  onPress: () => void;
+  label: string;
+}) {
+  const shadow = Platform.select({
+    ios: {
+      shadowColor: colors.primary,
+      shadowOpacity: 0.4,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 8 },
+    },
+    android: { elevation: 8 },
+    default: {},
+  });
+
+  return (
+    <View pointerEvents="box-none" style={suppliersStyles.wrapper}>
+      <View
+        style={[suppliersStyles.btn, shadow, { backgroundColor: colors.primary }]}
+        renderToHardwareTextureAndroid
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          onPress={onPress}
+          style={({ pressed }) => [
+            suppliersStyles.btn,
+            { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
+          ]}
+        >
+          <Icon name="store" size={ICON_LG} color={colors.accent} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const suppliersStyles = StyleSheet.create({
+  wrapper: {
+    position: 'absolute',
+    top: spacing.xxl,
+    right: spacing.lg,
+  },
+  btn: {
+    width: 52,
+    height: 52,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
 export function TransactionsListScreen() {
   const { t } = useTranslation();
@@ -254,6 +314,11 @@ export function TransactionsListScreen() {
     router.push('/transactions/add' as any);
   }, [router]);
 
+  const handleSuppliersPress = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/transactions/suppliers' as any);
+  }, [router]);
+
   const handleTransactionPress = useCallback((id: number) => {
     if (isSelectMode) {
       setSelectedIds((prev) => {
@@ -338,6 +403,7 @@ export function TransactionsListScreen() {
           actionLabel={t('common.tryAgain')}
           onAction={refresh}
         />
+        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
       </ScreenContainer>
     );
   }
@@ -351,6 +417,7 @@ export function TransactionsListScreen() {
           })}
           icon="wallet"
         />
+        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
         <AppFab
           icon="plus"
           onPress={handleAddPress}
@@ -367,8 +434,8 @@ export function TransactionsListScreen() {
     <ScreenContainer edges={['top', 'left', 'right']}>
       <LoadingOverlay visible={deleting} />
 
-      <View style={styles.titleRow}>
-        {isSelectMode ? (
+      {isSelectMode && (
+        <View style={styles.titleRow}>
           <View style={styles.selectionHeader}>
             <Checkbox
               status={
@@ -381,8 +448,8 @@ export function TransactionsListScreen() {
             </Text>
             <IconButton icon="close" onPress={handleCancelSelect} />
           </View>
-        ) : null}
-      </View>
+        </View>
+      )}
 
       <SectionList
         sections={listSections}
@@ -489,6 +556,10 @@ export function TransactionsListScreen() {
           })}
           bottomInset={insets.bottom}
         />
+      )}
+
+      {!isSelectMode && (
+        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
       )}
 
       <FilterBottomSheet

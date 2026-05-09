@@ -53,22 +53,6 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
         </LtrSection>
         </DevProfiler>
 
-        {/* 3. Apply the helper to the rest of your titles */}
-        <Text
-          variant="titleMedium"
-          style={[styles.sectionTitle, rtlLabelStyle]}
-        >
-          {t('settings.suppliers')}
-        </Text>
-        <List.Section>
-          <List.Item
-            title={t('settings.suppliers')}
-            left={(props) => <Icon name="store" size={20} color={props.color} style={props.style} />}
-            onPress={() => router.push('/settings/suppliers' as any)}
-            style={styles.listItem}
-          />
-        </List.Section>
-
         <Text
           variant="titleMedium"
           style={[styles.sectionTitle, rtlLabelStyle]}

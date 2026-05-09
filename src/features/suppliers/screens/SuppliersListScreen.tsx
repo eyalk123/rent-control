@@ -66,12 +66,12 @@ export function SuppliersListScreen() {
 
   const handleSupplierPress = (id: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(`/settings/suppliers/${id}` as any);
+    router.push(`/transactions/suppliers/${id}` as any);
   };
 
   const handleAddPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/settings/suppliers/add' as any);
+    router.push('/transactions/suppliers/add' as any);
   };
 
   const onRefresh = async () => {
