@@ -62,6 +62,18 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
             <Text variant="titleSmall" style={styles.address} numberOfLines={1}>
               {property.address}
             </Text>
+            {(property.floor != null || (property.apartment != null && property.apartment !== '')) && (
+              <Text
+                variant="bodySmall"
+                style={[styles.detail, { color: colors.textSecondary, fontWeight: '700' }]}
+                numberOfLines={1}
+              >
+                {[
+                  property.floor != null ? `${t('property.floor')} ${property.floor}` : null,
+                  property.apartment ? `${t('property.apartment')} ${property.apartment}` : null,
+                ].filter(Boolean).join(' · ')}
+              </Text>
+            )}
             <Text
               variant="bodySmall"
               style={[styles.detail, { color: colors.textSecondary }]}

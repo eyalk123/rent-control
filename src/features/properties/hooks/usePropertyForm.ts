@@ -50,6 +50,8 @@ function propertyToFormValues(prop: Property): PropertyFormValues {
     houseCommittee: prop.house_committee != null ? String(prop.house_committee) : '',
     basicContractUrl: prop.basic_contract_url ?? null,
     landRegistryUrl: prop.land_registry_url ?? null,
+    floor: prop.floor != null ? String(prop.floor) : '',
+    apartment: prop.apartment ?? '',
   };
 }
 
@@ -83,6 +85,8 @@ export function usePropertyForm({
       houseCommittee: '',
       basicContractUrl: null,
       landRegistryUrl: null,
+      floor: '',
+      apartment: '',
     },
     mode: 'onBlur',
   });
@@ -132,6 +136,8 @@ export function usePropertyForm({
       inventory_notes: values.inventoryNotes?.trim() || null,
       basic_contract_url: values.basicContractUrl ?? null,
       land_registry_url: values.landRegistryUrl ?? null,
+      floor: toOptionalNumber(values.floor),
+      apartment: values.apartment || null,
     };
 
     try {

@@ -29,6 +29,8 @@ export interface Property {
   inventory_notes?: string | null;
   basic_contract_url?: string | null;
   land_registry_url?: string | null;
+  floor?: number | null;
+  apartment?: string | null;
   renters: Renter[] | null;
   /** Enriched on list when renters are fetched; used for occupancy display */
   hasRenters?: boolean;
@@ -203,6 +205,8 @@ export interface PropertyCreate {
   inventory_notes?: string | null;
   basic_contract_url?: string | null;
   land_registry_url?: string | null;
+  floor?: number | null;
+  apartment?: string | null;
 }
 
 // Update payload (PATCH /properties/{id}) - all fields optional
@@ -223,6 +227,8 @@ export interface PropertyUpdate {
   inventory_notes?: string | null;
   basic_contract_url?: string | null;
   land_registry_url?: string | null;
+  floor?: number | null;
+  apartment?: string | null;
 }
 
 // Create payload (POST /renters)

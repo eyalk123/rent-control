@@ -82,8 +82,40 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
       : null,
   ].filter(Boolean) as { label: string; url: string; icon: 'file-text' | 'bank' }[];
 
+  const hasFloorOrApartment =
+    property.floor != null ||
+    (property.apartment != null && property.apartment !== '');
+
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      {hasFloorOrApartment && (
+        <View style={styles.statsRow}>
+          {property.floor != null && (
+            <StatBox
+              icon="layers"
+              value={String(property.floor)}
+              label={t('property.floor')}
+              backgroundColor={colors.inputBackground}
+              iconColor={colors.primary}
+              textColor={colors.textPrimary}
+              secondaryColor={colors.textSecondary}
+              valueVariant="titleMedium"
+            />
+          )}
+          {property.apartment != null && property.apartment !== '' && (
+            <StatBox
+              icon="hash"
+              value={property.apartment}
+              label={t('property.apartment')}
+              backgroundColor={colors.inputBackground}
+              iconColor={colors.primary}
+              textColor={colors.textPrimary}
+              secondaryColor={colors.textSecondary}
+              valueVariant="titleMedium"
+            />
+          )}
+        </View>
+      )}
       <View style={styles.statsRow}>
         <StatBox
           icon={TYPE_ICONS[property.type]}
