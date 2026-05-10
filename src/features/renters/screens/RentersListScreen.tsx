@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePropertyContext, useRenterContext } from '@/src/context';
+import { usePropertyContext, useRenterContext, useRtlLabelStyle } from '@/src/context';
 import { getLeaseEndDate } from '@/src/shared/types';
 import {
   AppFab,
@@ -31,6 +31,7 @@ export function RentersListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { appAlert } = useAlert();
+  const rtlLabelStyle = useRtlLabelStyle();
   const { renters, loading, error, refreshRenters } = useRenterContext();
   const { properties } = usePropertyContext();
   const [refreshing, setRefreshing] = useState(false);
@@ -273,7 +274,7 @@ export function RentersListScreen() {
             <IconButton icon="close" onPress={handleCancelSelect} />
           </View>
         ) : (
-          <Text variant="headlineLarge" style={styles.heroTitle}>
+          <Text variant="headlineLarge" style={[styles.screenTitle, rtlLabelStyle]}>
             {t('screens.renters')}
           </Text>
         )}
@@ -367,6 +368,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     fontSize: 28,
     flex: 1,
+  },
+  screenTitle: {
+    fontWeight: '700',
+    fontSize: 28,
+    marginBottom: spacing.sm,
   },
   list: {
     paddingBottom: 80,

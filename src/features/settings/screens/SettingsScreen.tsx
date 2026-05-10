@@ -23,6 +23,9 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   return (
     <ScreenContainer>
       <ScrollView style={styles.container}>
+        <Text variant="headlineLarge" style={[styles.pageTitle, rtlLabelStyle]}>
+          {t('tabs.settings')}
+        </Text>
         <DevProfiler id="AccountPreviewCard">
           <AccountPreviewCard />
         </DevProfiler>
@@ -107,6 +110,13 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  pageTitle: {
+    fontWeight: '700',
+    fontSize: 28,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
   },
   themeTitle: {
     marginTop: spacing.xl,

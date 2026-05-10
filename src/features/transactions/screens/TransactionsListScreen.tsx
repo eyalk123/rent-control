@@ -50,7 +50,7 @@ export function TransactionsListScreen() {
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { language } = useLanguageContext();
+  const { language, isRtl } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
 
   const {
@@ -114,7 +114,7 @@ export function TransactionsListScreen() {
           actionLabel={t('common.tryAgain')}
           onAction={refresh}
         />
-        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
+        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} isRtl={isRtl} />
       </ScreenContainer>
     );
   }
@@ -128,7 +128,7 @@ export function TransactionsListScreen() {
           })}
           icon="wallet"
         />
-        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
+        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} isRtl={isRtl} />
         <AppFab
           icon="plus"
           onPress={handleAddPress}
@@ -230,7 +230,7 @@ export function TransactionsListScreen() {
       />
 
       {!selectMode.isSelectMode && (
-        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
+        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} isRtl={isRtl} />
       )}
 
       <TransactionFilterSheets

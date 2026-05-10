@@ -1,4 +1,4 @@
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/src/shared/components/ui';
 import { darkColors, ICON_LG, lightColors, spacing } from '@/src/core/theme';
 
@@ -6,9 +6,10 @@ interface SuppliersHeaderButtonProps {
   colors: typeof lightColors | typeof darkColors;
   onPress: () => void;
   label: string;
+  isRtl?: boolean;
 }
 
-export function SuppliersHeaderButton({ colors, onPress, label }: SuppliersHeaderButtonProps) {
+export function SuppliersHeaderButton({ colors, onPress, label, isRtl }: SuppliersHeaderButtonProps) {
   const shadow = Platform.select({
     ios: {
       shadowColor: colors.primary,
@@ -21,7 +22,7 @@ export function SuppliersHeaderButton({ colors, onPress, label }: SuppliersHeade
   });
 
   return (
-    <View pointerEvents="box-none" style={styles.wrapper}>
+    <View pointerEvents="box-none" style={[styles.wrapper, isRtl ? styles.wrapperRtl : styles.wrapperLtr]}>
       <View
         style={[styles.btn, shadow, { backgroundColor: colors.primary }]}
         renderToHardwareTextureAndroid
@@ -36,6 +37,7 @@ export function SuppliersHeaderButton({ colors, onPress, label }: SuppliersHeade
           ]}
         >
           <Icon name="store" size={ICON_LG} color={colors.accent} />
+          <Text style={[styles.label, { color: colors.accent }]}>{label}</Text>
         </Pressable>
       </View>
     </View>
@@ -45,14 +47,25 @@ export function SuppliersHeaderButton({ colors, onPress, label }: SuppliersHeade
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    top: spacing.xxl,
+    top: spacing.xxl + 16,
+  },
+  wrapperLtr: {
     right: spacing.lg,
   },
+  wrapperRtl: {
+    left: spacing.lg,
+  },
   btn: {
-    width: 52,
-    height: 52,
+    width: 62,
+    height: 68,
     borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 3,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

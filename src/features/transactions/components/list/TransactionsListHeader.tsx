@@ -1,8 +1,10 @@
 import type { RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import { DevProfiler } from '@/src/shared/components/dev/DevProfiler';
 import { spacing } from '@/src/core/theme';
+import { useRtlLabelStyle } from '@/src/context';
 import type { MonthBucket } from '@/src/features/transactions/utils/aggregate';
 import { TransactionsHero } from './TransactionsHero';
 import { MonthsBarChart } from './MonthsBarChart';
@@ -31,9 +33,14 @@ export function TransactionsListHeader({
   summaryLoading,
 }: TransactionsListHeaderProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
+  const rtlLabelStyle = useRtlLabelStyle();
 
   return (
     <View>
+      <Text variant="headlineLarge" style={[styles.screenTitle, rtlLabelStyle]}>
+        {t('screens.transactions')}
+      </Text>
       <DevProfiler id="TransactionsHero">
         <TransactionsHero bucket={heroBucket} loading={summaryLoading} />
       </DevProfiler>
@@ -53,6 +60,13 @@ export function TransactionsListHeader({
 }
 
 const styles = StyleSheet.create({
+  screenTitle: {
+    fontWeight: '700',
+    fontSize: 28,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+  },
   filterCard: {
     marginTop: spacing.md,
     marginBottom: spacing.xs,
