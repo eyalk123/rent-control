@@ -1,9 +1,34 @@
 {
   "tabs": {
+    "home": "בית",
     "properties": "נכסים",
     "renters": "דיירים",
     "settings": "הגדרות",
     "transactions": "תנועות"
+  },
+  "home": {
+    "portfolio": "תיק נכסים",
+    "quickActions": "פעולות מהירות",
+    "expiringLeases": "חוזים שפגים",
+    "overdueRents": "שכירות באיחור",
+    "reports": "דוחות",
+    "recentTransactions": "תנועות אחרונות",
+    "seeAll": "הצג הכל",
+    "viewAll": "הצג הכל",
+    "daysOverdue": "{{count}}י באיחור",
+    "expiresIn": "{{count}}י נותרו",
+    "properties": "נכסים",
+    "renters": "דיירים",
+    "thisMonthPL": "החודש",
+    "addRevenue": "הכנסה",
+    "addExpense": "הוצאה",
+    "addRenter": "דייר",
+    "addProperty": "נכס",
+    "annualSummary": "סיכום שנתי",
+    "expenseReport": "דוח הוצאות",
+    "tenantReport": "דוח דיירים",
+    "taxReport": "דוח מס",
+    "comingSoon": "בקרוב"
   },
   "settings": {
     "title": "הגדרות",

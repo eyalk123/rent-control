@@ -62,7 +62,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      initialRouteName="renters"
+      initialRouteName="home"
       tabBar={(props) => <TabBarLtr {...props} />}
       screenListeners={({ navigation, route }) => ({
         tabPress: (e) => {
@@ -105,6 +105,15 @@ export default function TabLayout() {
         },
       }}
     >
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: t('tabs.home'),
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="layers" color={color} focused={focused} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="renters"
         options={{

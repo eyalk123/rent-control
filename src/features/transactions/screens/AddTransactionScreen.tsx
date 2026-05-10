@@ -46,12 +46,17 @@ export function AddTransactionScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, type } = useLocalSearchParams<{ id?: string; type?: string }>();
   const isEdit = Boolean(id);
 
   const { refresh: refreshTransactions } = usePaginatedTransactionContext();
 
-  const [mode, setMode] = useState<TransactionMode>(isEdit ? 'expense' : 'choose');
+  const initialMode: TransactionMode = isEdit
+    ? 'expense'
+    : type === 'revenue' ? 'revenue'
+    : type === 'expense' ? 'expense'
+    : 'choose';
+  const [mode, setMode] = useState<TransactionMode>(initialMode);
   const [submitting, setSubmitting] = useState(false);
   const [revenueDirty, setRevenueDirty] = useState(false);
   const allowRemoveRef = React.useRef(false);

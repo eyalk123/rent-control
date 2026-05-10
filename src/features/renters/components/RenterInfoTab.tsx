@@ -34,7 +34,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
 
   const paymentTypeLabel = (paymentType: string) => {
     switch (paymentType) {
-      case 'wire_transfer': return t('renter.paymentTypeWireTransfer');
+      case 'bank_transfer': return t('renter.paymentTypeWireTransfer');
       case 'cash': return t('renter.paymentTypeCash');
       case 'bit': return t('renter.paymentTypeBit');
       case 'check': return t('transactions.paymentMethodCheck');

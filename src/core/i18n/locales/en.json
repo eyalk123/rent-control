@@ -1,9 +1,34 @@
 {
   "tabs": {
+    "home": "Home",
     "properties": "Properties",
     "renters": "Renters",
     "settings": "Settings",
     "transactions": "Transactions"
+  },
+  "home": {
+    "portfolio": "Portfolio",
+    "quickActions": "Quick Actions",
+    "expiringLeases": "Expiring Leases",
+    "overdueRents": "Overdue Rents",
+    "reports": "Reports",
+    "recentTransactions": "Recent Transactions",
+    "seeAll": "See all",
+    "viewAll": "View all",
+    "daysOverdue": "{{count}}d overdue",
+    "expiresIn": "{{count}}d left",
+    "properties": "Properties",
+    "renters": "Renters",
+    "thisMonthPL": "This Month",
+    "addRevenue": "Revenue",
+    "addExpense": "Expense",
+    "addRenter": "Renter",
+    "addProperty": "Property",
+    "annualSummary": "Annual Summary",
+    "expenseReport": "Expense Report",
+    "tenantReport": "Tenant Report",
+    "taxReport": "Tax Report",
+    "comingSoon": "Coming soon"
   },
   "settings": {
     "title": "Settings",
