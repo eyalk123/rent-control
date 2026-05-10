@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { useWatch, type Control, type FieldValues } from "react-hook-form";
 import type { TFunction } from "i18next";
 import { spacing } from "@/src/core/theme";
+import { getPaymentMethodOptions } from "@/src/shared/constants/paymentMethods";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
 import {
   FormNumericField,
@@ -61,12 +62,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           control={control}
           name={"paymentType" as any}
           label={t("renter.paymentType")}
-          options={[
-            { value: "cash", label: t("transactions.paymentMethodCash") },
-            { value: "wire_transfer", label: t("transactions.paymentMethodBankTransfer") },
-            { value: "bit", label: t("transactions.paymentMethodBit") },
-            { value: "check", label: t("transactions.paymentMethodCheck") },
-          ]}
+          options={getPaymentMethodOptions(t)}
         />
       </View>
 

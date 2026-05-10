@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { RadioButton } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { PaymentMethod } from '@/src/shared/types';
+import { getPaymentMethodOptions } from '@/src/shared/constants/paymentMethods';
 
 type PaymentMethodRadiosProps = {
   value: PaymentMethod | '';
@@ -11,6 +12,7 @@ type PaymentMethodRadiosProps = {
 
 export function PaymentMethodRadios({ value, onChange }: PaymentMethodRadiosProps) {
   const { t } = useTranslation();
+  const options = getPaymentMethodOptions(t);
 
   return (
     <RadioButton.Group
@@ -18,26 +20,14 @@ export function PaymentMethodRadios({ value, onChange }: PaymentMethodRadiosProp
       value={value || 'cash'}
     >
       <View style={styles.radioRow}>
-        <RadioButton.Item
-          label={t('transactions.paymentMethodBit', { defaultValue: 'Bit' })}
-          value="bit"
-          position="leading"
-        />
-        <RadioButton.Item
-          label={t('transactions.paymentMethodCash', { defaultValue: 'Cash' })}
-          value="cash"
-          position="leading"
-        />
-        <RadioButton.Item
-          label={t('transactions.paymentMethodBankTransfer', { defaultValue: 'Bank transfer' })}
-          value="bank_transfer"
-          position="leading"
-        />
-        <RadioButton.Item
-          label={t('transactions.paymentMethodCheck', { defaultValue: 'Check' })}
-          value="check"
-          position="leading"
-        />
+        {options.map((opt) => (
+          <RadioButton.Item
+            key={opt.value}
+            label={opt.label}
+            value={opt.value}
+            position="leading"
+          />
+        ))}
       </View>
     </RadioButton.Group>
   );

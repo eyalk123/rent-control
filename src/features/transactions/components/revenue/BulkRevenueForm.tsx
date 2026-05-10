@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Divider } from 'react-native-paper';
 import { useForm } from 'react-hook-form';
@@ -10,6 +10,7 @@ import { spacing } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { usePropertyContext, useRenterContext } from '@/src/context';
 import { type PaymentMethod, type Property, type Renter } from '@/src/shared/types';
+import { PAYMENT_METHOD_VALUES } from '@/src/shared/constants/paymentMethods';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
 import type { TimePeriodType } from '@/src/features/transactions/screens/types';
@@ -86,6 +87,20 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   );
 
   const selection = useRenterSelection({ allRenters, onDirtyChange });
+
+  const firstCheckedRenterId = allRenters.find((r) => selection.checkedIds.has(r.id))?.id ?? null;
+
+  useEffect(() => {
+    if (firstCheckedRenterId === null) return;
+    const renter = allRenters.find((r) => r.id === firstCheckedRenterId);
+    const pt = renter?.payment_type;
+    const normalized = pt === 'wire_transfer' ? 'bank_transfer' : pt;
+    if (normalized && (PAYMENT_METHOD_VALUES as string[]).includes(normalized)) {
+      setPaymentMethod(normalized as PaymentMethod);
+    } else {
+      setPaymentMethod('cash');
+    }
+  }, [firstCheckedRenterId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChangePeriodType = (type: TimePeriodType) => {
     setPeriodType(type);
