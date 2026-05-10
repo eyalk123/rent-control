@@ -10,7 +10,7 @@ import { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './Fi
 import { TypeFilterChips, type TransactionTypeFilter } from './TypeFilterChips';
 
 interface TransactionsListHeaderProps {
-  filterChipsRef: RefObject<FilterChipsBarHandle>;
+  filterChipsRef: RefObject<FilterChipsBarHandle | null>;
   filterChips: FilterChip[];
   typeFilter: TransactionTypeFilter;
   onTypeFilterChange: (value: TransactionTypeFilter) => void;

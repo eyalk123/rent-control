@@ -1,9 +1,9 @@
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/src/shared/components/ui';
-import { ICON_LG, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, ICON_LG, lightColors, spacing } from '@/src/core/theme';
 
 interface SuppliersHeaderButtonProps {
-  colors: typeof lightColors;
+  colors: typeof lightColors | typeof darkColors;
   onPress: () => void;
   label: string;
 }

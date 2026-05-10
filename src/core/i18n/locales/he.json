@@ -51,7 +51,7 @@
   },
   "property": {
     "basicInfo": "מידע בסיסי",
-    "leaseInfo": "פרטי שכירות",
+    "leaseInfo": "פרטים נוספים",
     "address": "כתובת",
     "city": "עיר",
     "propertyOwner": "בעל הנכס",
@@ -128,7 +128,7 @@
     "leaseYearTypeContract": "חוזה",
     "dateOfStart": "תאריך התחלה",
     "dateOfEnd": "תאריך סיום",
-    "dateOfPayment": "תאריך תשלום",
+    "dateOfPayment": "יום התשלום בחודש",
     "leaseStart": "תחילת שכירות",
     "leaseEnd": "תאריך סיום: {{date}}",
     "numberOfPayments": "מספר תשלומים",
@@ -370,7 +370,7 @@
   "documents": {
     "title": "מסמכים",
     "basicContract": "חוזה בסיסי",
-    "fullContract": "חוזה מלא",
+    "fullContract": "חוזה חתום",
     "upload": "העלאת קובץ",
     "uploadFromGallery": "העלאה מהגלריה",
     "uploading": "מעלה...",

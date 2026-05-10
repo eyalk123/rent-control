@@ -51,7 +51,7 @@
   },
   "property": {
     "basicInfo": "Basic Information",
-    "leaseInfo": "Lease Details",
+    "leaseInfo": "Extra Details",
     "address": "Address",
     "city": "City",
     "propertyOwner": "Property owner",
