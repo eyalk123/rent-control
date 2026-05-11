@@ -59,7 +59,7 @@ export function QuickActionsSection() {
   ];
 
   return (
-    <View style={styles.grid}>
+    <View style={styles.row}>
       {actions.map((action) => (
         <TouchableOpacity
           key={action.key}
@@ -73,6 +73,9 @@ export function QuickActionsSection() {
           <Text style={[styles.label, { color: colors.textPrimary }]}>
             {t(action.labelKey)}
           </Text>
+          <View style={[styles.plusBadge, { backgroundColor: colors.primary }]}>
+            <Text style={styles.plusText}>+</Text>
+          </View>
         </TouchableOpacity>
       ))}
     </View>
@@ -80,30 +83,50 @@ export function QuickActionsSection() {
 }
 
 const styles = StyleSheet.create({
-  grid: {
+  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   button: {
-    width: '48%',
+    flex: 1,
     borderRadius: 12,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    flexDirection: 'row',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 11,
+    width: 48,
+    height: 48,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '700',
-    flex: 1,
+    textAlign: 'center',
+  },
+  plusBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  plusText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 14,
   },
 });

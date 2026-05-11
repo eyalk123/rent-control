@@ -96,7 +96,7 @@ export function OverdueRentsCard() {
       await Promise.all([refreshSummary(), refreshTransactions()]);
     } catch {
       setButtonState(renter.renter_id, 'idle');
-      appAlert({ title: t('error.title'), message: t('error.saveTransactionFailed') });
+      appAlert(t('error.title'), t('error.saveTransactionFailed'));
     }
   }, [refreshSummary, refreshTransactions, appAlert, t]);
 

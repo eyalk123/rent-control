@@ -14,6 +14,7 @@ import type {
   Transaction,
   PropertyRenterSummary,
 } from '@/src/shared/types';
+import { getLeaseEndDate } from '@/src/shared/types';
 
 // Set to true to use in-memory mock data when no backend is available
 export const USE_MOCK_API = false;
@@ -102,7 +103,7 @@ const seedRenters: Renter[] = [
     phone: '512-555-0101',
     email: 'sarah.johnson@email.com',
     lease_years: [{ amount: 26400, type: 'contract' }],
-    lease_start: '2024-01-15',
+    lease_start: '2025-06-15',
     number_of_payments: 12,
     payment_type: 'monthly',
     payment_day_of_month: 1,
@@ -119,7 +120,7 @@ const seedRenters: Renter[] = [
     phone: '512-555-0102',
     email: 'michael.chen@email.com',
     lease_years: [{ amount: 22800, type: 'contract' }],
-    lease_start: '2024-03-01',
+    lease_start: '2025-07-22',
     number_of_payments: 12,
     payment_type: 'monthly',
     payment_day_of_month: 15,
@@ -510,6 +511,59 @@ export const mockTransactionsApi = {
         last_name: r.last_name,
         monthly_rent: r.lease_years?.[0]?.amount ?? 0,
       }));
+  },
+};
+
+export const mockHomeApi = {
+  getOverdueRenters: async (params?: { property_owner?: string }) => {
+    const today = new Date();
+    return mockRenters
+      .filter((r) => r.property_id != null)
+      .filter((r) => !params?.property_owner || mockProperties.find((p) => p.id === r.property_id)?.property_owner === params.property_owner)
+      .map((r) => {
+        const prop = mockProperties.find((p) => p.id === r.property_id);
+        const monthly = r.lease_years?.[0]?.amount ? Math.round(r.lease_years[0].amount / 12) : 0;
+        const payDay = r.payment_day_of_month ?? 1;
+        const daysOverdue = today.getDate() > payDay ? today.getDate() - payDay : 0;
+        return {
+          renter_id: r.id,
+          first_name: r.first_name,
+          last_name: r.last_name,
+          property_id: r.property_id,
+          property_address: prop?.address ?? null,
+          property_city: prop?.city ?? null,
+          property_owner: prop?.property_owner ?? null,
+          monthly_amount: monthly,
+          payment_day_of_month: payDay,
+          days_overdue: daysOverdue,
+        };
+      })
+      .filter((r) => r.days_overdue > 0);
+  },
+
+  getExpiringRenters: async (params?: { days_until?: number }) => {
+    const horizon = params?.days_until ?? 90;
+    const today = new Date();
+    const results = [];
+    for (const r of mockRenters) {
+      const endDate = getLeaseEndDate(r);
+      if (!endDate) continue;
+      const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / 86400000);
+      if (daysLeft < 0 || daysLeft > horizon) continue;
+      const prop = mockProperties.find((p) => p.id === r.property_id);
+      results.push({
+        renter_id: r.id,
+        first_name: r.first_name,
+        last_name: r.last_name,
+        property_id: r.property_id,
+        property_address: prop?.address ?? null,
+        property_city: prop?.city ?? null,
+        property_owner: prop?.property_owner ?? null,
+        lease_end_date: endDate.toISOString().slice(0, 10),
+        days_until_expiry: daysLeft,
+      });
+    }
+    return results;
   },
 };
 

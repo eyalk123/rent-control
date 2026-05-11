@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   rowH: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
   nameH: {
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   rowV: {
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     gap: 2,
   },
   nameV: {

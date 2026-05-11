@@ -22,13 +22,13 @@ interface StatCardProps {
   bg: string;
 }
 
-function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColor, accentBar, bg }: StatCardProps) {
+function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColor, bg }: StatCardProps) {
   return (
     <View style={[styles.card, { backgroundColor: bg }]}>
       <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
         <Icon name={icon} size={ICON_SM} color={iconColor} />
       </View>
-      <Text style={[styles.value, { color: valueColor }]}>{value}</Text>
+      <Text style={[styles.value, { color: valueColor, writingDirection: 'ltr' }]}>{value}</Text>
       <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
     </View>
   );
@@ -94,7 +94,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
     alignItems: 'center',
-    overflow: 'hidden',
   },
   iconWrap: {
     width: 32,

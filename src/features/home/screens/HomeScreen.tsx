@@ -5,17 +5,63 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { PortfolioSection } from '@/src/features/home/components/PortfolioSection';
 import { QuickActionsSection } from '@/src/features/home/components/QuickActionsSection';
-import { ExpiringLeasesCard } from '@/src/features/home/components/ExpiringLeasesCard';
-import { OverdueRentsCard } from '@/src/features/home/components/OverdueRentsCard';
+import { NeedsAttentionSection } from '@/src/features/home/components/NeedsAttentionSection';
 import { ReportsSection } from '@/src/features/home/components/ReportsSection';
 import { RecentTransactionsSection } from '@/src/features/home/components/RecentTransactionsSection';
 import {
   MOCK_PORTFOLIO,
-  MOCK_EXPIRING,
   MOCK_RECENT_TRANSACTIONS,
 } from '@/src/features/home/mock/homeMockData';
+
+function getGreetingWord() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Morning';
+  if (hour < 18) return 'Afternoon';
+  return 'Evening';
+}
+
+function formatHeaderDate() {
+  const now = new Date();
+  const day = now.toLocaleDateString('en-US', { weekday: 'long' });
+  const month = now.toLocaleDateString('en-US', { month: 'long' });
+  const date = now.getDate();
+  return `${day} · ${month} ${date}`;
+}
+
+function GreetingHeader() {
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const { user } = useAppAuth();
+  const firstName = user?.displayName?.split(' ')[0] ?? user?.email?.split('@')[0] ?? '';
+
+  return (
+    <View style={greetingStyles.container}>
+      <Text style={[greetingStyles.greeting, { color: colors.textSecondary }]}>
+        {`Good ${getGreetingWord()}${firstName ? `, ${firstName}` : ''}`}
+      </Text>
+      <Text style={[greetingStyles.date, { color: colors.textPrimary }]}>
+        {formatHeaderDate()}
+      </Text>
+    </View>
+  );
+}
+
+const greetingStyles = StyleSheet.create({
+  container: {
+    gap: 4,
+  },
+  greeting: {
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  date: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+});
 
 function SectionLabel({ label }: { label: string }) {
   const theme = useTheme();
@@ -38,15 +84,13 @@ export function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <PortfolioSection data={MOCK_PORTFOLIO} />
-
-        <SectionLabel label={t('home.quickActions')} />
+        <GreetingHeader />
         <QuickActionsSection />
 
-        <View style={[styles.alertsRow, { marginTop: spacing.sm }]}>
-          <ExpiringLeasesCard items={MOCK_EXPIRING} />
-          <OverdueRentsCard />
-        </View>
+        <SectionLabel label="NEEDS ATTENTION" />
+        <NeedsAttentionSection />
+
+        <PortfolioSection data={MOCK_PORTFOLIO} />
 
         <SectionLabel label={t('home.reports')} />
         <ReportsSection />
@@ -74,7 +118,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
-    gap: spacing.sm,
+    gap: spacing.lg,
   },
   recentHeader: {
     flexDirection: 'row',
@@ -93,9 +137,5 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginTop: spacing.sm,
     marginBottom: 2,
-  },
-  alertsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
   },
 });
