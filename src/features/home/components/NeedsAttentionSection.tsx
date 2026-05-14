@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Dimensions, Acti
 import { Text, useTheme } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { darkColors, ICON_MD, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { formatMoney } from '@/src/shared/utils/money';
@@ -169,6 +170,7 @@ function AttentionItemRow({
 }
 
 export function NeedsAttentionSection() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
@@ -258,15 +260,33 @@ export function NeedsAttentionSection() {
   }
 
   if (allItems.length === 0) {
+    const nearest = expiring.length > 0
+      ? expiring.reduce((a, b) => a.days_until_expiry < b.days_until_expiry ? a : b)
+      : null;
+    const showMeta = nearest !== null && nearest.days_until_expiry <= 60;
+    const pillBg = theme.dark ? 'rgba(31,122,96,0.18)' : '#E6F0EA';
+
     return (
-      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
-        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>All caught up!</Text>
+      <View style={[styles.catchUpPill, { backgroundColor: pillBg }]}>
+        <View style={styles.catchUpDot} />
+        <Text style={styles.catchUpTitle}>{t('home.allCaughtUp')}</Text>
+        {showMeta && (
+          <Text style={styles.catchUpMeta}>
+            {t('home.nextDueMeta', {
+              date: formatLeaseDate(nearest!.lease_end_date),
+              days: nearest!.days_until_expiry,
+            })}
+          </Text>
+        )}
       </View>
     );
   }
 
   return (
     <>
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+        NEEDS ATTENTION
+      </Text>
       <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
         {previewItems.map((item, idx) => (
           <AttentionItemRow
@@ -414,10 +434,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  emptyText: {
+  catchUpPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  catchUpDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#1F7A60',
+    flexShrink: 0,
+  },
+  catchUpTitle: {
     fontSize: 13,
-    textAlign: 'center',
-    paddingVertical: spacing.md,
+    fontWeight: '600',
+    color: '#155845',
+  },
+  catchUpMeta: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(31,122,96,0.80)',
+    marginStart: 'auto' as any,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 2,
   },
   overlay: {
     flex: 1,

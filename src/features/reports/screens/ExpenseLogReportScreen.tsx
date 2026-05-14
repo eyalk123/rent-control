@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { spacing } from '@/src/core/theme';
@@ -19,7 +19,8 @@ export function ExpenseLogReportScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [year, setYear] = useState(CURRENT_YEAR);
+  const { year: yearParam } = useLocalSearchParams<{ year?: string }>();
+  const [year, setYear] = useState(yearParam ? parseInt(yearParam, 10) : CURRENT_YEAR);
   const [format, setFormat] = useState<'pdf' | 'csv'>('pdf');
   const [loading, setLoading] = useState(false);
 

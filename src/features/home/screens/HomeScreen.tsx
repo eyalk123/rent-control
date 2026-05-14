@@ -9,7 +9,7 @@ import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { PortfolioSection } from '@/src/features/home/components/PortfolioSection';
 import { QuickActionsSection } from '@/src/features/home/components/QuickActionsSection';
 import { NeedsAttentionSection } from '@/src/features/home/components/NeedsAttentionSection';
-import { ReportsSection } from '@/src/features/home/components/ReportsSection';
+import { HomeReportsCard } from '@/src/features/home/components/HomeReportsCard';
 import { RecentTransactionsSection } from '@/src/features/home/components/RecentTransactionsSection';
 import {
   MOCK_PORTFOLIO,
@@ -87,13 +87,12 @@ export function HomeScreen() {
         <GreetingHeader />
         <QuickActionsSection />
 
-        <SectionLabel label="NEEDS ATTENTION" />
         <NeedsAttentionSection />
 
         <PortfolioSection data={MOCK_PORTFOLIO} />
 
         <SectionLabel label={t('home.reports')} />
-        <ReportsSection />
+        <HomeReportsCard />
 
         <View style={styles.recentHeader}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('home.recentTransactions')}</Text>

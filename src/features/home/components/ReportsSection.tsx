@@ -1,50 +1,49 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
-import { Chip, useTheme } from 'react-native-paper';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { useRouter, type Href } from 'expo-router';
-import { spacing } from '@/src/core/theme';
+import { useRouter } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
 
-const REPORTS = [
-  { key: 'reports.incomeExpense', route: '/reports/income-expense' },
-  { key: 'reports.expenseLog', route: '/reports/expense-log' },
-] as const;
+import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { useLanguageContext } from '@/src/context';
 
 export function ReportsSection() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
+  const { isRtl } = useLanguageContext();
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
+    <TouchableOpacity
+      style={[styles.row, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}
+      onPress={() => router.push('/reports' as any)}
+      activeOpacity={0.7}
     >
-      {REPORTS.map(({ key, route }) => (
-        <Chip
-          key={key}
-          mode="outlined"
-          style={[styles.chip, { borderColor: theme.colors.outline }]}
-          textStyle={styles.chipText}
-          onPress={() => router.push(route as Href)}
-        >
-          {t(key)}
-        </Chip>
-      ))}
-    </ScrollView>
+      <Text variant="bodyMedium" style={[styles.label, { color: colors.textPrimary }]}>
+        {t('reports.viewAll')}
+      </Text>
+      <ChevronRight
+        size={16}
+        color={colors.textSecondary}
+        style={{ transform: [{ scaleX: isRtl ? -1 : 1 }] }}
+      />
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: spacing.sm,
-    paddingRight: spacing.lg,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  chip: {
-    borderRadius: 20,
-  },
-  chipText: {
-    fontSize: 13,
+  label: {
+    fontWeight: '500',
   },
 });

@@ -35,15 +35,26 @@ function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColo
   );
 }
 
+interface ThisMonthCardProps {
+  value: string;
+  label: string;
+}
+
+function ThisMonthCard({ value, label }: ThisMonthCardProps) {
+  return (
+    <View style={[styles.card, styles.thisMonthCard]}>
+      <Text style={[styles.thisMonthValue, { writingDirection: 'ltr' }]}>{value}</Text>
+      <Text style={styles.thisMonthLabel}>{label}</Text>
+    </View>
+  );
+}
+
 export function PortfolioSection({ data }: PortfolioSectionProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
   const isProfit = data.monthlyPL >= 0;
-  const plColor = isProfit ? colors.revFg : colors.expFg;
-  const plBg = isProfit ? colors.revBg : colors.expBg;
-  const plIcon: IconName = isProfit ? 'trending-up' : 'trending-down';
   const plSign = isProfit ? '+' : '−';
 
   const navyIconBg = theme.dark ? 'rgba(62,111,168,0.20)' : 'rgba(30,58,95,0.10)';
@@ -72,16 +83,9 @@ export function PortfolioSection({ data }: PortfolioSectionProps) {
         bg={theme.colors.surface}
         borderColor={theme.colors.outline}
       />
-      <StatCard
-        icon={plIcon}
-        iconColor={plColor}
-        iconBg={plBg}
+      <ThisMonthCard
         value={`${plSign}${formatMoney(Math.abs(data.monthlyPL))}`}
         label={t('home.thisMonthPL')}
-        valueColor={plColor}
-        labelColor={plColor}
-        bg={plBg}
-        borderColor={theme.colors.outline}
       />
     </View>
   );
@@ -120,5 +124,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 2,
     textAlign: 'center',
+  },
+  thisMonthCard: {
+    backgroundColor: '#1F7A60',
+    borderWidth: 0,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  thisMonthValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.22,
+    color: '#FAF7F0',
+    lineHeight: 26,
+  },
+  thisMonthLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: 'rgba(250,247,240,0.82)',
+    marginTop: 4,
   },
 });

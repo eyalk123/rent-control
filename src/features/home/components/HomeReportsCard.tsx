@@ -1,0 +1,216 @@
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, useTheme } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
+import { ChevronRight, FileBarChart2, Plus, Receipt, Share2 } from 'lucide-react-native';
+
+import { darkColors, lightColors } from '@/src/core/theme';
+import { useLanguageContext } from '@/src/context';
+import {
+  downloadExpenseLogReport,
+  downloadIncomeExpenseReport,
+  getReportHistory,
+  type ReportExport,
+} from '@/src/features/reports/api/reports';
+
+export function HomeReportsCard() {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const router = useRouter();
+  const { isRtl } = useLanguageContext();
+
+  const [lastReport, setLastReport] = useState<ReportExport | null>(null);
+  const [sharing, setSharing] = useState(false);
+
+  useEffect(() => {
+    getReportHistory()
+      .then((data) => setLastReport(data[0] ?? null))
+      .catch(() => {});
+  }, []);
+
+  async function handleShare() {
+    if (!lastReport) return;
+    setSharing(true);
+    try {
+      if (lastReport.report_type === 'income_expense') {
+        await downloadIncomeExpenseReport(lastReport.year, lastReport.format);
+      } else {
+        await downloadExpenseLogReport(lastReport.year, lastReport.format);
+      }
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  const isExpenseLog = lastReport?.report_type === 'expense_log';
+  const iconBg = lastReport
+    ? (isExpenseLog ? colors.expBg : colors.revBg)
+    : (theme.dark ? 'rgba(62,111,168,0.12)' : 'rgba(22,41,74,0.07)');
+  const iconColor = lastReport
+    ? (isExpenseLog ? colors.expFg : colors.revFg)
+    : colors.primary;
+  const IconComp = isExpenseLog ? Receipt : FileBarChart2;
+
+  const reportName = lastReport
+    ? `${lastReport.report_type === 'income_expense' ? t('reports.incomeExpense') : t('reports.expenseLog')} ${lastReport.year}`
+    : t('home.reportEmptyTitle');
+
+  const dateMeta = lastReport
+    ? new Date(lastReport.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+    : null;
+
+  return (
+    <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
+      {/* Top row */}
+      <View style={styles.topRow}>
+        <View style={[styles.iconTile, { backgroundColor: iconBg }]}>
+          <IconComp size={18} color={iconColor} />
+        </View>
+
+        <View style={styles.body}>
+          <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
+            {reportName}
+          </Text>
+          {lastReport && dateMeta ? (
+            <View style={styles.metaRow}>
+              <View style={[styles.pdfTag, { backgroundColor: theme.dark ? 'rgba(241,236,223,0.10)' : 'rgba(26,45,74,0.08)' }]}>
+                <Text style={[styles.pdfTagText, { color: colors.primary }]}>
+                  {lastReport.format.toUpperCase()}
+                </Text>
+              </View>
+              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                {dateMeta}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.metaText, { color: colors.placeholder }]}>
+              {t('home.reportEmptyMeta')}
+            </Text>
+          )}
+        </View>
+
+        {lastReport && (
+          <TouchableOpacity
+            style={[styles.shareBtn, { borderColor: 'rgba(203,213,225,1)' }]}
+            onPress={handleShare}
+            activeOpacity={0.7}
+          >
+            {sharing ? (
+              <ActivityIndicator size={12} color={colors.primary} />
+            ) : (
+              <>
+                <Share2 size={13} color={colors.primary} />
+                <Text style={[styles.shareLabel, { color: colors.primary }]}>
+                  {t('home.reportShare')}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Divider */}
+      <View style={[styles.divider, { backgroundColor: theme.dark ? 'rgba(241,236,223,0.06)' : 'rgba(22,41,74,0.06)' }]} />
+
+      {/* Generate new row */}
+      <TouchableOpacity
+        style={styles.generateRow}
+        onPress={() => router.push('/reports' as any)}
+        activeOpacity={0.7}
+      >
+        <Plus size={14} color={colors.primary} strokeWidth={2} />
+        <Text style={[styles.generateLabel, { color: colors.primary }]}>
+          {t('home.reportGenerateNew')}
+        </Text>
+        <ChevronRight
+          size={13}
+          color={colors.textSecondary}
+          style={[styles.chevron, { transform: [{ scaleX: isRtl ? -1 : 1 }] }]}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  iconTile: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  body: {
+    flex: 1,
+    gap: 4,
+    minWidth: 0,
+  },
+  title: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  pdfTag: {
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+    borderRadius: 6,
+  },
+  pdfTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  metaText: {
+    fontSize: 11,
+  },
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexShrink: 0,
+  },
+  shareLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  divider: {
+    height: 1,
+    marginVertical: 10,
+    marginHorizontal: -14,
+  },
+  generateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingVertical: 6,
+  },
+  generateLabel: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    flex: 1,
+  },
+  chevron: {
+    flexShrink: 0,
+  },
+});

@@ -28,7 +28,14 @@
     "expenseReport": "דוח הוצאות",
     "tenantReport": "דוח דיירים",
     "taxReport": "דוח מס",
-    "comingSoon": "בקרוב"
+    "comingSoon": "בקרוב",
+    "allCaughtUp": "הכל בסדר",
+    "nextDueMeta": "מועד הבא {{date}} · {{days}} ימים",
+    "nextDueMetaShort": "מועד הבא {{date}}",
+    "reportShare": "שתף",
+    "reportGenerateNew": "צור דוח חדש",
+    "reportEmptyTitle": "אין דוחות עדיין",
+    "reportEmptyMeta": "הדוחות שתפיק יופיעו כאן."
   },
   "settings": {
     "title": "הגדרות",
@@ -423,7 +430,16 @@
     "format": "פורמט ייצוא",
     "export": "ייצא",
     "generating": "מייצר...",
-    "exportError": "הפקת הדוח נכשלה"
+    "exportError": "הפקת הדוח נכשלה",
+    "generate": "הפקת דוח",
+    "history": "דוחות קודמים",
+    "viewAll": "צפה בדוחות",
+    "noHistory": "אין דוחות עדיין",
+    "noHistoryDescription": "הדוחות שתייצא יופיעו כאן",
+    "deleteError": "מחיקת הדוח נכשלה",
+    "reexport": "ייצא שוב",
+    "shareAgain": "שתף שוב",
+    "delete": "מחק"
   },
   "auth": {
     "signInSubtitle": "התחבר לחשבונך",

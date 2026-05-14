@@ -2,6 +2,23 @@ import * as FileSystem from 'expo-file-system/legacy';
 
 import apiClient from '@/src/core/api/client';
 
+export interface ReportExport {
+  id: number;
+  report_type: 'income_expense' | 'expense_log';
+  year: number;
+  format: 'pdf' | 'csv';
+  created_at: string;
+}
+
+export async function getReportHistory(): Promise<ReportExport[]> {
+  const response = await apiClient.get<ReportExport[]>('/reports/history');
+  return response.data;
+}
+
+export async function deleteReportExport(id: number): Promise<void> {
+  await apiClient.delete(`/reports/history/${id}`);
+}
+
 type ReportFormat = 'pdf' | 'csv';
 
 async function downloadAndShare(

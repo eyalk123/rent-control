@@ -28,7 +28,14 @@
     "expenseReport": "Expense Report",
     "tenantReport": "Tenant Report",
     "taxReport": "Tax Report",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "allCaughtUp": "All caught up",
+    "nextDueMeta": "next due {{date}} · {{days}} days",
+    "nextDueMetaShort": "next due {{date}}",
+    "reportShare": "Share",
+    "reportGenerateNew": "Generate a new report",
+    "reportEmptyTitle": "No reports yet",
+    "reportEmptyMeta": "Your generated PDFs will live here."
   },
   "settings": {
     "title": "Settings",
@@ -423,7 +430,16 @@
     "format": "Export Format",
     "export": "Export",
     "generating": "Generating...",
-    "exportError": "Failed to generate report"
+    "exportError": "Failed to generate report",
+    "generate": "Generate",
+    "history": "Past Reports",
+    "viewAll": "View reports",
+    "noHistory": "No reports yet",
+    "noHistoryDescription": "Your exported reports will appear here",
+    "deleteError": "Failed to delete report",
+    "reexport": "Re-export",
+    "shareAgain": "Share again",
+    "delete": "Delete"
   },
   "auth": {
     "signInSubtitle": "Sign in to your account",
