@@ -251,7 +251,7 @@ export function NeedsAttentionSection() {
 
   if (loading) {
     return (
-      <View style={[styles.card, styles.centered, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.card, styles.centered, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
         <ActivityIndicator size="small" color={colors.textSecondary} />
       </View>
     );
@@ -259,7 +259,7 @@ export function NeedsAttentionSection() {
 
   if (allItems.length === 0) {
     return (
-      <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
         <Text style={[styles.emptyText, { color: colors.textSecondary }]}>All caught up!</Text>
       </View>
     );
@@ -267,7 +267,7 @@ export function NeedsAttentionSection() {
 
   return (
     <>
-      <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
         {previewItems.map((item, idx) => (
           <AttentionItemRow
             key={item._type === 'expiring' ? `e-${item.renter_id}` : `o-${item.renter_id}`}
@@ -334,11 +334,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
   },
   centered: {
     alignItems: 'center',

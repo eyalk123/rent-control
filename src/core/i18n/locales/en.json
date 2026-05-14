@@ -414,6 +414,17 @@
     "deleteButton": "Delete",
     "partialError": "{{success}} deleted, {{failed}} failed."
   },
+  "reports": {
+    "incomeExpense": "Income & Expense",
+    "expenseLog": "Expense Log",
+    "incomeExpenseDescription": "Monthly income vs. expenses per property, grouped by owner. Exported as PDF or CSV.",
+    "expenseLogDescription": "Full list of all expenses with a summary by category and property. Exported as PDF or CSV.",
+    "selectYear": "Select Year",
+    "format": "Export Format",
+    "export": "Export",
+    "generating": "Generating...",
+    "exportError": "Failed to generate report"
+  },
   "auth": {
     "signInSubtitle": "Sign in to your account",
     "createAccountSubtitle": "Create a new account",

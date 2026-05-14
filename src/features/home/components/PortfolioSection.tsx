@@ -20,11 +20,12 @@ interface StatCardProps {
   valueColor: string;
   labelColor: string;
   bg: string;
+  borderColor: string;
 }
 
-function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColor, bg }: StatCardProps) {
+function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColor, bg, borderColor }: StatCardProps) {
   return (
-    <View style={[styles.card, { backgroundColor: bg }]}>
+    <View style={[styles.card, { backgroundColor: bg, borderColor }]}>
       <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
         <Icon name={icon} size={ICON_SM} color={iconColor} />
       </View>
@@ -58,6 +59,7 @@ export function PortfolioSection({ data }: PortfolioSectionProps) {
         valueColor={colors.textPrimary}
         labelColor={colors.textSecondary}
         bg={theme.colors.surface}
+        borderColor={theme.colors.outline}
       />
       <StatCard
         icon="users"
@@ -68,6 +70,7 @@ export function PortfolioSection({ data }: PortfolioSectionProps) {
         valueColor={colors.textPrimary}
         labelColor={colors.textSecondary}
         bg={theme.colors.surface}
+        borderColor={theme.colors.outline}
       />
       <StatCard
         icon={plIcon}
@@ -78,6 +81,7 @@ export function PortfolioSection({ data }: PortfolioSectionProps) {
         valueColor={plColor}
         labelColor={plColor}
         bg={plBg}
+        borderColor={theme.colors.outline}
       />
     </View>
   );
@@ -91,6 +95,7 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     borderRadius: 12,
+    borderWidth: 1,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
     alignItems: 'center',

@@ -63,7 +63,7 @@ export function QuickActionsSection() {
       {actions.map((action) => (
         <TouchableOpacity
           key={action.key}
-          style={[styles.button, { backgroundColor: theme.colors.surface }]}
+          style={[styles.button, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.outline }]}
           onPress={action.onPress}
           activeOpacity={0.7}
         >
@@ -95,11 +95,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     gap: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
   },
   iconWrap: {
     width: 48,

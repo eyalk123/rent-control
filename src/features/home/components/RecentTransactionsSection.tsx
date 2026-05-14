@@ -15,7 +15,7 @@ export function RecentTransactionsSection({ items }: RecentTransactionsSectionPr
   const colors = theme.dark ? darkColors : lightColors;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+    <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
       {items.slice(0, 1).map((item, idx) => {
         const isRevenue = item.type === 'revenue';
         const iconName = isRevenue ? 'arrow-up-right' : 'arrow-down-right';

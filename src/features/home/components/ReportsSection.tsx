@@ -2,18 +2,18 @@ import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Chip, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { useRouter, type Href } from 'expo-router';
 import { spacing } from '@/src/core/theme';
 
-const REPORT_KEYS = [
-  'home.annualSummary',
-  'home.expenseReport',
-  'home.tenantReport',
-  'home.taxReport',
+const REPORTS = [
+  { key: 'reports.incomeExpense', route: '/reports/income-expense' },
+  { key: 'reports.expenseLog', route: '/reports/expense-log' },
 ] as const;
 
 export function ReportsSection() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
 
   return (
     <ScrollView
@@ -21,13 +21,13 @@ export function ReportsSection() {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
     >
-      {REPORT_KEYS.map((key) => (
+      {REPORTS.map(({ key, route }) => (
         <Chip
           key={key}
           mode="outlined"
           style={[styles.chip, { borderColor: theme.colors.outline }]}
           textStyle={styles.chipText}
-          onPress={() => console.log(`[reports] ${key} coming soon`)}
+          onPress={() => router.push(route as Href)}
         >
           {t(key)}
         </Chip>

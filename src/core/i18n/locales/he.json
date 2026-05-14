@@ -414,6 +414,17 @@
     "deleteButton": "מחק",
     "partialError": "{{success}} נמחקו, {{failed}} נכשלו."
   },
+  "reports": {
+    "incomeExpense": "הכנסות והוצאות",
+    "expenseLog": "יומן הוצאות",
+    "incomeExpenseDescription": "הכנסות מול הוצאות חודשיות לפי נכס, מקובצות לפי בעלים. ייצוא כ-PDF או CSV.",
+    "expenseLogDescription": "רשימה מלאה של כל ההוצאות עם סיכום לפי קטגוריה ונכס. ייצוא כ-PDF או CSV.",
+    "selectYear": "בחר שנה",
+    "format": "פורמט ייצוא",
+    "export": "ייצא",
+    "generating": "מייצר...",
+    "exportError": "הפקת הדוח נכשלה"
+  },
   "auth": {
     "signInSubtitle": "התחבר לחשבונך",
     "createAccountSubtitle": "צור חשבון חדש",
