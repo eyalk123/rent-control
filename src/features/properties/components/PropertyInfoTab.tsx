@@ -68,7 +68,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
   const hasPropertyDetails =
     (Array.isArray(property.parking_numbers) && property.parking_numbers.length > 0) ||
     (property.electricity_meter_number != null && property.electricity_meter_number !== '') ||
-    property.water_meter_tax != null ||
+    (property.water_meter_number != null && property.water_meter_number !== '') ||
     property.property_tax != null ||
     property.house_committee != null ||
     (property.inventory_notes != null && property.inventory_notes !== '');
@@ -196,24 +196,6 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
                 secondaryColor={colors.textSecondary}
               />
             )}
-            {property.electricity_meter_number != null && property.electricity_meter_number !== '' && (
-              <IconDetailRow
-                icon="zap"
-                label={t('property.electricityMeterNumber')}
-                value={property.electricity_meter_number}
-                iconColor={colors.sectionAccent}
-                secondaryColor={colors.textSecondary}
-              />
-            )}
-            {property.water_meter_tax != null && (
-              <IconDetailRow
-                icon="droplet"
-                label={t('property.waterMeterTax')}
-                value={formatMoney(property.water_meter_tax)}
-                iconColor={colors.sectionAccent}
-                secondaryColor={colors.textSecondary}
-              />
-            )}
             {property.property_tax != null && (
               <IconDetailRow
                 icon="file-text"
@@ -228,6 +210,42 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
                 icon="users"
                 label={t('property.houseCommittee')}
                 value={formatMoney(property.house_committee)}
+                iconColor={colors.sectionAccent}
+                secondaryColor={colors.textSecondary}
+              />
+            )}
+            {property.electricity_meter_number != null && property.electricity_meter_number !== '' && (
+              <IconDetailRow
+                icon="zap"
+                label={t('property.electricityMeterNumber')}
+                value={property.electricity_meter_number}
+                iconColor={colors.sectionAccent}
+                secondaryColor={colors.textSecondary}
+              />
+            )}
+            {property.electricity_account_number != null && property.electricity_account_number !== '' && (
+              <IconDetailRow
+                icon="zap"
+                label={t('property.electricityAccountNumber')}
+                value={property.electricity_account_number}
+                iconColor={colors.sectionAccent}
+                secondaryColor={colors.textSecondary}
+              />
+            )}
+            {property.water_meter_number != null && property.water_meter_number !== '' && (
+              <IconDetailRow
+                icon="droplet"
+                label={t('property.waterMeterNumber')}
+                value={property.water_meter_number}
+                iconColor={colors.sectionAccent}
+                secondaryColor={colors.textSecondary}
+              />
+            )}
+            {property.water_account_number != null && property.water_account_number !== '' && (
+              <IconDetailRow
+                icon="droplet"
+                label={t('property.waterAccountNumber')}
+                value={property.water_account_number}
                 iconColor={colors.sectionAccent}
                 secondaryColor={colors.textSecondary}
               />

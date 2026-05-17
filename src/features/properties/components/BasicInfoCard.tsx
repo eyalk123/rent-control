@@ -129,6 +129,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
         label={t("property.type")}
         options={propertyTypeOptions}
         placeholder={rtlPlaceholder(t("property.typePlaceholder"))}
+        required
       />
       {numericFields
         .filter((f) => f.name !== "zipCode")

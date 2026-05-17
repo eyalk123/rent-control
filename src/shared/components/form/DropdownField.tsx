@@ -30,6 +30,7 @@ interface DropdownFieldProps<T extends string | number | null> {
   error?: { message?: string };
   disabled?: boolean;
   inputStyle?: StyleProp<ViewStyle>;
+  required?: boolean;
 }
 
 export function DropdownField<T extends string | number | null>({
@@ -41,6 +42,7 @@ export function DropdownField<T extends string | number | null>({
   error,
   disabled = false,
   inputStyle,
+  required,
 }: DropdownFieldProps<T>) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -61,7 +63,7 @@ export function DropdownField<T extends string | number | null>({
           ]}
           numberOfLines={1}
         >
-          {label}
+          {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
         </Text>
       ) : null}
 
@@ -154,7 +156,7 @@ export function DropdownField<T extends string | number | null>({
           variant="bodySmall"
           style={[styles.errorText, { color: colors.error }]}
         >
-          {error.message}
+          {t(error.message, { defaultValue: error.message })}
         </Text>
       ) : null}
     </View>
@@ -167,6 +169,10 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 4,
+    fontWeight: "500",
+  },
+  asterisk: {
+    color: "#B85450",
     fontWeight: "500",
   },
   errorText: {

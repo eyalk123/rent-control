@@ -18,6 +18,7 @@ type FormDropdownOptionsProps<TFieldValues extends FieldValues> = {
   label: string;
   options: Option[];
   placeholder?: string;
+  required?: boolean;
 };
 
 export function FormDropdownOptions<TFieldValues extends FieldValues>({
@@ -26,6 +27,7 @@ export function FormDropdownOptions<TFieldValues extends FieldValues>({
   label,
   options,
   placeholder,
+  required,
 }: FormDropdownOptionsProps<TFieldValues>) {
   return (
     <Controller
@@ -39,6 +41,7 @@ export function FormDropdownOptions<TFieldValues extends FieldValues>({
           label={label}
           placeholder={placeholder}
           error={error}
+          required={required}
         />
       )}
     />

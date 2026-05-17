@@ -22,7 +22,9 @@ export interface Property {
   number_of_rooms?: number | null;
   parking_numbers?: string[] | null;
   electricity_meter_number?: string | null;
-  water_meter_tax?: number | null;
+  electricity_account_number?: string | null;
+  water_meter_number?: string | null;
+  water_account_number?: string | null;
   property_tax?: number | null;
   house_committee?: number | null;
   property_owner?: string | null;
@@ -198,7 +200,9 @@ export interface PropertyCreate {
   number_of_rooms?: number | null;
   parking_numbers?: string[] | null;
   electricity_meter_number?: string | null;
-  water_meter_tax?: number | null;
+  electricity_account_number?: string | null;
+  water_meter_number?: string | null;
+  water_account_number?: string | null;
   property_tax?: number | null;
   house_committee?: number | null;
   property_owner?: string | null;
@@ -220,7 +224,9 @@ export interface PropertyUpdate {
   number_of_rooms?: number | null;
   parking_numbers?: string[] | null;
   electricity_meter_number?: string | null;
-  water_meter_tax?: number | null;
+  electricity_account_number?: string | null;
+  water_meter_number?: string | null;
+  water_account_number?: string | null;
   property_tax?: number | null;
   house_committee?: number | null;
   property_owner?: string | null;

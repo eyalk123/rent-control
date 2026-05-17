@@ -26,7 +26,6 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
   const numericFields: { name: string; labelKey: string; decimal?: boolean }[] =
     [
       { name: "numberOfRooms", labelKey: "property.numberOfRooms" },
-      { name: "waterMeterTax", labelKey: "property.waterMeterTax", decimal: true },
       { name: "propertyTax", labelKey: "property.propertyTax", decimal: true },
       { name: "houseCommittee", labelKey: "property.houseCommittee", decimal: true },
     ];
@@ -58,11 +57,6 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
         label={t("property.parkingNumbers")}
         placeholder={rtlPlaceholder(t("property.parkingNumbersPlaceholder"))}
       />
-      <FormInput
-        control={control}
-        name={"electricityMeterNumber" as any}
-        label={t("property.electricityMeterNumber")}
-      />
       {numericFields
         .filter((f) => f.name !== "numberOfRooms")
         .map((f) => (
@@ -74,6 +68,26 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
             keyboardType={f.decimal ? "decimal-pad" : "numeric"}
           />
         ))}
+      <FormInput
+        control={control}
+        name={"electricityMeterNumber" as any}
+        label={t("property.electricityMeterNumber")}
+      />
+      <FormInput
+        control={control}
+        name={"electricityAccountNumber" as any}
+        label={t("property.electricityAccountNumber")}
+      />
+      <FormInput
+        control={control}
+        name={"waterMeterNumber" as any}
+        label={t("property.waterMeterNumber")}
+      />
+      <FormInput
+        control={control}
+        name={"waterAccountNumber" as any}
+        label={t("property.waterAccountNumber")}
+      />
       <FormSingleFileField
         control={control}
         name={"basicContractUrl" as any}
