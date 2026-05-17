@@ -4,10 +4,17 @@ import { Text, useTheme } from 'react-native-paper';
 import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { formatMoney } from '@/src/shared/utils/money';
-import type { MockTransaction } from '@/src/features/home/mock/homeMockData';
+import type { Transaction } from '@/src/shared/types';
 
 interface RecentTransactionsSectionProps {
-  items: MockTransaction[];
+  items: Transaction[];
+}
+
+function formatPaymentDate(iso: string): string {
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric',
+  });
 }
 
 export function RecentTransactionsSection({ items }: RecentTransactionsSectionProps) {
@@ -16,8 +23,11 @@ export function RecentTransactionsSection({ items }: RecentTransactionsSectionPr
 
   return (
     <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
-      {items.slice(0, 1).map((item, idx) => {
+      {items.slice(0, 3).map((item, idx) => {
         const isRevenue = item.type === 'revenue';
+        const description = isRevenue
+          ? (item.renter_name ?? 'Rent')
+          : (item.category_name ?? 'Expense');
         const iconName = isRevenue ? 'arrow-up-right' : 'arrow-down-right';
         const iconColor = isRevenue ? colors.revFg : colors.expFg;
         const iconBg = isRevenue ? colors.revBg : colors.expBg;
@@ -33,17 +43,19 @@ export function RecentTransactionsSection({ items }: RecentTransactionsSectionPr
               </View>
               <View style={styles.info}>
                 <Text style={[styles.description, { color: colors.textPrimary }]} numberOfLines={1}>
-                  {item.description}
+                  {description}
                 </Text>
                 <Text style={[styles.property, { color: colors.textSecondary }]} numberOfLines={1}>
-                  {item.propertyAddress}
+                  {item.property_name}
                 </Text>
               </View>
               <View style={styles.right}>
                 <Text style={[styles.amount, { color: amountColor }]}>
                   {`${sign}${formatMoney(item.amount)}`}
                 </Text>
-                <Text style={[styles.date, { color: colors.textSecondary }]}>{item.date}</Text>
+                <Text style={[styles.date, { color: colors.textSecondary }]}>
+                  {formatPaymentDate(item.date_of_payment)}
+                </Text>
               </View>
             </View>
           </View>
@@ -63,7 +75,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xs + 2,
+    paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
   iconWrap: {

@@ -6,10 +6,9 @@ interface SuppliersHeaderButtonProps {
   colors: typeof lightColors | typeof darkColors;
   onPress: () => void;
   label: string;
-  isRtl?: boolean;
 }
 
-export function SuppliersHeaderButton({ colors, onPress, label, isRtl }: SuppliersHeaderButtonProps) {
+export function SuppliersHeaderButton({ colors, onPress, label }: SuppliersHeaderButtonProps) {
   const shadow = Platform.select({
     ios: {
       shadowColor: colors.primary,
@@ -22,7 +21,7 @@ export function SuppliersHeaderButton({ colors, onPress, label, isRtl }: Supplie
   });
 
   return (
-    <View pointerEvents="box-none" style={[styles.wrapper, isRtl ? styles.wrapperRtl : styles.wrapperLtr]}>
+    <View pointerEvents="box-none" style={styles.wrapper}>
       <View
         style={[styles.btn, shadow, { backgroundColor: colors.primary }]}
         renderToHardwareTextureAndroid
@@ -48,12 +47,7 @@ const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
     top: spacing.xxl + 16,
-  },
-  wrapperLtr: {
     right: spacing.lg,
-  },
-  wrapperRtl: {
-    left: spacing.lg,
   },
   btn: {
     width: 62,

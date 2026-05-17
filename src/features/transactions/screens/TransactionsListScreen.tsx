@@ -114,7 +114,7 @@ export function TransactionsListScreen() {
           actionLabel={t('common.tryAgain')}
           onAction={refresh}
         />
-        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} isRtl={isRtl} />
+        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
       </ScreenContainer>
     );
   }
@@ -128,7 +128,7 @@ export function TransactionsListScreen() {
           })}
           icon="wallet"
         />
-        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} isRtl={isRtl} />
+        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
         <AppFab
           icon="plus"
           onPress={handleAddPress}
@@ -230,7 +230,7 @@ export function TransactionsListScreen() {
       />
 
       {!selectMode.isSelectMode && (
-        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} isRtl={isRtl} />
+        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
       )}
 
       <TransactionFilterSheets

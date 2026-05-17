@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
@@ -11,10 +11,9 @@ import { QuickActionsSection } from '@/src/features/home/components/QuickActions
 import { NeedsAttentionSection } from '@/src/features/home/components/NeedsAttentionSection';
 import { HomeReportsCard } from '@/src/features/home/components/HomeReportsCard';
 import { RecentTransactionsSection } from '@/src/features/home/components/RecentTransactionsSection';
-import {
-  MOCK_PORTFOLIO,
-  MOCK_RECENT_TRANSACTIONS,
-} from '@/src/features/home/mock/homeMockData';
+import { MOCK_PORTFOLIO } from '@/src/features/home/mock/homeMockData';
+import { getTransactions } from '@/src/features/transactions/api/transactions';
+import type { Transaction } from '@/src/shared/types';
 
 function getGreetingWord() {
   const hour = new Date().getHours();
@@ -77,6 +76,30 @@ export function HomeScreen() {
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
 
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
+  const isFirstLoad = useRef(true);
+
+  const fetchRecentTransactions = useCallback(async (silent = false) => {
+    if (!silent) setTransactionsLoading(true);
+    try {
+      const data = await getTransactions({ limit: 5 });
+      setRecentTransactions(data);
+    } catch {
+      // section stays empty on error
+    } finally {
+      if (!silent) setTransactionsLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const silent = !isFirstLoad.current;
+      isFirstLoad.current = false;
+      fetchRecentTransactions(silent);
+    }, [fetchRecentTransactions]),
+  );
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <ScrollView
@@ -94,13 +117,17 @@ export function HomeScreen() {
         <SectionLabel label={t('home.reports')} />
         <HomeReportsCard />
 
-        <View style={styles.recentHeader}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('home.recentTransactions')}</Text>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/transactions')}>
-            <Text style={[styles.viewAll, { color: colors.primary }]}>{t('home.viewAll')}</Text>
-          </TouchableOpacity>
-        </View>
-        <RecentTransactionsSection items={MOCK_RECENT_TRANSACTIONS} />
+        {!transactionsLoading && (
+          <>
+            <View style={styles.recentHeader}>
+              <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('home.recentTransactions')}</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/transactions')}>
+                <Text style={[styles.viewAll, { color: colors.primary }]}>{t('home.viewAll')}</Text>
+              </TouchableOpacity>
+            </View>
+            <RecentTransactionsSection items={recentTransactions} />
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

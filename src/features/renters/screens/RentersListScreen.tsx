@@ -225,7 +225,7 @@ export function RentersListScreen() {
 
   if (loading && renters.length === 0) {
     return (
-      <ScreenContainer>
+      <ScreenContainer edges={['top', 'left', 'right']}>
         <LoadingOverlay visible={true} />
       </ScreenContainer>
     );
@@ -233,7 +233,7 @@ export function RentersListScreen() {
 
   if (error && renters.length === 0) {
     return (
-      <ScreenContainer>
+      <ScreenContainer edges={['top', 'left', 'right']}>
         <EmptyState
           message={error}
           icon="alert-circle"
@@ -246,7 +246,7 @@ export function RentersListScreen() {
 
   if (renters.length === 0) {
     return (
-      <ScreenContainer>
+      <ScreenContainer edges={['top', 'left', 'right']}>
         <EmptyState message={t('empty.noRenters')} icon="user" />
         <AppFab
           icon="plus"
@@ -259,7 +259,7 @@ export function RentersListScreen() {
   }
 
   return (
-    <ScreenContainer>
+    <ScreenContainer edges={['top', 'left', 'right']}>
       <LoadingOverlay visible={loading || deleting} />
       <View style={styles.header}>
         {isSelectMode ? (

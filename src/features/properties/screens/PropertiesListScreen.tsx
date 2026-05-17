@@ -203,7 +203,7 @@ export function PropertiesListScreen() {
 
   if (loading && properties.length === 0) {
     return (
-      <ScreenContainer>
+      <ScreenContainer edges={['top', 'left', 'right']}>
         <LoadingOverlay visible={true} />
       </ScreenContainer>
     );
@@ -211,7 +211,7 @@ export function PropertiesListScreen() {
 
   if (error && properties.length === 0) {
     return (
-      <ScreenContainer>
+      <ScreenContainer edges={['top', 'left', 'right']}>
         <EmptyState
           message={error}
           icon="alert-circle"
@@ -224,7 +224,7 @@ export function PropertiesListScreen() {
 
   if (properties.length === 0) {
     return (
-      <ScreenContainer>
+      <ScreenContainer edges={['top', 'left', 'right']}>
         <EmptyState message={t('empty.noProperties')} icon="home" />
         <AppFab
           icon="plus"
@@ -237,7 +237,7 @@ export function PropertiesListScreen() {
   }
 
   return (
-    <ScreenContainer>
+    <ScreenContainer edges={['top', 'left', 'right']}>
       <LoadingOverlay visible={loading || deleting} />
       <View style={styles.header}>
         {isSelectMode ? (
