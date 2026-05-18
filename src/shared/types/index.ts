@@ -188,6 +188,7 @@ export interface Supplier {
   phone?: string | null;
   email?: string | null;
   notes?: string | null;
+  bank_account?: string | null;
   is_active: boolean;
 }
 
@@ -196,6 +197,7 @@ export interface SupplierCreate {
   phone?: string | null;
   email?: string | null;
   notes?: string | null;
+  bank_account?: string | null;
   category_ids: number[];
 }
 
@@ -204,6 +206,7 @@ export interface SupplierUpdate {
   phone?: string | null;
   email?: string | null;
   notes?: string | null;
+  bank_account?: string | null;
   category_ids?: number[];
   is_active?: boolean;
 }

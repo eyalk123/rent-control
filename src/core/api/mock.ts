@@ -197,6 +197,7 @@ const seedSuppliers: Supplier[] = [
     phone: '512-555-1001',
     email: 'joe@plumber.com',
     notes: null,
+    bank_account: null,
     is_active: true,
   },
   {
@@ -206,6 +207,7 @@ const seedSuppliers: Supplier[] = [
     phone: '512-555-2000',
     email: null,
     notes: null,
+    bank_account: null,
     is_active: true,
   },
   {
@@ -215,6 +217,7 @@ const seedSuppliers: Supplier[] = [
     phone: null,
     email: 'billing@water.com',
     notes: 'Monthly billing',
+    bank_account: null,
     is_active: true,
   },
 ];

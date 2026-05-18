@@ -14,6 +14,7 @@ import {
   supplierFormSchema,
   type SupplierFormValues,
 } from '@/src/features/suppliers/validation/supplierValidation';
+import { isValidBankAccount } from '@/src/shared/components/form/BankAccountInput';
 
 type UseSupplierFormParams = {
   id?: string;
@@ -41,6 +42,7 @@ export function useSupplierForm({
       email: '',
       notes: '',
       categoryIds: [],
+      bankAccount: { bank: '', branch: '', account: '' },
     },
     mode: 'onBlur',
   });
@@ -60,12 +62,22 @@ export function useSupplierForm({
     setIsFetching(true);
     getSupplierById(numericId)
       .then((supplier) => {
+        const parsedBankAccount = (() => {
+          if (!supplier.bank_account) return { bank: '', branch: '', account: '' };
+          const parts = supplier.bank_account.split('/');
+          return {
+            bank: parts[0] ?? '',
+            branch: parts[1] ?? '',
+            account: parts[2] ?? '',
+          };
+        })();
         reset({
           name: supplier.name ?? '',
           phone: supplier.phone ?? '',
           email: supplier.email ?? '',
           notes: supplier.notes ?? '',
           categoryIds: supplier.category_ids ?? [],
+          bankAccount: parsedBankAccount,
         });
       })
       .catch((err) => {
@@ -77,11 +89,16 @@ export function useSupplierForm({
   }, [id, isEdit, reset]);
 
   const submit = handleSubmit(async (values) => {
+    const serialisedBankAccount = isValidBankAccount(values.bankAccount)
+      ? `${values.bankAccount.bank}/${values.bankAccount.branch}/${values.bankAccount.account}`
+      : null;
+
     const baseCreate: SupplierCreate = {
       name: values.name.trim(),
       phone: values.phone?.trim() || null,
       email: values.email?.trim() || null,
       notes: values.notes?.trim() || null,
+      bank_account: serialisedBankAccount,
       category_ids: values.categoryIds,
     };
 
@@ -90,6 +107,7 @@ export function useSupplierForm({
       phone: values.phone?.trim() || null,
       email: values.email?.trim() || null,
       notes: values.notes?.trim() || null,
+      bank_account: serialisedBankAccount,
       category_ids: values.categoryIds,
     };
 

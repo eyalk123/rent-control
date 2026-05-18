@@ -1,13 +1,14 @@
 import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Control } from 'react-hook-form';
-import { Controller } from 'react-hook-form';
+import { Controller, useFormState } from 'react-hook-form';
 import { Text, useTheme } from 'react-native-paper';
 import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { FormTextField } from '@/src/shared/components/form/FormFields';
 import { CategoryTagPicker } from '@/src/features/transactions/components/expense/CategoryTagPicker';
+import BankAccountInput from '@/src/shared/components/form/BankAccountInput';
 import type { SupplierFormValues } from '@/src/features/suppliers/validation/supplierValidation';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 
@@ -25,6 +26,7 @@ export function SupplierForm({
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const { errors, isSubmitting } = useFormState({ control });
 
   return (
     <FormSectionCard
@@ -74,8 +76,20 @@ export function SupplierForm({
       />
       <Controller
         control={control}
+        name="bankAccount"
+        render={({ field: { value, onChange } }) => (
+          <BankAccountInput
+            value={value ?? { bank: '', branch: '', account: '' }}
+            onChange={onChange}
+            editable={!isSubmitting}
+            error={errors.bankAccount?.message as string | undefined}
+          />
+        )}
+      />
+      <Controller
+        control={control}
         name="categoryIds"
-        render={({ field: { value, onChange }, fieldState: { error } }) => (
+        render={({ field: { value, onChange } }) => (
           <CategoryTagPicker
             value={value}
             onChange={onChange}

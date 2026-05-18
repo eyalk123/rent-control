@@ -399,7 +399,12 @@
     "saveSupplier": "Save Supplier",
     "delete": "Delete Supplier",
     "deleteConfirmTitle": "Delete supplier?",
-    "deleteConfirmMessage": "This will deactivate the supplier. You can reactivate it later by editing."
+    "deleteConfirmMessage": "This will deactivate the supplier. You can reactivate it later by editing.",
+    "bankAccount": "Bank account",
+    "bankCode": "Bank",
+    "branchCode": "Branch",
+    "accountNumber": "Account",
+    "unknownBank": "Unknown bank"
   },
   "documents": {
     "title": "Documents",
