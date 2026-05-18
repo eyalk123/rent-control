@@ -62,7 +62,7 @@ export const FilterChipsBar = React.memo(function FilterChipsBar({ chips, stretc
           ]}
           numberOfLines={1}
         >
-          {active ? chip.selectedLabel! : chip.label}
+          {chip.label}
         </Text>
         {active ? (
           <Pressable

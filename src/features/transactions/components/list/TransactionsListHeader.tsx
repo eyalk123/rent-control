@@ -10,6 +10,7 @@ import { TransactionsHero } from './TransactionsHero';
 import { MonthsBarChart } from './MonthsBarChart';
 import { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
 import { TypeFilterChips, type TransactionTypeFilter } from './TypeFilterChips';
+import { ActiveFilterPills } from './ActiveFilterPills';
 
 interface TransactionsListHeaderProps {
   filterChipsRef: RefObject<FilterChipsBarHandle | null>;
@@ -51,6 +52,7 @@ export function TransactionsListHeader({
         <DevProfiler id="FilterChipsBar">
           <FilterChipsBar ref={filterChipsRef} chips={filterChips} />
         </DevProfiler>
+        <ActiveFilterPills chips={filterChips} />
         <DevProfiler id="TypeFilterChips">
           <TypeFilterChips value={typeFilter} onChange={onTypeFilterChange} />
         </DevProfiler>
