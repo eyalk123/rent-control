@@ -347,7 +347,7 @@
       "timePeriod": "תקופה",
       "oneMonth": "חודש",
       "lastQuarter": "רבעון",
-      "calendarYear": "שנה",
+      "calendarYear": "שנת חוזה",
       "selectAll": "בחר הכל",
       "selectedCount": "{{count}} נבחרו",
       "noContracts": "לא נמצאו חוזים.",
@@ -361,7 +361,10 @@
       "tenantsSection": "דיירים",
       "selectMonth": "חודש",
       "selectQuarter": "רבעון",
-      "selectYear": "שנה"
+      "selectYear": "שנה",
+      "perContract": "לפי חוזה",
+      "override": "עקוף",
+      "auto": "אוטו'"
     }
   },
   "expenseCategories": {

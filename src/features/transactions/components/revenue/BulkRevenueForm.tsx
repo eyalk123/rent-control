@@ -9,7 +9,7 @@ import { FormScrollView, FormSectionCard } from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { usePropertyContext, useRenterContext } from '@/src/context';
-import { type PaymentMethod, type Property, type Renter } from '@/src/shared/types';
+import { type PaymentMethod, type Property, type Renter, getRentForMonth } from '@/src/shared/types';
 import { PAYMENT_METHOD_VALUES } from '@/src/shared/constants/paymentMethods';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
@@ -18,7 +18,7 @@ import { useRenterSelection } from '@/src/features/transactions/hooks/useRenterS
 import { BulkRevenueFilters } from './BulkRevenueFilters';
 import { RenterSelectionSection } from './RenterSelectionSection';
 import { PaymentDetailsSection } from './PaymentDetailsSection';
-import { getDefaultPeriodValue, getMonthsForPeriod } from './periodHelpers';
+import { getContractYearMonths, getDefaultPeriodValue, getMonthsForPeriod } from './periodHelpers';
 
 type PropertyGroup = {
   property: Property;
@@ -129,12 +129,8 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
       return;
     }
 
-    const months =
-      periodType === 'custom'
-        ? [...customMonths].sort()
-        : getMonthsForPeriod(periodType, periodValue);
-
-    if (months.length === 0) {
+    // For 'year', months are computed per-renter from their lease_start; validate via custom months for other types.
+    if (periodType === 'custom' && customMonths.size === 0) {
       appAlert(
         t('validation.title'),
         t('transactions.bulkRevenue.noMonthsError', {
@@ -147,16 +143,18 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
     const checkedRenters = allRenters.filter((r) => selection.checkedIds.has(r.id));
 
     for (const r of checkedRenters) {
-      const amt = selection.amounts.get(r.id) ?? '';
-      if (!amt || Number.isNaN(Number(amt)) || Number(amt) <= 0) {
-        appAlert(
-          t('validation.title'),
-          t('transactions.bulkRevenue.invalidAmount', {
-            name: `${r.first_name} ${r.last_name}`,
-            defaultValue: 'Invalid amount for {{name}}.',
-          }),
-        );
-        return;
+      if (selection.overriddenIds.has(r.id)) {
+        const amt = selection.amounts.get(r.id) ?? '';
+        if (!amt || Number.isNaN(Number(amt)) || Number(amt) <= 0) {
+          appAlert(
+            t('validation.title'),
+            t('transactions.bulkRevenue.invalidAmount', {
+              name: `${r.first_name} ${r.last_name}`,
+              defaultValue: 'Invalid amount for {{name}}.',
+            }),
+          );
+          return;
+        }
       }
     }
 
@@ -165,8 +163,17 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
     const errors: string[] = [];
 
     for (const r of checkedRenters) {
-      const amount = Number(selection.amounts.get(r.id));
+      const months =
+        periodType === 'year'
+          ? getContractYearMonths(Number(periodValue), r.lease_start)
+          : periodType === 'custom'
+            ? [...customMonths].sort()
+            : getMonthsForPeriod(periodType, periodValue);
+
+      const storedAmount = Number(selection.amounts.get(r.id));
+      const isManualOverride = selection.overriddenIds.has(r.id);
       for (const month of months) {
+        const amount = isManualOverride ? storedAmount : getRentForMonth(r, month);
         try {
           await createRevenueTransaction({
             property_id: r.property_id!,
@@ -229,11 +236,13 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
             allRenters={allRenters}
             checkedIds={selection.checkedIds}
             amounts={selection.amounts}
+            overriddenIds={selection.overriddenIds}
             allChecked={selection.allChecked}
             someChecked={selection.someChecked}
             onToggleAll={selection.handleToggleAll}
             onToggleRenter={selection.handleToggleRenter}
             onAmountChange={selection.handleAmountChange}
+            onToggleOverride={selection.handleToggleOverride}
           />
 
           <Divider style={styles.sectionDivider} />

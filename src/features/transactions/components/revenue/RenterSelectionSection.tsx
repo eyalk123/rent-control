@@ -15,11 +15,13 @@ interface RenterSelectionSectionProps {
   allRenters: Renter[];
   checkedIds: Set<number>;
   amounts: Map<number, string>;
+  overriddenIds: Set<number>;
   allChecked: boolean;
   someChecked: boolean;
   onToggleAll: () => void;
   onToggleRenter: (renter: Renter) => void;
   onAmountChange: (renterId: number, value: string) => void;
+  onToggleOverride: (renterId: number, renter: Renter) => void;
 }
 
 export function RenterSelectionSection({
@@ -27,11 +29,13 @@ export function RenterSelectionSection({
   allRenters,
   checkedIds,
   amounts,
+  overriddenIds,
   allChecked,
   someChecked,
   onToggleAll,
   onToggleRenter,
   onAmountChange,
+  onToggleOverride,
 }: RenterSelectionSectionProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -98,8 +102,10 @@ export function RenterSelectionSection({
                   renter={renter}
                   checked={checkedIds.has(renter.id)}
                   amount={amounts.get(renter.id) ?? String(getRenterMonthlyRent(renter) || '')}
+                  overridden={overriddenIds.has(renter.id)}
                   onToggle={() => onToggleRenter(renter)}
                   onAmountChange={(v) => onAmountChange(renter.id, v)}
+                  onToggleOverride={() => onToggleOverride(renter.id, renter)}
                 />
               ))}
             </View>

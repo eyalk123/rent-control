@@ -347,7 +347,7 @@
       "timePeriod": "Period",
       "oneMonth": "1 Month",
       "lastQuarter": "Quarter",
-      "calendarYear": "Year",
+      "calendarYear": "Contract Yr",
       "selectAll": "Select all",
       "selectedCount": "{{count}} selected",
       "noContracts": "No contracts found.",

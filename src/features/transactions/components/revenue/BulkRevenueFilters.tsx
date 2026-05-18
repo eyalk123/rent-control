@@ -134,14 +134,8 @@ export function BulkRevenueFilters({
               style: { flex: 1, minWidth: 0 },
             },
             {
-              value: 'quarter',
-              label: t('transactions.bulkRevenue.lastQuarter', { defaultValue: 'Qtr' }),
-              labelStyle: { fontSize: 12 },
-              style: { flex: 1, minWidth: 0 },
-            },
-            {
               value: 'year',
-              label: t('transactions.bulkRevenue.calendarYear', { defaultValue: 'Year' }),
+              label: t('transactions.bulkRevenue.calendarYear', { defaultValue: 'Contract Yr' }),
               labelStyle: { fontSize: 12 },
               style: { flex: 1, minWidth: 0 },
             },
@@ -163,9 +157,7 @@ export function BulkRevenueFilters({
           >
             {periodType === '1month'
               ? t('transactions.bulkRevenue.selectMonth', { defaultValue: 'Month' })
-              : periodType === 'quarter'
-                ? t('transactions.bulkRevenue.selectQuarter', { defaultValue: 'Quarter' })
-                : t('transactions.bulkRevenue.selectYear', { defaultValue: 'Year' })}
+              : t('transactions.bulkRevenue.selectYear', { defaultValue: 'Year' })}
           </Text>
           <View style={{ direction: 'ltr' }}>
             <Dropdown

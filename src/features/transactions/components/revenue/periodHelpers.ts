@@ -80,9 +80,24 @@ export function generatePeriodOptions(
   }
 
   return [year, year - 1, year - 2, year - 3].map((y) => ({
-    label: String(y),
+    label: `${String(y).slice(2)}/${String(y + 1).slice(2)}`,
     value: String(y),
   }));
+}
+
+/**
+ * Returns 12 'YYYY-MM-01' strings for the contract year starting in `startYear`,
+ * anchored to the month of `leaseStart`. Falls back to January if leaseStart is missing.
+ */
+export function getContractYearMonths(startYear: number, leaseStart: string): string[] {
+  const parsed = leaseStart ? new Date(leaseStart) : null;
+  const startMonth = parsed && !isNaN(parsed.getTime()) ? parsed.getMonth() + 1 : 1;
+  return Array.from({ length: 12 }, (_, i) => {
+    let m = startMonth + i;
+    let y = startYear;
+    if (m > 12) { m -= 12; y += 1; }
+    return `${y}-${String(m).padStart(2, '0')}-01`;
+  });
 }
 
 export function formatDateDisplay(value: string, locale: string): string {

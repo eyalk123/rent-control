@@ -81,6 +81,33 @@ export function getRenterMonthlyRent(renter: Renter): number {
   return first.amount;
 }
 
+/**
+ * Returns the rent amount for the lease year that covers the given month.
+ * monthStr is "YYYY-MM". Falls back to the first year if out of range.
+ */
+export function getRentForMonth(renter: Renter, monthStr: string): number {
+  const years = renter.lease_years;
+  if (!years?.length) return 0;
+  if (!renter.lease_start) return years[0].amount;
+
+  const leaseStart = new Date(renter.lease_start);
+  if (isNaN(leaseStart.getTime())) return years[0].amount;
+
+  const [y, m] = monthStr.split('-').map(Number);
+  const monthDate = new Date(y, m - 1, 1);
+
+  // How many full months since lease start
+  const monthsDiff =
+    (monthDate.getFullYear() - leaseStart.getFullYear()) * 12 +
+    (monthDate.getMonth() - leaseStart.getMonth());
+
+  if (monthsDiff < 0) return years[0].amount;
+
+  const yearIndex = Math.floor(monthsDiff / 12);
+  const entry = years[Math.min(yearIndex, years.length - 1)];
+  return entry.amount;
+}
+
 /** Lease end date calculated from lease_start + number of contract (non-option) years. */
 export function getLeaseEndDate(renter: Renter): Date | null {
   if (!renter.lease_start || !renter.lease_years?.length) return null;

@@ -9,6 +9,7 @@ interface UseRenterSelectionParams {
 export function useRenterSelection({ allRenters, onDirtyChange }: UseRenterSelectionParams) {
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
   const [amounts, setAmounts] = useState<Map<number, string>>(new Map());
+  const [overriddenIds, setOverriddenIds] = useState<Set<number>>(new Set());
 
   const allChecked = allRenters.length > 0 && allRenters.every((r) => checkedIds.has(r.id));
   const someChecked = !allChecked && allRenters.some((r) => checkedIds.has(r.id));
@@ -56,13 +57,33 @@ export function useRenterSelection({ allRenters, onDirtyChange }: UseRenterSelec
     setAmounts((prev) => new Map(prev).set(renterId, value));
   };
 
+  const handleToggleOverride = (renterId: number, renter: Renter) => {
+    setOverriddenIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(renterId)) {
+        next.delete(renterId);
+      } else {
+        next.add(renterId);
+        setAmounts((am) => {
+          if (am.has(renterId)) return am;
+          const next2 = new Map(am);
+          next2.set(renterId, String(getRenterMonthlyRent(renter) || ''));
+          return next2;
+        });
+      }
+      return next;
+    });
+  };
+
   return {
     checkedIds,
     amounts,
+    overriddenIds,
     allChecked,
     someChecked,
     handleToggleAll,
     handleToggleRenter,
     handleAmountChange,
+    handleToggleOverride,
   };
 }
