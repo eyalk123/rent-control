@@ -258,7 +258,9 @@
     "selectItem": "Select item",
     "showMore": "Show more",
     "showLess": "Show less",
-    "step_n_of_m": "Step {{n}} of {{m}}"
+    "step_n_of_m": "Step {{n}} of {{m}}",
+    "remove": "Remove",
+    "undo": "Undo"
   },
   "validation": {
     "title": "Validation",
@@ -416,6 +418,14 @@
     "uploadFailed": "Upload failed. Please try again.",
     "landRegistry": "Land Registry Extract",
     "idImage": "Tenant ID Image"
+  },
+  "customFiles": {
+    "sectionTitle": "Custom Files",
+    "addFile": "Add File",
+    "labelPlaceholder": "File label",
+    "maxFilesReached": "Maximum 10 files reached",
+    "uploading": "Uploading files...",
+    "uploadFailed": "One or more files failed to upload."
   },
   "permission": {
     "title": "Permission required",

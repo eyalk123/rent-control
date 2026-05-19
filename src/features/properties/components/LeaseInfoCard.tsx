@@ -5,21 +5,29 @@ import { useRtlPlaceholder } from "@/src/core/context";
 import { spacing } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
 import { FormNumericField } from "@/src/shared/components/form/FormFields";
+import { CustomFilesSection } from "@/src/features/properties/components/CustomFilesSection";
 import type { TFunction } from "i18next";
 import React from "react";
 import type { Control, FieldValues } from "react-hook-form";
 import { View } from "react-native";
+import type { PropertyFile } from "@/src/shared/types";
 
 type LeaseInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   t: TFunction;
   ownerId: string;
+  existingFiles: PropertyFile[];
+  deletedFileIds: number[];
+  onDeleteExistingToggle: (id: number) => void;
 };
 
 function LeaseInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
   ownerId,
+  existingFiles,
+  deletedFileIds,
+  onDeleteExistingToggle,
 }: LeaseInfoCardProps<TFieldValues>) {
   const rtlPlaceholder = useRtlPlaceholder();
 
@@ -105,6 +113,13 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
         entityType="properties"
         ownerId={ownerId}
         accept="document"
+      />
+      <CustomFilesSection
+        control={control}
+        t={t}
+        existingFiles={existingFiles}
+        deletedFileIds={deletedFileIds}
+        onDeleteExistingToggle={onDeleteExistingToggle}
       />
     </FormSectionCard>
   );

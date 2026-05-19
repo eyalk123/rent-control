@@ -42,6 +42,17 @@ export const propertyFormSchema = z.object({
   landRegistryUrl: z.string().nullable().optional(),
   floor: optionalNumericString,
   apartment: z.string().transform((val) => val.trim()),
+  pendingFiles: z
+    .array(
+      z.object({
+        localUri: z.string(),
+        name: z.string(),
+        label: z.string(),
+        mimeType: z.string().optional(),
+      })
+    )
+    .max(10)
+    .optional(),
 });
 
 export type PropertyFormValues = z.infer<typeof propertyFormSchema>;

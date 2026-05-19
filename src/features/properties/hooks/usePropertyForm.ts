@@ -9,13 +9,19 @@ import {
   updateProperty,
   getPropertyById,
 } from '@/src/features/properties/api/properties';
+import {
+  getPropertyFiles,
+  bulkCreatePropertyFiles,
+  deletePropertyFile,
+} from '@/src/features/properties/api/propertyFilesApi';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import type { Property, PropertyCreate, PropertyType } from '@/src/shared/types';
+import type { Property, PropertyCreate, PropertyFile, PropertyType } from '@/src/shared/types';
 import {
   propertyFormSchema,
   type PropertyFormValues,
   PROPERTY_TYPES,
 } from '@/src/features/properties/validation/propertyValidation';
+import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 
 type UsePropertyFormParams = {
   id?: string;
@@ -68,6 +74,9 @@ export function usePropertyForm({
   const { appAlert } = useAlert();
   const [imageUri, setImageUri] = React.useState<string | null>(null);
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
+  const [existingFiles, setExistingFiles] = React.useState<PropertyFile[]>([]);
+  const [deletedFileIds, setDeletedFileIds] = React.useState<number[]>([]);
+  const { uploadFile } = useFirebaseUpload('properties', user?.uid ?? '');
 
   const formMethods = useForm<PropertyFormValues>({
     resolver: zodResolver(propertyFormSchema),
@@ -91,6 +100,7 @@ export function usePropertyForm({
       landRegistryUrl: null,
       floor: '',
       apartment: '',
+      pendingFiles: [],
     },
     mode: 'onBlur',
   });
@@ -108,10 +118,12 @@ export function usePropertyForm({
       return;
     }
     setIsFetching(true);
-    getPropertyById(numericId)
-      .then((prop) => {
+    Promise.all([getPropertyById(numericId), getPropertyFiles(numericId)])
+      .then(([prop, files]) => {
         reset(propertyToFormValues(prop));
         setImageUri(prop.image_url ?? null);
+        setExistingFiles(files);
+        setDeletedFileIds([]);
       })
       .finally(() => setIsFetching(false));
   }, [id, isEdit, reset]);
@@ -150,9 +162,24 @@ export function usePropertyForm({
       const savedProp = isEdit && id
         ? await updateProperty(Number(id), payload)
         : await createProperty(payload);
+
+      const pending = values.pendingFiles ?? [];
+      if (pending.length > 0) {
+        const uploaded = await Promise.all(
+          pending.map((f) => uploadFile(f.localUri, f.name, f.mimeType ?? 'application/octet-stream').then((url) => ({ url, label: f.label || f.name })))
+        );
+        await bulkCreatePropertyFiles(savedProp.id, uploaded);
+      }
+
+      await Promise.all(
+        deletedFileIds.map((fileId) => deletePropertyFile(savedProp.id, fileId))
+      );
+
       await refreshProperties();
-      reset(propertyToFormValues(savedProp));
+      reset({ ...propertyToFormValues(savedProp), pendingFiles: [] });
       setImageUri(savedProp.image_url ?? null);
+      setExistingFiles([]);
+      setDeletedFileIds([]);
       onSuccess();
     } catch (err) {
       appAlert(
@@ -170,5 +197,8 @@ export function usePropertyForm({
     imageUri,
     setImageUri,
     ownerId: user?.uid ?? '',
+    existingFiles,
+    deletedFileIds,
+    setDeletedFileIds,
   };
 }

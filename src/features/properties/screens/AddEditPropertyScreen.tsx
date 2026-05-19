@@ -34,6 +34,9 @@ export function AddEditPropertyScreen() {
     imageUri,
     setImageUri,
     ownerId,
+    existingFiles,
+    deletedFileIds,
+    setDeletedFileIds,
   } = usePropertyForm({
     id,
     t,
@@ -118,7 +121,20 @@ export function AddEditPropertyScreen() {
               ownerId={ownerId}
             />
           )}
-          {step === "lease" && <LeaseInfoCard control={control} t={t} ownerId={ownerId} />}
+          {step === "lease" && (
+            <LeaseInfoCard
+              control={control}
+              t={t}
+              ownerId={ownerId}
+              existingFiles={existingFiles}
+              deletedFileIds={deletedFileIds}
+              onDeleteExistingToggle={(id) =>
+                setDeletedFileIds((prev) =>
+                  prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+                )
+              }
+            />
+          )}
         </FormScrollView>
         <View style={styles.fixedButtonBar}>
           {step === "basic" && (

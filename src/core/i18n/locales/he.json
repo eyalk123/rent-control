@@ -258,7 +258,9 @@
     "selectItem": "בחר פריט",
     "showMore": "הצג עוד",
     "showLess": "הצג פחות",
-    "step_n_of_m": "שלב {{n}} מתוך {{m}}"
+    "step_n_of_m": "שלב {{n}} מתוך {{m}}",
+    "remove": "הסר",
+    "undo": "בטל"
   },
   "validation": {
     "title": "אימות",
@@ -419,6 +421,14 @@
     "uploadFailed": "ההעלאה נכשלה. נסה שוב.",
     "landRegistry": "נסח טאבו",
     "idImage": "תמונת תעודת זהות"
+  },
+  "customFiles": {
+    "sectionTitle": "קבצים מותאמים",
+    "addFile": "הוסף קובץ",
+    "labelPlaceholder": "תווית קובץ",
+    "maxFilesReached": "הגעת למקסימום 10 קבצים",
+    "uploading": "מעלה קבצים...",
+    "uploadFailed": "העלאת קובץ אחד או יותר נכשלה."
   },
   "permission": {
     "title": "נדרשות הרשאות",

@@ -219,6 +219,21 @@ export interface PropertyRenterSummary {
   monthly_rent: number;
 }
 
+export interface PropertyFile {
+  id: number;
+  property_id: number;
+  url: string;
+  label: string;
+  created_at: string;
+}
+
+export interface PendingFile {
+  localUri: string;
+  name: string;
+  label: string;
+  mimeType?: string;
+}
+
 // Create payload (what frontend sends on POST /properties)
 export interface PropertyCreate {
   address: string;

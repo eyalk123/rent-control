@@ -7,6 +7,7 @@ import type { Property, PropertyType } from '@/src/shared/types';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
 import { StatBox, IconDetailRow, DocumentsCard } from '@/src/shared/components/ui';
+import { PropertyFilesCard } from '@/src/features/properties/components/PropertyFilesCard';
 
 interface PropertyInfoTabProps {
   property: Property;
@@ -178,6 +179,7 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
       </Card>
 
       <DocumentsCard documents={documents} />
+      <PropertyFilesCard propertyId={property.id} />
 
       {hasPropertyDetails && (
         <Card style={styles.card} mode="outlined">
