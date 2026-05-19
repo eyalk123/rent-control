@@ -7,6 +7,9 @@
     "transactions": "Transactions"
   },
   "home": {
+    "greetingMorning": "Good Morning",
+    "greetingAfternoon": "Good Afternoon",
+    "greetingEvening": "Good Evening",
     "portfolio": "Portfolio",
     "quickActions": "Quick Actions",
     "expiringLeases": "Expiring Leases",

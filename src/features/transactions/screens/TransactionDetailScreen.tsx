@@ -1,11 +1,15 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Divider, Text, useTheme } from 'react-native-paper';
+import { Dimensions, Modal, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Divider, IconButton, Text, useTheme } from 'react-native-paper';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAlert } from '@/src/core/context';
 import { getTransactionById } from '@/src/features/transactions/api/transactions';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Transaction } from '@/src/shared/types';
@@ -44,6 +48,7 @@ function InfoRow({
 
 export function TransactionDetailScreen() {
   const { t } = useTranslation();
+  const { appAlert } = useAlert();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
@@ -54,6 +59,7 @@ export function TransactionDetailScreen() {
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [receiptFullscreen, setReceiptFullscreen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -78,6 +84,18 @@ export function TransactionDetailScreen() {
       fetchTransaction();
     }, [id, t])
   );
+
+  const handleShareReceipt = useCallback(async () => {
+    if (!transaction?.receipt_image_url) return;
+    try {
+      const filename = 'receipt.jpg';
+      const uri = `${FileSystem.cacheDirectory}${filename}`;
+      await FileSystem.downloadAsync(transaction.receipt_image_url, uri);
+      await Sharing.shareAsync(uri, { mimeType: 'image/jpeg', dialogTitle: filename });
+    } catch {
+      appAlert(t('error.title'), t('error.shareFailed', { defaultValue: 'Could not share receipt.' }));
+    }
+  }, [transaction, appAlert, t]);
 
   const handleEdit = useCallback(() => {
     if (!transaction) return;
@@ -213,7 +231,7 @@ export function TransactionDetailScreen() {
             </>
           ) : null}
 
-          {isRevenue && transaction.renter_name ? (
+          {transaction.renter_name ? (
             <>
               <Divider style={{ marginVertical: spacing.xs }} />
               <InfoRow
@@ -257,7 +275,64 @@ export function TransactionDetailScreen() {
             </>
           ) : null}
         </View>
+
+        {!isRevenue && transaction.receipt_image_url ? (
+          <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
+            <View style={styles.receiptHeader}>
+              <Icon name="receipt" size={16} color={colors.textSecondary} />
+              <Text variant="labelMedium" style={[styles.receiptLabel, { color: colors.textSecondary }]}>
+                {t('transactions.receiptImage', { defaultValue: 'Receipt Photo' })}
+              </Text>
+              <IconButton
+                icon="share-variant"
+                size={18}
+                onPress={handleShareReceipt}
+                style={styles.shareBtn}
+              />
+            </View>
+            <Pressable onPress={() => setReceiptFullscreen(true)}>
+              <Image
+                source={{ uri: transaction.receipt_image_url }}
+                style={styles.receiptImage}
+                contentFit="contain"
+              />
+            </Pressable>
+          </View>
+        ) : null}
       </ScrollView>
+
+      <Modal
+        visible={receiptFullscreen}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setReceiptFullscreen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <TouchableOpacity
+            style={[styles.modalCloseBtn, { top: insets.top + 12 }]}
+            onPress={() => setReceiptFullscreen(false)}
+            accessibilityLabel={t('common.close')}
+          >
+            <Icon name="x" size={24} color="#fff" />
+          </TouchableOpacity>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.modalImageContainer}
+            maximumZoomScale={4}
+            minimumZoomScale={1}
+            centerContent
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+          >
+            <Image
+              source={{ uri: transaction.receipt_image_url! }}
+              style={styles.modalImage}
+              contentFit="contain"
+            />
+          </ScrollView>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -328,5 +403,44 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
     fontWeight: '500',
+  },
+  receiptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  receiptLabel: {
+    flex: 1,
+    fontWeight: '600',
+  },
+  shareBtn: {
+    margin: 0,
+  },
+  receiptImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalImageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalImage: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
   },
 });

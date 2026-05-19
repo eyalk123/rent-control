@@ -6,26 +6,27 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
+import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { PortfolioSection } from '@/src/features/home/components/PortfolioSection';
 import { QuickActionsSection } from '@/src/features/home/components/QuickActionsSection';
 import { NeedsAttentionSection } from '@/src/features/home/components/NeedsAttentionSection';
 import { HomeReportsCard } from '@/src/features/home/components/HomeReportsCard';
 import { RecentTransactionsSection } from '@/src/features/home/components/RecentTransactionsSection';
-import { MOCK_PORTFOLIO } from '@/src/features/home/mock/homeMockData';
 import { getTransactions } from '@/src/features/transactions/api/transactions';
 import type { Transaction } from '@/src/shared/types';
 
-function getGreetingWord() {
+function getGreetingKey(): 'home.greetingMorning' | 'home.greetingAfternoon' | 'home.greetingEvening' {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Morning';
-  if (hour < 18) return 'Afternoon';
-  return 'Evening';
+  if (hour < 12) return 'home.greetingMorning';
+  if (hour < 18) return 'home.greetingAfternoon';
+  return 'home.greetingEvening';
 }
 
-function formatHeaderDate() {
+function formatHeaderDate(locale: string) {
   const now = new Date();
-  const day = now.toLocaleDateString('en-US', { weekday: 'long' });
-  const month = now.toLocaleDateString('en-US', { month: 'long' });
+  const day = now.toLocaleDateString(locale, { weekday: 'long' });
+  const month = now.toLocaleDateString(locale, { month: 'long' });
   const date = now.getDate();
   return `${day} · ${month} ${date}`;
 }
@@ -34,15 +35,17 @@ function GreetingHeader() {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { user } = useAppAuth();
+  const { t, i18n } = useTranslation();
   const firstName = user?.displayName?.split(' ')[0] ?? user?.email?.split('@')[0] ?? '';
+  const locale = i18n.language === 'he' ? 'he-IL' : 'en-US';
 
   return (
     <View style={greetingStyles.container}>
       <Text style={[greetingStyles.greeting, { color: colors.textSecondary }]}>
-        {`Good ${getGreetingWord()}${firstName ? `, ${firstName}` : ''}`}
+        {`${t(getGreetingKey())}${firstName ? `, ${firstName}` : ''}`}
       </Text>
       <Text style={[greetingStyles.date, { color: colors.textPrimary }]}>
-        {formatHeaderDate()}
+        {formatHeaderDate(locale)}
       </Text>
     </View>
   );
@@ -100,6 +103,8 @@ export function HomeScreen() {
     }, [fetchRecentTransactions]),
   );
 
+  const txShimmer = useShimmer(transactionsLoading);
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <ScrollView
@@ -112,21 +117,39 @@ export function HomeScreen() {
 
         <NeedsAttentionSection />
 
-        <PortfolioSection data={MOCK_PORTFOLIO} />
+        <PortfolioSection />
 
         <SectionLabel label={t('home.reports')} />
         <HomeReportsCard />
 
-        {!transactionsLoading && (
-          <>
-            <View style={styles.recentHeader}>
-              <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('home.recentTransactions')}</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/transactions')}>
-                <Text style={[styles.viewAll, { color: colors.primary }]}>{t('home.viewAll')}</Text>
-              </TouchableOpacity>
-            </View>
-            <RecentTransactionsSection items={recentTransactions} />
-          </>
+        <View style={styles.recentHeader}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('home.recentTransactions')}</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/transactions')} disabled={transactionsLoading}>
+            <Text style={[styles.viewAll, { color: colors.primary }]}>{t('home.viewAll')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {transactionsLoading ? (
+          <View style={[styles.skeletonCard, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
+            {[0, 1, 2].map((i) => (
+              <View key={i}>
+                {i > 0 && <View style={[styles.skeletonDivider, { backgroundColor: colors.outline }]} />}
+                <View style={styles.skeletonRow}>
+                  <SkeletonBlock opacity={txShimmer} width={30} height={30} borderRadius={8} />
+                  <View style={styles.skeletonInfo}>
+                    <SkeletonBlock opacity={txShimmer} width="55%" height={13} borderRadius={4} />
+                    <SkeletonBlock opacity={txShimmer} width="35%" height={11} borderRadius={4} style={{ marginTop: 4 }} />
+                  </View>
+                  <View style={styles.skeletonRight}>
+                    <SkeletonBlock opacity={txShimmer} width={60} height={13} borderRadius={4} />
+                    <SkeletonBlock opacity={txShimmer} width={40} height={11} borderRadius={4} style={{ marginTop: 4 }} />
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <RecentTransactionsSection items={recentTransactions} />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -151,6 +174,31 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: spacing.sm,
+  },
+  skeletonCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  skeletonInfo: {
+    flex: 1,
+    gap: 0,
+  },
+  skeletonRight: {
+    alignItems: 'flex-end',
+    flexShrink: 0,
+  },
+  skeletonDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: -spacing.md,
   },
   viewAll: {
     fontSize: 12,

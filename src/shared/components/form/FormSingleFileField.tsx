@@ -10,7 +10,7 @@ import { useAlert } from '@/src/core/context';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 import { Icon } from '@/src/shared/components/ui';
 
-type EntityType = 'properties' | 'renters';
+type EntityType = 'properties' | 'renters' | 'transactions';
 
 type FormSingleFileFieldProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;

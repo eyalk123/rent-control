@@ -7,6 +7,9 @@
     "transactions": "תנועות"
   },
   "home": {
+    "greetingMorning": "בוקר טוב",
+    "greetingAfternoon": "צהריים טובים",
+    "greetingEvening": "ערב טוב",
     "portfolio": "תיק נכסים",
     "quickActions": "פעולות מהירות",
     "expiringLeases": "חוזים שפגים",

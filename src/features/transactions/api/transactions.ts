@@ -29,6 +29,7 @@ export interface TransactionUpdateExpense {
   category_id?: number;
   supplier_id?: number | null;
   notes?: string | null;
+  receipt_image_url?: string | null;
 }
 
 export type TransactionsListParams = {

@@ -11,6 +11,7 @@ import { Button, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { Icon, ScreenContainer } from '@/src/shared/components/ui';
 import { useLanguageContext } from '@/src/context';
@@ -57,6 +58,8 @@ export function AddTransactionScreen() {
     : type === 'expense' ? 'expense'
     : 'choose';
   const [mode, setMode] = useState<TransactionMode>(initialMode);
+  const { user } = useAppAuth();
+  const receiptOwnerId = user?.uid ?? '';
   const [submitting, setSubmitting] = useState(false);
   const [revenueDirty, setRevenueDirty] = useState(false);
   const allowRemoveRef = React.useRef(false);
@@ -72,6 +75,7 @@ export function AddTransactionScreen() {
       categoryId: null,
       supplierId: null,
       notes: '',
+      receiptImageUrl: null,
     },
     mode: 'onBlur',
   });
@@ -110,6 +114,7 @@ export function AddTransactionScreen() {
               categoryId: tx.category_id,
               supplierId: tx.supplier_id,
               notes: tx.notes ?? '',
+              receiptImageUrl: tx.receipt_image_url ?? null,
             });
           } else {
             setMode('revenue');
@@ -183,6 +188,7 @@ export function AddTransactionScreen() {
           category_id: values.categoryId!,
           supplier_id: values.supplierId,
           notes: values.notes || null,
+          receipt_image_url: values.receiptImageUrl || null,
         });
       } else {
         const totalAmount = Number(values.amount);
@@ -198,6 +204,7 @@ export function AddTransactionScreen() {
               category_id: values.categoryId!,
               supplier_id: values.supplierId ?? undefined,
               notes: values.notes || undefined,
+              receipt_image_url: values.receiptImageUrl || null,
             }),
           ),
         );
@@ -301,6 +308,7 @@ export function AddTransactionScreen() {
             propertyIds={expenseForm.watch('propertyIds')}
             categoryId={expenseForm.watch('categoryId')}
             setValue={expenseForm.setValue}
+            ownerId={receiptOwnerId}
             contentContainerStyle={formContentPadding}
           />
         )}

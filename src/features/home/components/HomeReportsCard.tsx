@@ -7,6 +7,8 @@ import { ChevronRight, FileBarChart2, Plus, Receipt, Share2 } from 'lucide-react
 
 import { darkColors, lightColors } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
+import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
+import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import {
   downloadExpenseLogReport,
   downloadIncomeExpenseReport,
@@ -22,12 +24,15 @@ export function HomeReportsCard() {
   const { isRtl } = useLanguageContext();
 
   const [lastReport, setLastReport] = useState<ReportExport | null>(null);
+  const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const shimmer = useShimmer(loading);
 
   useEffect(() => {
     getReportHistory()
       .then((data) => setLastReport(data[0] ?? null))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   async function handleShare() {
@@ -42,6 +47,28 @@ export function HomeReportsCard() {
     } finally {
       setSharing(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
+        <View style={styles.topRow}>
+          <SkeletonBlock opacity={shimmer} width={38} height={38} borderRadius={10} />
+          <View style={[styles.body, { gap: 6 }]}>
+            <SkeletonBlock opacity={shimmer} width="55%" height={13} borderRadius={4} />
+            <SkeletonBlock opacity={shimmer} width="35%" height={11} borderRadius={4} />
+          </View>
+        </View>
+        <View style={[styles.divider, { backgroundColor: theme.dark ? 'rgba(241,236,223,0.06)' : 'rgba(22,41,74,0.06)' }]} />
+        <View style={[styles.generateRow, { opacity: 0.4 }]}>
+          <Plus size={14} color={colors.primary} strokeWidth={2} />
+          <Text style={[styles.generateLabel, { color: colors.primary }]}>
+            {t('home.reportGenerateNew')}
+          </Text>
+          <ChevronRight size={13} color={colors.textSecondary} style={styles.chevron} />
+        </View>
+      </View>
+    );
   }
 
   const isExpenseLog = lastReport?.report_type === 'expense_log';

@@ -6,6 +6,7 @@ import {
   FormNumericField,
   FormTextField,
   FormWheelDateField,
+  FormSingleFileField,
 } from '@/src/shared/components/form';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { Controller, type Control, type UseFormSetValue, type FieldErrors } from 'react-hook-form';
@@ -25,6 +26,7 @@ type ExpenseFormProps = {
   propertyIds: number[];
   categoryId: number | null;
   setValue: UseFormSetValue<ExpenseFormValues>;
+  ownerId: string;
   contentContainerStyle?: ViewStyle;
 };
 
@@ -34,6 +36,7 @@ export function ExpenseForm({
   propertyIds,
   categoryId,
   setValue,
+  ownerId,
   contentContainerStyle,
 }: ExpenseFormProps) {
   const { t } = useTranslation();
@@ -136,6 +139,15 @@ export function ExpenseForm({
           control={control}
           name="notes"
           label={t('transactions.notes', { defaultValue: 'Notes (optional)' })}
+        />
+        <FormSingleFileField
+          control={control}
+          name="receiptImageUrl"
+          label={t('transactions.receiptImage', { defaultValue: 'Receipt Photo' })}
+          t={t}
+          entityType="transactions"
+          ownerId={ownerId}
+          accept="image"
         />
       </FormSectionCard>
     </FormScrollView>

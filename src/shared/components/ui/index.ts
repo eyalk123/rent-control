@@ -12,3 +12,4 @@ export { StepHeader } from './StepHeader';
 export { StatBox } from './StatBox';
 export { IconDetailRow } from './IconDetailRow';
 export { DocumentsCard, type DocumentItem } from './DocumentsCard';
+export { SkeletonBlock } from './SkeletonBlock';

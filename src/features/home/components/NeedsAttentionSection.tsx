@@ -1,11 +1,13 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Dimensions } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { darkColors, ICON_MD, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
+import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
+import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { formatMoney } from '@/src/shared/utils/money';
 import { getOverdueRenters, getExpiringRenters } from '@/src/features/home/api/homeApi';
 import type { OverdueRenter, ExpiringRenter } from '@/src/features/home/api/homeApi';
@@ -249,12 +251,32 @@ export function NeedsAttentionSection() {
   const primaryBg = theme.dark ? 'rgba(62,111,168,0.18)' : 'rgba(30,58,95,0.10)';
   const neutralBg = theme.dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
 
+  const shimmer = useShimmer(loading);
   const rowProps = { colors, amberBg, primaryBg, neutralBg, onDismiss: dismiss, onNavigate: navigate, onMarkPaid: handleMarkPaid, markPaidLoadingIds };
 
   if (loading) {
     return (
-      <View style={[styles.card, styles.centered, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
-        <ActivityIndicator size="small" color={colors.textSecondary} />
+      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
+        {[0, 1].map((i) => (
+          <View key={i}>
+            {i > 0 && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
+            <View style={styles.itemRow}>
+              <SkeletonBlock opacity={shimmer} width={40} height={40} borderRadius={11} />
+              <View style={[styles.centerContent, { gap: 6 }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <SkeletonBlock opacity={shimmer} width="45%" height={13} borderRadius={4} />
+                  <SkeletonBlock opacity={shimmer} width="20%" height={18} borderRadius={6} />
+                </View>
+                <SkeletonBlock opacity={shimmer} width="35%" height={11} borderRadius={4} />
+                <SkeletonBlock opacity={shimmer} width="25%" height={11} borderRadius={4} />
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.xs, marginTop: 3 }}>
+                  <SkeletonBlock opacity={shimmer} width={52} height={26} borderRadius={20} />
+                  <SkeletonBlock opacity={shimmer} width={80} height={26} borderRadius={20} />
+                </View>
+              </View>
+            </View>
+          </View>
+        ))}
       </View>
     );
   }

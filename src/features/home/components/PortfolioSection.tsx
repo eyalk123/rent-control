@@ -4,12 +4,10 @@ import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
+import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
+import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { formatMoney } from '@/src/shared/utils/money';
-import type { MockPortfolio } from '@/src/features/home/mock/homeMockData';
-
-interface PortfolioSectionProps {
-  data: MockPortfolio;
-}
+import { usePropertyContext, useRenterContext, useTransactionSummaryContext } from '@/src/context';
 
 interface StatCardProps {
   icon: IconName;
@@ -49,15 +47,43 @@ function ThisMonthCard({ value, label }: ThisMonthCardProps) {
   );
 }
 
-export function PortfolioSection({ data }: PortfolioSectionProps) {
+export function PortfolioSection() {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const isProfit = data.monthlyPL >= 0;
+  const { properties, loading: propLoading } = usePropertyContext();
+  const { renters, loading: renterLoading } = useRenterContext();
+  const { heroBucket, summaryLoading } = useTransactionSummaryContext();
+
+  const loading = propLoading || renterLoading || summaryLoading;
+  const shimmer = useShimmer(loading);
+
+  const propertiesCount = properties.length;
+  const rentersCount = renters.length;
+  const monthlyPL = heroBucket.profit;
+  const isProfit = monthlyPL >= 0;
   const plSign = isProfit ? '+' : '−';
 
   const navyIconBg = theme.dark ? 'rgba(62,111,168,0.20)' : 'rgba(30,58,95,0.10)';
+
+  if (loading) {
+    return (
+      <View style={styles.row}>
+        {[0, 1].map((i) => (
+          <View key={i} style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+            <SkeletonBlock opacity={shimmer} width={32} height={32} borderRadius={10} style={{ marginBottom: spacing.xs, marginTop: spacing.xs }} />
+            <SkeletonBlock opacity={shimmer} width="60%" height={16} borderRadius={4} />
+            <SkeletonBlock opacity={shimmer} width="70%" height={11} borderRadius={4} style={{ marginTop: 4 }} />
+          </View>
+        ))}
+        <View style={[styles.card, styles.thisMonthCard]}>
+          <SkeletonBlock opacity={shimmer} width="80%" height={22} borderRadius={5} style={{ backgroundColor: 'rgba(250,247,240,0.35)' }} />
+          <SkeletonBlock opacity={shimmer} width="65%" height={11} borderRadius={4} style={{ marginTop: 6, backgroundColor: 'rgba(250,247,240,0.35)' }} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.row}>
@@ -65,7 +91,7 @@ export function PortfolioSection({ data }: PortfolioSectionProps) {
         icon="home"
         iconColor={colors.primary}
         iconBg={navyIconBg}
-        value={String(data.properties)}
+        value={String(propertiesCount)}
         label={t('home.properties')}
         valueColor={colors.textPrimary}
         labelColor={colors.textSecondary}
@@ -76,7 +102,7 @@ export function PortfolioSection({ data }: PortfolioSectionProps) {
         icon="users"
         iconColor={colors.primary}
         iconBg={navyIconBg}
-        value={String(data.renters)}
+        value={String(rentersCount)}
         label={t('home.renters')}
         valueColor={colors.textPrimary}
         labelColor={colors.textSecondary}
@@ -84,7 +110,7 @@ export function PortfolioSection({ data }: PortfolioSectionProps) {
         borderColor={theme.colors.outline}
       />
       <ThisMonthCard
-        value={`${plSign}${formatMoney(Math.abs(data.monthlyPL))}`}
+        value={`‪${plSign}${formatMoney(Math.abs(monthlyPL))}‬`}
         label={t('home.thisMonthPL')}
       />
     </View>
@@ -101,7 +127,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.xs,
     alignItems: 'center',
   },
   iconWrap: {
@@ -126,9 +152,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   thisMonthCard: {
+    flex: 1.5,
     backgroundColor: '#1F7A60',
     borderWidth: 0,
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'center',
   },
   thisMonthValue: {
@@ -143,5 +170,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'rgba(250,247,240,0.82)',
     marginTop: 4,
+    textAlign: 'center',
   },
 });
