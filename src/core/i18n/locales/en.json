@@ -38,7 +38,14 @@
     "reportShare": "Share",
     "reportGenerateNew": "Generate a new report",
     "reportEmptyTitle": "No reports yet",
-    "reportEmptyMeta": "Your generated PDFs will live here."
+    "reportEmptyMeta": "Your generated PDFs will live here.",
+    "expiresLabel": "Expires {{date}}",
+    "actionIgnore": "Ignore",
+    "actionUpdateLease": "Update Lease",
+    "actionMarkPaid": "Mark Paid",
+    "actionSaving": "Saving…",
+    "needsAttention": "Needs Attention",
+    "seeAllCount": "See All ({{count}})"
   },
   "settings": {
     "title": "Settings",

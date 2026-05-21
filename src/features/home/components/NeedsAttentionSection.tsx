@@ -79,6 +79,7 @@ interface AttentionItemRowProps {
 function AttentionItemRow({
   item, isLast, colors, amberBg, primaryBg, neutralBg, onDismiss, onNavigate, onMarkPaid, markPaidLoadingIds,
 }: AttentionItemRowProps) {
+  const { t } = useTranslation();
   const name = `${item.first_name} ${item.last_name}`;
   const address = item.property_address ?? '';
 
@@ -96,7 +97,7 @@ function AttentionItemRow({
               </Text>
               <View style={[styles.infoBadge, { backgroundColor: amberBg }]}>
                 <Text style={[styles.infoBadgeText, { color: colors.warning }]}>
-                  {`${item.days_until_expiry}d left`}
+                  {t('home.expiresIn', { count: item.days_until_expiry })}
                 </Text>
               </View>
             </View>
@@ -104,17 +105,17 @@ function AttentionItemRow({
               {address}
             </Text>
             <Text style={[styles.subInfo, { color: colors.textSecondary }]}>
-              {`Expires ${formatLeaseDate(item.lease_end_date)}`}
+              {t('home.expiresLabel', { date: formatLeaseDate(item.lease_end_date) })}
             </Text>
             <View style={styles.actionsRow}>
               <ActionPill
-                label="Ignore"
+                label={t('home.actionIgnore')}
                 bg={neutralBg}
                 textColor={colors.textSecondary}
                 onPress={() => onDismiss(`e-${item.renter_id}`)}
               />
               <ActionPill
-                label="Update Lease"
+                label={t('home.actionUpdateLease')}
                 bg={primaryBg}
                 textColor={colors.primary}
                 onPress={() => onNavigate('/renters')}
@@ -140,7 +141,7 @@ function AttentionItemRow({
             </Text>
             <View style={[styles.infoBadge, { backgroundColor: colors.expBg }]}>
               <Text style={[styles.infoBadgeText, { color: colors.expFg }]}>
-                {`${item.days_overdue}d overdue`}
+                {t('home.daysOverdue', { count: item.days_overdue })}
               </Text>
             </View>
           </View>
@@ -152,13 +153,13 @@ function AttentionItemRow({
           </Text>
           <View style={styles.actionsRow}>
             <ActionPill
-              label="Ignore"
+              label={t('home.actionIgnore')}
               bg={neutralBg}
               textColor={colors.textSecondary}
               onPress={() => onDismiss(`o-${item.renter_id}`)}
             />
             <ActionPill
-              label={markPaidLoadingIds.has(item.renter_id) ? 'Saving…' : 'Mark Paid'}
+              label={markPaidLoadingIds.has(item.renter_id) ? t('home.actionSaving') : t('home.actionMarkPaid')}
               bg={colors.revBg}
               textColor={colors.revFg}
               onPress={() => !markPaidLoadingIds.has(item.renter_id) && onMarkPaid(item as OverdueRenter)}
@@ -307,7 +308,7 @@ export function NeedsAttentionSection() {
   return (
     <>
       <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-        NEEDS ATTENTION
+        {t('home.needsAttention').toUpperCase()}
       </Text>
       <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
         {previewItems.map((item, idx) => (
@@ -325,7 +326,7 @@ export function NeedsAttentionSection() {
             <View style={styles.seeAllRow}>
               <TouchableOpacity onPress={() => setModalVisible(true)} activeOpacity={0.7}>
                 <Text style={[styles.seeAllText, { color: colors.primary }]}>
-                  {`See All (${allItems.length})`}
+                  {t('home.seeAllCount', { count: allItems.length })}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -347,7 +348,7 @@ export function NeedsAttentionSection() {
         <View style={[styles.sheet, { backgroundColor: theme.colors.surface, paddingBottom: insets.bottom + spacing.md }]}>
           <View style={styles.handle} />
           <View style={styles.sheetHeader}>
-            <Text style={[styles.sheetTitle, { color: colors.textPrimary }]}>Needs Attention</Text>
+            <Text style={[styles.sheetTitle, { color: colors.textPrimary }]}>{t('home.needsAttention')}</Text>
             <View style={[styles.sheetCountBadge, { backgroundColor: neutralBg }]}>
               <Text style={[styles.sheetCountText, { color: colors.textSecondary }]}>{allItems.length}</Text>
             </View>

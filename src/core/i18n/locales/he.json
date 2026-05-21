@@ -38,7 +38,14 @@
     "reportShare": "שתף",
     "reportGenerateNew": "צור דוח חדש",
     "reportEmptyTitle": "אין דוחות עדיין",
-    "reportEmptyMeta": "הדוחות שתפיק יופיעו כאן."
+    "reportEmptyMeta": "הדוחות שתפיק יופיעו כאן.",
+    "expiresLabel": "פג ב-{{date}}",
+    "actionIgnore": "התעלם",
+    "actionUpdateLease": "עדכן חוזה",
+    "actionMarkPaid": "סמן כשולם",
+    "actionSaving": "שומר…",
+    "needsAttention": "דורש טיפול",
+    "seeAllCount": "הצג הכל ({{count}})"
   },
   "settings": {
     "title": "הגדרות",
