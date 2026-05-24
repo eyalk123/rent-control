@@ -36,11 +36,17 @@ function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColo
 interface ThisMonthCardProps {
   value: string;
   label: string;
+  isProfit: boolean;
+  isBreakeven: boolean;
 }
 
-function ThisMonthCard({ value, label }: ThisMonthCardProps) {
+function ThisMonthCard({ value, label, isProfit, isBreakeven }: ThisMonthCardProps) {
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const bg = isBreakeven ? colors.plNeutralBg : isProfit ? colors.plPositiveBg : colors.plNegativeBg;
+
   return (
-    <View style={[styles.card, styles.thisMonthCard]}>
+    <View style={[styles.card, styles.thisMonthCard, { backgroundColor: bg }]}>
       <Text style={[styles.thisMonthValue, { writingDirection: 'ltr' }]}>{value}</Text>
       <Text style={styles.thisMonthLabel}>{label}</Text>
     </View>
@@ -62,8 +68,9 @@ export function PortfolioSection() {
   const propertiesCount = properties.length;
   const rentersCount = renters.length;
   const monthlyPL = heroBucket.profit;
-  const isProfit = monthlyPL >= 0;
-  const plSign = isProfit ? '+' : '−';
+  const isBreakeven = monthlyPL === 0;
+  const isProfit = monthlyPL > 0;
+  const plSign = isProfit ? '+' : isBreakeven ? '' : '−';
 
   const navyIconBg = theme.dark ? 'rgba(62,111,168,0.20)' : 'rgba(30,58,95,0.10)';
 
@@ -112,6 +119,8 @@ export function PortfolioSection() {
       <ThisMonthCard
         value={`‪${plSign}${formatMoney(Math.abs(monthlyPL))}‬`}
         label={t('home.thisMonthPL')}
+        isProfit={isProfit}
+        isBreakeven={isBreakeven}
       />
     </View>
   );
@@ -153,7 +162,6 @@ const styles = StyleSheet.create({
   },
   thisMonthCard: {
     flex: 1.5,
-    backgroundColor: '#1F7A60',
     borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',

@@ -56,6 +56,11 @@ export const lightColors = {
   chooseExpenseBg: "rgba(180,83,9,0.13)",
   chooseExpenseIcon: "#9A3412",
 
+  // P&L card backgrounds
+  plPositiveBg: "#1F7A60",
+  plNegativeBg: "#9A3412",
+  plNeutralBg: "#5A6472",
+
   // Avatar initials
   avatarBackground: "#EDF0F4",
   avatarBorder: "#D2D8E0",
@@ -113,6 +118,11 @@ export const darkColors = {
   chooseRevenueIcon: "#34A39A",
   chooseExpenseBg: "rgba(216,117,89,0.18)",
   chooseExpenseIcon: "#D87559",
+
+  // P&L card backgrounds
+  plPositiveBg: "#1F7A60",
+  plNegativeBg: "#7A3020",
+  plNeutralBg: "#3A3A3A",
 
   // Avatar initials
   avatarBackground: "#2A3950",

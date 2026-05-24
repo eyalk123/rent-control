@@ -97,7 +97,7 @@ function AttentionItemRow({
               </Text>
               <View style={[styles.infoBadge, { backgroundColor: amberBg }]}>
                 <Text style={[styles.infoBadgeText, { color: colors.warning }]}>
-                  {t('home.expiresIn', { count: item.days_until_expiry })}
+                  {t(item.days_until_expiry === 1 ? 'home.expiresIn' : 'home.expiresInPlural', { count: item.days_until_expiry })}
                 </Text>
               </View>
             </View>
@@ -141,7 +141,7 @@ function AttentionItemRow({
             </Text>
             <View style={[styles.infoBadge, { backgroundColor: colors.expBg }]}>
               <Text style={[styles.infoBadgeText, { color: colors.expFg }]}>
-                {t('home.daysOverdue', { count: item.days_overdue })}
+                {t(item.days_overdue === 1 ? 'home.daysOverdue' : 'home.daysOverduePlural', { count: item.days_overdue })}
               </Text>
             </View>
           </View>
