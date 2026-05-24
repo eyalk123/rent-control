@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import { Icon, type IconName } from '@/src/shared/components/ui';
 import { useRouter } from 'expo-router';
@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import type { PropertyBrief, PropertyType, Renter } from '@/src/shared/types';
 import { EmptyState } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
 
 type ThemeColors = typeof lightColors | typeof darkColors;
 
@@ -33,18 +34,23 @@ function PropertyCard({
   const typeLabel = t(
     `property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`,
   );
+  const imageSource = getPropertyImageSource(property.image_url);
 
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
       <Card style={styles.card} mode="outlined">
         <Card.Content style={styles.cardContent}>
-          <View style={[styles.iconBox, { backgroundColor: colors.inputBackground }]}>
-            <Icon
-              name={TYPE_ICONS[property.type] ?? 'home'}
-              size={24}
-              color={colors.primary}
-            />
-          </View>
+          {imageSource ? (
+            <Image source={imageSource} style={styles.thumbnail} resizeMode="cover" />
+          ) : (
+            <View style={[styles.thumbnailPlaceholder, { backgroundColor: colors.inputBackground }]}>
+              <Icon
+                name={TYPE_ICONS[property.type] ?? 'home'}
+                size={24}
+                color={colors.primary}
+              />
+            </View>
+          )}
           <View style={styles.info}>
             <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
               {property.address}
@@ -123,13 +129,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.md,
   },
-  iconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+  thumbnail: {
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    marginEnd: spacing.md,
+  },
+  thumbnailPlaceholder: {
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    marginEnd: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginEnd: spacing.md,
   },
   info: {
     flex: 1,

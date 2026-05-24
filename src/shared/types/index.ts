@@ -7,6 +7,7 @@ export interface PropertyBrief {
   address: string;
   city: string;
   type: PropertyType;
+  image_url: string | null;
 }
 
 // Property - matches backend

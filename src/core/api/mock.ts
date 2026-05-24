@@ -20,7 +20,7 @@ import { getLeaseEndDate } from '@/src/shared/types';
 export const USE_MOCK_API = false;
 
 function toPropertyBrief(p: Property): PropertyBrief {
-  return { id: p.id, address: p.address, city: p.city, type: p.type };
+  return { id: p.id, address: p.address, city: p.city, type: p.type, image_url: p.image_url };
 }
 
 const seedProperties: Property[] = [
