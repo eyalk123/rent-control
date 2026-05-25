@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { EmptyState, LoadingOverlay } from '@/src/shared/components/ui';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
@@ -18,6 +19,8 @@ export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabP
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+
+  const router = useRouter();
 
   const {
     transactions,
@@ -44,7 +47,9 @@ export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabP
     const cardBg = isRevenue ? colors.chooseRevenueBg : colors.chooseExpenseBg;
 
     return (
-      <View
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => router.push(`/transactions/${item.id}` as any)}
         style={[styles.txCard, { backgroundColor: cardBg, borderColor: colors.outline }]}
       >
         <View style={styles.txHeader}>
@@ -79,7 +84,7 @@ export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabP
             </Text>
           ) : null}
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
