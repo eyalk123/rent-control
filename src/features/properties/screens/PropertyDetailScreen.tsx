@@ -24,9 +24,10 @@ import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { PropertyInfoTab } from '@/src/features/properties/components/PropertyInfoTab';
 import { PropertyRentersTab } from '@/src/features/properties/components/PropertyRentersTab';
 import { PropertyTransactionsTab } from '@/src/features/properties/components/PropertyTransactionsTab';
+import { PropertyDocumentsTab } from '@/src/features/properties/components/PropertyDocumentsTab';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
 
-type TabKey = 'info' | 'renters' | 'transactions';
+type TabKey = 'info' | 'renters' | 'transactions' | 'documents';
 
 export function PropertyDetailScreen() {
   const { t } = useTranslation();
@@ -137,6 +138,7 @@ export function PropertyDetailScreen() {
               { value: 'info', label: t('property.tabs.info') },
               { value: 'renters', label: t('property.tabs.renters') },
               { value: 'transactions', label: t('property.tabs.transactions') },
+              { value: 'documents', label: t('property.tabs.documents') },
             ] as const).map((tab) => {
               const isActive = activeTab === tab.value;
               return (
@@ -170,6 +172,7 @@ export function PropertyDetailScreen() {
           {activeTab === 'transactions' && (
             <PropertyTransactionsTab propertyId={property.id} />
           )}
+          {activeTab === 'documents' && <PropertyDocumentsTab property={property} />}
         </View>
       </View>
     </ScreenContainer>

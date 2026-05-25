@@ -147,7 +147,8 @@
     "tabs": {
       "info": "Info",
       "renters": "Renters",
-      "transactions": "Transactions"
+      "transactions": "Transactions",
+      "documents": "Documents"
     },
     "inventoryNotes": "Apartment Notes",
     "inventoryNotesPlaceholder": "Furniture, appliances, items...",

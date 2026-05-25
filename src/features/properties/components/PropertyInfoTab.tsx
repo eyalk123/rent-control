@@ -6,8 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { Property, PropertyType } from '@/src/shared/types';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
-import { StatBox, IconDetailRow, DocumentsCard } from '@/src/shared/components/ui';
-import { PropertyFilesCard } from '@/src/features/properties/components/PropertyFilesCard';
+import { StatBox, IconDetailRow } from '@/src/shared/components/ui';
 
 interface PropertyInfoTabProps {
   property: Property;
@@ -73,15 +72,6 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
     property.property_tax != null ||
     property.house_committee != null ||
     (property.inventory_notes != null && property.inventory_notes !== '');
-
-  const documents = [
-    property.basic_contract_url
-      ? { label: t('documents.basicContract'), url: property.basic_contract_url, icon: 'file-text' as const }
-      : null,
-    property.land_registry_url
-      ? { label: t('documents.landRegistry'), url: property.land_registry_url, icon: 'bank' as const }
-      : null,
-  ].filter(Boolean) as { label: string; url: string; icon: 'file-text' | 'bank' }[];
 
   const hasFloorOrApartment =
     property.floor != null ||
@@ -177,9 +167,6 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
           )}
         </Card.Content>
       </Card>
-
-      <DocumentsCard documents={documents} />
-      <PropertyFilesCard propertyId={property.id} />
 
       {hasPropertyDetails && (
         <Card style={styles.card} mode="outlined">

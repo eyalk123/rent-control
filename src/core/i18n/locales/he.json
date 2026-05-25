@@ -147,7 +147,8 @@
     "tabs": {
       "info": "מידע",
       "renters": "דיירים",
-      "transactions": "תנועות"
+      "transactions": "תנועות",
+      "documents": "מסמכים"
     },
     "inventoryNotes": "הערות ופירוט חפצים בדירה",
     "inventoryNotesPlaceholder": "ריהוט, מכשירים, חפצים...",
