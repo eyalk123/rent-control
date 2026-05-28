@@ -7,7 +7,7 @@ import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { FormTextField } from '@/src/shared/components/form/FormFields';
-import { CategoryTagPicker } from '@/src/features/transactions/components/expense/CategoryTagPicker';
+import { CategoryMultiPickerField } from '@/src/shared/components/form';
 import BankAccountInput from '@/src/shared/components/form/BankAccountInput';
 import type { SupplierFormValues } from '@/src/features/suppliers/validation/supplierValidation';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
@@ -90,7 +90,7 @@ export function SupplierForm({
         control={control}
         name="categoryIds"
         render={({ field: { value, onChange } }) => (
-          <CategoryTagPicker
+          <CategoryMultiPickerField
             value={value}
             onChange={onChange}
             label={`${t('suppliers.categories', { defaultValue: 'Categories' })} *`}

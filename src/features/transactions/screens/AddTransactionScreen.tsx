@@ -72,7 +72,7 @@ export function AddTransactionScreen() {
       amount: '',
       dateOfPayment: new Date().toISOString().slice(0, 10),
       paymentMethod: 'cash',
-      categoryId: null,
+      categoryIds: [],
       supplierId: null,
       notes: '',
       receiptImageUrl: null,
@@ -111,7 +111,11 @@ export function AddTransactionScreen() {
               amount: String(tx.amount),
               dateOfPayment: tx.date_of_payment,
               paymentMethod: (tx.payment_method as PaymentMethod) ?? 'cash',
-              categoryId: tx.category_id,
+              categoryIds: tx.category_ids?.length
+                ? tx.category_ids
+                : tx.category_id
+                  ? [tx.category_id]
+                  : [],
               supplierId: tx.supplier_id,
               notes: tx.notes ?? '',
               receiptImageUrl: tx.receipt_image_url ?? null,
@@ -185,7 +189,7 @@ export function AddTransactionScreen() {
           amount: Number(values.amount),
           date_of_payment: values.dateOfPayment,
           payment_method: values.paymentMethod as PaymentMethod,
-          category_id: values.categoryId!,
+          category_ids: values.categoryIds,
           supplier_id: values.supplierId,
           notes: values.notes || null,
           receipt_image_url: values.receiptImageUrl || null,
@@ -201,7 +205,7 @@ export function AddTransactionScreen() {
               amount: perPropertyAmount,
               date_of_payment: values.dateOfPayment,
               payment_method: values.paymentMethod as PaymentMethod,
-              category_id: values.categoryId!,
+              category_ids: values.categoryIds,
               supplier_id: values.supplierId ?? undefined,
               notes: values.notes || undefined,
               receipt_image_url: values.receiptImageUrl || null,
@@ -306,7 +310,7 @@ export function AddTransactionScreen() {
             control={expenseForm.control}
             errors={expenseForm.formState.errors}
             propertyIds={expenseForm.watch('propertyIds')}
-            categoryId={expenseForm.watch('categoryId')}
+            categoryIds={expenseForm.watch('categoryIds')}
             setValue={expenseForm.setValue}
             ownerId={receiptOwnerId}
             contentContainerStyle={formContentPadding}

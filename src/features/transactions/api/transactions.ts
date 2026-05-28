@@ -26,7 +26,7 @@ export interface TransactionUpdateExpense {
   amount?: number;
   date_of_payment?: string;
   payment_method?: PaymentMethod;
-  category_id?: number;
+  category_ids?: number[];
   supplier_id?: number | null;
   notes?: string | null;
   receipt_image_url?: string | null;
@@ -98,8 +98,10 @@ export async function createRevenueTransaction(
       amount: payload.amount,
       currency_code: 'ILS',
       category_id: null,
+      category_ids: [],
       supplier_id: null,
       notes: payload.notes ?? null,
+      receipt_image_url: null,
       property_name: '',
       renter_name: null,
       category_name: null,
@@ -128,9 +130,11 @@ export async function createExpenseTransaction(
       month_for: null,
       amount: payload.amount,
       currency_code: 'ILS',
-      category_id: payload.category_id,
+      category_id: payload.category_ids[0] ?? null,
+      category_ids: payload.category_ids,
       supplier_id: payload.supplier_id ?? null,
       notes: payload.notes ?? null,
+      receipt_image_url: null,
       property_name: '',
       renter_name: null,
       category_name: null,

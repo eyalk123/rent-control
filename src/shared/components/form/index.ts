@@ -19,3 +19,4 @@ export { FormLeaseYearsField } from "./FormLeaseYearsField";
 export { FormExtraContactsField } from "./FormExtraContactsField";
 export { FormSingleFileField } from "./FormSingleFileField";
 export { FormScrollView } from "./FormScrollView";
+export { CategoryMultiPickerField } from "./CategoryMultiPickerField";

@@ -5,7 +5,7 @@ import { useSuppliers } from '@/src/features/transactions/hooks/useTransactions'
 import { DropdownField } from '@/src/shared/components/form';
 
 interface SupplierPickerProps {
-  categoryId: number | null;
+  categoryIds: number[];
   value: number | null;
   onChange: (id: number | null) => void;
   label?: string;
@@ -14,7 +14,7 @@ interface SupplierPickerProps {
 }
 
 export function SupplierPicker({
-  categoryId,
+  categoryIds,
   value,
   onChange,
   label,
@@ -22,22 +22,23 @@ export function SupplierPicker({
   allowNone = true,
 }: SupplierPickerProps) {
   const { t } = useTranslation();
-  const { suppliers } = useSuppliers(categoryId ?? undefined);
+  const { suppliers } = useSuppliers(categoryIds[0] ?? undefined);
 
   const data = useMemo<{ label: string; value: number | null }[]>(() => {
-    const filtered = categoryId
-      ? suppliers.filter(
-          (s) =>
-            s.is_active !== false &&
-            (s.category_ids?.includes(categoryId) ?? false),
-        )
-      : [];
+    const filtered =
+      categoryIds.length > 0
+        ? suppliers.filter(
+            (s) =>
+              s.is_active !== false &&
+              s.category_ids?.some((cid) => categoryIds.includes(cid)),
+          )
+        : [];
 
     const items = filtered.map((s) => ({ label: s.name, value: s.id }));
     return allowNone
       ? [{ label: t('renter.unassigned'), value: null }, ...items]
       : items;
-  }, [allowNone, categoryId, suppliers, t]);
+  }, [allowNone, categoryIds, suppliers, t]);
 
   return (
     <DropdownField
@@ -45,7 +46,7 @@ export function SupplierPicker({
       value={value}
       onChange={onChange}
       label={label ?? t('transactions.supplier', { defaultValue: 'Supplier' })}
-      disabled={!categoryId}
+      disabled={categoryIds.length === 0}
       inputStyle={inputStyle}
     />
   );

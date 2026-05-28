@@ -21,6 +21,7 @@ import {
   Camera,
   Car,
   Check,
+  CheckSquare,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -74,6 +75,7 @@ import {
   Wallet,
   X,
   Zap,
+  Square,
 } from "lucide-react-native";
 import React from "react";
 
@@ -95,6 +97,8 @@ const REGISTRY = {
   camera: Camera,
   car: Car,
   check: Check,
+  "check-square": CheckSquare,
+  square: Square,
   "chevron-down": ChevronDown,
   "chevron-left": ChevronLeft,
   "chevron-right": ChevronRight,

@@ -7,13 +7,13 @@ import {
   FormTextField,
   FormWheelDateField,
   FormSingleFileField,
+  CategoryMultiPickerField,
 } from '@/src/shared/components/form';
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { Controller, type Control, type UseFormSetValue, type FieldErrors } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { usePropertyContext } from '@/src/context';
 import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
-import { ExpenseCategoryPicker } from '@/src/features/transactions/components/expense/ExpenseCategoryPicker';
 import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
 
 import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
@@ -24,7 +24,7 @@ type ExpenseFormProps = {
   control: Control<ExpenseFormValues>;
   errors?: FieldErrors<ExpenseFormValues>;
   propertyIds: number[];
-  categoryId: number | null;
+  categoryIds: number[];
   setValue: UseFormSetValue<ExpenseFormValues>;
   ownerId: string;
   contentContainerStyle?: ViewStyle;
@@ -34,7 +34,7 @@ export function ExpenseForm({
   control,
   errors,
   propertyIds,
-  categoryId,
+  categoryIds,
   setValue,
   ownerId,
   contentContainerStyle,
@@ -109,16 +109,16 @@ export function ExpenseForm({
         />
         <Controller
           control={control}
-          name="categoryId"
+          name="categoryIds"
           render={({ field: { value, onChange } }) => (
-            <ExpenseCategoryPicker
+            <CategoryMultiPickerField
               value={value}
-              onChange={(id) => {
-                onChange(id);
+              onChange={(ids) => {
+                onChange(ids);
                 setValue('supplierId', null);
               }}
               label={t('transactions.category', { defaultValue: 'Category' })}
-              error={errors?.categoryId}
+              error={errors?.categoryIds}
             />
           )}
         />
@@ -127,7 +127,7 @@ export function ExpenseForm({
           name="supplierId"
           render={({ field: { value, onChange } }) => (
             <SupplierPicker
-              categoryId={categoryId}
+              categoryIds={categoryIds}
               value={value}
               onChange={onChange}
               label={t('transactions.supplier', { defaultValue: 'Supplier' })}

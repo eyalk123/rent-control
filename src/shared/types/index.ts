@@ -137,6 +137,7 @@ export interface Transaction {
   amount: number;
   currency_code: string;
   category_id: number | null;
+  category_ids: number[];
   supplier_id: number | null;
   notes: string | null;
   receipt_image_url: string | null;
@@ -164,7 +165,7 @@ export interface TransactionCreateExpense {
   amount: number;
   date_of_payment: string;
   payment_method: PaymentMethod;
-  category_id: number;
+  category_ids: number[];
   supplier_id?: number | null;
   notes?: string;
   receipt_image_url?: string | null;
