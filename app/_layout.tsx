@@ -10,6 +10,7 @@ import {
 } from "@/src/context";
 import { AlertProvider } from "@/src/core/context";
 import { AuthProvider } from "@/src/core/auth/AuthContext";
+import { NotificationProvider } from "@/src/features/notifications/context/NotificationContext";
 import "@/src/core/i18n";
 import * as NavigationBar from "expo-navigation-bar";
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
@@ -92,13 +93,15 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <AuthProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <ThemeProvider>
-            <AppContent />
-          </ThemeProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
+      <NotificationProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </NotificationProvider>
     </AuthProvider>
   );
 });

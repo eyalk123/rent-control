@@ -4,6 +4,7 @@ import { List, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useNotifications } from '@/src/features/notifications/context/NotificationContext';
 import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
 import { Icon } from '@/src/shared/components/ui';
@@ -17,8 +18,15 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   const { themeMode, setThemeMode } = useThemeContext();
   const { language, setLanguage } = useLanguageContext();
   const { signOut } = useAppAuth();
+  const { unregisterDevice } = useNotifications();
   const rtlLabelStyle = useRtlLabelStyle();
   const theme = useTheme();
+
+  const handleSignOut = React.useCallback(async () => {
+    // Unregister the push token while the auth token is still valid, then sign out.
+    await unregisterDevice();
+    await signOut();
+  }, [unregisterDevice, signOut]);
 
   return (
     <ScreenContainer>
@@ -91,7 +99,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
           <List.Item
             title={t('settings.signOut')}
             left={(props) => <Icon name="door-open" size={20} color={props.color} style={props.style} />}
-            onPress={() => signOut()}
+            onPress={handleSignOut}
             style={styles.listItem}
           />
           <List.Item
