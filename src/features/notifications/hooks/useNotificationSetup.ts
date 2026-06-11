@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
+import i18n from 'i18next';
 
 import {
   DevicePlatform,
@@ -77,7 +78,7 @@ export function useNotificationSetup(isSignedIn: boolean) {
         const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
         if (cancelled) return;
         registeredTokenRef.current = token;
-        await registerDeviceToken(token, devicePlatform());
+        await registerDeviceToken(token, devicePlatform(), i18n.language);
       } catch {
         // Token fetch / registration is best-effort; never block app startup.
       }
@@ -89,9 +90,23 @@ export function useNotificationSetup(isSignedIn: boolean) {
       handleNotificationResponse,
     );
 
+    // Keep the stored locale in sync when the user switches app language, so
+    // notifications keep arriving in the right language without re-signing-in.
+    async function onLanguageChanged(lng: string) {
+      const token = registeredTokenRef.current;
+      if (!token) return;
+      try {
+        await registerDeviceToken(token, devicePlatform(), lng);
+      } catch {
+        // Best-effort; the locale will be refreshed on the next registration.
+      }
+    }
+    i18n.on('languageChanged', onLanguageChanged);
+
     return () => {
       cancelled = true;
       responseSub.remove();
+      i18n.off('languageChanged', onLanguageChanged);
     };
   }, [isSignedIn]);
 
