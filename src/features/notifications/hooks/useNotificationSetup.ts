@@ -13,6 +13,7 @@ import {
 } from '@/src/features/notifications/api/notifications';
 
 const ANDROID_CHANNEL_ID = 'default';
+const LOG = '[notifications]';
 
 // Show notifications while the app is in the foreground.
 Notifications.setNotificationHandler({
@@ -55,7 +56,10 @@ export function useNotificationSetup(isSignedIn: boolean) {
 
     async function register() {
       // Remote push requires a physical device; emulators can't receive it.
-      if (!Device.isDevice) return;
+      if (!Device.isDevice) {
+        console.warn(`${LOG} skipped: not a physical device (push needs a real device)`);
+        return;
+      }
 
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
@@ -69,18 +73,26 @@ export function useNotificationSetup(isSignedIn: boolean) {
       if (status !== 'granted') {
         status = (await Notifications.requestPermissionsAsync()).status;
       }
-      if (status !== 'granted') return;
+      if (status !== 'granted') {
+        console.warn(`${LOG} skipped: notification permission not granted (status="${status}")`);
+        return;
+      }
 
       const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-      if (!projectId) return;
+      if (!projectId) {
+        console.warn(`${LOG} skipped: no EAS projectId in expoConfig.extra.eas.projectId`);
+        return;
+      }
 
       try {
         const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
         if (cancelled) return;
         registeredTokenRef.current = token;
         await registerDeviceToken(token, devicePlatform(), i18n.language);
-      } catch {
-        // Token fetch / registration is best-effort; never block app startup.
+        console.log(`${LOG} registered ${token} (locale="${i18n.language}")`);
+      } catch (err) {
+        // Best-effort; never block app startup — but surface why it failed.
+        console.warn(`${LOG} token fetch / registration failed:`, err);
       }
     }
 
@@ -97,8 +109,9 @@ export function useNotificationSetup(isSignedIn: boolean) {
       if (!token) return;
       try {
         await registerDeviceToken(token, devicePlatform(), lng);
-      } catch {
+      } catch (err) {
         // Best-effort; the locale will be refreshed on the next registration.
+        console.warn(`${LOG} locale refresh failed:`, err);
       }
     }
     i18n.on('languageChanged', onLanguageChanged);
@@ -115,8 +128,9 @@ export function useNotificationSetup(isSignedIn: boolean) {
     if (!token) return;
     try {
       await unregisterDeviceToken(token);
-    } catch {
+    } catch (err) {
       // Best-effort; the token will be pruned server-side once Expo reports it dead.
+      console.warn(`${LOG} unregister failed:`, err);
     } finally {
       registeredTokenRef.current = null;
     }
