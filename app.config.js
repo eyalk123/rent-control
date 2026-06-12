@@ -14,6 +14,7 @@ module.exports = {
       : appJson.expo.icon,
     ios: {
       ...appJson.expo.ios,
+      googleServicesFile: process.env.GOOGLE_SERVICES_PLIST || appJson.expo.ios.googleServicesFile,
       bundleIdentifier: IS_DEV
         ? 'com.eyalk123.rentcontrol.dev'
         : IS_PREVIEW

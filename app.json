@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.eyalk123.rentcontrol"
+      "bundleIdentifier": "com.eyalk123.rentcontrol",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -52,7 +56,8 @@
           "color": "#F1E8D6"
         }
       ],
-      ["expo-build-properties",{"android":{"usesCleartextTraffic":true}}],
+      ["expo-build-properties",{"android":{"usesCleartextTraffic":true},"ios":{"useFrameworks":"static"}}],
+      "./plugins/withFirebaseStaticFrameworksFix",
       "@react-native-community/datetimepicker",
       "expo-navigation-bar",
       [
@@ -62,7 +67,19 @@
         }
       ],
       "@react-native-firebase/app",
-      "@react-native-google-signin/google-signin",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.934422884395-h8su10gttfnstpu931i7tna7b3d87rrb"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to add property images.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to use the camera to take property photos."
+        }
+      ],
       [
         "@sentry/react-native/expo",
         {

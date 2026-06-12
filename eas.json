@@ -30,6 +30,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "eyalkdev@gmail.com",
+        "appleTeamId": "WWWJURN6C2",
+        "ascAppId": "6779678079"
+      }
+    }
   }
 }
