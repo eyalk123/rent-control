@@ -38,6 +38,8 @@ function propertyToFormValues(prop: Property): PropertyFormValues {
   return {
     address: prop.address ?? '',
     city: prop.city ?? '',
+    block: prop.block ?? '',
+    plot: prop.plot ?? '',
     zipCode: prop.zip_code ?? '',
     type: PROPERTY_TYPES.includes(prop.type as PropertyType)
       ? (prop.type as PropertyType)
@@ -83,6 +85,8 @@ export function usePropertyForm({
     defaultValues: {
       address: '',
       city: '',
+      block: '',
+      plot: '',
       zipCode: '',
       type: '' as unknown as PropertyType,
       sqFt: '',
@@ -132,6 +136,8 @@ export function usePropertyForm({
     const payload: PropertyCreate = {
       address: values.address,
       city: values.city,
+      block: values.block?.trim() || null,
+      plot: values.plot?.trim() || null,
       zip_code: values.zipCode,
       type: values.type,
       sq_ft: Number(values.sqFt),

@@ -107,6 +107,18 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
         label={t(cityField.labelKey)}
         required={cityField.required}
       />
+      <FormNumericField
+        control={control}
+        name={"block" as any}
+        label={t("property.block")}
+        keyboardType="numeric"
+      />
+      <FormNumericField
+        control={control}
+        name={"plot" as any}
+        label={t("property.plot")}
+        keyboardType="numeric"
+      />
       <FormCreatableDropdown
         control={control}
         name={"propertyOwner" as any}

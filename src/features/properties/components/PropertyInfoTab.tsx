@@ -165,6 +165,24 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
               secondaryColor={colors.textSecondary}
             />
           )}
+          {property.block != null && property.block !== '' && (
+            <IconDetailRow
+              icon="map-pin"
+              label={t('property.block')}
+              value={property.block}
+              iconColor={colors.primary}
+              secondaryColor={colors.textSecondary}
+            />
+          )}
+          {property.plot != null && property.plot !== '' && (
+            <IconDetailRow
+              icon="square"
+              label={t('property.plot')}
+              value={property.plot}
+              iconColor={colors.primary}
+              secondaryColor={colors.textSecondary}
+            />
+          )}
         </Card.Content>
       </Card>
 
