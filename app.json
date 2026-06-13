@@ -56,8 +56,8 @@
           "color": "#F1E8D6"
         }
       ],
-      ["expo-build-properties",{"android":{"usesCleartextTraffic":true},"ios":{"useFrameworks":"static"}}],
-      "./plugins/withFirebaseStaticFrameworksFix",
+      ["expo-build-properties",{"android":{"usesCleartextTraffic":true}}],
+      "./plugins/withFirebaseModularHeaders",
       "@react-native-community/datetimepicker",
       "expo-navigation-bar",
       [
