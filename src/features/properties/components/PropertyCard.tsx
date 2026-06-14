@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
 interface PropertyCardProps {
   property: Property;
@@ -61,19 +62,10 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
           <View style={styles.info}>
             <Text variant="titleSmall" style={styles.address} numberOfLines={1}>
               {property.address}
-            </Text>
-            {(property.floor != null || (property.apartment != null && property.apartment !== '')) && (
-              <Text
-                variant="bodySmall"
-                style={[styles.detail, { color: colors.textSecondary, fontWeight: '700' }]}
-                numberOfLines={1}
-              >
-                {[
-                  property.floor != null ? `${t('property.floor')} ${property.floor}` : null,
-                  property.apartment ? `${t('property.apartment')} ${property.apartment}` : null,
-                ].filter(Boolean).join(' · ')}
+              <Text style={{ color: colors.textSecondary, fontWeight: '400' }}>
+                {formatFloorApartment(property, t)}
               </Text>
-            )}
+            </Text>
             <Text
               variant="bodySmall"
               style={[styles.detail, { color: colors.textSecondary }]}

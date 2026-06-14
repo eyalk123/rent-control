@@ -16,6 +16,7 @@ import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
 import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
 import type { RevenueFormValues } from '@/src/features/transactions/screens/types';
 import type { PaymentMethod } from '@/src/shared/types';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
 type SingleRevenueFormProps = {
   control: Control<RevenueFormValues>;
@@ -37,10 +38,10 @@ export function SingleRevenueForm({
   const propertyData = useMemo(
     () =>
       properties.map((p) => ({
-        label: `${p.address} - ${p.city}`,
+        label: `${p.address}${formatFloorApartment(p, t)} - ${p.city}`,
         value: p.id,
       })),
-    [properties],
+    [properties, t],
   );
 
   return (

@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getRenterById } from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Renter } from '@/src/shared/types';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import {
   LoadingOverlay,
   EmptyState,
@@ -122,7 +123,7 @@ export function RenterDetailScreen() {
               variant="bodyMedium"
               style={{ color: colors.textSecondary, textAlign: 'center' }}
             >
-              {renter.property?.address ?? t('renter.unassigned')}
+              {renter.property ? `${renter.property.address}${formatFloorApartment(renter.property, t)}` : t('renter.unassigned')}
             </Text>
           </View>
 

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { Renter } from '@/src/shared/types';
 import { getLeaseEndDate } from '@/src/shared/types';
 import { formatDateFull } from '@/src/shared/utils/dates';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { lightColors, darkColors } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 
@@ -59,7 +60,7 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
               style={{ color: colors.textSecondary }}
               numberOfLines={1}
             >
-              {renter.property?.address ?? t('renter.unassigned')}
+              {renter.property ? `${renter.property.address}${formatFloorApartment(renter.property, t)}` : t('renter.unassigned')}
             </Text>
             <View style={[styles.badge, { backgroundColor: colors.success }]}>
               <Text variant="labelSmall" style={[styles.badgeText, { color: colors.onPrimary }]}>

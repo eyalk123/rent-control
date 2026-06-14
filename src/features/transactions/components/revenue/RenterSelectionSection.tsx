@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { getRenterMonthlyRent, type Property, type Renter } from '@/src/shared/types';
 import { RenterContractCard } from './RenterContractCard';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
 type PropertyGroup = {
   property: Property;
@@ -92,7 +93,7 @@ export function RenterSelectionSection({
                   style={[styles.propertyHeaderText, { color: colors.textPrimary }]}
                   numberOfLines={1}
                 >
-                  {group.property.address}
+                  {group.property.address}{formatFloorApartment(group.property, t)}
                   {group.property.city ? `, ${group.property.city}` : ''}
                 </Text>
               </View>

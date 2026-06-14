@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { usePropertyContext } from '@/src/context';
 import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
 import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
 import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
 import type { PaymentMethod } from '@/src/shared/types';
@@ -45,10 +46,10 @@ export function ExpenseForm({
   const propertyData = useMemo(
     () =>
       properties.map((p) => ({
-        label: `${p.address} - ${p.city}`,
+        label: `${p.address}${formatFloorApartment(p, t)} - ${p.city}`,
         value: p.id,
       })),
-    [properties],
+    [properties, t],
   );
 
   const renterPropertyId = propertyIds.length === 1 ? propertyIds[0] : null;

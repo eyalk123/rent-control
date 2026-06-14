@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { getPropertyById } from '@/src/features/properties/api/properties';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Property } from '@/src/shared/types';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import {
   Icon,
   LoadingOverlay,
@@ -128,7 +129,7 @@ export function PropertyDetailScreen() {
 
           <View style={styles.addressRow}>
             <Text variant="titleLarge" style={[styles.addressText, { color: colors.textPrimary }]}>
-              {property.address}, {property.city}
+              {property.address}{formatFloorApartment(property, t)}, {property.city}
             </Text>
           </View>
 

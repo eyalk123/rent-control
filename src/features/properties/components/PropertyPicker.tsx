@@ -3,6 +3,7 @@ import { type StyleProp, type ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 import { usePropertyContext } from "@/src/context";
 import { DropdownField } from "@/src/shared/components/form";
+import { formatFloorApartment } from "@/src/shared/utils/propertyAddress";
 
 interface PropertyPickerProps {
   value: number | null;
@@ -26,7 +27,7 @@ export function PropertyPicker({
     () => [
       { label: t("renter.unassigned"), value: null as number | null },
       ...properties.map((p) => ({
-        label: `${p.address} - ${p.city}`,
+        label: `${p.address}${formatFloorApartment(p, t)} - ${p.city}`,
         value: p.id as number,
       })),
     ],

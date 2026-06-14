@@ -8,6 +8,7 @@ import type { PropertyBrief, PropertyType, Renter } from '@/src/shared/types';
 import { EmptyState } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
 type ThemeColors = typeof lightColors | typeof darkColors;
 
@@ -54,6 +55,9 @@ function PropertyCard({
           <View style={styles.info}>
             <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
               {property.address}
+              <Text style={{ color: colors.textSecondary, fontWeight: '400' }}>
+                {formatFloorApartment(property, t)}
+              </Text>
             </Text>
             <Text
               variant="bodySmall"
