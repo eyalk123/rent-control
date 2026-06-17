@@ -10,6 +10,10 @@ type FormChipInputProps<TFieldValues extends FieldValues> = {
   name: Path<TFieldValues>;
   label: string;
   placeholder?: string;
+  /** Restrict entry to non-negative integers and de-duplicate (e.g. reminder offsets). */
+  numeric?: boolean;
+  /** Keep chips sorted ascending (numerically when `numeric`, else lexically). */
+  sort?: boolean;
 };
 
 function FormChipInputInner<TFieldValues extends FieldValues>({
@@ -17,6 +21,8 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
   name,
   label,
   placeholder,
+  numeric,
+  sort,
 }: FormChipInputProps<TFieldValues>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -32,9 +38,32 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
       .filter((v) => v.length > 0);
   }, []);
 
-  const joinChips = React.useCallback((chips: string[]): string => {
-    return chips.join(', ');
-  }, []);
+  const finalize = React.useCallback(
+    (chips: string[]): string => {
+      let next = chips;
+      if (sort) {
+        next = numeric
+          ? [...next].sort((a, b) => Number(a) - Number(b))
+          : [...next].sort();
+      }
+      return next.join(', ');
+    },
+    [numeric, sort],
+  );
+
+  const addChip = React.useCallback(
+    (raw: string, existing: string[]): string[] | null => {
+      const trimmed = raw.trim();
+      if (!trimmed) return null;
+      if (numeric) {
+        const n = parseInt(trimmed, 10);
+        if (Number.isNaN(n) || n < 0 || existing.includes(String(n))) return null;
+        return [...existing, String(n)];
+      }
+      return [...existing, trimmed];
+    },
+    [numeric],
+  );
 
   const [inputValue, setInputValue] = React.useState('');
 
@@ -42,11 +71,8 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
     currentFieldValue: unknown,
     onChange: (val: unknown) => void,
   ) => {
-    const trimmed = inputValue.trim();
-    if (!trimmed) return;
-    const existing = parseChips(currentFieldValue);
-    const next = [...existing, trimmed];
-    onChange(joinChips(next));
+    const next = addChip(inputValue, parseChips(currentFieldValue));
+    if (next) onChange(finalize(next));
     setInputValue('');
   };
 
@@ -57,23 +83,21 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
   ) => {
     const existing = parseChips(currentFieldValue);
     const next = existing.filter((c) => c !== chip);
-    onChange(joinChips(next));
+    onChange(finalize(next));
   };
 
   const handleChangeText = (
-    text: string,
+    rawText: string,
     currentFieldValue: unknown,
     onChange: (val: unknown) => void,
   ) => {
+    const text = numeric ? rawText.replace(/[^0-9,]/g, '') : rawText;
     if (text.includes(',')) {
       const parts = text.split(',');
       const first = parts[0]?.trim() ?? '';
       const rest = parts.slice(1).join(',');
-      if (first.length > 0) {
-        const existing = parseChips(currentFieldValue);
-        const next = [...existing, first];
-        onChange(joinChips(next));
-      }
+      const next = addChip(first, parseChips(currentFieldValue));
+      if (next) onChange(finalize(next));
       setInputValue(rest);
     } else {
       setInputValue(text);
@@ -103,6 +127,7 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
               mode="outlined"
               dense
               error={!!error}
+              keyboardType={numeric ? 'numeric' : undefined}
               placeholder={placeholder}
               style={[
                 styles.input,

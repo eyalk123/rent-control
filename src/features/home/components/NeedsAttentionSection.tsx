@@ -9,8 +9,8 @@ import { Icon } from '@/src/shared/components/ui/Icon';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { formatMoney } from '@/src/shared/utils/money';
-import { getOverdueRenters, getExpiringRenters } from '@/src/features/home/api/homeApi';
-import type { OverdueRenter, ExpiringRenter } from '@/src/features/home/api/homeApi';
+import { getNotifications, dismissNotification } from '@/src/features/notifications/api/feed';
+import type { NotificationItem } from '@/src/features/notifications/types';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
 import { useTransactionSummaryContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
@@ -33,9 +33,43 @@ function currentMonthFor() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
 }
 
-type AttentionItem =
-  | (ExpiringRenter & { _type: 'expiring' })
-  | (OverdueRenter & { _type: 'overdue' });
+function isoFromDaysOut(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** A feed item flattened into the shape the rows render. `notifId` keys the
+ * server dismiss; the server already collapses duplicate offsets. */
+type AttentionItem = {
+  notifId: number;
+  renter_id: number;
+  first_name: string;
+  last_name: string;
+  property_id: number | null;
+  property_address: string | null;
+  payment_type: string | null;
+} & (
+  | { _type: 'expiring'; days_until_expiry: number; lease_end_date: string }
+  | { _type: 'overdue'; days_overdue: number; monthly_amount: number }
+);
+
+function toAttentionItem(n: NotificationItem): AttentionItem {
+  const base = {
+    notifId: n.id,
+    renter_id: n.renter_id,
+    first_name: n.first_name ?? '',
+    last_name: n.last_name ?? '',
+    property_id: n.property_id,
+    property_address: n.property_address,
+    payment_type: n.payment_type,
+  };
+  if (n.type === 'lease_expiring') {
+    const days = n.data.days_until_expiry ?? 0;
+    return { ...base, _type: 'expiring', days_until_expiry: days, lease_end_date: isoFromDaysOut(days) };
+  }
+  return { ...base, _type: 'overdue', days_overdue: n.data.days_overdue ?? 0, monthly_amount: n.data.amount ?? 0 };
+}
 
 function formatLeaseDate(iso: string): string {
   const [year, month, day] = iso.split('-').map(Number);
@@ -70,9 +104,9 @@ interface AttentionItemRowProps {
   amberBg: string;
   primaryBg: string;
   neutralBg: string;
-  onDismiss: (key: string) => void;
+  onDismiss: (notifId: number) => void;
   onNavigate: (path: string) => void;
-  onMarkPaid: (renter: OverdueRenter) => void;
+  onMarkPaid: (item: AttentionItem) => void;
   markPaidLoadingIds: Set<number>;
 }
 
@@ -112,7 +146,7 @@ function AttentionItemRow({
                 label={t('home.actionIgnore')}
                 bg={neutralBg}
                 textColor={colors.textSecondary}
-                onPress={() => onDismiss(`e-${item.renter_id}`)}
+                onPress={() => onDismiss(item.notifId)}
               />
               <ActionPill
                 label={t('home.actionUpdateLease')}
@@ -156,13 +190,13 @@ function AttentionItemRow({
               label={t('home.actionIgnore')}
               bg={neutralBg}
               textColor={colors.textSecondary}
-              onPress={() => onDismiss(`o-${item.renter_id}`)}
+              onPress={() => onDismiss(item.notifId)}
             />
             <ActionPill
               label={markPaidLoadingIds.has(item.renter_id) ? t('home.actionSaving') : t('home.actionMarkPaid')}
               bg={colors.revBg}
               textColor={colors.revFg}
-              onPress={() => !markPaidLoadingIds.has(item.renter_id) && onMarkPaid(item as OverdueRenter)}
+              onPress={() => !markPaidLoadingIds.has(item.renter_id) && onMarkPaid(item)}
             />
           </View>
         </View>
@@ -182,23 +216,22 @@ export function NeedsAttentionSection() {
   const { refresh: refreshSummary } = useTransactionSummaryContext();
   const { refresh: refreshTransactions } = usePaginatedTransactionContext();
 
-  const [expiring, setExpiring] = useState<ExpiringRenter[]>([]);
-  const [overdue, setOverdue] = useState<OverdueRenter[]>([]);
+  const [items, setItems] = useState<AttentionItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [markPaidLoadingIds, setMarkPaidLoadingIds] = useState<Set<number>>(new Set());
   const [modalVisible, setModalVisible] = useState(false);
   const isFirstLoad = useRef(true);
 
   const fetchData = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
-    const [expResult, ovdResult] = await Promise.allSettled([
-      getExpiringRenters(),
-      getOverdueRenters(),
-    ]);
-    if (expResult.status === 'fulfilled') setExpiring(expResult.value);
-    if (ovdResult.status === 'fulfilled') setOverdue(ovdResult.value);
-    if (!silent) setLoading(false);
+    try {
+      const feed = await getNotifications('all');
+      setItems(feed.map(toAttentionItem));
+    } catch {
+      // section stays as-is on error
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, []);
 
   useFocusEffect(
@@ -209,41 +242,50 @@ export function NeedsAttentionSection() {
     }, [fetchData]),
   );
 
-  const dismiss = (key: string) => setDismissed((prev) => new Set(prev).add(key));
   const navigate = (path: string) => {
     setModalVisible(false);
     router.push(path as never);
   };
 
-  const handleMarkPaid = useCallback(async (renter: OverdueRenter) => {
-    if (!renter.property_id) return;
-    setMarkPaidLoadingIds((prev) => new Set(prev).add(renter.renter_id));
+  // Ignore -> dismiss on the server (clears the whole offset group), then refetch.
+  const dismiss = useCallback(async (notifId: number) => {
+    setItems((prev) => prev.filter((i) => i.notifId !== notifId)); // optimistic
+    try {
+      await dismissNotification(notifId);
+    } catch {
+      fetchData(true);
+    }
+  }, [fetchData]);
+
+  const handleMarkPaid = useCallback(async (item: AttentionItem) => {
+    if (item._type !== 'overdue' || !item.property_id) return;
+    setMarkPaidLoadingIds((prev) => new Set(prev).add(item.renter_id));
     try {
       await createRevenueTransaction({
-        property_id: renter.property_id,
-        renter_id: renter.renter_id,
-        amount: renter.monthly_amount,
+        property_id: item.property_id,
+        renter_id: item.renter_id,
+        amount: item.monthly_amount,
         date_of_payment: todayIso(),
         month_for: currentMonthFor(),
-        payment_method: mapPaymentType(renter.payment_type),
+        payment_method: mapPaymentType(item.payment_type),
       });
-      dismiss(`o-${renter.renter_id}`);
+      await dismissNotification(item.notifId);
+      setItems((prev) => prev.filter((i) => i.notifId !== item.notifId));
       await Promise.allSettled([refreshSummary(), refreshTransactions()]);
     } catch {
       appAlert('Error', 'Failed to record payment. Please try again.');
     } finally {
       setMarkPaidLoadingIds((prev) => {
         const next = new Set(prev);
-        next.delete(renter.renter_id);
+        next.delete(item.renter_id);
         return next;
       });
     }
   }, [refreshSummary, refreshTransactions, appAlert]);
 
-  const allItems: AttentionItem[] = [
-    ...expiring.filter((i) => !dismissed.has(`e-${i.renter_id}`)).map((i) => ({ ...i, _type: 'expiring' as const })),
-    ...overdue.filter((i) => !dismissed.has(`o-${i.renter_id}`)).map((i) => ({ ...i, _type: 'overdue' as const })),
-  ];
+  const expiring = items.filter((i): i is Extract<AttentionItem, { _type: 'expiring' }> => i._type === 'expiring');
+  // Lease-expiring first, then overdue (preserves the prior ordering).
+  const allItems: AttentionItem[] = [...expiring, ...items.filter((i) => i._type === 'overdue')];
 
   const previewItems = allItems.slice(0, PREVIEW_LIMIT);
   const hasMore = allItems.length > PREVIEW_LIMIT;
@@ -255,9 +297,29 @@ export function NeedsAttentionSection() {
   const shimmer = useShimmer(loading);
   const rowProps = { colors, amberBg, primaryBg, neutralBg, onDismiss: dismiss, onNavigate: navigate, onMarkPaid: handleMarkPaid, markPaidLoadingIds };
 
+  // Label + a manage button that opens the notification rules page, shown in
+  // every state so the rules are always reachable from Home.
+  const header = (
+    <View style={styles.headerRow}>
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+        {t('home.needsAttention').toUpperCase()}
+      </Text>
+      <TouchableOpacity
+        onPress={() => navigate('/notifications')}
+        hitSlop={10}
+        accessibilityRole="button"
+        accessibilityLabel={t('notifications.manageTitle')}
+      >
+        <Icon name="settings" size={ICON_SM} color={colors.textSecondary} />
+      </TouchableOpacity>
+    </View>
+  );
+
   if (loading) {
     return (
-      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
+      <>
+        {header}
+        <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
         {[0, 1].map((i) => (
           <View key={i}>
             {i > 0 && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
@@ -278,7 +340,8 @@ export function NeedsAttentionSection() {
             </View>
           </View>
         ))}
-      </View>
+        </View>
+      </>
     );
   }
 
@@ -290,30 +353,31 @@ export function NeedsAttentionSection() {
     const pillBg = theme.dark ? 'rgba(31,122,96,0.18)' : '#E6F0EA';
 
     return (
-      <View style={[styles.catchUpPill, { backgroundColor: pillBg }]}>
-        <View style={styles.catchUpDot} />
-        <Text style={styles.catchUpTitle}>{t('home.allCaughtUp')}</Text>
-        {showMeta && (
-          <Text style={styles.catchUpMeta}>
-            {t('home.nextDueMeta', {
-              date: formatLeaseDate(nearest!.lease_end_date),
-              days: nearest!.days_until_expiry,
-            })}
-          </Text>
-        )}
-      </View>
+      <>
+        {header}
+        <View style={[styles.catchUpPill, { backgroundColor: pillBg }]}>
+          <View style={styles.catchUpDot} />
+          <Text style={styles.catchUpTitle}>{t('home.allCaughtUp')}</Text>
+          {showMeta && (
+            <Text style={styles.catchUpMeta}>
+              {t('home.nextDueMeta', {
+                date: formatLeaseDate(nearest!.lease_end_date),
+                days: nearest!.days_until_expiry,
+              })}
+            </Text>
+          )}
+        </View>
+      </>
     );
   }
 
   return (
     <>
-      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-        {t('home.needsAttention').toUpperCase()}
-      </Text>
+      {header}
       <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
         {previewItems.map((item, idx) => (
           <AttentionItemRow
-            key={item._type === 'expiring' ? `e-${item.renter_id}` : `o-${item.renter_id}`}
+            key={item.notifId}
             item={item}
             isLast={idx === previewItems.length - 1 && !hasMore}
             {...rowProps}
@@ -359,7 +423,7 @@ export function NeedsAttentionSection() {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sheetScroll}>
             {allItems.map((item, idx) => (
               <AttentionItemRow
-                key={item._type === 'expiring' ? `e-${item.renter_id}` : `o-${item.renter_id}`}
+                key={item.notifId}
                 item={item}
                 isLast={idx === allItems.length - 1}
                 {...rowProps}
@@ -482,6 +546,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'rgba(31,122,96,0.80)',
     marginStart: 'auto' as any,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
   },
   sectionLabel: {
     fontSize: 12,
