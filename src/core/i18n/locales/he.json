@@ -116,6 +116,7 @@
     "scopeRenters": "דיירים מסוימים",
     "noOwners": "עדיין לא הוגדרו בעלי נכסים.",
     "scopeSearch": "חיפוש…",
+    "scopeNoMatches": "אין תוצאות.",
     "scopeCountProperties": "{{count}} נכסים",
     "scopeCountRenters": "{{count}} דיירים",
     "summaryBefore": "{{days}} ימים לפני",

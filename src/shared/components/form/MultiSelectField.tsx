@@ -29,9 +29,6 @@ interface MultiSelectFieldProps<T extends string | number> {
   error?: { message?: string };
   disabled?: boolean;
   inputStyle?: StyleProp<ViewStyle>;
-  /** Show an in-dropdown search box (useful for long lists like renters). */
-  search?: boolean;
-  searchPlaceholder?: string;
 }
 
 export function MultiSelectField<T extends string | number>({
@@ -43,8 +40,6 @@ export function MultiSelectField<T extends string | number>({
   error,
   disabled = false,
   inputStyle,
-  search = false,
-  searchPlaceholder,
 }: MultiSelectFieldProps<T>) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -105,8 +100,6 @@ export function MultiSelectField<T extends string | number>({
           valueField="value"
           value={[]}
           placeholder={placeholder ?? t("common.selectItem")}
-          search={search}
-          searchPlaceholder={searchPlaceholder ?? t("common.search", { defaultValue: "Search…" })}
           disable={disabled}
           renderRightIcon={isRtl ? () => null : undefined}
           renderLeftIcon={

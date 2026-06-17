@@ -116,6 +116,7 @@
     "scopeRenters": "Specific renters",
     "noOwners": "No property owners set on your properties yet.",
     "scopeSearch": "Search…",
+    "scopeNoMatches": "No matches.",
     "scopeCountProperties": "{{count}} properties",
     "scopeCountRenters": "{{count}} renters",
     "summaryBefore": "{{days}} days before",
