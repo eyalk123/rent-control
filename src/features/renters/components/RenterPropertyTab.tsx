@@ -36,6 +36,7 @@ function PropertyCard({
     `property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`,
   );
   const imageSource = getPropertyImageSource(property.image_url);
+  const floorApartment = formatFloorApartment(property, t, false);
 
   return (
     <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
@@ -55,10 +56,16 @@ function PropertyCard({
           <View style={styles.info}>
             <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
               {property.address}
-              <Text style={{ color: colors.textSecondary, fontWeight: '400' }}>
-                {formatFloorApartment(property, t)}
-              </Text>
             </Text>
+            {floorApartment !== '' && (
+              <Text
+                variant="bodySmall"
+                style={[styles.detail, { color: colors.textSecondary }]}
+                numberOfLines={1}
+              >
+                {floorApartment}
+              </Text>
+            )}
             <Text
               variant="bodySmall"
               style={{ color: colors.textSecondary }}
@@ -152,6 +159,9 @@ const styles = StyleSheet.create({
   },
   name: {
     fontWeight: '600',
+    marginBottom: 2,
+  },
+  detail: {
     marginBottom: 2,
   },
   rightSection: {

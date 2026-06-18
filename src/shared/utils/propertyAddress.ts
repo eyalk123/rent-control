@@ -9,6 +9,7 @@ type TFn = (key: string) => string;
 export function formatFloorApartment(
   property: Pick<Property, 'floor' | 'apartment'>,
   t: TFn,
+  leadingSeparator: boolean = true,
 ): string {
   const parts: string[] = [];
   if (property.floor != null && String(property.floor).trim() !== '') {
@@ -17,7 +18,8 @@ export function formatFloorApartment(
   if (property.apartment != null && String(property.apartment).trim() !== '') {
     parts.push(`${t('property.apartment')} ${property.apartment}`);
   }
-  return parts.length ? `, ${parts.join(', ')}` : '';
+  if (!parts.length) return '';
+  return leadingSeparator ? `, ${parts.join(', ')}` : parts.join(', ');
 }
 
 /** Builds the full "address, <floor label> N, <apartment label> X" string. */
