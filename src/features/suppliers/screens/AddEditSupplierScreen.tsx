@@ -1,9 +1,7 @@
 import { useLanguageContext } from "@/src/context";
-import { getApiErrorMessage } from "@/src/core/api/client";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
 import { useAlert } from "@/src/core/context";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
-import { updateSupplier } from "@/src/features/suppliers/api/suppliers";
 import { SupplierForm } from "@/src/features/suppliers/components/SupplierForm";
 import { useSupplierForm } from "@/src/features/suppliers/hooks/useSupplierForm";
 import { useSuppliersList } from "@/src/features/suppliers/hooks/useSuppliersList";
@@ -37,43 +35,6 @@ export function AddEditSupplierScreen() {
 
   const { formState, control, setValue } = formMethods;
   const { requestPermission, pickContact } = useContactPicker();
-  const [isDeleting, setIsDeleting] = React.useState(false);
-
-  const handleDelete = React.useCallback(async () => {
-    if (!id) return;
-    const numericId = parseInt(id, 10);
-    if (Number.isNaN(numericId)) return;
-
-    appAlert(
-      t("suppliers.deleteConfirmTitle", { defaultValue: "Delete supplier?" }),
-      t("suppliers.deleteConfirmMessage", {
-        defaultValue:
-          "This will deactivate the supplier. You can reactivate it later by editing.",
-      }),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("suppliers.delete", { defaultValue: "Delete Supplier" }),
-          style: "destructive",
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await updateSupplier(numericId, { is_active: false });
-              await refreshSuppliers();
-              router.back();
-            } catch (err) {
-              appAlert(
-                t("error.title"),
-                getApiErrorMessage(err, t('error.deleteSupplierFailed')),
-              );
-            } finally {
-              setIsDeleting(false);
-            }
-          },
-        },
-      ],
-    );
-  }, [id, refreshSuppliers, router, t]);
 
   const handlePickFromContacts = React.useCallback(async () => {
     const status = await requestPermission();
@@ -201,7 +162,7 @@ export function AddEditSupplierScreen() {
             mode="contained"
             onPress={onPressSubmit}
             loading={isSubmitting}
-            disabled={isSubmitting || isDeleting}
+            disabled={isSubmitting}
             style={styles.saveButton}
             contentStyle={styles.saveButtonContent}
           >
@@ -211,18 +172,6 @@ export function AddEditSupplierScreen() {
                 })
               : t("suppliers.saveSupplier", { defaultValue: "Save Supplier" })}
           </Button>
-          {isEdit && (
-            <Button
-              mode="text"
-              onPress={handleDelete}
-              disabled={isSubmitting || isDeleting}
-              loading={isDeleting}
-              textColor={theme.colors.error}
-              style={styles.deleteButton}
-            >
-              {t("suppliers.delete", { defaultValue: "Delete Supplier" })}
-            </Button>
-          )}
         </View>
       </View>
     </ScreenContainer>
@@ -266,8 +215,5 @@ const styles = StyleSheet.create({
   },
   saveButtonContent: {
     minHeight: 48,
-  },
-  deleteButton: {
-    marginTop: spacing.sm,
   },
 });

@@ -306,6 +306,7 @@
     "owner": "בעלים",
     "category": "קטגוריה",
     "supplier": "ספק",
+    "name": "שם",
     "clear": "נקה סינון"
   },
   "common": {
@@ -320,6 +321,7 @@
     "tryAgain": "נסה שוב",
     "create": "צור",
     "add": "הוסף",
+    "edit": "עריכה",
     "selectItem": "בחר פריט",
     "showMore": "הצג עוד",
     "showLess": "הצג פחות",

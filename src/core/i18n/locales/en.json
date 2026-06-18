@@ -306,6 +306,7 @@
     "owner": "Owner",
     "category": "Category",
     "supplier": "Supplier",
+    "name": "Name",
     "clear": "Clear filter"
   },
   "common": {
@@ -320,6 +321,7 @@
     "tryAgain": "Try Again",
     "create": "Create",
     "add": "Add",
+    "edit": "Edit",
     "selectItem": "Select item",
     "showMore": "Show more",
     "showLess": "Show less",

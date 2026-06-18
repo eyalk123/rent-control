@@ -6,33 +6,42 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Searchbar, Text, useTheme } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import {
   AppFab,
   ContactActionsRow,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
+  FilterChipsBar,
+  FilterChip,
+  FilterBottomSheet,
+  FilterOption,
+  ActiveFilterPills,
 } from '@/src/shared/components/ui';
 import { useSuppliersList } from '@/src/features/suppliers/hooks/useSuppliersList';
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
 import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
+import { updateSupplier } from '@/src/features/suppliers/api/suppliers';
+import { SupplierDetailModal } from '@/src/features/suppliers/components/SupplierDetailModal';
+import { getApiErrorMessage } from '@/src/core/api/client';
+import { useAlert } from '@/src/core/context';
 import type { Supplier } from '@/src/shared/types';
 import { spacing } from '@/src/core/theme';
+
+type ActiveSheet = 'name' | 'category' | null;
 
 export function SuppliersListScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
-  const rtlInputStyle = useRtlInputStyle();
-  const rtlPlaceholder = useRtlPlaceholder();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { appAlert } = useAlert();
   const {
     suppliers,
     loading,
@@ -41,8 +50,12 @@ export function SuppliersListScreen() {
     retryLoad,
   } = useSuppliersList();
   const { categories } = useExpenseCategories();
-  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+
+  const [nameFilter, setNameFilter] = useState<number | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<number | null>(null);
+  const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -50,23 +63,97 @@ export function SuppliersListScreen() {
     }, [refreshSuppliers]),
   );
 
-  const filteredSuppliers = useMemo(() => {
-    let list = suppliers;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter((supplier) => {
-        const name = (supplier.name ?? '').toLowerCase();
-        const phone = (supplier.phone ?? '').toLowerCase();
-        const email = (supplier.email ?? '').toLowerCase();
-        return name.includes(q) || phone.includes(q) || email.includes(q);
-      });
-    }
-    return list;
-  }, [suppliers, searchQuery]);
+  const nameOptions = useMemo<FilterOption[]>(
+    () => suppliers.map((s) => ({ id: s.id, label: s.name })),
+    [suppliers],
+  );
 
-  const handleSupplierPress = (id: number) => {
+  const categoryOptions = useMemo<FilterOption[]>(() => {
+    const seen = new Set<number>();
+    const opts: FilterOption[] = [];
+    for (const s of suppliers) {
+      for (const id of s.category_ids ?? []) {
+        if (seen.has(id)) continue;
+        const cat = categories.find((c) => c.id === id);
+        if (!cat) continue;
+        seen.add(id);
+        opts.push({ id, label: getCategoryDisplayName(cat, t) });
+      }
+    }
+    return opts;
+  }, [suppliers, categories, t]);
+
+  const filteredSuppliers = useMemo(() => {
+    return suppliers.filter((supplier) => {
+      if (nameFilter !== null && supplier.id !== nameFilter) return false;
+      if (
+        categoryFilter !== null &&
+        !(supplier.category_ids ?? []).includes(categoryFilter)
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [suppliers, nameFilter, categoryFilter]);
+
+  const filterChips = useMemo<FilterChip[]>(
+    () => [
+      {
+        key: 'name',
+        label: t('filters.name', { defaultValue: 'Name' }),
+        selectedLabel: nameOptions.find((o) => o.id === nameFilter)?.label ?? null,
+        onPress: () => setActiveSheet('name'),
+        onClear: () => setNameFilter(null),
+      },
+      {
+        key: 'category',
+        label: t('filters.category', { defaultValue: 'Category' }),
+        selectedLabel:
+          categoryOptions.find((o) => o.id === categoryFilter)?.label ?? null,
+        onPress: () => setActiveSheet('category'),
+        onClear: () => setCategoryFilter(null),
+      },
+    ],
+    [t, nameOptions, categoryOptions, nameFilter, categoryFilter],
+  );
+
+  const handleSupplierPress = (supplier: Supplier) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedSupplier(supplier);
+  };
+
+  const handleEditSupplier = (id: number) => {
+    setSelectedSupplier(null);
     router.push(`/transactions/suppliers/${id}` as any);
+  };
+
+  const handleDeleteSupplier = (supplier: Supplier) => {
+    appAlert(
+      t('suppliers.deleteConfirmTitle', { defaultValue: 'Delete supplier?' }),
+      t('suppliers.deleteConfirmMessage', {
+        defaultValue:
+          'This will deactivate the supplier. You can reactivate it later by editing.',
+      }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('suppliers.delete', { defaultValue: 'Delete Supplier' }),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await updateSupplier(supplier.id, { is_active: false });
+              await refreshSuppliers();
+              setSelectedSupplier(null);
+            } catch (err) {
+              appAlert(
+                t('error.title'),
+                getApiErrorMessage(err, t('error.deleteSupplierFailed')),
+              );
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleAddPress = () => {
@@ -136,13 +223,8 @@ export function SuppliersListScreen() {
         <Text variant="headlineLarge" style={styles.heroTitle}>
           {t('suppliers.title', { defaultValue: 'Suppliers' })}
         </Text>
-        <Searchbar
-          placeholder={rtlPlaceholder(t('search.placeholderSuppliers'))}
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          style={styles.searchbar}
-          inputStyle={rtlInputStyle}
-        />
+        <FilterChipsBar chips={filterChips} stretch />
+        <ActiveFilterPills chips={filterChips} />
       </View>
       <FlatList
         data={filteredSuppliers}
@@ -165,7 +247,7 @@ export function SuppliersListScreen() {
             >
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => handleSupplierPress(item.id)}
+                onPress={() => handleSupplierPress(item)}
                 style={styles.rowMain}
               >
                 <View style={styles.rowContent}>
@@ -231,6 +313,30 @@ export function SuppliersListScreen() {
         accessibilityLabel={t('suppliers.add')}
         bottomInset={insets.bottom}
       />
+      <FilterBottomSheet
+        visible={activeSheet === 'name'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.name', { defaultValue: 'Name' })}
+        options={nameOptions}
+        selectedId={nameFilter}
+        onSelect={(id) => setNameFilter(id as number | null)}
+      />
+      <FilterBottomSheet
+        visible={activeSheet === 'category'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('filters.category', { defaultValue: 'Category' })}
+        options={categoryOptions}
+        selectedId={categoryFilter}
+        onSelect={(id) => setCategoryFilter(id as number | null)}
+      />
+      <SupplierDetailModal
+        visible={selectedSupplier !== null}
+        supplier={selectedSupplier}
+        categoryNames={selectedSupplier ? getCategoryNames(selectedSupplier) : ''}
+        onDismiss={() => setSelectedSupplier(null)}
+        onEdit={handleEditSupplier}
+        onDelete={handleDeleteSupplier}
+      />
     </ScreenContainer>
   );
 }
@@ -245,11 +351,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: spacing.sm,
     fontSize: 28,
-  },
-  searchbar: {
-    minHeight: 40,
-    marginBottom: spacing.sm,
-    borderRadius: 10,
   },
   list: {
     paddingHorizontal: spacing.lg,
