@@ -10,7 +10,7 @@ import { TransactionsHero } from './TransactionsHero';
 import { MonthsBarChart } from './MonthsBarChart';
 import { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
 import { TypeFilterChips, type TransactionTypeFilter } from './TypeFilterChips';
-import { ActiveFilterPills } from './ActiveFilterPills';
+import { ActiveFilterPills } from '@/src/shared/components/ui/ActiveFilterPills';
 
 interface TransactionsListHeaderProps {
   filterChipsRef: RefObject<FilterChipsBarHandle | null>;

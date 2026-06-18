@@ -17,6 +17,7 @@ import {
   FilterChip,
   FilterBottomSheet,
   FilterOption,
+  ActiveFilterPills,
 } from '@/src/shared/components/ui';
 import { RenterCard } from '@/src/features/renters/components/RenterCard';
 import { deleteRenter } from '@/src/features/renters/api/renters';
@@ -279,6 +280,7 @@ export function RentersListScreen() {
           </Text>
         )}
         <FilterChipsBar chips={filterChips} stretch />
+        <ActiveFilterPills chips={filterChips} />
       </View>
       <FlatList
         data={filteredRenters}

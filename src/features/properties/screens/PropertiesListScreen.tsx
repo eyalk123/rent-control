@@ -21,6 +21,7 @@ import {
   FilterChip,
   FilterBottomSheet,
   FilterOption,
+  ActiveFilterPills,
 } from '@/src/shared/components/ui';
 import { PropertyCard } from '@/src/features/properties/components/PropertyCard';
 import { deleteProperty } from '@/src/features/properties/api/properties';
@@ -257,6 +258,7 @@ export function PropertiesListScreen() {
           </Text>
         )}
         <FilterChipsBar chips={filterChips} stretch />
+        <ActiveFilterPills chips={filterChips} />
       </View>
       <FlatList
         data={filteredProperties}
