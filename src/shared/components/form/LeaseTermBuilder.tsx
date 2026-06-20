@@ -91,11 +91,6 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
     { value: "custom", label: t("renter.rentChangeCustom") },
   ];
 
-  const typeSegments: Segment<LeaseYearType>[] = [
-    { value: "contract", label: t("renter.leaseYearTypeContract") },
-    { value: "option", label: t("renter.leaseYearTypeOption") },
-  ];
-
   const contractCount = Number(contractStr) || 0;
   let endDate: Date | null = null;
   if (leaseStart && contractCount > 0) {
@@ -249,30 +244,55 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
                 </View>
 
                 {isCustom ? (
-                  <View style={styles.rowContent}>
-                    <View style={[styles.rowHeader, { flexDirection: rowDirection }]}>
-                      <Text style={[styles.yearLabel, { color: colors.textPrimary }]}>
-                        {getLeaseYearLabel(leaseStart, index)}
-                      </Text>
-                      {isCurrent ? renderNowChip() : null}
-                    </View>
-                    <FormNumericField
-                      control={control}
-                      name={`leaseYears.${index}.amount` as Path<TFieldValues>}
-                      label={t("renter.leaseYearAmount")}
-                      keyboardType="decimal-pad"
-                    />
+                  <View
+                    style={[styles.rowContent, styles.previewContent, { flexDirection: rowDirection }]}
+                  >
+                    <Text
+                      style={[
+                        styles.previewYear,
+                        { color: colors.textPrimary },
+                        isCurrent && styles.previewYearCurrent,
+                      ]}
+                    >
+                      {getLeaseYearLabel(leaseStart, index)}
+                    </Text>
                     <Controller
                       control={control}
-                      name={`leaseYears.${index}.type` as Path<TFieldValues>}
+                      name={`leaseYears.${index}.amount` as Path<TFieldValues>}
                       render={({ field }) => (
-                        <SegmentedControl
-                          segments={typeSegments}
-                          value={(field.value as LeaseYearType) ?? "contract"}
-                          onChange={(v) => field.onChange(v)}
+                        <RNTextInput
+                          value={(field.value as string) ?? ""}
+                          onChangeText={field.onChange}
+                          onBlur={field.onBlur}
+                          keyboardType="decimal-pad"
+                          placeholder="0"
+                          placeholderTextColor={colors.textSecondary}
+                          style={[
+                            styles.inlineAmount,
+                            {
+                              borderColor: colors.outline,
+                              backgroundColor: colors.inputFilledBackground,
+                              color: colors.textPrimary,
+                            },
+                            rtlInputStyle,
+                          ]}
                         />
                       )}
                     />
+                    <Text
+                      style={[
+                        styles.typeText,
+                        {
+                          color: yearType === "option" ? colors.accent : colors.textSecondary,
+                          fontWeight: yearType === "option" ? "700" : "600",
+                        },
+                      ]}
+                    >
+                      {yearType === "contract"
+                        ? t("renter.leaseYearTypeContract")
+                        : t("renter.leaseYearTypeOption")}
+                    </Text>
+                    {isCurrent ? renderNowChip() : null}
                   </View>
                 ) : (
                   <View
@@ -421,13 +441,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
   },
-  rowHeader: {
-    alignItems: "center",
-    gap: spacing.sm,
-    marginBottom: spacing.xs,
-  },
-  yearLabel: {
-    fontWeight: "700",
+  inlineAmount: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 0,
+    height: 40,
     fontSize: 15,
   },
   endRow: {

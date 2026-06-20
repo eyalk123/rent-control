@@ -52,10 +52,11 @@ export function rentForYear(
 }
 
 /**
- * Builds the materialized lease-year schedule from term intent. In "custom" mode
- * amounts are not formula-driven — pass `existingRows` to preserve the user's
- * per-year amount *and* type, falling back to `baseRent` and the positional type
- * (contract years first, then option years) for newly added years.
+ * Builds the materialized lease-year schedule from term intent. The Contract /
+ * Option split is always positional — the first `contractYears` are `contract`,
+ * the rest `option` — so it is fully owned by the steppers. Only the *amount*
+ * varies by mode: `custom` preserves the existing row's amount (pass
+ * `existingRows`), other modes derive it from the escalation rule.
  */
 export function buildLeaseYears(
   input: LeaseScheduleInput,
@@ -69,16 +70,12 @@ export function buildLeaseYears(
   const base = Number.isFinite(input.baseRent) && input.baseRent > 0 ? input.baseRent : 0;
   const result: LeaseYear[] = [];
   for (let i = 0; i < total; i += 1) {
-    const positionalType: LeaseYearType = i < contract ? "contract" : "option";
-    if (input.escalationMode === "custom") {
-      const prev = existingRows?.[i];
-      result.push({ amount: prev?.amount ?? base, type: prev?.type ?? positionalType });
-    } else {
-      result.push({
-        amount: rentForYear(base, i, input.escalationMode, input.escalationValue),
-        type: positionalType,
-      });
-    }
+    const type: LeaseYearType = i < contract ? "contract" : "option";
+    const amount =
+      input.escalationMode === "custom"
+        ? existingRows?.[i]?.amount ?? base
+        : rentForYear(base, i, input.escalationMode, input.escalationValue);
+    result.push({ amount, type });
   }
   return result;
 }
