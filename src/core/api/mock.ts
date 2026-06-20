@@ -453,7 +453,13 @@ export const mockRentersApi = {
   updateRenter: async (id: number, data: RenterUpdate | Partial<Renter>): Promise<Renter> => {
     const idx = mockRenters.findIndex((x) => x.id === id);
     if (idx < 0) throw new Error('Renter not found');
-    mockRenters[idx] = { ...mockRenters[idx], ...data };
+    // RenterUpdate allows lease_start: null (an explicit clear); the in-memory Renter
+    // keeps a plain string, so map a cleared value to '' while an absent key keeps the old.
+    mockRenters[idx] = {
+      ...mockRenters[idx],
+      ...data,
+      lease_start: data.lease_start === null ? '' : data.lease_start ?? mockRenters[idx].lease_start,
+    };
     return mockRentersApi.getRenterById(id);
   },
   deleteRenter: async (id: number): Promise<void> => {

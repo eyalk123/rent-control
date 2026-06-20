@@ -237,34 +237,30 @@ export function useRenterForm({
       baseCreate.insurance_amount = insuranceAmt;
     }
 
+    // Edit payload always includes optional fields (null when empty) so clearing one
+    // persists; conditionally omitting a key makes sanitizeRenterUpdate drop it and the
+    // backend keep the old value.
     const baseUpdate: RenterUpdate = {
       first_name: values.firstName.trim(),
       last_name: values.lastName.trim(),
       phone: values.phone.trim(),
       email: values.email.trim(),
-      lease_start: leaseStartTrimmed || undefined,
+      lease_start: leaseStartTrimmed || null,
       property_id: values.propertyId ?? null,
       lease_years,
       ...leaseIntent,
+      number_of_payments:
+        numPayments != null && !Number.isNaN(numPayments) ? numPayments : null,
+      payment_type: values.paymentType.trim() || null,
+      payment_day_of_month:
+        paymentDayNum != null && !Number.isNaN(paymentDayNum) ? paymentDayNum : null,
+      insurance_type: values.insuranceType.trim() || null,
+      insurance_amount:
+        insuranceAmt != null && !Number.isNaN(insuranceAmt) ? insuranceAmt : null,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
       full_contract_url: values.fullContractUrl ?? null,
       id_image_url: values.idImageUrl ?? null,
     };
-    if (numPayments != null && !Number.isNaN(numPayments)) {
-      baseUpdate.number_of_payments = numPayments;
-    }
-    if (values.paymentType.trim()) {
-      baseUpdate.payment_type = values.paymentType.trim();
-    }
-    if (paymentDayNum != null && !Number.isNaN(paymentDayNum)) {
-      baseUpdate.payment_day_of_month = paymentDayNum;
-    }
-    if (values.insuranceType.trim()) {
-      baseUpdate.insurance_type = values.insuranceType.trim();
-    }
-    if (insuranceAmt != null && !Number.isNaN(insuranceAmt)) {
-      baseUpdate.insurance_amount = insuranceAmt;
-    }
 
     try {
       if (isEdit && id) {
