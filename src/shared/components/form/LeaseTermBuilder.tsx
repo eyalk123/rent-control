@@ -7,16 +7,16 @@ import {
   type FieldValues,
   type Path,
 } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, TextInput as RNTextInput } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import type { TFunction } from "i18next";
-import { darkColors, lightColors, spacing } from "@/src/core/theme";
-import { useLanguageContext } from "@/src/core/context";
+import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
+import { useLanguageContext, useRtlInputStyle } from "@/src/core/context";
 import type { LeaseYearType, RentEscalationMode } from "@/src/shared/types";
 import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
 import { buildLeaseYears } from "@/src/shared/utils/leaseSchedule";
 import { formatDateFull } from "@/src/shared/utils/dates";
-import { Stepper, SegmentedControl, type Segment } from "@/src/shared/components/ui";
+import { Stepper, SegmentedControl, Icon, type Segment } from "@/src/shared/components/ui";
 import { FormNumericField } from "./FormFields";
 
 type LeaseTermBuilderProps<TFieldValues extends FieldValues> = {
@@ -33,6 +33,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { isRtl, language } = useLanguageContext();
+  const rtlInputStyle = useRtlInputStyle();
 
   const contractStr = useWatch({ control, name: "contractTermYears" as any }) as string | undefined;
   const optionStr = useWatch({ control, name: "optionYears" as any }) as string | undefined;
@@ -104,13 +105,19 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
     }
   }
 
+  const rowDirection = isRtl ? "row-reverse" : "row";
+  const total = leaseYears.length;
+
+  const renderNowChip = () => (
+    <View style={[styles.nowChip, { backgroundColor: colors.accent }]}>
+      <Text style={[styles.nowChipText, { color: colors.accentFg }]}>
+        {t("renter.currentYear")}
+      </Text>
+    </View>
+  );
+
   return (
-    <View
-      style={[
-        styles.container,
-        { borderColor: colors.outline, backgroundColor: theme.colors.surfaceVariant },
-      ]}
-    >
+    <View>
       <Controller
         control={control}
         name={"contractTermYears" as Path<TFieldValues>}
@@ -118,7 +125,6 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
           <Stepper
             label={t("renter.contractTerm")}
             unitLabel={t("renter.yearsUnit")}
-            quickValues={[1, 2, 3]}
             min={0}
             max={20}
             value={Number(field.value) || 0}
@@ -163,24 +169,49 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
       />
 
       {escMode === "percent" || escMode === "fixed" ? (
-        <FormNumericField
-          control={control}
-          name={"escalationValue" as Path<TFieldValues>}
-          label={
-            escMode === "percent"
-              ? t("renter.escalationValuePercent")
-              : t("renter.escalationValueFixed")
-          }
-          keyboardType="decimal-pad"
-        />
+        <View style={[styles.escValueRow, { flexDirection: rowDirection }]}>
+          <Text style={[styles.escCaption, { color: colors.textSecondary }]}>
+            {t("renter.yearlyIncrease")}
+          </Text>
+          <Controller
+            control={control}
+            name={"escalationValue" as Path<TFieldValues>}
+            render={({ field }) => (
+              <View
+                style={[
+                  styles.affixInput,
+                  {
+                    flexDirection: rowDirection,
+                    borderColor: colors.outline,
+                    backgroundColor: colors.inputFilledBackground,
+                  },
+                ]}
+              >
+                {escMode === "fixed" ? (
+                  <Text style={[styles.affix, { color: colors.textSecondary }]}>₪</Text>
+                ) : null}
+                <RNTextInput
+                  value={(field.value as string) ?? ""}
+                  onChangeText={field.onChange}
+                  onBlur={field.onBlur}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  placeholderTextColor={colors.textSecondary}
+                  style={[styles.affixField, { color: colors.textPrimary }, rtlInputStyle]}
+                />
+                {escMode === "percent" ? (
+                  <Text style={[styles.affix, { color: colors.textSecondary }]}>%</Text>
+                ) : null}
+              </View>
+            )}
+          />
+        </View>
       ) : null}
 
-      {leaseYears.length > 0 ? (
-        <View style={styles.timeline}>
-          <Text
-            variant="bodyMedium"
-            style={[styles.timelineTitle, { color: colors.textPrimary }]}
-          >
+      {total > 0 ? (
+        <View>
+          <View style={[styles.divider, { backgroundColor: colors.outline }]} />
+          <Text variant="bodyMedium" style={[styles.timelineTitle, { color: colors.textPrimary }]}>
             {t("renter.leaseTimeline")}
           </Text>
 
@@ -188,90 +219,104 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
             const isCurrent = isCurrentLeaseYear(leaseStart, index);
             const yearType: LeaseYearType = row?.type ?? "contract";
             const amountNum = Number(row?.amount) || 0;
+            const isFirst = index === 0;
+            const isLast = index === total - 1;
 
-            if (isCustom) {
-              return (
-                <View
-                  key={`custom-${index}`}
-                  style={[
-                    styles.customRow,
-                    {
-                      borderColor: colors.outline,
-                      backgroundColor: isCurrent ? colors.primary + "22" : colors.cardBackground,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.yearLabel, { color: colors.textPrimary }]}>
-                    {getLeaseYearLabel(leaseStart, index)}
-                  </Text>
-                  <View style={styles.customInputs}>
-                    <View style={styles.customAmount}>
-                      <FormNumericField
-                        control={control}
-                        name={`leaseYears.${index}.amount` as Path<TFieldValues>}
-                        label={t("renter.leaseYearAmount")}
-                        keyboardType="decimal-pad"
-                      />
+            const nodeStyle =
+              isCurrent
+                ? [styles.node, styles.nodeCurrent, { backgroundColor: colors.accent }]
+                : yearType === "option"
+                ? [styles.node, { borderWidth: 2, borderColor: colors.primary, backgroundColor: "transparent" }]
+                : [styles.node, { backgroundColor: colors.primary }];
+
+            return (
+              <View
+                key={index}
+                style={[
+                  styles.timelineRow,
+                  { flexDirection: rowDirection },
+                  isCurrent && { backgroundColor: colors.accent + "14" },
+                ]}
+              >
+                <View style={styles.rail}>
+                  <View
+                    style={[styles.railLine, { backgroundColor: isFirst ? "transparent" : colors.outline }]}
+                  />
+                  <View style={nodeStyle} />
+                  <View
+                    style={[styles.railLine, { backgroundColor: isLast ? "transparent" : colors.outline }]}
+                  />
+                </View>
+
+                {isCustom ? (
+                  <View style={styles.rowContent}>
+                    <View style={[styles.rowHeader, { flexDirection: rowDirection }]}>
+                      <Text style={[styles.yearLabel, { color: colors.textPrimary }]}>
+                        {getLeaseYearLabel(leaseStart, index)}
+                      </Text>
+                      {isCurrent ? renderNowChip() : null}
                     </View>
+                    <FormNumericField
+                      control={control}
+                      name={`leaseYears.${index}.amount` as Path<TFieldValues>}
+                      label={t("renter.leaseYearAmount")}
+                      keyboardType="decimal-pad"
+                    />
                     <Controller
                       control={control}
                       name={`leaseYears.${index}.type` as Path<TFieldValues>}
                       render={({ field }) => (
-                        <View style={styles.customType}>
-                          <SegmentedControl
-                            segments={typeSegments}
-                            value={(field.value as LeaseYearType) ?? "contract"}
-                            onChange={(v) => field.onChange(v)}
-                          />
-                        </View>
+                        <SegmentedControl
+                          segments={typeSegments}
+                          value={(field.value as LeaseYearType) ?? "contract"}
+                          onChange={(v) => field.onChange(v)}
+                        />
                       )}
                     />
                   </View>
-                </View>
-              );
-            }
-
-            return (
-              <View
-                key={`preview-${index}`}
-                style={[
-                  styles.previewRow,
-                  {
-                    flexDirection: isRtl ? "row-reverse" : "row",
-                    borderColor: colors.outline,
-                    backgroundColor: isCurrent ? colors.primary + "22" : colors.cardBackground,
-                  },
-                ]}
-              >
-                <Text style={[styles.previewYear, { color: colors.textPrimary }]}>
-                  {getLeaseYearLabel(leaseStart, index)}
-                </Text>
-                <Text style={[styles.previewAmount, { color: colors.textPrimary }]}>
-                  {amountNum > 0 ? `₪${amountNum.toLocaleString()}` : "—"}
-                </Text>
-                <View
-                  style={[
-                    styles.badge,
-                    {
-                      backgroundColor:
-                        yearType === "contract" ? colors.primary : colors.secondary,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.badgeText, { color: colors.onPrimary }]}>
-                    {yearType === "contract"
-                      ? t("renter.leaseYearTypeContract")
-                      : t("renter.leaseYearTypeOption")}
-                  </Text>
-                </View>
+                ) : (
+                  <View
+                    style={[styles.rowContent, styles.previewContent, { flexDirection: rowDirection }]}
+                  >
+                    <Text
+                      style={[
+                        styles.previewYear,
+                        { color: colors.textPrimary },
+                        isCurrent && styles.previewYearCurrent,
+                      ]}
+                    >
+                      {getLeaseYearLabel(leaseStart, index)}
+                    </Text>
+                    <Text style={[styles.previewAmount, { color: colors.textPrimary }]}>
+                      {amountNum > 0 ? `₪${amountNum.toLocaleString()}` : "—"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.typeText,
+                        {
+                          color: yearType === "option" ? colors.accent : colors.textSecondary,
+                          fontWeight: yearType === "option" ? "700" : "600",
+                        },
+                      ]}
+                    >
+                      {yearType === "contract"
+                        ? t("renter.leaseYearTypeContract")
+                        : t("renter.leaseYearTypeOption")}
+                    </Text>
+                    {isCurrent ? renderNowChip() : null}
+                  </View>
+                )}
               </View>
             );
           })}
 
           {endDate ? (
-            <Text style={[styles.endDate, { color: colors.textSecondary }]}>
-              {t("renter.leaseEnd", { date: formatDateFull(endDate, language) })}
-            </Text>
+            <View style={[styles.endRow, { flexDirection: rowDirection }]}>
+              <Icon name="calendar-clock" size={ICON_SM} color={colors.textSecondary} />
+              <Text style={[styles.endDate, { color: colors.textSecondary }]}>
+                {t("renter.leaseEnd", { date: formatDateFull(endDate, language) })}
+              </Text>
+            </View>
           ) : null}
         </View>
       ) : null}
@@ -284,71 +329,113 @@ export const LeaseTermBuilder = React.memo(
 ) as typeof LeaseTermBuilderInner;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: spacing.md,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: spacing.sm,
+  escValueRow: {
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
-  timeline: {
+  escCaption: {
+    fontSize: 13,
+  },
+  affixInput: {
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 48,
+    width: 130,
+    gap: 6,
+  },
+  affixField: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 0,
+  },
+  affix: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  divider: {
+    height: 1,
     marginTop: spacing.xs,
+    marginBottom: spacing.md,
   },
   timelineTitle: {
     fontWeight: "700",
     marginBottom: spacing.sm,
   },
-  previewRow: {
+  timelineRow: {
+    alignItems: "stretch",
+    paddingHorizontal: spacing.xs,
+  },
+  rail: {
+    width: 24,
+    alignItems: "center",
+  },
+  railLine: {
+    width: 2,
+    flex: 1,
+  },
+  node: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginVertical: 2,
+  },
+  nodeCurrent: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  rowContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingVertical: spacing.sm,
+  },
+  previewContent: {
     alignItems: "center",
     gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    borderRadius: 10,
-    borderWidth: 1,
-    marginBottom: spacing.xs,
   },
   previewYear: {
-    fontWeight: "700",
+    fontWeight: "600",
     fontSize: 15,
     minWidth: 52,
+  },
+  previewYearCurrent: {
+    fontWeight: "800",
   },
   previewAmount: {
     flex: 1,
     fontSize: 15,
     fontWeight: "600",
-    textAlign: "center",
   },
-  badge: {
+  typeText: {
+    fontSize: 13,
+  },
+  nowChip: {
     paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderRadius: 999,
   },
-  badgeText: {
-    fontSize: 12,
+  nowChipText: {
+    fontSize: 11,
     fontWeight: "700",
   },
-  customRow: {
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: spacing.sm,
+  rowHeader: {
+    alignItems: "center",
+    gap: spacing.sm,
     marginBottom: spacing.xs,
   },
   yearLabel: {
     fontWeight: "700",
     fontSize: 15,
-    marginBottom: spacing.xs,
   },
-  customInputs: {
-    gap: spacing.xs,
-  },
-  customAmount: {
-    width: "100%",
-  },
-  customType: {
-    width: "100%",
+  endRow: {
+    alignItems: "center",
+    gap: 6,
+    marginTop: spacing.sm,
   },
   endDate: {
-    marginTop: spacing.xs,
     fontSize: 13,
-    fontStyle: "italic",
   },
 });
