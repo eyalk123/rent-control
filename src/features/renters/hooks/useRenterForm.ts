@@ -11,10 +11,12 @@ import {
   updateRenter,
 } from "@/src/features/renters/api/renters";
 import type {
+  LeaseTermIntent,
   LeaseYear,
   RenterCreate,
   RenterUpdate,
 } from "@/src/shared/types";
+import { reconstructIntentFromLeaseYears } from "@/src/shared/utils/leaseSchedule";
 import {
   renterFormSchema,
   type RenterFormValues,
@@ -52,7 +54,11 @@ export function useRenterForm({
       paymentFrequency: undefined,
       insuranceType: "",
       insuranceAmount: "",
-      contractYears: "",
+      contractTermYears: "",
+      optionYears: "",
+      baseRent: "",
+      escalationMode: "none",
+      escalationValue: "",
       leaseYears: [],
       contactId: null,
       extraContacts: [],
@@ -78,6 +84,37 @@ export function useRenterForm({
     getRenterById(numericId)
       .then((renter) => {
         const lease_years = renter.lease_years ?? [];
+        // Prefer the structured intent the backend persisted; otherwise infer it
+        // from the materialized lease_years so the builder re-opens sensibly.
+        const intent =
+          renter.contract_term_years != null
+            ? {
+                contractTermYears: String(renter.contract_term_years ?? 0),
+                optionYears: String(renter.option_years ?? 0),
+                baseRent:
+                  renter.base_rent != null
+                    ? String(renter.base_rent)
+                    : lease_years[0]?.amount != null
+                    ? String(lease_years[0].amount)
+                    : "",
+                escalationMode: renter.rent_escalation_mode ?? "none",
+                escalationValue:
+                  renter.rent_escalation_value != null
+                    ? String(renter.rent_escalation_value)
+                    : "",
+              }
+            : (() => {
+                const r = reconstructIntentFromLeaseYears(lease_years);
+                return {
+                  contractTermYears: r.contractTermYears
+                    ? String(r.contractTermYears)
+                    : "",
+                  optionYears: r.optionYears ? String(r.optionYears) : "",
+                  baseRent: r.baseRent ? String(r.baseRent) : "",
+                  escalationMode: r.escalationMode,
+                  escalationValue: "",
+                };
+              })();
         reset({
           firstName: renter.first_name ?? "",
           lastName: renter.last_name ?? "",
@@ -103,8 +140,11 @@ export function useRenterForm({
             renter.insurance_amount != null
               ? String(renter.insurance_amount)
               : "",
-          contractYears:
-            lease_years.length > 0 ? String(lease_years.length) : "",
+          contractTermYears: intent.contractTermYears,
+          optionYears: intent.optionYears,
+          baseRent: intent.baseRent,
+          escalationMode: intent.escalationMode,
+          escalationValue: intent.escalationValue,
           leaseYears: lease_years.map((y) => ({
             amount: String(y.amount),
             type: y.type,
@@ -154,6 +194,19 @@ export function useRenterForm({
       })
       .filter((y): y is LeaseYear => y != null);
 
+    const toNumOrNull = (v?: string) => {
+      if (!v) return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+    const leaseIntent: LeaseTermIntent = {
+      contract_term_years: toNumOrNull(values.contractTermYears),
+      option_years: toNumOrNull(values.optionYears),
+      base_rent: toNumOrNull(values.baseRent),
+      rent_escalation_mode: values.escalationMode ?? "none",
+      rent_escalation_value: toNumOrNull(values.escalationValue),
+    };
+
     const baseCreate: RenterCreate = {
       first_name: values.firstName.trim(),
       last_name: values.lastName.trim(),
@@ -162,6 +215,7 @@ export function useRenterForm({
       lease_start: leaseStartTrimmed || undefined,
       property_id: values.propertyId ?? undefined,
       lease_years,
+      ...leaseIntent,
       contact_id: values.contactId ?? undefined,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
       full_contract_url: values.fullContractUrl ?? null,
@@ -191,6 +245,7 @@ export function useRenterForm({
       lease_start: leaseStartTrimmed || undefined,
       property_id: values.propertyId ?? null,
       lease_years,
+      ...leaseIntent,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
       full_contract_url: values.fullContractUrl ?? null,
       id_image_url: values.idImageUrl ?? null,

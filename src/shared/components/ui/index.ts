@@ -10,6 +10,8 @@ export { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './Fi
 export { ActiveFilterPills } from './ActiveFilterPills';
 export { FilterBottomSheet, type FilterOption } from './FilterBottomSheet';
 export { StepHeader } from './StepHeader';
+export { Stepper } from './Stepper';
+export { SegmentedControl, type Segment } from './SegmentedControl';
 export { StatBox } from './StatBox';
 export { IconDetailRow } from './IconDetailRow';
 export { DocumentsCard, type DocumentItem } from './DocumentsCard';

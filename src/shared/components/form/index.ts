@@ -15,7 +15,7 @@ export { MultiSelectField } from "./MultiSelectField";
 export { FormDropdownOptions } from "./FormDropdownOptions";
 export { FormCreatableDropdown } from "./FormCreatableDropdown";
 export { FormChipInput } from "./FormChipInput";
-export { FormLeaseYearsField } from "./FormLeaseYearsField";
+export { LeaseTermBuilder } from "./LeaseTermBuilder";
 export { FormExtraContactsField } from "./FormExtraContactsField";
 export { FormSingleFileField } from "./FormSingleFileField";
 export { FormScrollView } from "./FormScrollView";
