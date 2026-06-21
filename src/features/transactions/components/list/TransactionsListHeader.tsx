@@ -19,7 +19,8 @@ interface TransactionsListHeaderProps {
   onTypeFilterChange: (value: TransactionTypeFilter) => void;
   heroBucket: MonthBucket;
   sixMonthBuckets: MonthBucket[];
-  currentKey: string;
+  selectedKey: string;
+  onSelectMonth: (key: string) => void;
   summaryLoading: boolean;
 }
 
@@ -30,7 +31,8 @@ export function TransactionsListHeader({
   onTypeFilterChange,
   heroBucket,
   sixMonthBuckets,
-  currentKey,
+  selectedKey,
+  onSelectMonth,
   summaryLoading,
 }: TransactionsListHeaderProps) {
   const theme = useTheme();
@@ -46,7 +48,7 @@ export function TransactionsListHeader({
         <TransactionsHero bucket={heroBucket} loading={summaryLoading} />
       </DevProfiler>
       <DevProfiler id="MonthsBarChart">
-        <MonthsBarChart buckets={sixMonthBuckets} currentKey={currentKey} loading={summaryLoading} />
+        <MonthsBarChart buckets={sixMonthBuckets} selectedKey={selectedKey} onSelectMonth={onSelectMonth} loading={summaryLoading} />
       </DevProfiler>
       <View style={[styles.filterCard, { backgroundColor: theme.colors.surface }]}>
         <DevProfiler id="FilterChipsBar">

@@ -1,14 +1,16 @@
 /**
  * 6-month bar chart: per month, two thin bars side-by-side (revenue + expense).
- * The current month renders at full opacity with a bold label; older months
- * dim to 33% to provide a "you are here" cue.
+ * The selected month renders at full opacity with a bold label and a subtle
+ * highlight pill; other months dim to 33% to provide a "you are here" cue.
+ * Tapping a month calls `onSelectMonth`.
  *
  * Bar heights are normalized to `max(revenue across all visible months)`.
  * Plain Views — no SVG / chart library dependency.
  */
 import React from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
+import * as Haptics from 'expo-haptics';
 
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
@@ -29,11 +31,12 @@ const GHOST_BARS: [number, number][] = [
 
 interface MonthsBarChartProps {
   buckets: MonthBucket[];
-  currentKey: string;
+  selectedKey: string;
+  onSelectMonth?: (key: string) => void;
   loading?: boolean;
 }
 
-export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, currentKey, loading = false }: MonthsBarChartProps) {
+export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, selectedKey, onSelectMonth, loading = false }: MonthsBarChartProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { language } = useLanguageContext();
@@ -81,8 +84,8 @@ export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, curr
     <View style={styles.container}>
       <View style={styles.row}>
         {buckets.map((b) => {
-          const isCurrent = b.key === currentKey;
-          const opacity = isCurrent ? 1 : 0.33;
+          const isSelected = b.key === selectedKey;
+          const opacity = isSelected ? 1 : 0.33;
           const revH =
             b.revenue > 0
               ? Math.max(MIN_BAR, (b.revenue / denom) * BAR_AREA_HEIGHT)
@@ -92,8 +95,23 @@ export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, curr
               ? Math.max(MIN_BAR, (b.expenses / denom) * BAR_AREA_HEIGHT)
               : 0;
 
+          const handlePress = () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            onSelectMonth?.(b.key);
+          };
+
           return (
-            <View key={b.key} style={styles.column}>
+            <Pressable
+              key={b.key}
+              onPress={handlePress}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={monthLabel(b.key, locale)}
+              style={[
+                styles.column,
+                isSelected && { backgroundColor: colors.subtleOutline },
+              ]}
+            >
               <View style={styles.barRow}>
                 <View
                   style={[
@@ -120,15 +138,15 @@ export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, curr
                 style={[
                   styles.label,
                   {
-                    color: isCurrent ? colors.textPrimary : colors.textSecondary,
-                    fontWeight: isCurrent ? '700' : '400',
-                    opacity: isCurrent ? 1 : 0.8,
+                    color: isSelected ? colors.textPrimary : colors.textSecondary,
+                    fontWeight: isSelected ? '700' : '400',
+                    opacity: isSelected ? 1 : 0.8,
                   },
                 ]}
               >
                 {monthLabel(b.key, locale)}
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </View>
@@ -151,6 +169,8 @@ const styles = StyleSheet.create({
   column: {
     alignItems: 'center',
     flex: 1,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   barRow: {
     flexDirection: 'row',

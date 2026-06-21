@@ -72,6 +72,14 @@ export function TransactionsListScreen() {
   });
 
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedKey, setSelectedKey] = useState(filters.currentKey);
+
+  const selectedBucket =
+    sixMonthBuckets.find((b) => b.key === selectedKey) ?? heroBucket;
+
+  const handleSelectMonth = useCallback((key: string) => {
+    setSelectedKey(key);
+  }, []);
 
   const { filterChipsRef } = filters;
   const { exitSelectMode } = selectMode;
@@ -165,9 +173,10 @@ export function TransactionsListScreen() {
             filterChips={filters.filterChips}
             typeFilter={filters.typeFilter}
             onTypeFilterChange={filters.setTypeFilter}
-            heroBucket={heroBucket}
+            heroBucket={selectedBucket}
             sixMonthBuckets={sixMonthBuckets}
-            currentKey={filters.currentKey}
+            selectedKey={selectedKey}
+            onSelectMonth={handleSelectMonth}
             summaryLoading={summaryLoading}
           />
         }
