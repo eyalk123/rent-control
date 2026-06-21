@@ -79,14 +79,22 @@ export function useExpenseCategories() {
   return { categories, loading, error, refreshCategories: load };
 }
 
-export function useSuppliers(categoryId?: number) {
+export function useSuppliers(categoryIds: number[] = []) {
   const { t } = useTranslation();
   const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  // Stable key so the effect doesn't refetch on every render (the prop array is
+  // a fresh reference each render, e.g. from RHF `watch`).
+  const categoryKey = React.useMemo(
+    () => [...new Set(categoryIds)].sort((a, b) => a - b).join(','),
+    [categoryIds],
+  );
+
   React.useEffect(() => {
-    if (!categoryId) {
+    const ids = categoryKey ? categoryKey.split(',').map(Number) : [];
+    if (ids.length === 0) {
       setSuppliers([]);
       return;
     }
@@ -96,12 +104,16 @@ export function useSuppliers(categoryId?: number) {
       setLoading(true);
       setError(null);
       try {
-        const data = await getSuppliers({
-          categoryId,
-          includeInactive: false,
-        });
+        const results = await Promise.all(
+          ids.map((id) =>
+            getSuppliers({ categoryId: id, includeInactive: false }),
+          ),
+        );
+        // Merge + dedupe by supplier id (a supplier can match several categories).
+        const merged = new Map<number, Supplier>();
+        results.flat().forEach((s) => merged.set(s.id, s));
         if (!cancelled) {
-          setSuppliers(data);
+          setSuppliers([...merged.values()]);
         }
       } catch (err) {
         if (!cancelled) {
@@ -118,7 +130,7 @@ export function useSuppliers(categoryId?: number) {
     return () => {
       cancelled = true;
     };
-  }, [categoryId, t]);
+  }, [categoryKey, t]);
 
   return { suppliers, loading, error };
 }

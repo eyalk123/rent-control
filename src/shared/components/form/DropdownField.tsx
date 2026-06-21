@@ -1,5 +1,5 @@
 import { Icon } from "@/src/shared/components/ui";
-import React from "react";
+import React, { useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -50,6 +50,27 @@ export function DropdownField<T extends string | number | null>({
   const rtlInputStyle = useRtlInputStyle();
   const rtlLabelStyle = useRtlLabelStyle();
   const { isRtl } = useLanguageContext();
+
+  const renderItem = useCallback(
+    (item: DropdownItem<T>) => (
+      <View style={[styles.itemContainer, { backgroundColor: colors.surface }]}>
+        <Text
+          style={[
+            styles.itemText,
+            rtlInputStyle,
+            {
+              textAlign: isRtl ? "right" : "left",
+              width: "100%",
+              color: colors.textPrimary,
+            },
+          ]}
+        >
+          {item.label}
+        </Text>
+      </View>
+    ),
+    [colors.surface, colors.textPrimary, isRtl, rtlInputStyle],
+  );
 
   return (
     <View style={[styles.inputWrap, inputStyle]}>
@@ -126,28 +147,7 @@ export function DropdownField<T extends string | number | null>({
         onChange={(item: DropdownItem<T>) => {
           onChange(item.value);
         }}
-        renderItem={(item: DropdownItem<T>) => (
-          <View
-            style={[
-              styles.itemContainer,
-              { backgroundColor: colors.surface },
-            ]}
-          >
-            <Text
-              style={[
-                styles.itemText,
-                rtlInputStyle,
-                {
-                  textAlign: isRtl ? "right" : "left",
-                  width: "100%",
-                  color: colors.textPrimary,
-                },
-              ]}
-            >
-              {item.label}
-            </Text>
-          </View>
-        )}
+        renderItem={renderItem}
       />
       </View>
 

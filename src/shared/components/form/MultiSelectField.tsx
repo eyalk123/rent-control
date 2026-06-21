@@ -1,5 +1,5 @@
 import { Icon } from "@/src/shared/components/ui";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -77,6 +77,31 @@ export function MultiSelectField<T extends string | number>({
     onChange(value.filter((v) => String(v) !== strVal));
   };
 
+  const renderItem = useCallback(
+    (item: { label: string; value: string }) => (
+      <View style={[styles.itemContainer, { backgroundColor: colors.surface }]}>
+        <Text
+          style={[
+            styles.itemText,
+            rtlInputStyle,
+            {
+              textAlign: isRtl ? "right" : "left",
+              width: "100%",
+              color:
+                item.value === SELECT_ALL_VALUE
+                  ? colors.primary
+                  : colors.textPrimary,
+              fontWeight: item.value === SELECT_ALL_VALUE ? "600" : "400",
+            },
+          ]}
+        >
+          {item.label}
+        </Text>
+      </View>
+    ),
+    [colors.surface, colors.primary, colors.textPrimary, isRtl, rtlInputStyle],
+  );
+
   return (
     <View style={[styles.inputWrap, inputStyle]}>
       {label ? (
@@ -149,28 +174,7 @@ export function MultiSelectField<T extends string | number>({
           ]}
           activeColor={colors.inputFilledBackground}
           onChange={handleChange}
-          renderItem={(item) => (
-            <View
-              style={[styles.itemContainer, { backgroundColor: colors.surface }]}
-            >
-              <Text
-                style={[
-                  styles.itemText,
-                  rtlInputStyle,
-                  {
-                    textAlign: isRtl ? "right" : "left",
-                    width: "100%",
-                    color: item.value === SELECT_ALL_VALUE
-                      ? colors.primary
-                      : colors.textPrimary,
-                    fontWeight: item.value === SELECT_ALL_VALUE ? "600" : "400",
-                  },
-                ]}
-              >
-                {item.label}
-              </Text>
-            </View>
-          )}
+          renderItem={renderItem}
           renderSelectedItem={() => null}
           visibleSelectedItem={false}
         />

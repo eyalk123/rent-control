@@ -414,6 +414,7 @@
     "paymentMethodCheck": "צ'ק",
     "category": "קטגוריה",
     "supplier": "ספק",
+    "noSupplier": "ללא ספק",
     "notes": "הערות (אופציונלי)",
     "revenueTitle": "הכנסה",
     "expenseTitle": "הוצאה",

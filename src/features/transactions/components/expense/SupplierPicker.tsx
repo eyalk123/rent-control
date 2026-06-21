@@ -22,7 +22,7 @@ export function SupplierPicker({
   allowNone = true,
 }: SupplierPickerProps) {
   const { t } = useTranslation();
-  const { suppliers } = useSuppliers(categoryIds[0] ?? undefined);
+  const { suppliers } = useSuppliers(categoryIds);
 
   const data = useMemo<{ label: string; value: number | null }[]>(() => {
     const filtered =
@@ -36,7 +36,7 @@ export function SupplierPicker({
 
     const items = filtered.map((s) => ({ label: s.name, value: s.id }));
     return allowNone
-      ? [{ label: t('renter.unassigned'), value: null }, ...items]
+      ? [{ label: t('transactions.noSupplier'), value: null }, ...items]
       : items;
   }, [allowNone, categoryIds, suppliers, t]);
 

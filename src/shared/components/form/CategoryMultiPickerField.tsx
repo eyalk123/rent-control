@@ -9,12 +9,11 @@ import { Icon } from '@/src/shared/components/ui';
 import { createExpenseCategory } from '@/src/features/transactions/api/transactions';
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
 import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -23,16 +22,16 @@ import {
 } from 'react-native';
 import {
   Button,
+  Chip,
   Dialog,
-  Menu,
   Portal,
   Text,
   TextInput,
-  TouchableRipple,
   useTheme,
 } from 'react-native-paper';
+import { MultiSelect } from 'react-native-element-dropdown';
 
-const MENU_MAX_HEIGHT = 280;
+const CREATE_NEW_VALUE = '__create_new__';
 
 interface CategoryMultiPickerFieldProps {
   value: number[];
@@ -58,28 +57,45 @@ export function CategoryMultiPickerField({
 
   const { categories, loading, refreshCategories } = useExpenseCategories();
 
-  const [menuVisible, setMenuVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createName, setCreateName] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [anchorWidth, setAnchorWidth] = useState(0);
 
-  const selectedCategories = value
-    .map((id) => categories.find((c) => c.id === id))
-    .filter((c) => c != null);
+  const stringValue = useMemo(() => value.map((v) => String(v)), [value]);
 
-  const displayText =
-    selectedCategories.length > 0
-      ? selectedCategories.map((c) => getCategoryDisplayName(c!, t)).join(', ')
-      : null;
+  // Only show unselected categories; always append the "Create new" action row.
+  const availableData = useMemo(() => {
+    const unselected = categories
+      .filter((cat) => !stringValue.includes(String(cat.id)))
+      .map((cat) => ({
+        label: getCategoryDisplayName(cat, t),
+        value: String(cat.id),
+      }));
+    return [
+      ...unselected,
+      {
+        label: t('suppliers.createNewCategory', {
+          defaultValue: 'Create new category...',
+        }),
+        value: CREATE_NEW_VALUE,
+      },
+    ];
+  }, [categories, stringValue, t]);
 
-  const handleToggle = (id: number) => {
-    if (value.includes(id)) {
-      onChange(value.filter((cid) => cid !== id));
-    } else {
-      onChange([...value, id]);
+  const handleChange = (strings: string[]) => {
+    if (strings.includes(CREATE_NEW_VALUE)) {
+      setCreateModalVisible(true);
+      return;
     }
+    const newIds = categories
+      .filter((cat) => strings.includes(String(cat.id)))
+      .map((cat) => cat.id);
+    onChange([...value, ...newIds]);
+  };
+
+  const handleUnselect = (id: number) => {
+    onChange(value.filter((cid) => cid !== id));
   };
 
   const handleCreateCategory = async () => {
@@ -106,6 +122,61 @@ export function CategoryMultiPickerField({
     setCreateError(null);
   };
 
+  const renderItem = useCallback(
+    (item: { label: string; value: string }) => {
+      const isCreate = item.value === CREATE_NEW_VALUE;
+      return (
+        <View
+          style={[
+            styles.itemContainer,
+            isCreate && styles.createItem,
+            { backgroundColor: colors.surface },
+          ]}
+        >
+          {isCreate ? (
+            <View
+              style={[
+                styles.itemRow,
+                { flexDirection: isRtl ? 'row-reverse' : 'row' },
+              ]}
+            >
+              <Icon name="plus" size={16} color={colors.primary} />
+              <Text
+                style={[
+                  styles.itemText,
+                  rtlInputStyle,
+                  {
+                    textAlign: isRtl ? 'right' : 'left',
+                    color: colors.primary,
+                    fontWeight: '600',
+                    marginHorizontal: 8,
+                  },
+                ]}
+              >
+                {item.label}
+              </Text>
+            </View>
+          ) : (
+            <Text
+              style={[
+                styles.itemText,
+                rtlInputStyle,
+                {
+                  textAlign: isRtl ? 'right' : 'left',
+                  width: '100%',
+                  color: colors.textPrimary,
+                },
+              ]}
+            >
+              {item.label}
+            </Text>
+          )}
+        </View>
+      );
+    },
+    [colors.surface, colors.primary, colors.textPrimary, isRtl, rtlInputStyle],
+  );
+
   return (
     <View style={[styles.inputWrap, inputStyle]}>
       {label ? (
@@ -123,126 +194,87 @@ export function CategoryMultiPickerField({
       ) : null}
 
       <View style={{ direction: 'ltr' }}>
-      <Menu
-        visible={menuVisible}
-        onDismiss={() => setMenuVisible(false)}
-        anchor={
-          <Pressable
-            onPress={() => setMenuVisible(true)}
-            onLayout={(e) => setAnchorWidth(e.nativeEvent.layout.width)}
-            style={[
-              styles.dropdown,
-              {
-                backgroundColor: colors.inputFilledBackground,
-                borderColor: error ? colors.error : colors.outline,
-              },
-            ]}
-          >
-              <Text
-                style={[
-                  styles.valueText,
-                  rtlInputStyle,
-                  {
-                    color: displayText ? colors.textPrimary : colors.placeholder,
-                    textAlign: isRtl ? 'right' : 'left',
-                    flex: 1,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {displayText || t('common.selectItem')}
-              </Text>
-              <View style={isRtl ? styles.iconRtl : styles.iconLtr}>
-                <Icon name="chevron-down" size={20} color={colors.placeholder} />
-              </View>
-            </Pressable>
+        <MultiSelect
+          data={availableData}
+          labelField="label"
+          valueField="value"
+          value={[]}
+          placeholder={loading ? t('common.loading', { defaultValue: 'Loading…' }) : t('common.selectItem')}
+          renderRightIcon={isRtl ? () => null : undefined}
+          renderLeftIcon={
+            isRtl
+              ? () => (
+                  <Icon
+                    name="chevron-down"
+                    size={20}
+                    color={colors.placeholder}
+                  />
+                )
+              : undefined
           }
-          anchorPosition="bottom"
-          contentStyle={[
-            styles.menuContent,
+          placeholderStyle={[
+            styles.placeholder,
+            rtlInputStyle,
             {
-              backgroundColor: colors.surface,
-              borderWidth: 1,
-              borderColor: colors.outline,
-              width: anchorWidth,
+              color: colors.placeholder,
+              textAlign: isRtl ? 'right' : 'left',
             },
           ]}
-        >
-          <ScrollView
-            style={styles.menuScroll}
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator
-          >
-            {loading ? (
-              <View style={styles.loadingRow}>
-                <Text style={{ color: colors.textSecondary }}>
-                  {t('common.loading', { defaultValue: 'Loading…' })}
-                </Text>
-              </View>
-            ) : (
-              categories.map((cat) => {
-                const selected = value.includes(cat.id);
-                return (
-                  <TouchableRipple
-                    key={cat.id}
-                    onPress={() => handleToggle(cat.id)}
-                    style={[styles.itemContainer, { backgroundColor: colors.surface }]}
-                  >
-                    <View style={styles.itemRow}>
-                      <View style={isRtl ? styles.checkIconRtl : styles.checkIconLtr}>
-                        <Icon
-                          name={selected ? 'check-square' : 'square'}
-                          size={18}
-                          color={selected ? colors.primary : colors.placeholder}
-                        />
-                      </View>
-                      <Text
-                        style={[
-                          styles.itemText,
-                          {
-                            color: colors.textPrimary,
-                            flex: 1,
-                            textAlign: isRtl ? 'right' : 'left',
-                          },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {getCategoryDisplayName(cat, t)}
-                      </Text>
-                    </View>
-                  </TouchableRipple>
-                );
-              })
-            )}
-            <TouchableRipple
-              onPress={() => {
-                setMenuVisible(false);
-                setCreateModalVisible(true);
-              }}
-              style={[
-                styles.itemContainer,
-                styles.createItem,
-                { backgroundColor: colors.surface },
-              ]}
-            >
-              <View style={styles.itemRow}>
-                <View style={isRtl ? styles.checkIconRtl : styles.checkIconLtr}>
-                  <Icon name="plus" size={16} color={colors.primary} />
-                </View>
-                <Text
-                  style={[
-                    styles.itemText,
-                    { color: colors.primary, flex: 1, textAlign: isRtl ? 'right' : 'left' },
-                  ]}
-                >
-                  {t('suppliers.createNewCategory', { defaultValue: 'Create new category...' })}
-                </Text>
-              </View>
-            </TouchableRipple>
-          </ScrollView>
-        </Menu>
+          selectedTextStyle={[
+            styles.selectedText,
+            rtlInputStyle,
+            {
+              textAlign: isRtl ? 'right' : 'left',
+              color: colors.textPrimary,
+            },
+          ]}
+          itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
+          style={[
+            styles.dropdown,
+            {
+              backgroundColor: colors.inputFilledBackground,
+              borderColor: error ? colors.error : colors.outline,
+            },
+          ]}
+          containerStyle={[
+            styles.dropdownContainer,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.outline,
+            },
+          ]}
+          activeColor={colors.inputFilledBackground}
+          onChange={handleChange}
+          renderItem={renderItem}
+          renderSelectedItem={() => null}
+          visibleSelectedItem={false}
+        />
       </View>
+
+      {value.length > 0 ? (
+        <ScrollView
+          style={styles.chipsScroll}
+          contentContainerStyle={styles.chipsContent}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
+          {value.map((id) => {
+            const cat = categories.find((c) => c.id === id);
+            if (!cat) return null;
+            return (
+              <Chip
+                key={String(id)}
+                mode="outlined"
+                onClose={() => handleUnselect(id)}
+                style={styles.chip}
+                textStyle={{ color: colors.textPrimary }}
+              >
+                {getCategoryDisplayName(cat, t)}
+              </Chip>
+            );
+          })}
+        </ScrollView>
+      ) : null}
 
       {error?.message ? (
         <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>
@@ -326,6 +358,10 @@ export function CategoryMultiPickerField({
   );
 }
 
+const CHIP_ROW_HEIGHT = 36;
+const CHIP_GAP = 6;
+const MAX_CHIP_ROWS = 3;
+
 const styles = StyleSheet.create({
   inputWrap: {
     marginBottom: spacing.md,
@@ -334,58 +370,51 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontWeight: '500',
   },
+  errorText: {
+    marginTop: 4,
+  },
   dropdown: {
     borderWidth: 1,
     borderRadius: 4,
     paddingHorizontal: 14,
     paddingVertical: 10,
     minHeight: 48,
-    flexDirection: 'row',
-    alignItems: 'center',
   },
-  valueText: {
+  dropdownContainer: {
+    borderWidth: 1,
+    borderRadius: 4,
+  },
+  placeholder: {
     fontSize: 16,
   },
-  iconLtr: {
-    marginLeft: 4,
-  },
-  iconRtl: {
-    marginRight: 4,
-  },
-  menuContent: {
-    paddingVertical: 0,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  menuScroll: {
-    maxHeight: MENU_MAX_HEIGHT,
+  selectedText: {
+    fontSize: 16,
   },
   itemContainer: {
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
   itemRow: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
-  checkIconLtr: {
-    marginRight: 8,
-  },
-  checkIconRtl: {
-    marginLeft: 8,
+  createItem: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0,0,0,0.08)',
   },
   itemText: {
     fontSize: 16,
   },
-  createItem: {
-    borderTopWidth: StyleSheet.hairlineWidth,
+  chipsScroll: {
+    maxHeight: CHIP_ROW_HEIGHT * MAX_CHIP_ROWS + CHIP_GAP * (MAX_CHIP_ROWS - 1),
+    marginTop: 8,
   },
-  loadingRow: {
-    padding: spacing.sm,
-    alignItems: 'center',
+  chipsContent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: CHIP_GAP,
   },
-  errorText: {
-    marginTop: 4,
+  chip: {
+    borderRadius: 20,
   },
   keyboardAvoidingView: {
     flex: 1,

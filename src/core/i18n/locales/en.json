@@ -414,6 +414,7 @@
     "paymentMethodCheck": "Check",
     "category": "Category",
     "supplier": "Supplier",
+    "noSupplier": "No supplier",
     "notes": "Notes (optional)",
     "revenueTitle": "Revenue",
     "expenseTitle": "Expense",
