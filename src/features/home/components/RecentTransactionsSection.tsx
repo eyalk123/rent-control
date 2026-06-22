@@ -1,23 +1,24 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { formatMoney } from '@/src/shared/utils/money';
+import { formatDateShort } from '@/src/shared/utils/dates';
 import type { Transaction } from '@/src/shared/types';
 
 interface RecentTransactionsSectionProps {
   items: Transaction[];
 }
 
-function formatPaymentDate(iso: string): string {
+function formatPaymentDate(iso: string, locale: string): string {
   const [year, month, day] = iso.split('-').map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric',
-  });
+  return formatDateShort(new Date(year, month - 1, day), locale);
 }
 
 export function RecentTransactionsSection({ items }: RecentTransactionsSectionProps) {
+  const { i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
@@ -54,7 +55,7 @@ export function RecentTransactionsSection({ items }: RecentTransactionsSectionPr
                   {`${sign}${formatMoney(item.amount)}`}
                 </Text>
                 <Text style={[styles.date, { color: colors.textSecondary }]}>
-                  {formatPaymentDate(item.date_of_payment)}
+                  {formatPaymentDate(item.date_of_payment, i18n.language)}
                 </Text>
               </View>
             </View>

@@ -7,6 +7,7 @@ import { ChevronRight, FileBarChart2, Plus, Receipt, Share2 } from 'lucide-react
 
 import { darkColors, lightColors } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
+import { formatDateShort } from '@/src/shared/utils/dates';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import {
@@ -17,7 +18,7 @@ import {
 } from '@/src/features/reports/api/reports';
 
 export function HomeReportsCard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
@@ -85,7 +86,7 @@ export function HomeReportsCard() {
     : t('home.reportEmptyTitle');
 
   const dateMeta = lastReport
-    ? new Date(lastReport.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+    ? formatDateShort(new Date(lastReport.created_at), i18n.language)
     : null;
 
   return (

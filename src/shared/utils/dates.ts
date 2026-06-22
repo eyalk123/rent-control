@@ -12,3 +12,8 @@ function shortMonth(locale: string, monthIndex: number): string {
 export function formatDateFull(date: Date, locale: string): string {
   return `${date.getDate()} ${shortMonth(locale, date.getMonth())} ${date.getFullYear()}`;
 }
+
+/** "15 Apr" — no Intl API, uses static lookup. */
+export function formatDateShort(date: Date, locale: string): string {
+  return `${date.getDate()} ${shortMonth(locale, date.getMonth())}`;
+}

@@ -9,6 +9,7 @@ import { Icon } from '@/src/shared/components/ui/Icon';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { formatMoney } from '@/src/shared/utils/money';
+import { formatDateShort } from '@/src/shared/utils/dates';
 import { getNotifications, dismissNotification } from '@/src/features/notifications/api/feed';
 import type { NotificationItem } from '@/src/features/notifications/types';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
@@ -71,11 +72,9 @@ function toAttentionItem(n: NotificationItem): AttentionItem {
   return { ...base, _type: 'overdue', days_overdue: n.data.days_overdue ?? 0, monthly_amount: n.data.amount ?? 0 };
 }
 
-function formatLeaseDate(iso: string): string {
+function formatLeaseDate(iso: string, locale: string): string {
   const [year, month, day] = iso.split('-').map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric',
-  });
+  return formatDateShort(new Date(year, month - 1, day), locale);
 }
 
 interface ActionPillProps {
@@ -113,7 +112,7 @@ interface AttentionItemRowProps {
 function AttentionItemRow({
   item, isLast, colors, amberBg, primaryBg, neutralBg, onDismiss, onNavigate, onMarkPaid, markPaidLoadingIds,
 }: AttentionItemRowProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const name = `${item.first_name} ${item.last_name}`;
   const address = item.property_address ?? '';
 
@@ -139,7 +138,7 @@ function AttentionItemRow({
               {address}
             </Text>
             <Text style={[styles.subInfo, { color: colors.textSecondary }]}>
-              {t('home.expiresLabel', { date: formatLeaseDate(item.lease_end_date) })}
+              {t('home.expiresLabel', { date: formatLeaseDate(item.lease_end_date, i18n.language) })}
             </Text>
             <View style={styles.actionsRow}>
               <ActionPill
@@ -207,7 +206,7 @@ function AttentionItemRow({
 }
 
 export function NeedsAttentionSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
@@ -361,7 +360,7 @@ export function NeedsAttentionSection() {
           {showMeta && (
             <Text style={styles.catchUpMeta}>
               {t('home.nextDueMeta', {
-                date: formatLeaseDate(nearest!.lease_end_date),
+                date: formatLeaseDate(nearest!.lease_end_date, i18n.language),
                 days: nearest!.days_until_expiry,
               })}
             </Text>

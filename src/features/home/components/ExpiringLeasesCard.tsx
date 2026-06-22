@@ -4,13 +4,12 @@ import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { CompactRenterRow } from './CompactRenterRow';
+import { formatDateFull } from '@/src/shared/utils/dates';
 import type { MockExpiringLease } from '@/src/features/home/mock/homeMockData';
 
-function formatLeaseDate(iso: string): string {
+function formatLeaseDate(iso: string, locale: string): string {
   const [year, month, day] = iso.split('-').map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
-  });
+  return formatDateFull(new Date(year, month - 1, day), locale);
 }
 
 interface ExpiringLeasesCardProps {
@@ -18,7 +17,7 @@ interface ExpiringLeasesCardProps {
 }
 
 export function ExpiringLeasesCard({ items }: ExpiringLeasesCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
@@ -43,7 +42,7 @@ export function ExpiringLeasesCard({ items }: ExpiringLeasesCardProps) {
             {idx > 0 && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
             <CompactRenterRow
               name={item.name}
-              badge={formatLeaseDate(item.expiresAt)}
+              badge={formatLeaseDate(item.expiresAt, i18n.language)}
               badgeColor={badgeColor}
               badgeBg={badgeBg}
             />
