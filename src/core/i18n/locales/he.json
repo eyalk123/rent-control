@@ -162,9 +162,10 @@
     "typeLabel": "סוג",
     "sqFtLabel": "מ\"ר",
     "typeApartment": "דירה",
-    "typeHouse": "בית",
+    "typeHouse": "בית פרטי",
     "typeCommercial": "מסחרי",
     "typeGardenApartment": "דירת גן",
+    "typeHousingUnit": "יחידת דיור",
     "occupancy": {
       "occupied": "נתפס",
       "vacant": "פנוי"

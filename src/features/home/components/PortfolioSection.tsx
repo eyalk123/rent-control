@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
@@ -19,18 +20,29 @@ interface StatCardProps {
   labelColor: string;
   bg: string;
   borderColor: string;
+  onPress?: () => void;
 }
 
-function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColor, bg, borderColor }: StatCardProps) {
-  return (
-    <View style={[styles.card, { backgroundColor: bg, borderColor }]}>
+function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColor, bg, borderColor, onPress }: StatCardProps) {
+  const content = (
+    <>
       <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
         <Icon name={icon} size={ICON_SM} color={iconColor} />
       </View>
       <Text style={[styles.value, { color: valueColor, writingDirection: 'ltr' }]}>{value}</Text>
       <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
-    </View>
+    </>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity style={[styles.card, { backgroundColor: bg, borderColor }]} onPress={onPress} activeOpacity={0.7}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return <View style={[styles.card, { backgroundColor: bg, borderColor }]}>{content}</View>;
 }
 
 interface ThisMonthCardProps {
@@ -56,6 +68,7 @@ function ThisMonthCard({ value, label, isProfit, isBreakeven }: ThisMonthCardPro
 export function PortfolioSection() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
   const colors = theme.dark ? darkColors : lightColors;
 
   const { properties, loading: propLoading } = usePropertyContext();
@@ -104,6 +117,7 @@ export function PortfolioSection() {
         labelColor={colors.textSecondary}
         bg={theme.colors.surface}
         borderColor={theme.colors.outline}
+        onPress={() => router.push('/(tabs)/properties')}
       />
       <StatCard
         icon="users"
@@ -115,6 +129,7 @@ export function PortfolioSection() {
         labelColor={colors.textSecondary}
         bg={theme.colors.surface}
         borderColor={theme.colors.outline}
+        onPress={() => router.push('/(tabs)/renters')}
       />
       <ThisMonthCard
         value={`‪${plSign}${formatMoney(Math.abs(monthlyPL))}‬`}
