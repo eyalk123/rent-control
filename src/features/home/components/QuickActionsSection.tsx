@@ -13,6 +13,7 @@ interface ActionButton {
   iconColor: string;
   iconBg: string;
   onPress: () => void;
+  showBadge?: boolean;
 }
 
 export function QuickActionsSection() {
@@ -25,20 +26,12 @@ export function QuickActionsSection() {
 
   const actions: ActionButton[] = [
     {
-      key: 'revenue',
-      labelKey: 'home.addRevenue',
-      icon: 'arrow-up-right',
-      iconColor: colors.revFg,
-      iconBg: colors.revBg,
-      onPress: () => router.push('/transactions/add?type=revenue'),
-    },
-    {
-      key: 'expense',
-      labelKey: 'home.addExpense',
-      icon: 'arrow-down-right',
-      iconColor: colors.expFg,
-      iconBg: colors.expBg,
-      onPress: () => router.push('/transactions/add?type=expense'),
+      key: 'transaction',
+      labelKey: 'home.addTransaction',
+      icon: 'arrow-right-left',
+      iconColor: colors.accent,
+      iconBg: accentBg,
+      onPress: () => router.push('/transactions/add'),
     },
     {
       key: 'renter',
@@ -55,6 +48,15 @@ export function QuickActionsSection() {
       iconColor: colors.accent,
       iconBg: accentBg,
       onPress: () => router.push('/properties/add'),
+    },
+    {
+      key: 'suppliers',
+      labelKey: 'home.suppliers',
+      icon: 'store',
+      iconColor: colors.accent,
+      iconBg: accentBg,
+      showBadge: false,
+      onPress: () => router.push('/transactions/suppliers' as any),
     },
   ];
 
@@ -73,9 +75,11 @@ export function QuickActionsSection() {
           <Text style={[styles.label, { color: colors.textPrimary }]}>
             {t(action.labelKey)}
           </Text>
-          <View style={[styles.plusBadge, { backgroundColor: colors.primary }]}>
-            <Text style={styles.plusText}>+</Text>
-          </View>
+          {action.showBadge !== false && (
+            <View style={[styles.plusBadge, { backgroundColor: colors.primary }]}>
+              <Text style={styles.plusText}>+</Text>
+            </View>
+          )}
         </TouchableOpacity>
       ))}
     </View>
