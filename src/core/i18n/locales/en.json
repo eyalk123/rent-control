@@ -83,7 +83,7 @@
   },
   "notifications": {
     "subtitle": "Choose which alerts you receive and when.",
-    "manageTitle": "Notifications",
+    "manageTitle": "Manage notifications",
     "master": "Enable notifications",
     "masterHint": "Master switch for all push and in-app alerts.",
     "event": {
@@ -146,6 +146,10 @@
   "property": {
     "basicInfo": "Basic Information",
     "leaseInfo": "Extra Details",
+    "renterPromptTitle": "Property added!",
+    "renterPromptMessage": "Add the renter who lives here to finish setting up.",
+    "addRenterNow": "Add a renter",
+    "maybeLater": "Maybe later",
     "address": "Address",
     "city": "City",
     "block": "Block",

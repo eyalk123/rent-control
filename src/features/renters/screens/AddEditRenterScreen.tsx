@@ -20,7 +20,10 @@ import { Button } from "react-native-paper";
 export function AddEditRenterScreen() {
   const { t } = useTranslation();
   const { appAlert } = useAlert();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, propertyId } = useLocalSearchParams<{
+    id?: string;
+    propertyId?: string;
+  }>();
   const router = useRouter();
   const { refreshRenters } = useRenterContext();
   const isEdit = Boolean(id);
@@ -31,6 +34,7 @@ export function AddEditRenterScreen() {
     t,
     refreshRenters,
     onSuccess: () => router.back(),
+    initialPropertyId: propertyId ? Number(propertyId) : null,
   });
 
   const { formState, control, trigger, setValue } = formMethods;

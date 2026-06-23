@@ -24,14 +24,15 @@ export function QuickActionsSection() {
 
   const accentBg = theme.dark ? 'rgba(194,149,67,0.15)' : 'rgba(212,162,76,0.12)';
 
+  // Fixed LTR order regardless of language: property, renter, transaction, supplier
   const actions: ActionButton[] = [
     {
-      key: 'transaction',
-      labelKey: 'home.addTransaction',
-      icon: 'arrow-right-left',
+      key: 'property',
+      labelKey: 'home.addProperty',
+      icon: 'home',
       iconColor: colors.accent,
       iconBg: accentBg,
-      onPress: () => router.push('/transactions/add'),
+      onPress: () => router.push('/properties/add'),
     },
     {
       key: 'renter',
@@ -42,12 +43,12 @@ export function QuickActionsSection() {
       onPress: () => router.push('/renters/add'),
     },
     {
-      key: 'property',
-      labelKey: 'home.addProperty',
-      icon: 'home',
+      key: 'transaction',
+      labelKey: 'home.addTransaction',
+      icon: 'arrow-right-left',
       iconColor: colors.accent,
       iconBg: accentBg,
-      onPress: () => router.push('/properties/add'),
+      onPress: () => router.push('/transactions/add'),
     },
     {
       key: 'suppliers',
@@ -89,6 +90,7 @@ export function QuickActionsSection() {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
+    direction: 'ltr',
     gap: spacing.xs,
   },
   button: {

@@ -83,7 +83,7 @@
   },
   "notifications": {
     "subtitle": "בחרו אילו התראות לקבל ומתי.",
-    "manageTitle": "התראות",
+    "manageTitle": "ניהול התראות",
     "master": "הפעלת התראות",
     "masterHint": "מתג ראשי לכל ההתראות (פוש ובאפליקציה).",
     "event": {
@@ -146,6 +146,10 @@
   "property": {
     "basicInfo": "מידע בסיסי",
     "leaseInfo": "פרטים נוספים",
+    "renterPromptTitle": "הנכס נוסף!",
+    "renterPromptMessage": "הוסיפו את הדייר שגר כאן כדי להשלים את ההגדרה.",
+    "addRenterNow": "הוספת דייר",
+    "maybeLater": "אולי מאוחר יותר",
     "address": "כתובת",
     "city": "עיר",
     "block": "גוש",

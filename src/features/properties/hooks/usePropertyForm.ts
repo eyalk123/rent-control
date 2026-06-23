@@ -27,7 +27,7 @@ type UsePropertyFormParams = {
   id?: string;
   t: TFunction;
   refreshProperties: () => Promise<void>;
-  onSuccess: () => void;
+  onSuccess: (savedProp: Property) => void;
 };
 
 function toOptionalNumber(s: string | undefined): number | null {
@@ -186,7 +186,7 @@ export function usePropertyForm({
       setImageUri(savedProp.image_url ?? null);
       setExistingFiles([]);
       setDeletedFileIds([]);
-      onSuccess();
+      onSuccess(savedProp);
     } catch (err) {
       appAlert(
         t('error.title'),

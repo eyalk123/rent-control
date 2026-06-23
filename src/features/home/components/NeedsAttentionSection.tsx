@@ -308,8 +308,12 @@ export function NeedsAttentionSection() {
         hitSlop={10}
         accessibilityRole="button"
         accessibilityLabel={t('notifications.manageTitle')}
+        style={styles.manageButton}
       >
-        <Icon name="settings" size={ICON_SM} color={colors.textSecondary} />
+        <Icon name="bell" size={ICON_SM} color={colors.textSecondary} />
+        <Text style={[styles.manageLabel, { color: colors.textSecondary }]}>
+          {t('notifications.manageTitle')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -558,6 +562,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 2,
+  },
+  manageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  manageLabel: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   overlay: {
     flex: 1,

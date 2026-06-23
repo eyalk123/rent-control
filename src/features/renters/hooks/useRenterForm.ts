@@ -27,6 +27,7 @@ type UseRenterFormParams = {
   t: TFunction;
   refreshRenters: () => Promise<void>;
   onSuccess: () => void;
+  initialPropertyId?: number | null;
 };
 
 export function useRenterForm({
@@ -34,6 +35,7 @@ export function useRenterForm({
   t,
   refreshRenters,
   onSuccess,
+  initialPropertyId = null,
 }: UseRenterFormParams) {
   const isEdit = Boolean(id);
   const { user } = useAppAuth();
@@ -48,7 +50,7 @@ export function useRenterForm({
       phone: "",
       email: "",
       leaseStart: "",
-      propertyId: null,
+      propertyId: initialPropertyId,
       paymentType: "",
       paymentDate: "",
       paymentFrequency: undefined,

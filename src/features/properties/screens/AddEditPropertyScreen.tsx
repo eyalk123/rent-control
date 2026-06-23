@@ -3,6 +3,8 @@ import { usePropertyContext } from "@/src/context";
 import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm";
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
+import { PropertyCreatedPrompt } from "@/src/features/properties/components/PropertyCreatedPrompt";
+import type { Property } from "@/src/shared/types";
 import { spacing } from "@/src/core/theme";
 import { useAlert } from "@/src/core/context";
 import * as Haptics from "expo-haptics";
@@ -25,6 +27,9 @@ export function AddEditPropertyScreen() {
   const isEdit = Boolean(id);
 
   const navigation = useNavigation();
+  const [createdProperty, setCreatedProperty] = React.useState<Property | null>(
+    null,
+  );
 
   const {
     formMethods,
@@ -41,7 +46,8 @@ export function AddEditPropertyScreen() {
     id,
     t,
     refreshProperties,
-    onSuccess: () => router.back(),
+    onSuccess: (savedProp) =>
+      isEdit ? router.back() : setCreatedProperty(savedProp),
   });
 
   const { formState, control, trigger } = formMethods;
@@ -169,6 +175,15 @@ export function AddEditPropertyScreen() {
           )}
         </View>
       </View>
+      <PropertyCreatedPrompt
+        visible={!!createdProperty}
+        onAddRenter={() =>
+          router.replace(
+            `/renters/add?propertyId=${createdProperty!.id}` as any,
+          )
+        }
+        onSkip={() => router.back()}
+      />
     </ScreenContainer>
   );
 }
