@@ -110,7 +110,16 @@ export default function TabLayout() {
         options={{
           title: t('tabs.home'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="layers" color={color} focused={focused} />
+            <TabBarIcon name="layout-dashboard" color={color} focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="properties"
+        options={{
+          title: t('tabs.properties'),
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="building" color={color} focused={focused} />
           ),
         }}
       />
@@ -120,15 +129,6 @@ export default function TabLayout() {
           title: t('tabs.renters'),
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name="users" color={color} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="properties"
-        options={{
-          title: t('tabs.properties'),
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="home" color={color} focused={focused} />
           ),
         }}
       />
