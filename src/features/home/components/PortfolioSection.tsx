@@ -133,7 +133,7 @@ export function PortfolioSection() {
       />
       <ThisMonthCard
         value={`‪${plSign}${formatMoney(Math.abs(monthlyPL))}‬`}
-        label={t('home.thisMonthPL')}
+        label={t('home.netProfitMtd')}
         isProfit={isProfit}
         isBreakeven={isBreakeven}
       />
