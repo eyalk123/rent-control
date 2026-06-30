@@ -372,6 +372,7 @@
   },
   "error": {
     "title": "Error",
+    "extractionFailed": "Couldn't read the document. Try another file or fill the form manually.",
     "savePropertyFailed": "Failed to save property",
     "saveRenterFailed": "Failed to save renter",
     "loadFailed": "Failed to load",
@@ -505,6 +506,33 @@
     "uploadFailed": "Upload failed. Please try again.",
     "landRegistry": "Land Registry Extract",
     "idImage": "Tenant ID Image"
+  },
+  "documentScan": {
+    "action": "Scan document",
+    "title": "Scan a document",
+    "uploadPrompt": "Upload a lease as an image, PDF, or Word file. We'll read it and pre-fill the property and renter forms for you to review.",
+    "choose": "Choose file",
+    "takePhoto": "Take photo",
+    "chooseFile": "Choose file",
+    "extractAction": "Extract details",
+    "addPage": "Add another page",
+    "removePage": "Remove",
+    "selectedPages": "{{count}} pages — they'll be combined into one document",
+    "mixedFilesError": "Add either one PDF/Word file or one or more images, not a mix.",
+    "cameraPermissionDenied": "Camera access is needed to photograph the lease.",
+    "extracting": "Reading the document…",
+    "reviewTitle": "Please review the values we filled in:",
+    "reviewFields": "Double-check these fields before saving: {{fields}}",
+    "reviewCount": "Review {{count}} extracted field",
+    "reviewCount_other": "Review {{count}} extracted fields",
+    "reviewBadge": "check",
+    "foundIn": "Found in: \"{{snippet}}\"",
+    "progress": {
+      "merging": "Combining pages…",
+      "uploading": "Uploading the document…",
+      "reading": "Reading the document…",
+      "extracting": "Extracting the details…"
+    }
   },
   "customFiles": {
     "sectionTitle": "Custom Files",

@@ -196,6 +196,11 @@ export function PropertiesListScreen() {
     router.push('/properties/add' as any);
   };
 
+  const handleScanPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/properties/scan' as any);
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await refreshProperties();
@@ -227,6 +232,13 @@ export function PropertiesListScreen() {
     return (
       <ScreenContainer edges={['top', 'left', 'right']}>
         <EmptyState message={t('empty.noProperties')} icon="home" />
+        <AppFab
+          icon="file-text"
+          variant="primary"
+          onPress={handleScanPress}
+          accessibilityLabel={t('documentScan.action')}
+          bottomInset={insets.bottom + 72}
+        />
         <AppFab
           icon="plus"
           onPress={handleAddPress}
@@ -297,12 +309,21 @@ export function PropertiesListScreen() {
           bottomInset={insets.bottom}
         />
       ) : (
-        <AppFab
-          icon="plus"
-          onPress={handleAddPress}
-          accessibilityLabel={t('property.addProperty')}
-          bottomInset={insets.bottom}
-        />
+        <>
+          <AppFab
+            icon="file-text"
+            variant="primary"
+            onPress={handleScanPress}
+            accessibilityLabel={t('documentScan.action')}
+            bottomInset={insets.bottom + 72}
+          />
+          <AppFab
+            icon="plus"
+            onPress={handleAddPress}
+            accessibilityLabel={t('property.addProperty')}
+            bottomInset={insets.bottom}
+          />
+        </>
       )}
       <FilterBottomSheet
         visible={activeSheet === 'property'}

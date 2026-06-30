@@ -4,6 +4,9 @@ import { useRenterForm } from "@/src/features/renters/hooks/useRenterForm";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
 import { RenterBasicInfoCard } from "@/src/features/renters/components/RenterBasicInfoCard";
 import { RenterLeaseInfoCard } from "@/src/features/renters/components/RenterLeaseInfoCard";
+import { ReviewBanner } from "@/src/features/document-scan/components/ReviewBanner";
+import { consumeRenterPrefill } from "@/src/features/document-scan/handoff";
+import { FieldReviewProvider } from "@/src/shared/components/form/FieldReviewContext";
 import { spacing } from "@/src/core/theme";
 import { useAlert } from "@/src/core/context";
 import * as Haptics from "expo-haptics";
@@ -20,14 +23,20 @@ import { Button } from "react-native-paper";
 export function AddEditRenterScreen() {
   const { t } = useTranslation();
   const { appAlert } = useAlert();
-  const { id, propertyId } = useLocalSearchParams<{
+  const { id, propertyId, fromScan } = useLocalSearchParams<{
     id?: string;
     propertyId?: string;
+    fromScan?: string;
   }>();
   const router = useRouter();
   const { refreshRenters } = useRenterContext();
   const isEdit = Boolean(id);
   const navigation = useNavigation();
+
+  // Consume the scanned-document draft once (only when arriving via the scan flow).
+  const [scan] = React.useState(() =>
+    fromScan === "1" && !id ? consumeRenterPrefill() : null,
+  );
 
   const { formMethods, onSubmit, isSubmitting, isFetching, ownerId } = useRenterForm({
     id,
@@ -35,6 +44,10 @@ export function AddEditRenterScreen() {
     refreshRenters,
     onSuccess: () => router.back(),
     initialPropertyId: propertyId ? Number(propertyId) : null,
+    prefill: scan?.renter,
+    pendingFullContract: scan?.file ?? null,
+    logId: scan?.logId,
+    provenance: scan?.renterProvenance,
   });
 
   const { formState, control, trigger, setValue } = formMethods;
@@ -129,6 +142,7 @@ export function AddEditRenterScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
         >
+          <FieldReviewProvider items={scan?.renterReview}>
           <StepHeader
             title={isEdit ? t("renter.updateRenter") : t("renter.addRenter")}
             currentStep={step === "basic" ? 1 : 2}
@@ -136,16 +150,20 @@ export function AddEditRenterScreen() {
             onBack={handleHeaderBack}
           />
           {step === "basic" && (
-            <RenterBasicInfoCard
-              control={control}
-              t={t}
-              ownerId={ownerId}
-              isEdit={isEdit}
-              onPickFromContacts={handlePickFromContacts}
-              onPickExtraContact={handlePickExtraContact}
-            />
+            <>
+              <ReviewBanner items={scan?.renterReview} />
+              <RenterBasicInfoCard
+                control={control}
+                t={t}
+                ownerId={ownerId}
+                isEdit={isEdit}
+                onPickFromContacts={handlePickFromContacts}
+                onPickExtraContact={handlePickExtraContact}
+              />
+            </>
           )}
           {step === "lease" && <RenterLeaseInfoCard control={control} t={t} ownerId={ownerId} />}
+          </FieldReviewProvider>
         </FormScrollView>
         <View style={styles.fixedButtonBar}>
           {step === "basic" && (

@@ -15,6 +15,13 @@ import {
   useRtlLabelStyle,
 } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import {
+  FieldReviewBadge,
+  FieldReviewSource,
+  FIELD_REVIEW_COLOR,
+  useDismissFieldReview,
+  useFieldReview,
+} from "./FieldReviewContext";
 
 export type DropdownItem<T extends string | number | null = string> = {
   label: string;
@@ -31,6 +38,8 @@ interface DropdownFieldProps<T extends string | number | null> {
   disabled?: boolean;
   inputStyle?: StyleProp<ViewStyle>;
   required?: boolean;
+  /** RHF field name, set only when this dropdown should participate in document-scan review. */
+  reviewName?: string;
 }
 
 export function DropdownField<T extends string | number | null>({
@@ -43,6 +52,7 @@ export function DropdownField<T extends string | number | null>({
   disabled = false,
   inputStyle,
   required,
+  reviewName,
 }: DropdownFieldProps<T>) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -50,6 +60,9 @@ export function DropdownField<T extends string | number | null>({
   const rtlInputStyle = useRtlInputStyle();
   const rtlLabelStyle = useRtlLabelStyle();
   const { isRtl } = useLanguageContext();
+  const review = useFieldReview(reviewName);
+  const dismissReview = useDismissFieldReview();
+  const flagged = !!review && !error;
 
   const renderItem = useCallback(
     (item: DropdownItem<T>) => (
@@ -75,17 +88,20 @@ export function DropdownField<T extends string | number | null>({
   return (
     <View style={[styles.inputWrap, inputStyle]}>
       {label ? (
-        <Text
-          variant="bodyMedium"
-          style={[
-            styles.label,
-            rtlLabelStyle,
-            { color: error ? colors.error : colors.textPrimary },
-          ]}
-          numberOfLines={1}
-        >
-          {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
-        </Text>
+        <View style={styles.labelRow}>
+          <Text
+            variant="bodyMedium"
+            style={[
+              styles.label,
+              rtlLabelStyle,
+              { color: error ? colors.error : colors.textPrimary },
+            ]}
+            numberOfLines={1}
+          >
+            {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
+          </Text>
+          {flagged ? <FieldReviewBadge /> : null}
+        </View>
       ) : null}
 
       <View style={{ direction: "ltr" }}>
@@ -133,7 +149,11 @@ export function DropdownField<T extends string | number | null>({
             backgroundColor: disabled
               ? colors.inputFilledBackground
               : colors.inputFilledBackground,
-            borderColor: error ? colors.error : colors.outline,
+            borderColor: error
+              ? colors.error
+              : flagged
+              ? FIELD_REVIEW_COLOR
+              : colors.outline,
             opacity: disabled ? 0.6 : 1,
           },
         ]}
@@ -146,6 +166,7 @@ export function DropdownField<T extends string | number | null>({
         ]}
         onChange={(item: DropdownItem<T>) => {
           onChange(item.value);
+          if (reviewName) dismissReview?.(reviewName);
         }}
         renderItem={renderItem}
       />
@@ -159,6 +180,7 @@ export function DropdownField<T extends string | number | null>({
           {t(error.message, { defaultValue: error.message })}
         </Text>
       ) : null}
+      {flagged ? <FieldReviewSource source={review!.source} /> : null}
     </View>
   );
 }
@@ -167,9 +189,15 @@ const styles = StyleSheet.create({
   inputWrap: {
     marginBottom: spacing.md,
   },
-  label: {
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     marginBottom: 4,
+  },
+  label: {
     fontWeight: "500",
+    flexShrink: 1,
   },
   asterisk: {
     color: "#B85450",

@@ -4,6 +4,9 @@ import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
 import { PropertyCreatedPrompt } from "@/src/features/properties/components/PropertyCreatedPrompt";
+import { ReviewBanner } from "@/src/features/document-scan/components/ReviewBanner";
+import { consumePropertyPrefill } from "@/src/features/document-scan/handoff";
+import { FieldReviewProvider } from "@/src/shared/components/form/FieldReviewContext";
 import type { Property } from "@/src/shared/types";
 import { spacing } from "@/src/core/theme";
 import { useAlert } from "@/src/core/context";
@@ -21,7 +24,7 @@ import { FormScrollView } from "@/src/shared/components/form";
 export function AddEditPropertyScreen() {
   const { t } = useTranslation();
   const { appAlert } = useAlert();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, fromScan } = useLocalSearchParams<{ id?: string; fromScan?: string }>();
   const router = useRouter();
   const { refreshProperties } = usePropertyContext();
   const isEdit = Boolean(id);
@@ -29,6 +32,11 @@ export function AddEditPropertyScreen() {
   const navigation = useNavigation();
   const [createdProperty, setCreatedProperty] = React.useState<Property | null>(
     null,
+  );
+
+  // Consume the scanned-document draft once (only when arriving via the scan flow).
+  const [scan] = React.useState(() =>
+    fromScan === "1" && !id ? consumePropertyPrefill() : null,
   );
 
   const {
@@ -46,6 +54,9 @@ export function AddEditPropertyScreen() {
     id,
     t,
     refreshProperties,
+    prefill: scan?.property,
+    logId: scan?.logId,
+    provenance: scan?.propertyProvenance,
     onSuccess: (savedProp) =>
       isEdit ? router.back() : setCreatedProperty(savedProp),
   });
@@ -112,6 +123,7 @@ export function AddEditPropertyScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
         >
+          <FieldReviewProvider items={scan?.propertyReview}>
           <StepHeader
             title={isEdit ? t("property.updateProperty") : t("property.addProperty")}
             currentStep={step === "basic" ? 1 : 2}
@@ -119,13 +131,16 @@ export function AddEditPropertyScreen() {
             onBack={handleHeaderBack}
           />
           {step === "basic" && (
-            <BasicInfoCard
-              control={control}
-              t={t}
-              imageUri={imageUri}
-              setImageUri={setImageUri}
-              ownerId={ownerId}
-            />
+            <>
+              <ReviewBanner items={scan?.propertyReview} />
+              <BasicInfoCard
+                control={control}
+                t={t}
+                imageUri={imageUri}
+                setImageUri={setImageUri}
+                ownerId={ownerId}
+              />
+            </>
           )}
           {step === "lease" && (
             <LeaseInfoCard
@@ -141,6 +156,7 @@ export function AddEditPropertyScreen() {
               }
             />
           )}
+          </FieldReviewProvider>
         </FormScrollView>
         <View style={styles.fixedButtonBar}>
           {step === "basic" && (
@@ -179,7 +195,7 @@ export function AddEditPropertyScreen() {
         visible={!!createdProperty}
         onAddRenter={() =>
           router.replace(
-            `/renters/add?propertyId=${createdProperty!.id}` as any,
+            `/renters/add?propertyId=${createdProperty!.id}${scan ? "&fromScan=1" : ""}` as any,
           )
         }
         onSkip={() => router.back()}

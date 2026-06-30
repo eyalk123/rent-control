@@ -22,12 +22,47 @@ import {
   PROPERTY_TYPES,
 } from '@/src/features/properties/validation/propertyValidation';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
+import {
+  diffProvenance,
+  updateExtractionLog,
+} from '@/src/features/document-scan/api/updateExtractionLog';
+import type { ProvenanceItem } from '@/src/features/document-scan/types';
 
 type UsePropertyFormParams = {
   id?: string;
   t: TFunction;
   refreshProperties: () => Promise<void>;
   onSuccess: (savedProp: Property) => void;
+  /** Document-scan prefill applied on a fresh (non-edit) form. */
+  prefill?: Partial<PropertyFormValues>;
+  /** Audit-log id + per-field provenance, to record what the user changed on submit. */
+  logId?: number;
+  provenance?: ProvenanceItem[];
+};
+
+const EMPTY_PROPERTY_FORM: PropertyFormValues = {
+  address: '',
+  city: '',
+  block: '',
+  plot: '',
+  zipCode: '',
+  type: '' as unknown as PropertyType,
+  sqFt: '',
+  numberOfRooms: '',
+  parkingNumbersStr: '',
+  propertyOwner: '',
+  inventoryNotes: '',
+  electricityMeterNumber: '',
+  electricityAccountNumber: '',
+  waterMeterNumber: '',
+  waterAccountNumber: '',
+  propertyTax: '',
+  houseCommittee: '',
+  basicContractUrl: null,
+  landRegistryUrl: null,
+  floor: '',
+  apartment: '',
+  pendingFiles: [],
 };
 
 function toOptionalNumber(s: string | undefined): number | null {
@@ -70,6 +105,9 @@ export function usePropertyForm({
   t,
   refreshProperties,
   onSuccess,
+  prefill,
+  logId,
+  provenance,
 }: UsePropertyFormParams) {
   const isEdit = Boolean(id);
   const { user } = useAppAuth();
@@ -82,30 +120,7 @@ export function usePropertyForm({
 
   const formMethods = useForm<PropertyFormValues>({
     resolver: zodResolver(propertyFormSchema),
-    defaultValues: {
-      address: '',
-      city: '',
-      block: '',
-      plot: '',
-      zipCode: '',
-      type: '' as unknown as PropertyType,
-      sqFt: '',
-      numberOfRooms: '',
-      parkingNumbersStr: '',
-      propertyOwner: '',
-      inventoryNotes: '',
-      electricityMeterNumber: '',
-      electricityAccountNumber: '',
-      waterMeterNumber: '',
-      waterAccountNumber: '',
-      propertyTax: '',
-      houseCommittee: '',
-      basicContractUrl: null,
-      landRegistryUrl: null,
-      floor: '',
-      apartment: '',
-      pendingFiles: [],
-    },
+    defaultValues: { ...EMPTY_PROPERTY_FORM, ...(prefill ?? {}) },
     mode: 'onBlur',
   });
 
@@ -168,6 +183,15 @@ export function usePropertyForm({
       const savedProp = isEdit && id
         ? await updateProperty(Number(id), payload)
         : await createProperty(payload);
+
+      // Audit: record which prefilled fields the user changed (scan flow, new property only).
+      if (!isEdit && logId && provenance) {
+        updateExtractionLog(logId, {
+          entity_type: 'property',
+          created_id: savedProp.id,
+          ...diffProvenance(provenance, values as Record<string, unknown>),
+        });
+      }
 
       const pending = values.pendingFiles ?? [];
       if (pending.length > 0) {

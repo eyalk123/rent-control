@@ -372,6 +372,7 @@
   },
   "error": {
     "title": "שגיאה",
+    "extractionFailed": "לא הצלחנו לקרוא את המסמך. נסו קובץ אחר או מלאו את הטופס ידנית.",
     "savePropertyFailed": "שמירת הנכס נכשלה",
     "saveRenterFailed": "שמירת הדייר נכשלה",
     "loadFailed": "טעינה נכשלה",
@@ -508,6 +509,33 @@
     "uploadFailed": "ההעלאה נכשלה. נסה שוב.",
     "landRegistry": "נסח טאבו",
     "idImage": "תמונת תעודת זהות"
+  },
+  "documentScan": {
+    "action": "סריקת מסמך",
+    "title": "סריקת מסמך",
+    "uploadPrompt": "העלו חוזה כתמונה, PDF או קובץ Word. נקרא אותו ונמלא עבורכם את טופסי הנכס והדייר לבדיקה.",
+    "choose": "בחירת קובץ",
+    "takePhoto": "צילום תמונה",
+    "chooseFile": "בחירת קובץ",
+    "extractAction": "חילוץ הפרטים",
+    "addPage": "הוספת עמוד נוסף",
+    "removePage": "הסרה",
+    "selectedPages": "{{count}} עמודים — הם יאוחדו למסמך אחד",
+    "mixedFilesError": "הוסיפו קובץ PDF/Word אחד או תמונה אחת או יותר, לא שילוב של השניים.",
+    "cameraPermissionDenied": "נדרשת גישה למצלמה כדי לצלם את החוזה.",
+    "extracting": "קורא את המסמך…",
+    "reviewTitle": "נא לבדוק את הערכים שמילאנו:",
+    "reviewFields": "בדקו את השדות הבאים לפני השמירה: {{fields}}",
+    "reviewCount": "בדקו {{count}} שדה שחולץ",
+    "reviewCount_other": "בדקו {{count}} שדות שחולצו",
+    "reviewBadge": "לבדיקה",
+    "foundIn": "נמצא ב: \"{{snippet}}\"",
+    "progress": {
+      "merging": "מאחד עמודים…",
+      "uploading": "מעלה את המסמך…",
+      "reading": "קורא את המסמך…",
+      "extracting": "מחלץ את הפרטים…"
+    }
   },
   "customFiles": {
     "sectionTitle": "קבצים מותאמים",

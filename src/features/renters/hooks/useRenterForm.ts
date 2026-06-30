@@ -21,6 +21,13 @@ import {
   renterFormSchema,
   type RenterFormValues,
 } from "@/src/features/renters/validation/renterValidation";
+import { useFirebaseUpload } from "@/src/shared/hooks/useFirebaseUpload";
+import type { PickedFile } from "@/src/features/document-scan/api/extractLease";
+import {
+  diffProvenance,
+  updateExtractionLog,
+} from "@/src/features/document-scan/api/updateExtractionLog";
+import type { ProvenanceItem } from "@/src/features/document-scan/types";
 
 type UseRenterFormParams = {
   id?: string;
@@ -28,6 +35,13 @@ type UseRenterFormParams = {
   refreshRenters: () => Promise<void>;
   onSuccess: () => void;
   initialPropertyId?: number | null;
+  /** Document-scan prefill applied on a fresh (non-edit) form. */
+  prefill?: Partial<RenterFormValues>;
+  /** Scanned lease to upload as the renter's full contract on submit. */
+  pendingFullContract?: PickedFile | null;
+  /** Audit-log id + per-field provenance, to record what the user changed on submit. */
+  logId?: number;
+  provenance?: ProvenanceItem[];
 };
 
 export function useRenterForm({
@@ -36,10 +50,15 @@ export function useRenterForm({
   refreshRenters,
   onSuccess,
   initialPropertyId = null,
+  prefill,
+  pendingFullContract = null,
+  logId,
+  provenance,
 }: UseRenterFormParams) {
   const isEdit = Boolean(id);
   const { user } = useAppAuth();
   const { appAlert } = useAlert();
+  const { uploadFile } = useFirebaseUpload("renters", user?.uid ?? "");
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
 
   const formMethods = useForm<RenterFormValues>({
@@ -66,6 +85,7 @@ export function useRenterForm({
       extraContacts: [],
       fullContractUrl: null,
       idImageUrl: null,
+      ...(prefill ?? {}),
     },
     mode: "onBlur",
   });
@@ -164,6 +184,19 @@ export function useRenterForm({
   }, [id, isEdit, reset]);
 
   const submit = handleSubmit(async (values) => {
+    // Attach the scanned lease as the full contract (uploaded only now, on submit).
+    let resolvedFullContractUrl = values.fullContractUrl ?? null;
+    if (pendingFullContract && !resolvedFullContractUrl) {
+      try {
+        resolvedFullContractUrl = await uploadFile(
+          pendingFullContract.localUri,
+          pendingFullContract.name,
+          pendingFullContract.mimeType,
+        );
+      } catch {
+        // Don't block saving the renter if the contract upload fails.
+      }
+    }
     const leaseStartTrimmed = values.leaseStart?.trim() ?? "";
     const paymentDayNum =
       values.paymentDate && values.paymentDate.length >= 10
@@ -220,7 +253,7 @@ export function useRenterForm({
       ...leaseIntent,
       contact_id: values.contactId ?? undefined,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
-      full_contract_url: values.fullContractUrl ?? null,
+      full_contract_url: resolvedFullContractUrl,
       id_image_url: values.idImageUrl ?? null,
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
@@ -260,7 +293,7 @@ export function useRenterForm({
       insurance_amount:
         insuranceAmt != null && !Number.isNaN(insuranceAmt) ? insuranceAmt : null,
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
-      full_contract_url: values.fullContractUrl ?? null,
+      full_contract_url: resolvedFullContractUrl,
       id_image_url: values.idImageUrl ?? null,
     };
 
@@ -269,7 +302,16 @@ export function useRenterForm({
         const numericId = Number(id);
         await updateRenter(numericId, baseUpdate);
       } else {
-        await createRenter(baseCreate);
+        const created = await createRenter(baseCreate);
+        // Audit: record renter creation + changed fields + the kept contract URL.
+        if (logId && provenance) {
+          updateExtractionLog(logId, {
+            entity_type: "renter",
+            created_id: (created as { id?: number })?.id ?? null,
+            contract_url: resolvedFullContractUrl,
+            ...diffProvenance(provenance, values as Record<string, unknown>),
+          });
+        }
       }
 
       await refreshRenters();
