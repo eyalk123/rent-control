@@ -1,11 +1,14 @@
 import { LoadingOverlay, ScreenContainer, StepHeader } from "@/src/shared/components/ui";
-import { useRenterContext } from "@/src/context";
+import { useRenterContext, usePropertyContext } from "@/src/context";
+import { useWatch } from "react-hook-form";
 import { useRenterForm } from "@/src/features/renters/hooks/useRenterForm";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
 import { RenterBasicInfoCard } from "@/src/features/renters/components/RenterBasicInfoCard";
 import { RenterLeaseInfoCard } from "@/src/features/renters/components/RenterLeaseInfoCard";
 import { ReviewBanner } from "@/src/features/document-scan/components/ReviewBanner";
-import { consumeRenterPrefill } from "@/src/features/document-scan/handoff";
+import { ScanPropertyNotice } from "@/src/features/document-scan/components/ScanPropertyNotice";
+import { consumeRenterPrefill, setScanHandoff } from "@/src/features/document-scan/handoff";
+import { addressesMatch } from "@/src/features/document-scan/matchProperty";
 import { FieldReviewProvider } from "@/src/shared/components/form/FieldReviewContext";
 import { spacing } from "@/src/core/theme";
 import { useAlert } from "@/src/core/context";
@@ -43,7 +46,7 @@ export function AddEditRenterScreen() {
     t,
     refreshRenters,
     onSuccess: () => router.back(),
-    initialPropertyId: propertyId ? Number(propertyId) : null,
+    initialPropertyId: propertyId ? Number(propertyId) : (scan?.matchedPropertyId ?? null),
     prefill: scan?.renter,
     pendingFullContract: scan?.file ?? null,
     logId: scan?.logId,
@@ -51,6 +54,37 @@ export function AddEditRenterScreen() {
   });
 
   const { formState, control, trigger, setValue } = formMethods;
+
+  // Renter-scan property association: preselect the matched property, and softly warn if the
+  // user picks one whose address differs from the lease. The picker stays the source of truth.
+  const { properties } = usePropertyContext();
+  const selectedPropertyId = useWatch({ control, name: "propertyId" });
+  const scannedLeaseAddress = scan?.property
+    ? { address: scan.property.address, city: scan.property.city }
+    : undefined;
+  const propertyMismatch =
+    !!scannedLeaseAddress?.address && selectedPropertyId != null
+      ? (() => {
+          const p = properties.find((pp) => pp.id === Number(selectedPropertyId));
+          return p ? !addressesMatch(p, scannedLeaseAddress) : false;
+        })()
+      : false;
+
+  // "Create property from lease": re-seed the handoff with the property draft and switch flows.
+  const handleCreatePropertyFromScan = () => {
+    if (!scan) return;
+    setScanHandoff({
+      logId: scan.logId,
+      property: scan.property,
+      propertyReview: scan.propertyReview,
+      propertyProvenance: scan.propertyProvenance,
+      renter: scan.renter,
+      renterReview: scan.renterReview,
+      renterProvenance: scan.renterProvenance,
+      file: scan.file,
+    });
+    router.replace("/properties/add?fromScan=1" as any);
+  };
   const [step, setStep] = React.useState<"basic" | "lease">("basic");
   const { requestPermission, pickContact } = useContactPicker();
 
@@ -152,6 +186,14 @@ export function AddEditRenterScreen() {
           {step === "basic" && (
             <>
               <ReviewBanner items={scan?.renterReview} />
+              {scan && (
+                <ScanPropertyNotice
+                  matchStatus={scan.propertyMatchStatus}
+                  hasSelection={selectedPropertyId != null}
+                  mismatch={propertyMismatch}
+                  onCreateProperty={handleCreatePropertyFromScan}
+                />
+              )}
               <RenterBasicInfoCard
                 control={control}
                 t={t}

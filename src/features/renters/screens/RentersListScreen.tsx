@@ -10,6 +10,7 @@ import { usePropertyContext, useRenterContext, useRtlLabelStyle } from '@/src/co
 import { getLeaseEndDate } from '@/src/shared/types';
 import {
   AppFab,
+  AddOptionsDialog,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
@@ -44,6 +45,7 @@ export function RentersListScreen() {
   const [renterFilter, setRenterFilter] = useState<number | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
+  const [addChooserOpen, setAddChooserOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -218,6 +220,11 @@ export function RentersListScreen() {
     router.push('/renters/add' as any);
   };
 
+  const handleScanPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/renters/scan' as any);
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await refreshRenters();
@@ -251,9 +258,16 @@ export function RentersListScreen() {
         <EmptyState message={t('empty.noRenters')} icon="user" />
         <AppFab
           icon="plus"
-          onPress={handleAddPress}
+          onPress={() => setAddChooserOpen(true)}
           accessibilityLabel={t('renter.addRenter')}
           bottomInset={insets.bottom}
+        />
+        <AddOptionsDialog
+          visible={addChooserOpen}
+          title={t('renter.addRenter')}
+          onManual={() => { setAddChooserOpen(false); handleAddPress(); }}
+          onScan={() => { setAddChooserOpen(false); handleScanPress(); }}
+          onDismiss={() => setAddChooserOpen(false)}
         />
       </ScreenContainer>
     );
@@ -321,11 +335,18 @@ export function RentersListScreen() {
       ) : (
         <AppFab
           icon="plus"
-          onPress={handleAddPress}
+          onPress={() => setAddChooserOpen(true)}
           accessibilityLabel={t('renter.addRenter')}
           bottomInset={insets.bottom}
         />
       )}
+      <AddOptionsDialog
+        visible={addChooserOpen}
+        title={t('renter.addRenter')}
+        onManual={() => { setAddChooserOpen(false); handleAddPress(); }}
+        onScan={() => { setAddChooserOpen(false); handleScanPress(); }}
+        onDismiss={() => setAddChooserOpen(false)}
+      />
       <FilterBottomSheet
         visible={activeSheet === 'property'}
         onDismiss={() => setActiveSheet(null)}

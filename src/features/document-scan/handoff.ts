@@ -6,6 +6,7 @@ import type { PropertyFormValues } from '@/src/features/properties/validation/pr
 import type { RenterFormValues } from '@/src/features/renters/validation/renterValidation';
 import type { ProvenanceItem, ReviewItem } from './types';
 import type { PickedFile } from './api/extractLease';
+import type { PropertyMatchStatus } from './matchProperty';
 
 interface ScanHandoff {
   logId?: number;
@@ -16,6 +17,10 @@ interface ScanHandoff {
   renterReview?: ReviewItem[];
   renterProvenance?: ProvenanceItem[];
   file?: PickedFile | null;
+  /** Renter-target scans: the existing property the lease matched (or null), for preselect
+   *  and the soft mismatch warning on the renter form. */
+  matchedPropertyId?: number | null;
+  propertyMatchStatus?: PropertyMatchStatus;
 }
 
 let _handoff: ScanHandoff | null = null;
@@ -49,13 +54,19 @@ export function consumePropertyPrefill(): {
   return out;
 }
 
-/** Renter add screen: take the renter part + the scanned file, then clear everything. */
+/** Renter add screen: take the renter part + the scanned file, the property match info, and
+ *  the property draft (kept so the screen can pivot to "create property from lease"), then clear. */
 export function consumeRenterPrefill(): {
   logId?: number;
   renter?: Partial<RenterFormValues>;
   renterReview?: ReviewItem[];
   renterProvenance?: ProvenanceItem[];
   file?: PickedFile | null;
+  matchedPropertyId?: number | null;
+  propertyMatchStatus?: PropertyMatchStatus;
+  property?: Partial<PropertyFormValues>;
+  propertyReview?: ReviewItem[];
+  propertyProvenance?: ProvenanceItem[];
 } | null {
   if (!_handoff) return null;
   const out = {
@@ -64,6 +75,11 @@ export function consumeRenterPrefill(): {
     renterReview: _handoff.renterReview,
     renterProvenance: _handoff.renterProvenance,
     file: _handoff.file,
+    matchedPropertyId: _handoff.matchedPropertyId,
+    propertyMatchStatus: _handoff.propertyMatchStatus,
+    property: _handoff.property,
+    propertyReview: _handoff.propertyReview,
+    propertyProvenance: _handoff.propertyProvenance,
   };
   _handoff = null;
   return out;

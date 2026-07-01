@@ -3,16 +3,22 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, IconButton, Text, useTheme } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Icon, ScreenContainer, StepHeader } from '@/src/shared/components/ui';
 import { useAlert } from '@/src/core/context';
+import { usePropertyContext } from '@/src/context';
 import { spacing } from '@/src/core/theme';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { extractLease, type PickedFile } from '@/src/features/document-scan/api/extractLease';
 import { mapExtraction } from '@/src/features/document-scan/mapExtraction';
+import { matchProperty } from '@/src/features/document-scan/matchProperty';
 import { mergeImagesToPdf } from '@/src/features/document-scan/mergeImagesToPdf';
 import { setScanHandoff } from '@/src/features/document-scan/handoff';
+
+/** Which "Add" flow this scan feeds. `property` creates a property (chaining to a renter);
+ *  `renter` fills a renter for an existing/matched property. */
+type ScanTarget = 'property' | 'renter';
 
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 const isImage = (f: PickedFile) => f.mimeType.startsWith('image/');
@@ -30,11 +36,13 @@ const PROGRESS_STAGES = [
   'documentScan.progress.extracting',
 ];
 
-export function DocumentScanScreen() {
+export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarget } = {}) {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
   const { appAlert } = useAlert();
+  const { properties } = usePropertyContext();
+  const { propertyId } = useLocalSearchParams<{ propertyId?: string }>();
   const [pages, setPages] = React.useState<PickedFile[]>([]);
   const [busy, setBusy] = React.useState(false);
   const [merging, setMerging] = React.useState(false);
@@ -115,7 +123,7 @@ export function DocumentScanScreen() {
       }
       const { logId, extraction } = await extractLease(file);
       const mapped = mapExtraction(extraction);
-      setScanHandoff({
+      const base = {
         logId,
         property: mapped.propertyPrefill,
         propertyReview: mapped.propertyReview,
@@ -124,8 +132,20 @@ export function DocumentScanScreen() {
         renterReview: mapped.renterReview,
         renterProvenance: mapped.renterProvenance,
         file,
-      });
-      router.replace('/properties/add?fromScan=1' as never);
+      };
+      if (target === 'renter') {
+        // Fixed property (scanned from a property) → matched; otherwise auto-match by address.
+        const fixedId = propertyId ? Number(propertyId) : null;
+        const m =
+          fixedId != null
+            ? { propertyId: fixedId, status: 'matched' as const }
+            : matchProperty(mapped.propertyPrefill, properties);
+        setScanHandoff({ ...base, matchedPropertyId: m.propertyId, propertyMatchStatus: m.status });
+        router.replace('/renters/add?fromScan=1' as never);
+      } else {
+        setScanHandoff(base);
+        router.replace('/properties/add?fromScan=1' as never);
+      }
     } catch (err) {
       appAlert(t('error.title'), getApiErrorMessage(err, t('error.extractionFailed')));
     } finally {

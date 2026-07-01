@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePropertyContext, useRenterContext, useRtlLabelStyle } from '@/src/context';
 import {
   AppFab,
+  AddOptionsDialog,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
@@ -48,6 +49,7 @@ export function PropertiesListScreen() {
   const [renterFilter, setRenterFilter] = useState<number | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
+  const [addChooserOpen, setAddChooserOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -233,17 +235,17 @@ export function PropertiesListScreen() {
       <ScreenContainer edges={['top', 'left', 'right']}>
         <EmptyState message={t('empty.noProperties')} icon="home" />
         <AppFab
-          icon="file-text"
-          variant="primary"
-          onPress={handleScanPress}
-          accessibilityLabel={t('documentScan.action')}
-          bottomInset={insets.bottom + 72}
-        />
-        <AppFab
           icon="plus"
-          onPress={handleAddPress}
+          onPress={() => setAddChooserOpen(true)}
           accessibilityLabel={t('property.addProperty')}
           bottomInset={insets.bottom}
+        />
+        <AddOptionsDialog
+          visible={addChooserOpen}
+          title={t('property.addProperty')}
+          onManual={() => { setAddChooserOpen(false); handleAddPress(); }}
+          onScan={() => { setAddChooserOpen(false); handleScanPress(); }}
+          onDismiss={() => setAddChooserOpen(false)}
         />
       </ScreenContainer>
     );
@@ -309,22 +311,20 @@ export function PropertiesListScreen() {
           bottomInset={insets.bottom}
         />
       ) : (
-        <>
-          <AppFab
-            icon="file-text"
-            variant="primary"
-            onPress={handleScanPress}
-            accessibilityLabel={t('documentScan.action')}
-            bottomInset={insets.bottom + 72}
-          />
-          <AppFab
-            icon="plus"
-            onPress={handleAddPress}
-            accessibilityLabel={t('property.addProperty')}
-            bottomInset={insets.bottom}
-          />
-        </>
+        <AppFab
+          icon="plus"
+          onPress={() => setAddChooserOpen(true)}
+          accessibilityLabel={t('property.addProperty')}
+          bottomInset={insets.bottom}
+        />
       )}
+      <AddOptionsDialog
+        visible={addChooserOpen}
+        title={t('property.addProperty')}
+        onManual={() => { setAddChooserOpen(false); handleAddPress(); }}
+        onScan={() => { setAddChooserOpen(false); handleScanPress(); }}
+        onDismiss={() => setAddChooserOpen(false)}
+      />
       <FilterBottomSheet
         visible={activeSheet === 'property'}
         onDismiss={() => setActiveSheet(null)}
