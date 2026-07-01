@@ -5,7 +5,6 @@ import { useRenterForm } from "@/src/features/renters/hooks/useRenterForm";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
 import { RenterBasicInfoCard } from "@/src/features/renters/components/RenterBasicInfoCard";
 import { RenterLeaseInfoCard } from "@/src/features/renters/components/RenterLeaseInfoCard";
-import { ReviewBanner } from "@/src/features/document-scan/components/ReviewBanner";
 import { ScanPropertyNotice } from "@/src/features/document-scan/components/ScanPropertyNotice";
 import { consumeRenterPrefill, setScanHandoff } from "@/src/features/document-scan/handoff";
 import { addressesMatch } from "@/src/features/document-scan/matchProperty";
@@ -185,7 +184,6 @@ export function AddEditRenterScreen() {
           />
           {step === "basic" && (
             <>
-              <ReviewBanner items={scan?.renterReview} />
               {scan && (
                 <ScanPropertyNotice
                   matchStatus={scan.propertyMatchStatus}

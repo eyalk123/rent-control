@@ -4,7 +4,6 @@ import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
 import { PropertyCreatedPrompt } from "@/src/features/properties/components/PropertyCreatedPrompt";
-import { ReviewBanner } from "@/src/features/document-scan/components/ReviewBanner";
 import { consumePropertyPrefill } from "@/src/features/document-scan/handoff";
 import { FieldReviewProvider } from "@/src/shared/components/form/FieldReviewContext";
 import type { Property } from "@/src/shared/types";
@@ -57,8 +56,17 @@ export function AddEditPropertyScreen() {
     prefill: scan?.property,
     logId: scan?.logId,
     provenance: scan?.propertyProvenance,
-    onSuccess: (savedProp) =>
-      isEdit ? router.back() : setCreatedProperty(savedProp),
+    onSuccess: (savedProp) => {
+      if (isEdit) {
+        router.back();
+      } else if (scan) {
+        // Scan flow: the renter was already extracted — continue straight into the renter
+        // form instead of interrupting with the "add a renter?" modal.
+        router.replace(`/renters/add?propertyId=${savedProp.id}&fromScan=1` as any);
+      } else {
+        setCreatedProperty(savedProp);
+      }
+    },
   });
 
   const { formState, control, trigger } = formMethods;
@@ -131,16 +139,13 @@ export function AddEditPropertyScreen() {
             onBack={handleHeaderBack}
           />
           {step === "basic" && (
-            <>
-              <ReviewBanner items={scan?.propertyReview} />
-              <BasicInfoCard
-                control={control}
-                t={t}
-                imageUri={imageUri}
-                setImageUri={setImageUri}
-                ownerId={ownerId}
-              />
-            </>
+            <BasicInfoCard
+              control={control}
+              t={t}
+              imageUri={imageUri}
+              setImageUri={setImageUri}
+              ownerId={ownerId}
+            />
           )}
           {step === "lease" && (
             <LeaseInfoCard

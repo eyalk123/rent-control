@@ -4,9 +4,10 @@ import { Button, Surface, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/src/shared/components/ui';
 import { spacing } from '@/src/core/theme';
+import { FIELD_REVIEW_COLOR } from '@/src/shared/components/form/FieldReviewContext';
 import type { PropertyMatchStatus } from '../matchProperty';
 
-const WARNING = '#B45309';
+const WARNING = FIELD_REVIEW_COLOR;
 
 interface Props {
   matchStatus?: PropertyMatchStatus;

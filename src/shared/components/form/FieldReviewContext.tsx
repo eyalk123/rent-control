@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Text } from "react-native-paper";
+import { Text, useTheme } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/src/shared/components/ui";
 
@@ -72,49 +72,47 @@ export function useDismissFieldReview(): ((name: string) => void) | undefined {
   return useContext(FieldReviewContext)?.dismiss;
 }
 
-/** The warning border color a flagged control should use. */
+/** The accent color the review markers use. */
 export const FIELD_REVIEW_COLOR = WARNING;
 
-/** Small inline chip placed next to a flagged field's label. */
-export function FieldReviewBadge() {
+/** Inline notice shown beneath a flagged field: a "double-check this auto-filled value" prompt
+ *  plus the exact line from the lease the value came from, so the user can verify it in place. */
+export function FieldReviewNotice({ source }: { source: string | null }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   return (
-    <View style={styles.badge}>
-      <Icon name="alert-circle" size={11} color={WARNING} />
-      <Text style={styles.badgeText}>{t("documentScan.reviewBadge")}</Text>
+    <View style={styles.notice}>
+      <Icon name="alert-circle" size={13} color={WARNING} />
+      <View style={styles.noticeBody}>
+        <Text variant="bodySmall" style={styles.noticeTitle}>
+          {t("documentScan.doubleCheck")}
+        </Text>
+        {source ? (
+          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+            {t("documentScan.foundIn", { snippet: source })}
+          </Text>
+        ) : null}
+      </View>
     </View>
   );
 }
 
-/** Source snippet shown beneath a flagged field. */
-export function FieldReviewSource({ source }: { source: string | null }) {
-  const { t } = useTranslation();
-  if (!source) return null;
-  return (
-    <Text variant="bodySmall" style={styles.source}>
-      ↳ {t("documentScan.foundIn", { snippet: source })}
-    </Text>
-  );
-}
-
 const styles = StyleSheet.create({
-  badge: {
+  notice: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 999,
-    backgroundColor: "rgba(234,179,8,0.16)",
+    alignItems: "flex-start",
+    gap: 6,
+    marginTop: 6,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "rgba(234,179,8,0.12)",
   },
-  badgeText: {
-    fontSize: 10,
+  noticeBody: {
+    flex: 1,
+    gap: 2,
+  },
+  noticeTitle: {
+    color: WARNING,
     fontWeight: "600",
-    color: WARNING,
-  },
-  source: {
-    marginTop: 4,
-    color: WARNING,
-    opacity: 0.9,
   },
 });

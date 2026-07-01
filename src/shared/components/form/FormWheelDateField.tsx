@@ -10,9 +10,7 @@ import {
 } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import {
-  FieldReviewBadge,
-  FieldReviewSource,
-  FIELD_REVIEW_COLOR,
+  FieldReviewNotice,
   useDismissFieldReview,
   useFieldReview,
 } from './FieldReviewContext';
@@ -212,7 +210,6 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
               >
                 {label}
               </Text>
-              {flagged ? <FieldReviewBadge /> : null}
             </View>
             <Pressable
               onPress={() => setShowPicker(true)}
@@ -220,7 +217,7 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
                 styles.touchable,
                 {
                   backgroundColor: colors.inputFilledBackground,
-                  borderColor: error ? colors.error : flagged ? FIELD_REVIEW_COLOR : colors.outline,
+                  borderColor: error ? colors.error : colors.outline,
                 },
               ]}
             >
@@ -262,7 +259,7 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
                 {error.message}
               </Text>
             ) : null}
-            {flagged ? <FieldReviewSource source={review!.source} /> : null}
+            {flagged ? <FieldReviewNotice source={review!.source} /> : null}
           </View>
         );
       }}

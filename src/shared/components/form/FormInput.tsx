@@ -20,9 +20,7 @@ import {
 } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import {
-  FieldReviewBadge,
-  FieldReviewSource,
-  FIELD_REVIEW_COLOR,
+  FieldReviewNotice,
   useDismissFieldReview,
   useFieldReview,
 } from "./FieldReviewContext";
@@ -83,7 +81,6 @@ function FormInputInner<TFieldValues extends FieldValues>({
             >
               {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
             </Text>
-            {flagged ? <FieldReviewBadge /> : null}
           </View>
 
           <View>
@@ -111,8 +108,6 @@ function FormInputInner<TFieldValues extends FieldValues>({
                     ? colors.primary
                     : error
                     ? colors.error
-                    : flagged
-                    ? FIELD_REVIEW_COLOR
                     : colors.outline,
                   borderWidth: isFocused ? 2 : 1,
                   color: colors.textPrimary,
@@ -137,7 +132,7 @@ function FormInputInner<TFieldValues extends FieldValues>({
               {t(error.message!, { defaultValue: error.message })}
             </Text>
           ) : null}
-          {flagged ? <FieldReviewSource source={review!.source} /> : null}
+          {flagged ? <FieldReviewNotice source={review!.source} /> : null}
         </View>
         );
       }}

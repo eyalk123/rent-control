@@ -16,9 +16,7 @@ import {
 } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
 import {
-  FieldReviewBadge,
-  FieldReviewSource,
-  FIELD_REVIEW_COLOR,
+  FieldReviewNotice,
   useDismissFieldReview,
   useFieldReview,
 } from "./FieldReviewContext";
@@ -100,7 +98,6 @@ export function DropdownField<T extends string | number | null>({
           >
             {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
           </Text>
-          {flagged ? <FieldReviewBadge /> : null}
         </View>
       ) : null}
 
@@ -149,11 +146,7 @@ export function DropdownField<T extends string | number | null>({
             backgroundColor: disabled
               ? colors.inputFilledBackground
               : colors.inputFilledBackground,
-            borderColor: error
-              ? colors.error
-              : flagged
-              ? FIELD_REVIEW_COLOR
-              : colors.outline,
+            borderColor: error ? colors.error : colors.outline,
             opacity: disabled ? 0.6 : 1,
           },
         ]}
@@ -180,7 +173,7 @@ export function DropdownField<T extends string | number | null>({
           {t(error.message, { defaultValue: error.message })}
         </Text>
       ) : null}
-      {flagged ? <FieldReviewSource source={review!.source} /> : null}
+      {flagged ? <FieldReviewNotice source={review!.source} /> : null}
     </View>
   );
 }

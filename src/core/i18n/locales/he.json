@@ -535,6 +535,7 @@
     "reviewCount": "בדקו {{count}} שדה שחולץ",
     "reviewCount_other": "בדקו {{count}} שדות שחולצו",
     "reviewBadge": "לבדיקה",
+    "doubleCheck": "כדאי לבדוק את הערך שמולא אוטומטית",
     "foundIn": "נמצא ב: \"{{snippet}}\"",
     "progress": {
       "merging": "מאחד עמודים…",
