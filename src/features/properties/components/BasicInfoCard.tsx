@@ -1,5 +1,6 @@
 import React from "react";
 import type { Control, FieldValues } from "react-hook-form";
+import { HelperText } from "react-native-paper";
 import {
   FormSectionCard,
   FormTextField,
@@ -20,6 +21,8 @@ type BasicInfoCardProps<TFieldValues extends FieldValues> = {
   imageUri: string | null;
   setImageUri: (uri: string | null) => void;
   ownerId: string;
+  /** Debug hint: the verbatim clause a scan based the property address on (scan flow only). */
+  addressEvidence?: string | null;
 };
 
 function BasicInfoCardInner<TFieldValues extends FieldValues>({
@@ -28,6 +31,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   imageUri,
   setImageUri,
   ownerId,
+  addressEvidence,
 }: BasicInfoCardProps<TFieldValues>) {
   const rtlPlaceholder = useRtlPlaceholder();
   const { properties } = usePropertyContext();
@@ -90,6 +94,11 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
           required={f.required}
         />
       ))}
+      {addressEvidence ? (
+        <HelperText type="info" visible>
+          {t("documentScan.addressEvidence", { snippet: addressEvidence })}
+        </HelperText>
+      ) : null}
       <FormNumericField
         control={control}
         name={"floor" as any}

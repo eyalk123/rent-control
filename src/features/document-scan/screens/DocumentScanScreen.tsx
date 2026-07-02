@@ -128,9 +128,10 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
         property: mapped.propertyPrefill,
         propertyReview: mapped.propertyReview,
         propertyProvenance: mapped.propertyProvenance,
-        renter: mapped.renterPrefill,
-        renterReview: mapped.renterReview,
-        renterProvenance: mapped.renterProvenance,
+        renters: mapped.renters,
+        rentIsJoint: mapped.rentIsJoint,
+        jointMonthlyRent: mapped.jointMonthlyRent,
+        addressEvidence: mapped.addressEvidence,
         file,
       };
       if (target === 'renter') {
@@ -141,11 +142,11 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
             ? { propertyId: fixedId, status: 'matched' as const }
             : matchProperty(mapped.propertyPrefill, properties);
         setScanHandoff({ ...base, matchedPropertyId: m.propertyId, propertyMatchStatus: m.status });
-        router.replace('/renters/add?fromScan=1' as never);
       } else {
         setScanHandoff(base);
-        router.replace('/properties/add?fromScan=1' as never);
       }
+      // Always show the summary (what we found) before verifying the forms.
+      router.replace(`/scan/summary?target=${target}` as never);
     } catch (err) {
       appAlert(t('error.title'), getApiErrorMessage(err, t('error.extractionFailed')));
     } finally {

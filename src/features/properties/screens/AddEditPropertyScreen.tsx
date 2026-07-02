@@ -145,6 +145,7 @@ export function AddEditPropertyScreen() {
               imageUri={imageUri}
               setImageUri={setImageUri}
               ownerId={ownerId}
+              addressEvidence={scan?.addressEvidence}
             />
           )}
           {step === "lease" && (

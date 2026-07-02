@@ -37,6 +37,9 @@ type UseRenterFormParams = {
   initialPropertyId?: number | null;
   /** Document-scan prefill applied on a fresh (non-edit) form. */
   prefill?: Partial<RenterFormValues>;
+  /** Bumped by the multi-renter scan flow to re-seed the form with the next co-tenant's
+   *  prefill (a fresh value re-runs the reset for the next renter in the queue). */
+  prefillNonce?: number;
   /** Scanned lease to upload as the renter's full contract on submit. */
   pendingFullContract?: PickedFile | null;
   /** Audit-log id + per-field provenance, to record what the user changed on submit. */
@@ -51,6 +54,7 @@ export function useRenterForm({
   onSuccess,
   initialPropertyId = null,
   prefill,
+  prefillNonce = 0,
   pendingFullContract = null,
   logId,
   provenance,
@@ -61,9 +65,8 @@ export function useRenterForm({
   const { uploadFile } = useFirebaseUpload("renters", user?.uid ?? "");
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
 
-  const formMethods = useForm<RenterFormValues>({
-    resolver: zodResolver(renterFormSchema),
-    defaultValues: {
+  const buildDefaults = React.useCallback(
+    (pf?: Partial<RenterFormValues>): RenterFormValues => ({
       firstName: "",
       lastName: "",
       phone: "",
@@ -85,12 +88,30 @@ export function useRenterForm({
       extraContacts: [],
       fullContractUrl: null,
       idImageUrl: null,
-      ...(prefill ?? {}),
-    },
+      ...(pf ?? {}),
+    }),
+    [initialPropertyId],
+  );
+
+  const formMethods = useForm<RenterFormValues>({
+    resolver: zodResolver(renterFormSchema),
+    defaultValues: buildDefaults(prefill),
     mode: "onBlur",
   });
 
   const { reset, handleSubmit, formState } = formMethods;
+
+  // Multi-renter scan: when the screen advances to the next co-tenant it bumps prefillNonce,
+  // re-seeding the form with that renter's prefill. Skip the initial mount (defaults already
+  // applied) and never clobber an edit form.
+  const nonceRef = React.useRef(prefillNonce);
+  React.useEffect(() => {
+    if (isEdit) return;
+    if (nonceRef.current === prefillNonce) return;
+    nonceRef.current = prefillNonce;
+    reset(buildDefaults(prefill));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fires only when prefillNonce changes
+  }, [prefillNonce]);
 
   React.useEffect(() => {
     if (!isEdit || !id) {

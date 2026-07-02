@@ -98,6 +98,12 @@ function FormInputInner<TFieldValues extends FieldValues>({
               placeholder={placeholder}
               placeholderTextColor={colors.textSecondary}
               textAlign={isRtl ? "right" : "left"}
+              // Disable OS autofill / keyboard strong-password + contact suggestions on all
+              // property/renter/transaction fields (values must not leak between forms).
+              autoComplete="off"
+              autoCorrect={false}
+              importantForAutofill="no"
+              textContentType="none"
               style={[
                 styles.nativeInput,
                 {

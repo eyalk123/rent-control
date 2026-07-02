@@ -20,7 +20,7 @@ import {
     View,
 } from "react-native";
 import { FormScrollView } from "@/src/shared/components/form";
-import { Button } from "react-native-paper";
+import { Button, Text, useTheme } from "react-native-paper";
 
 export function AddEditRenterScreen() {
   const { t } = useTranslation();
@@ -31,6 +31,7 @@ export function AddEditRenterScreen() {
     fromScan?: string;
   }>();
   const router = useRouter();
+  const theme = useTheme();
   const { refreshRenters } = useRenterContext();
   const isEdit = Boolean(id);
   const navigation = useNavigation();
@@ -40,16 +41,31 @@ export function AddEditRenterScreen() {
     fromScan === "1" && !id ? consumeRenterPrefill() : null,
   );
 
+  // Multi-renter scan: verify each co-tenant in turn. Saving one advances the cursor to the
+  // next; only the last returns to the list.
+  const renters = scan?.renters ?? [];
+  const [qIndex, setQIndex] = React.useState(0);
+  const current = renters[qIndex];
+  const hasNextRenter = qIndex < renters.length - 1;
+
   const { formMethods, onSubmit, isSubmitting, isFetching, ownerId } = useRenterForm({
     id,
     t,
     refreshRenters,
-    onSuccess: () => router.back(),
+    onSuccess: () => {
+      if (hasNextRenter) {
+        setQIndex((i) => i + 1);
+        setStep("basic");
+      } else {
+        router.back();
+      }
+    },
     initialPropertyId: propertyId ? Number(propertyId) : (scan?.matchedPropertyId ?? null),
-    prefill: scan?.renter,
+    prefill: current?.prefill,
+    prefillNonce: qIndex,
     pendingFullContract: scan?.file ?? null,
     logId: scan?.logId,
-    provenance: scan?.renterProvenance,
+    provenance: current?.provenance,
   });
 
   const { formState, control, trigger, setValue } = formMethods;
@@ -69,7 +85,8 @@ export function AddEditRenterScreen() {
         })()
       : false;
 
-  // "Create property from lease": re-seed the handoff with the property draft and switch flows.
+  // "Create property from lease": re-seed the handoff with the property draft + renter queue
+  // and switch flows (property → renter chain).
   const handleCreatePropertyFromScan = () => {
     if (!scan) return;
     setScanHandoff({
@@ -77,9 +94,7 @@ export function AddEditRenterScreen() {
       property: scan.property,
       propertyReview: scan.propertyReview,
       propertyProvenance: scan.propertyProvenance,
-      renter: scan.renter,
-      renterReview: scan.renterReview,
-      renterProvenance: scan.renterProvenance,
+      renters: scan.renters,
       file: scan.file,
     });
     router.replace("/properties/add?fromScan=1" as any);
@@ -175,13 +190,18 @@ export function AddEditRenterScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
         >
-          <FieldReviewProvider items={scan?.renterReview}>
+          <FieldReviewProvider items={current?.review}>
           <StepHeader
             title={isEdit ? t("renter.updateRenter") : t("renter.addRenter")}
             currentStep={step === "basic" ? 1 : 2}
             totalSteps={2}
             onBack={handleHeaderBack}
           />
+          {renters.length > 1 && (
+            <Text variant="labelMedium" style={[styles.renterProgress, { color: theme.colors.primary }]}>
+              {t("documentScan.renterProgress", { current: qIndex + 1, total: renters.length })}
+            </Text>
+          )}
           {step === "basic" && (
             <>
               {scan && (
@@ -229,11 +249,19 @@ export function AddEditRenterScreen() {
               style={styles.saveButton}
               contentStyle={styles.saveButtonContent}
               accessibilityLabel={
-                isEdit ? t("renter.updateRenter") : t("renter.addRenter")
+                hasNextRenter
+                  ? t("documentScan.saveAndNextRenter")
+                  : isEdit
+                  ? t("renter.updateRenter")
+                  : t("renter.addRenter")
               }
               accessibilityRole="button"
             >
-              {isEdit ? t("renter.updateRenter") : t("renter.addRenter")}
+              {hasNextRenter
+                ? t("documentScan.saveAndNextRenter")
+                : isEdit
+                ? t("renter.updateRenter")
+                : t("renter.addRenter")}
             </Button>
           )}
         </View>
@@ -243,6 +271,9 @@ export function AddEditRenterScreen() {
 }
 
 const styles = StyleSheet.create({
+  renterProgress: {
+    marginTop: spacing.xs,
+  },
   wrapper: {
     flex: 1,
   },
