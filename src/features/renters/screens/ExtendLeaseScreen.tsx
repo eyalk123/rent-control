@@ -13,7 +13,7 @@ import {
   Icon,
   type Segment,
 } from "@/src/shared/components/ui";
-import { FormScrollView } from "@/src/shared/components/form";
+import { FormScrollView, EscalationValueField, LeaseYearTypeText } from "@/src/shared/components/form";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
 import { useLanguageContext, useRtlInputStyle, useAlert } from "@/src/core/context";
 import { useRenterContext } from "@/src/context";
@@ -250,28 +250,7 @@ export function ExtendLeaseScreen() {
                 />
               )}
               {(mode === "percent" || mode === "fixed") && (
-                <View style={[styles.escValueRow, { flexDirection: rowDirection }]}>
-                  <Text style={[styles.escCaption, { color: colors.textSecondary }]}>
-                    {t("renter.yearlyIncrease")}
-                  </Text>
-                  <View
-                    style={[
-                      styles.affixInput,
-                      { flexDirection: rowDirection, borderColor: colors.outline, backgroundColor: colors.inputFilledBackground },
-                    ]}
-                  >
-                    {mode === "fixed" ? <Text style={[styles.affix, { color: colors.textSecondary }]}>₪</Text> : null}
-                    <RNTextInput
-                      value={value}
-                      onChangeText={setValue}
-                      keyboardType="decimal-pad"
-                      placeholder="0"
-                      placeholderTextColor={colors.textSecondary}
-                      style={[styles.affixField, { color: colors.textPrimary }, rtlInputStyle]}
-                    />
-                    {mode === "percent" ? <Text style={[styles.affix, { color: colors.textSecondary }]}>%</Text> : null}
-                  </View>
-                </View>
+                <EscalationValueField mode={mode} value={value} onChangeText={setValue} />
               )}
             </View>
           </View>
@@ -293,7 +272,6 @@ export function ExtendLeaseScreen() {
               {/* Existing years — editable amount, deletable, type convertible */}
               {existingRows.map((row, index) => {
                 const isCurrent = isCurrentLeaseYear(leaseStart, index);
-                const isOption = row.type === "option";
                 return (
                   <View
                     key={`existing-${index}`}
@@ -327,14 +305,7 @@ export function ExtendLeaseScreen() {
                       accessibilityLabel={t("renter.tapToChangeType")}
                       style={styles.typeToggle}
                     >
-                      <Text
-                        style={[
-                          styles.typeText,
-                          { color: isOption ? colors.accent : colors.textSecondary, fontWeight: isOption ? "700" : "600" },
-                        ]}
-                      >
-                        {isOption ? t("renter.leaseYearTypeOption") : t("renter.leaseYearTypeContract")}
-                      </Text>
+                      <LeaseYearTypeText type={row.type} style={styles.typeText} />
                     </Pressable>
                     <Pressable
                       onPress={() => removeRow(index)}
@@ -350,7 +321,6 @@ export function ExtendLeaseScreen() {
               {/* Added years — auto-priced, read-only (adjust via the number inputs + increment) */}
               {addedYears.map((year, j) => {
                 const index = existingRows.length + j;
-                const isOption = year.type === "option";
                 return (
                   <View key={`added-${j}`} style={[styles.yearRow, { flexDirection: rowDirection }]}>
                     <Text style={[styles.yearLabel, rtlText, { color: colors.textPrimary }]}>
@@ -359,14 +329,7 @@ export function ExtendLeaseScreen() {
                     <Text style={[styles.addedAmount, rtlText, { color: colors.textPrimary }]}>
                       {year.amount > 0 ? formatMoney(year.amount) : "—"}
                     </Text>
-                    <Text
-                      style={[
-                        styles.typeText,
-                        { color: isOption ? colors.accent : colors.textSecondary, fontWeight: isOption ? "700" : "600" },
-                      ]}
-                    >
-                      {isOption ? t("renter.leaseYearTypeOption") : t("renter.leaseYearTypeContract")}
-                    </Text>
+                    <LeaseYearTypeText type={year.type} style={styles.typeText} />
                     <View style={[styles.newTag, { backgroundColor: colors.primary }]}>
                       <Text style={[styles.newTagText, { color: colors.onPrimary }]}>{t("renter.newYearTag")}</Text>
                     </View>
@@ -444,20 +407,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   warningText: { flex: 1, fontSize: 13 },
-  escValueRow: { alignItems: "center", gap: spacing.sm },
   escCaption: { fontSize: 13 },
   cpiNote: { fontSize: 13, lineHeight: 18 },
-  affixInput: {
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    height: 48,
-    width: 130,
-    gap: 6,
-  },
-  affixField: { flex: 1, fontSize: 16, paddingVertical: 0 },
-  affix: { fontSize: 16, fontWeight: "600" },
   scheduleTitle: { fontWeight: "700", marginTop: spacing.md, marginBottom: spacing.xs },
   emptyText: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
   yearRow: {

@@ -18,6 +18,8 @@ import { buildLeaseYears } from "@/src/shared/utils/leaseSchedule";
 import { formatDateFull } from "@/src/shared/utils/dates";
 import { Stepper, SegmentedControl, Icon, type Segment } from "@/src/shared/components/ui";
 import { FormNumericField } from "./FormFields";
+import { EscalationValueField } from "./EscalationValueField";
+import { LeaseYearTypeText } from "./LeaseYearTypeText";
 
 type LeaseTermBuilderProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -185,43 +187,18 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
       ) : null}
 
       {escMode === "percent" || escMode === "fixed" ? (
-        <View style={[styles.escValueRow, { flexDirection: rowDirection }]}>
-          <Text style={[styles.escCaption, { color: colors.textSecondary }]}>
-            {t("renter.yearlyIncrease")}
-          </Text>
-          <Controller
-            control={control}
-            name={"escalationValue" as Path<TFieldValues>}
-            render={({ field }) => (
-              <View
-                style={[
-                  styles.affixInput,
-                  {
-                    flexDirection: rowDirection,
-                    borderColor: colors.outline,
-                    backgroundColor: colors.inputFilledBackground,
-                  },
-                ]}
-              >
-                {escMode === "fixed" ? (
-                  <Text style={[styles.affix, { color: colors.textSecondary }]}>₪</Text>
-                ) : null}
-                <RNTextInput
-                  value={(field.value as string) ?? ""}
-                  onChangeText={field.onChange}
-                  onBlur={field.onBlur}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  placeholderTextColor={colors.textSecondary}
-                  style={[styles.affixField, { color: colors.textPrimary }, rtlInputStyle]}
-                />
-                {escMode === "percent" ? (
-                  <Text style={[styles.affix, { color: colors.textSecondary }]}>%</Text>
-                ) : null}
-              </View>
-            )}
-          />
-        </View>
+        <Controller
+          control={control}
+          name={"escalationValue" as Path<TFieldValues>}
+          render={({ field }) => (
+            <EscalationValueField
+              mode={escMode}
+              value={(field.value as string) ?? ""}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+            />
+          )}
+        />
       ) : null}
 
       {total > 0 ? (
@@ -302,19 +279,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
                         />
                       )}
                     />
-                    <Text
-                      style={[
-                        styles.typeText,
-                        {
-                          color: yearType === "option" ? colors.accent : colors.textSecondary,
-                          fontWeight: yearType === "option" ? "700" : "600",
-                        },
-                      ]}
-                    >
-                      {yearType === "contract"
-                        ? t("renter.leaseYearTypeContract")
-                        : t("renter.leaseYearTypeOption")}
-                    </Text>
+                    <LeaseYearTypeText type={yearType} />
                     {isCurrent ? renderNowChip() : null}
                   </View>
                 ) : (
@@ -357,19 +322,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
                         </View>
                       ) : null}
                     </View>
-                    <Text
-                      style={[
-                        styles.typeText,
-                        {
-                          color: yearType === "option" ? colors.accent : colors.textSecondary,
-                          fontWeight: yearType === "option" ? "700" : "600",
-                        },
-                      ]}
-                    >
-                      {yearType === "contract"
-                        ? t("renter.leaseYearTypeContract")
-                        : t("renter.leaseYearTypeOption")}
-                    </Text>
+                    <LeaseYearTypeText type={yearType} />
                     {isCurrent ? renderNowChip() : null}
                   </View>
                 )}
@@ -396,36 +349,10 @@ export const LeaseTermBuilder = React.memo(
 ) as typeof LeaseTermBuilderInner;
 
 const styles = StyleSheet.create({
-  escValueRow: {
-    alignItems: "center",
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  escCaption: {
-    fontSize: 13,
-  },
   cpiNote: {
     fontSize: 13,
     lineHeight: 18,
     marginBottom: spacing.md,
-  },
-  affixInput: {
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    height: 48,
-    width: 130,
-    gap: 6,
-  },
-  affixField: {
-    flex: 1,
-    fontSize: 16,
-    paddingVertical: 0,
-  },
-  affix: {
-    fontSize: 16,
-    fontWeight: "600",
   },
   divider: {
     height: 1,
@@ -499,9 +426,6 @@ const styles = StyleSheet.create({
   cpiChipText: {
     fontSize: 11,
     fontWeight: "700",
-  },
-  typeText: {
-    fontSize: 13,
   },
   nowChip: {
     paddingHorizontal: spacing.sm,

@@ -46,7 +46,10 @@ function StepperInner({
         </Text>
       ) : null}
 
-      <View style={[styles.row, { flexDirection: rowDirection }]}>
+      {/* The app forces native RTL (I18nManager.forceRTL), so a plain "row" already packs the
+          control at the correct (right) edge in Hebrew. A manual row-reverse here double-flips
+          it back to the left — visible when the Stepper is full-width (e.g. the renter form). */}
+      <View style={[styles.row, { flexDirection: "row" }]}>
         <View
           style={[
             styles.control,
