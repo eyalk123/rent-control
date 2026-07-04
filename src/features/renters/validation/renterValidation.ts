@@ -63,7 +63,7 @@ export const renterFormSchema = z.object({
   contractTermYears: optionalNumericString,
   optionYears: optionalNumericString,
   baseRent: optionalNumericString,
-  escalationMode: z.enum(["none", "percent", "fixed", "custom"]).optional(),
+  escalationMode: z.enum(["none", "percent", "fixed", "custom", "cpi"]).optional(),
   escalationValue: optionalNumericString,
   leaseYears: z.array(leaseYearSchema).optional(),
   contactId: z.string().nullable().optional(),

@@ -66,6 +66,13 @@ export function RenterDetailScreen() {
     }
   };
 
+  const handleExtend = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (renter) {
+      router.push(`/renters/extend/${renter.id}` as any);
+    }
+  };
+
   if (loading) {
     return (
       <ScreenContainer>
@@ -109,6 +116,14 @@ export function RenterDetailScreen() {
               style={[styles.editIcon, { backgroundColor: colors.primary }]}
               onPress={handleEdit}
               accessibilityLabel={t('renter.editRenter')}
+            />
+            <IconButton
+              icon="calendar-plus"
+              iconColor="#FFF"
+              size={20}
+              style={[styles.extendIcon, { backgroundColor: colors.primary }]}
+              onPress={handleExtend}
+              accessibilityLabel={t('renter.extendLease')}
             />
           </View>
 
@@ -185,6 +200,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: spacing.sm,
     left: spacing.sm,
+    margin: 0,
+  },
+  extendIcon: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    right: spacing.sm,
     margin: 0,
   },
   nameRow: {
