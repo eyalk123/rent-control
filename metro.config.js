@@ -27,6 +27,24 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       type: 'sourceFile',
     };
   }
+  // Route per-icon deep imports (e.g. 'lucide-react-native/icons/pencil') to the real
+  // .mjs module, bypassing the package's `exports` map (which only exposes '.' and a full
+  // './icons' barrel). This avoids pulling all ~1,700 Lucide icons into the bundle.
+  const lucide = moduleName.match(/^lucide-react-native\/icons\/(.+)$/);
+  if (lucide) {
+    return {
+      filePath: path.join(
+        __dirname,
+        'node_modules',
+        'lucide-react-native',
+        'dist',
+        'esm',
+        'icons',
+        `${lucide[1]}.mjs`
+      ),
+      type: 'sourceFile',
+    };
+  }
   if (defaultResolveRequest) {
     return defaultResolveRequest(context, moduleName, platform);
   }

@@ -4,7 +4,13 @@ import { ActivityIndicator, Menu, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronRight, FileBarChart2, MoreVertical, Receipt, RefreshCw, Share2, Trash2 } from 'lucide-react-native';
+import ChevronRight from 'lucide-react-native/icons/chevron-right';
+import FileBarChart2 from 'lucide-react-native/icons/file-chart-column';
+import MoreVertical from 'lucide-react-native/icons/ellipsis-vertical';
+import Receipt from 'lucide-react-native/icons/receipt';
+import RefreshCw from 'lucide-react-native/icons/refresh-cw';
+import Share2 from 'lucide-react-native/icons/share-2';
+import Trash2 from 'lucide-react-native/icons/trash-2';
 
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';

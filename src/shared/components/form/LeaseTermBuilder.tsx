@@ -171,6 +171,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
           <SegmentedControl
             label={t("renter.rentChange")}
             segments={escalationSegments}
+            fitContent
             value={(field.value as RentEscalationMode) ?? "none"}
             onChange={(v) => {
               if (v === "cpi") cpiSwitchRef.current = true;

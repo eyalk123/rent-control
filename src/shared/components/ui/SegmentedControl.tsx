@@ -14,6 +14,12 @@ type SegmentedControlProps<T extends string> = {
   value: T | undefined;
   onChange: (value: T) => void;
   label?: string;
+  /**
+   * Size each segment to its label (proportional) instead of equal columns. Helps when there
+   * are many segments and equal widths would truncate the longer labels. Off by default so
+   * short segment sets keep their tidy even columns.
+   */
+  fitContent?: boolean;
 };
 
 function SegmentedControlInner<T extends string>({
@@ -21,6 +27,7 @@ function SegmentedControlInner<T extends string>({
   value,
   onChange,
   label,
+  fitContent = false,
 }: SegmentedControlProps<T>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -54,7 +61,11 @@ function SegmentedControlInner<T extends string>({
             <Pressable
               key={seg.value}
               onPress={() => onChange(seg.value)}
-              style={[styles.segment, active && { backgroundColor: colors.primary }]}
+              style={[
+                styles.segment,
+                fitContent ? styles.segmentFit : styles.segmentEqual,
+                active && { backgroundColor: colors.primary },
+              ]}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
             >
@@ -95,12 +106,22 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   segment: {
-    flex: 1,
     minHeight: 40,
     paddingHorizontal: spacing.sm,
     borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
+  },
+  // Equal columns: flexBasis 0% makes flexbox ignore label length and split evenly.
+  segmentEqual: {
+    flex: 1,
+  },
+  // Content-aware: each segment starts at its label width (flexBasis auto), then shares the
+  // leftover space — so short labels (e.g. "CPI") free room for longer ones.
+  segmentFit: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: "auto",
   },
   segmentText: {
     fontSize: 14,
