@@ -129,6 +129,10 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
               error={!!error}
               keyboardType={numeric ? 'numeric' : undefined}
               placeholder={placeholder}
+              autoComplete="off"
+              autoCorrect={false}
+              importantForAutofill="no"
+              textContentType="none"
               style={[
                 styles.input,
                 { backgroundColor: colors.inputFilledBackground },

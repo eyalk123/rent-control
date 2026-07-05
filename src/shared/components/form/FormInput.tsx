@@ -19,6 +19,11 @@ import {
   TextInput as RNTextInput,
 } from "react-native";
 import { Text, useTheme } from "react-native-paper";
+import {
+  FieldReviewNotice,
+  useDismissFieldReview,
+  useFieldReview,
+} from "./FieldReviewContext";
 
 type FormInputProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -49,6 +54,8 @@ function FormInputInner<TFieldValues extends FieldValues>({
   const { t } = useTranslation();
   const inputRef = React.useRef<RNTextInput>(null);
   const [isFocused, setIsFocused] = React.useState(false);
+  const review = useFieldReview(name);
+  const dismissReview = useDismissFieldReview();
 
   return (
     <Controller
@@ -57,21 +64,30 @@ function FormInputInner<TFieldValues extends FieldValues>({
       render={({
         field: { value, onChange, onBlur },
         fieldState: { error },
-      }) => (
+      }) => {
+        // Don't double-decorate when the field is in an error state.
+        const flagged = !!review && !error;
+        const handleChange = (text: string) => {
+          onChange(text);
+          if (review) dismissReview?.(name);
+        };
+        return (
         <View style={styles.inputWrap}>
-          <Text
-            variant="bodyMedium"
-            style={[styles.label, rtlLabelStyle, { color: error ? colors.error : colors.textPrimary }]}
-            numberOfLines={1}
-          >
-            {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
-          </Text>
+          <View style={styles.labelRow}>
+            <Text
+              variant="bodyMedium"
+              style={[styles.label, rtlLabelStyle, { color: error ? colors.error : colors.textPrimary }]}
+              numberOfLines={1}
+            >
+              {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
+            </Text>
+          </View>
 
           <View>
             <RNTextInput
               ref={inputRef}
               value={value as string}
-              onChangeText={onChange}
+              onChangeText={handleChange}
               onFocus={() => setIsFocused(true)}
               onBlur={() => {
                 setIsFocused(false);
@@ -82,6 +98,12 @@ function FormInputInner<TFieldValues extends FieldValues>({
               placeholder={placeholder}
               placeholderTextColor={colors.textSecondary}
               textAlign={isRtl ? "right" : "left"}
+              // Disable OS autofill / keyboard strong-password + contact suggestions on all
+              // property/renter/transaction fields (values must not leak between forms).
+              autoComplete="off"
+              autoCorrect={false}
+              importantForAutofill="no"
+              textContentType="none"
               style={[
                 styles.nativeInput,
                 {
@@ -116,8 +138,10 @@ function FormInputInner<TFieldValues extends FieldValues>({
               {t(error.message!, { defaultValue: error.message })}
             </Text>
           ) : null}
+          {flagged ? <FieldReviewNotice source={review!.source} /> : null}
         </View>
-      )}
+        );
+      }}
     />
   );
 }
@@ -128,9 +152,15 @@ const styles = StyleSheet.create({
   inputWrap: {
     marginBottom: spacing.md,
   },
-  label: {
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     marginBottom: 4,
+  },
+  label: {
     fontWeight: "500",
+    flexShrink: 1,
   },
   asterisk: {
     color: "#B85450",

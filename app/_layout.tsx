@@ -12,7 +12,10 @@ import { AlertProvider } from "@/src/core/context";
 import { AuthProvider } from "@/src/core/auth/AuthContext";
 import { NotificationProvider } from "@/src/features/notifications/context/NotificationContext";
 import "@/src/core/i18n";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
 import * as NavigationBar from "expo-navigation-bar";
+import * as SplashScreen from "expo-splash-screen";
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
 import { Stack, useNavigationContainerRef } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -22,6 +25,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as Sentry from "@sentry/react-native";
+
+// Keep the native splash up until icon fonts are loaded so Paper icons
+// (MaterialCommunityIcons glyphs) never render blank and "pop in" on first use.
+SplashScreen.preventAutoHideAsync();
 
 const routingInstrumentation = Sentry.reactNavigationIntegration();
 
@@ -84,12 +91,23 @@ function AppContent() {
 
 export default Sentry.wrap(function RootLayout() {
   const ref = useNavigationContainerRef();
+  const [fontsLoaded] = useFonts(MaterialCommunityIcons.font);
 
   useEffect(() => {
     if (ref?.current) {
       routingInstrumentation.registerNavigationContainer(ref);
     }
   }, [ref]);
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <AuthProvider>

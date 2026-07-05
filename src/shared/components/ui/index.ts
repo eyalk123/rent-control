@@ -6,6 +6,7 @@ export { ContactActionsRow } from './ContactActionsRow';
 export type { ContactActionsRowProps } from './ContactActionsRow';
 export { Icon, type IconName } from './Icon';
 export { AppFab } from './AppFab';
+export { AddOptionsDialog } from './AddOptionsDialog';
 export { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
 export { ActiveFilterPills } from './ActiveFilterPills';
 export { FilterBottomSheet, type FilterOption } from './FilterBottomSheet';

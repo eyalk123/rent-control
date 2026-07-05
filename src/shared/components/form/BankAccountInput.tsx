@@ -187,6 +187,10 @@ export default function BankAccountInput({
           accessibilityLabel="Bank code"
           textAlign="center"
           placeholderTextColor={colors.textSecondary}
+          autoComplete="off"
+          autoCorrect={false}
+          importantForAutofill="no"
+          textContentType="none"
         />
         <View style={[styles.divider, { backgroundColor: colors.outline }]} />
         <TextInput
@@ -203,6 +207,10 @@ export default function BankAccountInput({
           accessibilityLabel="Branch code"
           textAlign="center"
           placeholderTextColor={colors.textSecondary}
+          autoComplete="off"
+          autoCorrect={false}
+          importantForAutofill="no"
+          textContentType="none"
         />
         <View style={[styles.divider, { backgroundColor: colors.outline }]} />
         <TextInput
@@ -219,6 +227,10 @@ export default function BankAccountInput({
           accessibilityLabel="Account number"
           textAlign="center"
           placeholderTextColor={colors.textSecondary}
+          autoComplete="off"
+          autoCorrect={false}
+          importantForAutofill="no"
+          textContentType="none"
         />
       </View>
 

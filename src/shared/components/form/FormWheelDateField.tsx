@@ -9,6 +9,11 @@ import {
   useRtlLabelStyle,
 } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import {
+  FieldReviewNotice,
+  useDismissFieldReview,
+  useFieldReview,
+} from './FieldReviewContext';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -152,6 +157,8 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
   const rtlLabelStyle = useRtlLabelStyle();
   const { language, isRtl } = useLanguageContext();
   const locale = toBcp47(language);
+  const review = useFieldReview(name);
+  const dismissReview = useDismissFieldReview();
 
   const now = new Date();
   const effectiveMinYear = minYear ?? now.getFullYear() - 5;
@@ -180,6 +187,7 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
       name={name}
       render={({ field: { value, onChange }, fieldState: { error } }) => {
         const valueStr = (value as string) ?? '';
+        const flagged = !!review && !error;
 
         const displayText =
           mode === 'full'
@@ -190,17 +198,19 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
 
         return (
           <View style={styles.inputWrap}>
-            <Text
-              variant="bodyMedium"
-              style={[
-                styles.label,
-                rtlLabelStyle,
-                { color: error ? colors.error : colors.textPrimary },
-              ]}
-              numberOfLines={1}
-            >
-              {label}
-            </Text>
+            <View style={styles.labelRow}>
+              <Text
+                variant="bodyMedium"
+                style={[
+                  styles.label,
+                  rtlLabelStyle,
+                  { color: error ? colors.error : colors.textPrimary },
+                ]}
+                numberOfLines={1}
+              >
+                {label}
+              </Text>
+            </View>
             <Pressable
               onPress={() => setShowPicker(true)}
               style={[
@@ -234,6 +244,7 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
                 surfaceColor={theme.colors.surface}
                 onConfirm={(formatted) => {
                   onChange(formatted);
+                  if (review) dismissReview?.(name);
                   setShowPicker(false);
                 }}
                 onDismiss={() => setShowPicker(false)}
@@ -248,6 +259,7 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
                 {error.message}
               </Text>
             ) : null}
+            {flagged ? <FieldReviewNotice source={review!.source} /> : null}
           </View>
         );
       }}
@@ -404,9 +416,15 @@ const styles = StyleSheet.create({
   inputWrap: {
     marginBottom: spacing.md,
   },
-  label: {
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginBottom: 4,
+  },
+  label: {
     fontWeight: '500',
+    flexShrink: 1,
   },
   touchable: {
     borderWidth: 1,

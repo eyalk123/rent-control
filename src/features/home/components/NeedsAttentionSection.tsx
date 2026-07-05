@@ -151,7 +151,7 @@ function AttentionItemRow({
                 label={t('home.actionUpdateLease')}
                 bg={primaryBg}
                 textColor={colors.primary}
-                onPress={() => onNavigate('/renters')}
+                onPress={() => onNavigate(`/renters/extend/${item.renter_id}`)}
               />
             </View>
           </View>

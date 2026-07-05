@@ -3,7 +3,11 @@ import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-nat
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { ChevronRight, FileBarChart2, Plus, Receipt, Share2 } from 'lucide-react-native';
+import ChevronRight from 'lucide-react-native/icons/chevron-right';
+import FileBarChart2 from 'lucide-react-native/icons/file-chart-column';
+import Plus from 'lucide-react-native/icons/plus';
+import Receipt from 'lucide-react-native/icons/receipt';
+import Share2 from 'lucide-react-native/icons/share-2';
 
 import { darkColors, lightColors } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';

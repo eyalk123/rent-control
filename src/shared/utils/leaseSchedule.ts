@@ -44,8 +44,12 @@ export function rentForYear(
       return Math.round(base * Math.pow(1 + step / 100, index));
     case "fixed":
       return Math.round(base + step * index);
+    // "none"/"custom" carry flat or hand-edited amounts; "cpi" amounts are computed
+    // server-side from the published index, so the client projects a flat base rent
+    // until the server fills real amounts in.
     case "none":
     case "custom":
+    case "cpi":
     default:
       return base;
   }
@@ -61,6 +65,7 @@ export function rentForYear(
 export function buildLeaseYears(
   input: LeaseScheduleInput,
   existingRows?: LeaseYear[],
+  opts?: { resetCpiAmounts?: boolean },
 ): LeaseYear[] {
   const contract = toCount(input.contractYears);
   const option = toCount(input.optionYears);
@@ -68,16 +73,69 @@ export function buildLeaseYears(
   if (total === 0) return [];
 
   const base = Number.isFinite(input.baseRent) && input.baseRent > 0 ? input.baseRent : 0;
+  // In "custom" mode the user hand-edits per-year amounts; in "cpi" mode the server
+  // owns them (index-linked). Both preserve any existing row amount rather than
+  // re-deriving it from a formula, so re-materializing never clobbers real values.
+  // Exception: a fresh in-form switch into CPI (`resetCpiAmounts`) must drop the
+  // previous mode's amounts and project the flat base instead.
+  const preserveExisting =
+    input.escalationMode === "custom" ||
+    (input.escalationMode === "cpi" && !opts?.resetCpiAmounts);
   const result: LeaseYear[] = [];
   for (let i = 0; i < total; i += 1) {
     const type: LeaseYearType = i < contract ? "contract" : "option";
-    const amount =
-      input.escalationMode === "custom"
-        ? existingRows?.[i]?.amount ?? base
-        : rentForYear(base, i, input.escalationMode, input.escalationValue);
+    const amount = preserveExisting
+      ? existingRows?.[i]?.amount ?? base
+      : rentForYear(base, i, input.escalationMode, input.escalationValue);
     result.push({ amount, type });
   }
   return result;
+}
+
+/**
+ * Builds the rows to append when *extending* an existing lease. Unlike
+ * {@link buildLeaseYears} (which materializes a whole schedule from intent), this
+ * keeps the existing years untouched and computes each new year's rent by walking
+ * the escalation rule forward from the **last existing amount** — so custom edits
+ * already made to the schedule carry into the extension. The added block is
+ * `contractAdd` contract years followed by `optionAdd` option years (contract
+ * first, so the natural order is preserved within the new block); pricing walks the
+ * escalation rule continuously across both.
+ */
+export function buildAddedYears(
+  existingYears: LeaseYear[],
+  contractAdd: number,
+  optionAdd: number,
+  escalationMode: RentEscalationMode,
+  escalationValue: number,
+): LeaseYear[] {
+  const contract = toCount(contractAdd);
+  const option = toCount(optionAdd);
+  const total = contract + option;
+  if (total === 0) return [];
+  const lastAmount = existingYears.length > 0 ? existingYears[existingYears.length - 1].amount : 0;
+  const added: LeaseYear[] = [];
+  for (let i = 1; i <= total; i += 1) {
+    added.push({
+      amount: rentForYear(lastAmount, i, escalationMode, escalationValue),
+      type: i <= contract ? "contract" : "option",
+    });
+  }
+  return added;
+}
+
+/**
+ * True when a contract (binding) year appears *after* an option (renewal) year —
+ * an invalid lease order. A valid schedule is a run of contract years followed by a
+ * run of option years. Used to warn the owner rather than auto-restructure.
+ */
+export function hasContractAfterOptionYear(years: LeaseYear[]): boolean {
+  let seenOption = false;
+  for (const y of years) {
+    if (y.type === "option") seenOption = true;
+    else if (seenOption) return true;
+  }
+  return false;
 }
 
 export interface ReconstructedIntent {

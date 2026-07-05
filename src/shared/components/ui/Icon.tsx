@@ -8,76 +8,78 @@
  * Add new names by importing the matching Lucide component below — names
  * are intentionally a closed union so callers can't drift to ad-hoc icons.
  */
-import {
-  AlertCircle,
-  ArrowDownRight,
-  ArrowRightLeft,
-  ArrowUpRight,
-  Bell,
-  Briefcase,
-  Building2,
-  Calendar,
-  CalendarClock,
-  Camera,
-  Car,
-  Check,
-  CheckSquare,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  Clock,
-  Contact,
-  CreditCard,
-  DoorOpen,
-  Droplet,
-  Edit3,
-  ExternalLink,
-  Eye,
-  EyeOff,
-  FileText,
-  Filter,
-  Globe,
-  Hash,
-  Home,
-  Image as ImageIcon,
-  Info,
-  Languages,
-  Landmark,
-  Layers,
-  LayoutDashboard,
-  Lock,
-  type LucideIcon,
-  MapPin,
-  Mail,
-  MessageSquare,
-  MinusCircle,
-  Moon,
-  MoreHorizontal,
-  Pencil,
-  Phone,
-  Plus,
-  PlusCircle,
-  Receipt,
-  Ruler,
-  Search,
-  Settings,
-  Shield,
-  ShieldCheck,
-  Store,
-  Sun,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
-  User,
-  UserMinus,
-  UserX,
-  Users,
-  Wallet,
-  X,
-  Zap,
-  Square,
-} from "lucide-react-native";
+// Per-icon deep imports (resolved to real .mjs files by the custom resolver in
+// metro.config.js) so Metro only bundles the icons below, not the full ~1,700-icon barrel.
+// Some names moved to Lucide's new scheme (e.g. AlertCircle -> circle-alert); the local
+// alias is kept stable so REGISTRY below is unchanged.
+import type { LucideIcon } from "lucide-react-native";
+import AlertCircle from "lucide-react-native/icons/circle-alert";
+import ArrowDownRight from "lucide-react-native/icons/arrow-down-right";
+import ArrowRightLeft from "lucide-react-native/icons/arrow-right-left";
+import ArrowUpRight from "lucide-react-native/icons/arrow-up-right";
+import Bell from "lucide-react-native/icons/bell";
+import Briefcase from "lucide-react-native/icons/briefcase";
+import Building2 from "lucide-react-native/icons/building-2";
+import Calendar from "lucide-react-native/icons/calendar";
+import CalendarClock from "lucide-react-native/icons/calendar-clock";
+import Camera from "lucide-react-native/icons/camera";
+import Car from "lucide-react-native/icons/car";
+import Check from "lucide-react-native/icons/check";
+import CheckSquare from "lucide-react-native/icons/square-check-big";
+import ChevronDown from "lucide-react-native/icons/chevron-down";
+import ChevronLeft from "lucide-react-native/icons/chevron-left";
+import ChevronRight from "lucide-react-native/icons/chevron-right";
+import ChevronUp from "lucide-react-native/icons/chevron-up";
+import Clock from "lucide-react-native/icons/clock";
+import Contact from "lucide-react-native/icons/contact";
+import CreditCard from "lucide-react-native/icons/credit-card";
+import DoorOpen from "lucide-react-native/icons/door-open";
+import Droplet from "lucide-react-native/icons/droplet";
+import Edit3 from "lucide-react-native/icons/pen-line";
+import ExternalLink from "lucide-react-native/icons/external-link";
+import Eye from "lucide-react-native/icons/eye";
+import EyeOff from "lucide-react-native/icons/eye-off";
+import FileText from "lucide-react-native/icons/file-text";
+import Filter from "lucide-react-native/icons/funnel";
+import Globe from "lucide-react-native/icons/globe";
+import Hash from "lucide-react-native/icons/hash";
+import Home from "lucide-react-native/icons/house";
+import ImageIcon from "lucide-react-native/icons/image";
+import Info from "lucide-react-native/icons/info";
+import Languages from "lucide-react-native/icons/languages";
+import Landmark from "lucide-react-native/icons/landmark";
+import Layers from "lucide-react-native/icons/layers";
+import LayoutDashboard from "lucide-react-native/icons/layout-dashboard";
+import Lock from "lucide-react-native/icons/lock";
+import MapPin from "lucide-react-native/icons/map-pin";
+import Mail from "lucide-react-native/icons/mail";
+import MessageSquare from "lucide-react-native/icons/message-square";
+import MinusCircle from "lucide-react-native/icons/circle-minus";
+import Moon from "lucide-react-native/icons/moon";
+import MoreHorizontal from "lucide-react-native/icons/ellipsis";
+import Pencil from "lucide-react-native/icons/pencil";
+import Phone from "lucide-react-native/icons/phone";
+import Plus from "lucide-react-native/icons/plus";
+import PlusCircle from "lucide-react-native/icons/circle-plus";
+import Receipt from "lucide-react-native/icons/receipt";
+import Ruler from "lucide-react-native/icons/ruler";
+import Search from "lucide-react-native/icons/search";
+import Settings from "lucide-react-native/icons/settings";
+import Shield from "lucide-react-native/icons/shield";
+import ShieldCheck from "lucide-react-native/icons/shield-check";
+import Square from "lucide-react-native/icons/square";
+import Store from "lucide-react-native/icons/store";
+import Sun from "lucide-react-native/icons/sun";
+import Trash2 from "lucide-react-native/icons/trash-2";
+import TrendingDown from "lucide-react-native/icons/trending-down";
+import TrendingUp from "lucide-react-native/icons/trending-up";
+import User from "lucide-react-native/icons/user";
+import UserMinus from "lucide-react-native/icons/user-minus";
+import UserX from "lucide-react-native/icons/user-x";
+import Users from "lucide-react-native/icons/users";
+import Wallet from "lucide-react-native/icons/wallet";
+import X from "lucide-react-native/icons/x";
+import Zap from "lucide-react-native/icons/zap";
 import React from "react";
 
 import type { IconSize } from "@/src/core/theme";
