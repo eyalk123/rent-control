@@ -23,6 +23,7 @@
     },
     "simulator": {
       "distribution": "internal",
+      "environment": "preview",
       "ios": {
         "simulator": true
       },
