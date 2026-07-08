@@ -5,10 +5,10 @@
  *   // on submit: isValidBankAccount(bankAccount) && serialize as "bank/branch/account"
  */
 import React, { useRef, useState } from 'react';
-import { I18nManager, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { I18nManager, StyleSheet, TextInput, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, lightColors, MONO_FONT, spacing } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/core/context';
 
 const ISRAELI_BANKS_EN: Record<string, string> = {
@@ -152,7 +152,7 @@ export default function BankAccountInput({
     }
   };
 
-  const monoFont = Platform.select({ ios: 'Menlo', android: 'monospace', default: undefined });
+  const monoFont = MONO_FONT;
 
   return (
     <View style={styles.wrap}>

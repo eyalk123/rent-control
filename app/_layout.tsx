@@ -14,6 +14,14 @@ import { NotificationProvider } from "@/src/features/notifications/context/Notif
 import "@/src/core/i18n";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
+import {
+  Rubik_400Regular,
+  Rubik_500Medium,
+  Rubik_600SemiBold,
+  Rubik_700Bold,
+  Rubik_900Black,
+} from "@expo-google-fonts/rubik";
+import { IBMPlexMono_400Regular, IBMPlexMono_500Medium } from "@expo-google-fonts/ibm-plex-mono";
 import * as NavigationBar from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
@@ -91,7 +99,16 @@ function AppContent() {
 
 export default Sentry.wrap(function RootLayout() {
   const ref = useNavigationContainerRef();
-  const [fontsLoaded] = useFonts(MaterialCommunityIcons.font);
+  const [fontsLoaded] = useFonts({
+    ...MaterialCommunityIcons.font,
+    Rubik_400Regular,
+    Rubik_500Medium,
+    Rubik_600SemiBold,
+    Rubik_700Bold,
+    Rubik_900Black,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+  });
 
   useEffect(() => {
     if (ref?.current) {
