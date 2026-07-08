@@ -4,6 +4,7 @@ import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
 import { PropertyCreatedPrompt } from "@/src/features/properties/components/PropertyCreatedPrompt";
+import { PropertyScanConflicts } from "@/src/features/properties/components/PropertyScanConflicts";
 import { consumePropertyPrefill } from "@/src/features/document-scan/handoff";
 import { FieldReviewProvider } from "@/src/shared/components/form/FieldReviewContext";
 import type { Property } from "@/src/shared/types";
@@ -29,13 +30,17 @@ export function AddEditPropertyScreen() {
   const isEdit = Boolean(id);
 
   const navigation = useNavigation();
+  // Flipped to true right before an intentional (post-save / flow-pivot) navigation so the
+  // discard guard lets it through instead of prompting.
+  const allowRemoveRef = React.useRef(false);
   const [createdProperty, setCreatedProperty] = React.useState<Property | null>(
     null,
   );
 
-  // Consume the scanned-document draft once (only when arriving via the scan flow).
+  // Consume the scanned-document draft once (arriving via the scan flow — create, or attaching
+  // to an existing property in which case `id` is also present).
   const [scan] = React.useState(() =>
-    fromScan === "1" && !id ? consumePropertyPrefill() : null,
+    fromScan === "1" ? consumePropertyPrefill() : null,
   );
 
   const {
@@ -49,6 +54,9 @@ export function AddEditPropertyScreen() {
     existingFiles,
     deletedFileIds,
     setDeletedFileIds,
+    conflicts,
+    conflictChoices,
+    resolveConflict,
   } = usePropertyForm({
     id,
     t,
@@ -57,12 +65,14 @@ export function AddEditPropertyScreen() {
     logId: scan?.logId,
     provenance: scan?.propertyProvenance,
     onSuccess: (savedProp) => {
-      if (isEdit) {
-        router.back();
-      } else if (scan) {
-        // Scan flow: the renter was already extracted — continue straight into the renter
-        // form instead of interrupting with the "add a renter?" modal.
+      if (scan) {
+        // Scan flow (create or attach-to-existing): the renters were already extracted —
+        // continue straight into the renter form(s) instead of interrupting or just closing.
+        allowRemoveRef.current = true;
         router.replace(`/renters/add?propertyId=${savedProp.id}&fromScan=1` as any);
+      } else if (isEdit) {
+        allowRemoveRef.current = true;
+        router.back();
       } else {
         setCreatedProperty(savedProp);
       }
@@ -74,7 +84,10 @@ export function AddEditPropertyScreen() {
 
   React.useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e) => {
-      if (!formState.isDirty) return;
+      if (allowRemoveRef.current) return;
+      // Prompt when the user has edited the form OR arrived via the scan flow with prefilled
+      // data (which RHF treats as pristine because it lives in defaultValues).
+      if (!formState.isDirty && !scan) return;
       e.preventDefault();
       appAlert(
         t("common.discardChanges"),
@@ -90,7 +103,7 @@ export function AddEditPropertyScreen() {
       );
     });
     return unsub;
-  }, [navigation, formState.isDirty, t, appAlert]);
+  }, [navigation, formState.isDirty, scan, t, appAlert]);
 
   const handleHeaderBack = () => {
     if (step === "lease") {
@@ -139,14 +152,22 @@ export function AddEditPropertyScreen() {
             onBack={handleHeaderBack}
           />
           {step === "basic" && (
-            <BasicInfoCard
-              control={control}
-              t={t}
-              imageUri={imageUri}
-              setImageUri={setImageUri}
-              ownerId={ownerId}
-              addressEvidence={scan?.addressEvidence}
-            />
+            <>
+              <PropertyScanConflicts
+                conflicts={conflicts}
+                choices={conflictChoices}
+                onResolve={resolveConflict}
+                t={t}
+              />
+              <BasicInfoCard
+                control={control}
+                t={t}
+                imageUri={imageUri}
+                setImageUri={setImageUri}
+                ownerId={ownerId}
+                addressEvidence={scan?.addressEvidence}
+              />
+            </>
           )}
           {step === "lease" && (
             <LeaseInfoCard
@@ -199,12 +220,16 @@ export function AddEditPropertyScreen() {
       </View>
       <PropertyCreatedPrompt
         visible={!!createdProperty}
-        onAddRenter={() =>
+        onAddRenter={() => {
+          allowRemoveRef.current = true;
           router.replace(
             `/renters/add?propertyId=${createdProperty!.id}${scan ? "&fromScan=1" : ""}` as any,
-          )
-        }
-        onSkip={() => router.back()}
+          );
+        }}
+        onSkip={() => {
+          allowRemoveRef.current = true;
+          router.back();
+        }}
       />
     </ScreenContainer>
   );

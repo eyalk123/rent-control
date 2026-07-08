@@ -4,7 +4,7 @@
     "slug": "rent-control",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/rent-control-icon-padded.png",
+    "icon": "./assets/images/rent-control-icon-ios.png",
     "scheme": "rentcontrol",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

@@ -27,6 +27,7 @@ import {
   updateExtractionLog,
 } from '@/src/features/document-scan/api/updateExtractionLog';
 import type { ProvenanceItem } from '@/src/features/document-scan/types';
+import { diffScannedPropertyForm, type PropertyFormFieldConflict } from '@/src/features/document-scan/diffProperty';
 
 type UsePropertyFormParams = {
   id?: string;
@@ -116,6 +117,10 @@ export function usePropertyForm({
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
   const [existingFiles, setExistingFiles] = React.useState<PropertyFile[]>([]);
   const [deletedFileIds, setDeletedFileIds] = React.useState<number[]>([]);
+  // Scan attaching to an existing property: fields where the lease disagrees with the stored
+  // value, for the user to keep or replace (mirrors the renter form).
+  const [conflicts, setConflicts] = React.useState<PropertyFormFieldConflict[]>([]);
+  const [conflictChoices, setConflictChoices] = React.useState<Record<string, 'keep' | 'update'>>({});
   const { uploadFile } = useFirebaseUpload('properties', user?.uid ?? '');
 
   const formMethods = useForm<PropertyFormValues>({
@@ -139,12 +144,27 @@ export function usePropertyForm({
     setIsFetching(true);
     Promise.all([getPropertyById(numericId), getPropertyFiles(numericId)])
       .then(([prop, files]) => {
-        reset(propertyToFormValues(prop));
+        const existingReset = propertyToFormValues(prop);
+        // Scan attaching to this property: overlay the lease — fill blank fields silently and
+        // surface differing ones for the user to keep or replace.
+        if (prefill) {
+          const { fills, conflicts: cf } = diffScannedPropertyForm(
+            prefill as Record<string, unknown>,
+            existingReset as unknown as Record<string, unknown>,
+          );
+          reset({ ...existingReset, ...fills });
+          setConflicts(cf);
+        } else {
+          reset(existingReset);
+          setConflicts([]);
+        }
+        setConflictChoices({});
         setImageUri(prop.image_url ?? null);
         setExistingFiles(files);
         setDeletedFileIds([]);
       })
       .finally(() => setIsFetching(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-fetch on id; prefill is stable per scan
   }, [id, isEdit, reset]);
 
   const submit = handleSubmit(async (values) => {
@@ -184,8 +204,8 @@ export function usePropertyForm({
         ? await updateProperty(Number(id), payload)
         : await createProperty(payload);
 
-      // Audit: record which prefilled fields the user changed (scan flow, new property only).
-      if (!isEdit && logId && provenance) {
+      // Audit: record which prefilled fields the user changed (scan flow — create or attach-edit).
+      if (logId && provenance) {
         updateExtractionLog(logId, {
           entity_type: 'property',
           created_id: savedProp.id,
@@ -219,6 +239,21 @@ export function usePropertyForm({
     }
   });
 
+  // Scan-attach field conflicts + a resolver the screen wires to a keep/use-lease control.
+  const resolveConflict = React.useCallback(
+    (formKey: string, mode: 'keep' | 'update') => {
+      const c = conflicts.find((x) => x.formKey === formKey);
+      if (!c) return;
+      setConflictChoices((prev) => ({ ...prev, [formKey]: mode }));
+      formMethods.setValue(
+        formKey as keyof PropertyFormValues,
+        (mode === 'update' ? c.scanned : c.existing) as never,
+        { shouldDirty: true },
+      );
+    },
+    [conflicts, formMethods],
+  );
+
   return {
     formMethods,
     onSubmit: submit,
@@ -230,5 +265,8 @@ export function usePropertyForm({
     existingFiles,
     deletedFileIds,
     setDeletedFileIds,
+    conflicts,
+    conflictChoices,
+    resolveConflict,
   };
 }

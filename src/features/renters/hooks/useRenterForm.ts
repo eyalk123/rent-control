@@ -1,7 +1,7 @@
 import React from "react";
 import { useAlert } from "@/src/core/context";
 import { useAppAuth } from "@/src/core/auth/AuthContext";
-import { useForm } from "react-hook-form";
+import { useForm, type DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { TFunction } from "i18next";
 import { getApiErrorMessage } from "@/src/core/api/client";
@@ -27,6 +27,7 @@ import {
   diffProvenance,
   updateExtractionLog,
 } from "@/src/features/document-scan/api/updateExtractionLog";
+import { diffScannedRenter, type RenterFieldConflict } from "@/src/features/document-scan/diffRenter";
 import type { ProvenanceItem } from "@/src/features/document-scan/types";
 
 type UseRenterFormParams = {
@@ -40,6 +41,10 @@ type UseRenterFormParams = {
   /** Bumped by the multi-renter scan flow to re-seed the form with the next co-tenant's
    *  prefill (a fresh value re-runs the reset for the next renter in the queue). */
   prefillNonce?: number;
+  /** Set when the current scanned renter matched an existing renter on the attached property:
+   *  the form edits that renter in place (prefill from stored data, fill blanks from the scan,
+   *  resolve conflicts) instead of creating a duplicate. */
+  existingRenterId?: number | null;
   /** Scanned lease to upload as the renter's full contract on submit. */
   pendingFullContract?: PickedFile | null;
   /** Audit-log id + per-field provenance, to record what the user changed on submit. */
@@ -55,15 +60,23 @@ export function useRenterForm({
   initialPropertyId = null,
   prefill,
   prefillNonce = 0,
+  existingRenterId = null,
   pendingFullContract = null,
   logId,
   provenance,
 }: UseRenterFormParams) {
-  const isEdit = Boolean(id);
+  // The renter being edited: an explicit route id (plain edit) or the existing renter a scanned
+  // duplicate matched. `isDuplicateScan` also overlays the scan values onto that renter.
+  const routeId = id && !Number.isNaN(Number(id)) ? Number(id) : null;
+  const effId = routeId ?? existingRenterId ?? null;
+  const isEdit = effId != null;
+  const isDuplicateScan = routeId == null && existingRenterId != null;
   const { user } = useAppAuth();
   const { appAlert } = useAlert();
   const { uploadFile } = useFirebaseUpload("renters", user?.uid ?? "");
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
+  const [conflicts, setConflicts] = React.useState<RenterFieldConflict[]>([]);
+  const [conflictChoices, setConflictChoices] = React.useState<Record<string, "keep" | "update">>({});
 
   const buildDefaults = React.useCallback(
     (pf?: Partial<RenterFormValues>): RenterFormValues => ({
@@ -106,23 +119,22 @@ export function useRenterForm({
   // applied) and never clobber an edit form.
   const nonceRef = React.useRef(prefillNonce);
   React.useEffect(() => {
-    if (isEdit) return;
+    if (isEdit) return; // duplicate/edit entries re-seed from the fetch effect below
     if (nonceRef.current === prefillNonce) return;
     nonceRef.current = prefillNonce;
     reset(buildDefaults(prefill));
+    setConflicts([]);
+    setConflictChoices({});
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fires only when prefillNonce changes
   }, [prefillNonce]);
 
   React.useEffect(() => {
-    if (!isEdit || !id) {
+    if (!isEdit || effId == null) {
       setIsFetching(false);
       return;
     }
-    const numericId = Number(id);
-    if (Number.isNaN(numericId)) {
-      setIsFetching(false);
-      return;
-    }
+    const numericId = effId;
+    nonceRef.current = prefillNonce; // keep the fresh-form re-seed guard in sync as the queue advances
     setIsFetching(true);
     getRenterById(numericId)
       .then((renter) => {
@@ -158,7 +170,7 @@ export function useRenterForm({
                   escalationValue: "",
                 };
               })();
-        reset({
+        const existingReset: DefaultValues<RenterFormValues> = {
           firstName: renter.first_name ?? "",
           lastName: renter.last_name ?? "",
           phone: renter.phone ?? "",
@@ -199,10 +211,29 @@ export function useRenterForm({
           })),
           fullContractUrl: renter.full_contract_url ?? null,
           idImageUrl: renter.id_image_url ?? null,
-        });
+        };
+        // Duplicate scan entry: overlay scan values onto the existing renter — fill the fields it
+        // left blank silently, and surface the ones that differ for the user to keep or replace.
+        if (isDuplicateScan && prefill) {
+          const labelByKey = new Map(
+            (provenance ?? []).map((pv) => [pv.formKey, pv.labelKey] as [string, string]),
+          );
+          const { fills, conflicts: cf } = diffScannedRenter(
+            prefill as Record<string, unknown>,
+            existingReset as Record<string, unknown>,
+            labelByKey,
+          );
+          reset({ ...existingReset, ...fills });
+          setConflicts(cf);
+        } else {
+          reset(existingReset);
+          setConflicts([]);
+        }
+        setConflictChoices({});
       })
       .finally(() => setIsFetching(false));
-  }, [id, isEdit, reset]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-fetch on effId/queue advance
+  }, [effId, isEdit, prefillNonce, reset]);
 
   const submit = handleSubmit(async (values) => {
     // Attach the scanned lease as the full contract (uploaded only now, on submit).
@@ -319,9 +350,8 @@ export function useRenterForm({
     };
 
     try {
-      if (isEdit && id) {
-        const numericId = Number(id);
-        await updateRenter(numericId, baseUpdate);
+      if (isEdit && effId != null) {
+        await updateRenter(effId, baseUpdate);
       } else {
         const created = await createRenter(baseCreate);
         // Audit: record renter creation + changed fields + the kept contract URL.
@@ -346,11 +376,29 @@ export function useRenterForm({
     }
   });
 
+  // Scan-duplicate field conflicts + a resolver the screen wires to a keep/use-lease control.
+  const resolveConflict = React.useCallback(
+    (formKey: string, mode: "keep" | "update") => {
+      const c = conflicts.find((x) => x.formKey === formKey);
+      if (!c) return;
+      setConflictChoices((prev) => ({ ...prev, [formKey]: mode }));
+      formMethods.setValue(
+        formKey as keyof RenterFormValues,
+        (mode === "update" ? c.scanned : c.existing) as never,
+        { shouldDirty: true },
+      );
+    },
+    [conflicts, formMethods],
+  );
+
   return {
     formMethods,
     onSubmit: submit,
     isSubmitting: formState.isSubmitting,
     isFetching,
     ownerId: user?.uid ?? '',
+    conflicts,
+    conflictChoices,
+    resolveConflict,
   };
 }

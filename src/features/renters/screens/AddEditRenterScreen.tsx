@@ -5,6 +5,7 @@ import { useRenterForm } from "@/src/features/renters/hooks/useRenterForm";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
 import { RenterBasicInfoCard } from "@/src/features/renters/components/RenterBasicInfoCard";
 import { RenterLeaseInfoCard } from "@/src/features/renters/components/RenterLeaseInfoCard";
+import { RenterScanConflicts } from "@/src/features/renters/components/RenterScanConflicts";
 import { ScanPropertyNotice } from "@/src/features/document-scan/components/ScanPropertyNotice";
 import { consumeRenterPrefill, setScanHandoff } from "@/src/features/document-scan/handoff";
 import { addressesMatch } from "@/src/features/document-scan/matchProperty";
@@ -35,6 +36,9 @@ export function AddEditRenterScreen() {
   const { refreshRenters } = useRenterContext();
   const isEdit = Boolean(id);
   const navigation = useNavigation();
+  // Flipped to true right before an intentional (post-save / flow-pivot) navigation so the
+  // discard guard lets it through instead of prompting.
+  const allowRemoveRef = React.useRef(false);
 
   // Consume the scanned-document draft once (only when arriving via the scan flow).
   const [scan] = React.useState(() =>
@@ -48,7 +52,7 @@ export function AddEditRenterScreen() {
   const current = renters[qIndex];
   const hasNextRenter = qIndex < renters.length - 1;
 
-  const { formMethods, onSubmit, isSubmitting, isFetching, ownerId } = useRenterForm({
+  const { formMethods, onSubmit, isSubmitting, isFetching, ownerId, conflicts, conflictChoices, resolveConflict } = useRenterForm({
     id,
     t,
     refreshRenters,
@@ -57,12 +61,14 @@ export function AddEditRenterScreen() {
         setQIndex((i) => i + 1);
         setStep("basic");
       } else {
+        allowRemoveRef.current = true;
         router.back();
       }
     },
     initialPropertyId: propertyId ? Number(propertyId) : (scan?.matchedPropertyId ?? null),
     prefill: current?.prefill,
     prefillNonce: qIndex,
+    existingRenterId: current?.existingRenterId ?? null,
     pendingFullContract: scan?.file ?? null,
     logId: scan?.logId,
     provenance: current?.provenance,
@@ -75,7 +81,12 @@ export function AddEditRenterScreen() {
   const { properties } = usePropertyContext();
   const selectedPropertyId = useWatch({ control, name: "propertyId" });
   const scannedLeaseAddress = scan?.property
-    ? { address: scan.property.address, city: scan.property.city }
+    ? {
+        address: scan.property.address,
+        city: scan.property.city,
+        floor: scan.property.floor,
+        apartment: scan.property.apartment,
+      }
     : undefined;
   const propertyMismatch =
     !!scannedLeaseAddress?.address && selectedPropertyId != null
@@ -97,6 +108,9 @@ export function AddEditRenterScreen() {
       renters: scan.renters,
       file: scan.file,
     });
+    // Deliberate "create property from lease" pivot — the renter data is preserved in the
+    // handoff, so this is not a discard.
+    allowRemoveRef.current = true;
     router.replace("/properties/add?fromScan=1" as any);
   };
   const [step, setStep] = React.useState<"basic" | "lease">("basic");
@@ -132,7 +146,10 @@ export function AddEditRenterScreen() {
 
   React.useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e) => {
-      if (!formState.isDirty) return;
+      if (allowRemoveRef.current) return;
+      // Prompt when the user has edited the form OR arrived via the scan flow with prefilled
+      // data (which RHF treats as pristine because it lives in defaultValues).
+      if (!formState.isDirty && !scan) return;
       e.preventDefault();
       appAlert(
         t("common.discardChanges"),
@@ -148,7 +165,7 @@ export function AddEditRenterScreen() {
       );
     });
     return unsub;
-  }, [navigation, formState.isDirty, t, appAlert]);
+  }, [navigation, formState.isDirty, scan, t, appAlert]);
 
   const handleHeaderBack = () => {
     if (step === "lease") {
@@ -175,7 +192,9 @@ export function AddEditRenterScreen() {
     onSubmit();
   };
 
-  if (isEdit && isFetching) {
+  // Show the loading overlay while fetching an existing renter — a plain edit or a scanned
+  // duplicate we're editing in place (the latter has no route `id`, so key off `isFetching`).
+  if (isFetching) {
     return (
       <ScreenContainer>
         <LoadingOverlay visible={true} />
@@ -212,6 +231,12 @@ export function AddEditRenterScreen() {
                   onCreateProperty={handleCreatePropertyFromScan}
                 />
               )}
+              <RenterScanConflicts
+                conflicts={conflicts}
+                choices={conflictChoices}
+                onResolve={resolveConflict}
+                t={t}
+              />
               <RenterBasicInfoCard
                 control={control}
                 t={t}

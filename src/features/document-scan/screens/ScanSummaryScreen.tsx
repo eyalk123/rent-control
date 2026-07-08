@@ -4,13 +4,16 @@ import { Button, Checkbox, SegmentedButtons, Text, TextInput, useTheme } from 'r
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Icon, ScreenContainer, StepHeader } from '@/src/shared/components/ui';
+import { DropdownField } from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
 import { usePropertyContext, useRenterContext } from '@/src/context';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { peekScanHandoff, setScanHandoff } from '@/src/features/document-scan/handoff';
 import type { MappedRenter } from '@/src/features/document-scan/mapExtraction';
+import type { PropertyMatchStatus } from '@/src/features/document-scan/matchProperty';
 import { applyJointRentSplit, equalShares, sharesSumToTotal } from '@/src/features/document-scan/splitJointRent';
-import { findDuplicateRenterIndices, matchProperty } from '@/src/features/document-scan/matchProperty';
+import { findDuplicateRenterMatches, matchProperty } from '@/src/features/document-scan/matchProperty';
 
 const renterName = (r: MappedRenter, i: number, fallback: string): string => {
   const name = `${r.prefill.firstName ?? ''} ${r.prefill.lastName ?? ''}`.trim();
@@ -18,9 +21,10 @@ const renterName = (r: MappedRenter, i: number, fallback: string): string => {
 };
 
 /** Post-scan summary: shows what the scan found (one property, N renters) before the user
- *  verifies each form. Flags a property/renter that already exists and lets the user exclude
- *  duplicate renters. When the lease had a single joint rent, offers an equal/custom split
- *  written into each kept renter's baseRent on continue. */
+ *  verifies each form. Lets the user edit the found address, attach the lease to an existing
+ *  property (resolving any field conflicts) or create a new one, and exclude duplicate renters.
+ *  When the lease had a single joint rent, offers an equal/custom split written into each kept
+ *  renter's baseRent on continue. */
 export function ScanSummaryScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -34,15 +38,48 @@ export function ScanSummaryScreen() {
   const renters = React.useMemo(() => handoff?.renters ?? [], [handoff]);
   const total = handoff?.jointMonthlyRent ?? 0;
 
-  // Duplicate detection: does the scanned property match an existing one, and (only then)
-  // which scanned renters already exist on it?
-  const { propertyMatched, duplicateRenterIdx } = React.useMemo(() => {
-    const m = matchProperty(handoff?.property, properties);
-    return {
-      propertyMatched: m.status === 'matched',
-      duplicateRenterIdx: findDuplicateRenterIndices(renters, m.propertyId, existingRenters),
-    };
-  }, [handoff?.property, properties, renters, existingRenters]);
+  // Editable address/city (seeded from the scan). Editing them re-runs the auto match.
+  const [editedAddress, setEditedAddress] = React.useState(() => handoff?.property?.address ?? '');
+  const [editedCity, setEditedCity] = React.useState(() => handoff?.property?.city ?? '');
+
+  // Which existing property (if any) to attach the lease to. `null` = create a new property.
+  // Auto-matched from the address, until the user explicitly picks in the dropdown.
+  const autoMatchId = React.useMemo(
+    () =>
+      matchProperty(
+        {
+          address: editedAddress,
+          city: editedCity,
+          floor: handoff?.property?.floor,
+          apartment: handoff?.property?.apartment,
+        },
+        properties,
+      ).propertyId,
+    [editedAddress, editedCity, handoff?.property?.floor, handoff?.property?.apartment, properties],
+  );
+  const [targetPropertyId, setTargetPropertyId] = React.useState<number | null>(autoMatchId);
+  const [userPicked, setUserPicked] = React.useState(false);
+  React.useEffect(() => {
+    if (!userPicked) setTargetPropertyId(autoMatchId);
+  }, [autoMatchId, userPicked]);
+
+  const propertyData = React.useMemo(
+    () => [
+      { label: t('documentScan.createNewProperty'), value: null as number | null },
+      ...properties.map((p) => ({
+        label: `${p.address}${formatFloorApartment(p, t)} - ${p.city}`,
+        value: p.id as number,
+      })),
+    ],
+    [properties, t],
+  );
+
+  // Duplicate detection keyed off the chosen property: scanned index -> matched existing renter
+  // id. They get a badge + include/exclude checkbox, and when kept the form edits that renter.
+  const duplicateRenterIdx = React.useMemo(
+    () => findDuplicateRenterMatches(renters, targetPropertyId, existingRenters),
+    [renters, targetPropertyId, existingRenters],
+  );
 
   // Duplicate renters the user unchecked (excluded from creation). Keyed by original index.
   const [excluded, setExcluded] = React.useState<Set<number>>(() => new Set());
@@ -74,6 +111,8 @@ export function ScanSummaryScreen() {
   const splitValid = !showSplit || splitMode === 'equal' || customValid;
   const canContinue = includedRenters.length > 0 && splitValid;
 
+  const [submitting, setSubmitting] = React.useState(false);
+
   const toggleExcluded = (i: number) =>
     setExcluded((prev) => {
       const next = new Set(prev);
@@ -82,19 +121,51 @@ export function ScanSummaryScreen() {
       return next;
     });
 
-  const handleContinue = () => {
-    if (!handoff || !canContinue) return;
-    let finalRenters = includedRenters;
-    if (handoff.rentIsJoint && total > 0) {
-      const shares = showSplit && splitMode === 'custom' ? numericCustom : equalShares(total, includedRenters.length);
-      finalRenters = applyJointRentSplit(includedRenters, total, shares);
-    }
-    setScanHandoff({ ...handoff, renters: finalRenters });
-    router.replace((target === 'property' ? '/properties/add?fromScan=1' : '/renters/add?fromScan=1') as never);
+  const onPickProperty = (id: number | null) => {
+    setUserPicked(true);
+    setTargetPropertyId(id);
   };
 
-  const address = handoff?.property?.address;
-  const city = handoff?.property?.city;
+  const handleContinue = () => {
+    if (!handoff || !canContinue || submitting) return;
+    setSubmitting(true);
+
+    // Tag each kept renter with the existing renter it duplicates (if any) so the form edits that
+    // renter in place instead of creating a copy.
+    const taggedRenters = includedIdx.map((origIdx, pos) => ({
+      ...includedRenters[pos],
+      existingRenterId: duplicateRenterIdx.get(origIdx) ?? null,
+    }));
+
+    let finalRenters: MappedRenter[] = taggedRenters;
+    if (handoff.rentIsJoint && total > 0) {
+      const shares = showSplit && splitMode === 'custom' ? numericCustom : equalShares(total, taggedRenters.length);
+      finalRenters = applyJointRentSplit(taggedRenters, total, shares);
+    }
+
+    const editedProperty = { ...handoff.property, address: editedAddress, city: editedCity };
+    const matchStatus: PropertyMatchStatus = targetPropertyId != null ? 'matched' : 'none';
+    setScanHandoff({
+      ...handoff,
+      property: editedProperty,
+      renters: finalRenters,
+      matchedPropertyId: targetPropertyId,
+      propertyMatchStatus: matchStatus,
+    });
+
+    if (target === 'property') {
+      // The property is reviewed in its own form, which now always opens — in edit mode when the
+      // lease matched an existing property, create mode otherwise. It then chains into the renters.
+      router.replace(
+        (targetPropertyId != null
+          ? `/properties/edit/${targetPropertyId}?fromScan=1`
+          : '/properties/add?fromScan=1') as never,
+      );
+    } else {
+      // Renter-target scan: go straight to the renter form on the chosen property.
+      router.replace('/renters/add?fromScan=1' as never);
+    }
+  };
 
   return (
     <ScreenContainer>
@@ -117,11 +188,30 @@ export function ScanSummaryScreen() {
               {t('documentScan.summaryProperty', { count: 1 })}
             </Text>
           </View>
-          <View style={[styles.row, styles.rowBetween, { borderColor: theme.colors.outline }]}>
-            <Text variant="bodyMedium" style={{ color: theme.colors.onSurface, flex: 1 }}>
-              {address ? `${address}${city ? `, ${city}` : ''}` : t('documentScan.summaryNoAddress')}
-            </Text>
-            {propertyMatched && <DuplicateBadge label={t('documentScan.duplicateProperty')} />}
+
+          <TextInput
+            mode="outlined"
+            dense
+            label={t('property.address')}
+            value={editedAddress}
+            onChangeText={setEditedAddress}
+          />
+          <TextInput
+            mode="outlined"
+            dense
+            label={t('property.city')}
+            value={editedCity}
+            onChangeText={setEditedCity}
+            style={{ marginTop: spacing.xs }}
+          />
+
+          <View style={{ marginTop: spacing.sm }}>
+            <DropdownField
+              data={propertyData}
+              value={targetPropertyId}
+              onChange={onPickProperty}
+              label={t('documentScan.attachToProperty')}
+            />
           </View>
 
           {/* Renters */}
@@ -215,7 +305,8 @@ export function ScanSummaryScreen() {
           <Button
             mode="contained"
             onPress={handleContinue}
-            disabled={!canContinue}
+            disabled={!canContinue || submitting}
+            loading={submitting}
             style={styles.button}
             contentStyle={styles.buttonContent}
           >
@@ -227,7 +318,7 @@ export function ScanSummaryScreen() {
   );
 }
 
-/** Small "already exists" pill shown next to a matched property / renter. */
+/** Small "already exists" pill shown next to a matched renter. */
 function DuplicateBadge({ label }: { label: string }) {
   const theme = useTheme();
   return (
