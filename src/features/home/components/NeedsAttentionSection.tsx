@@ -125,9 +125,17 @@ function AttentionItemRow({
           </View>
           <View style={styles.centerContent}>
             <View style={styles.topLine}>
-              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-                {name}
-              </Text>
+              <TouchableOpacity
+                style={styles.nameTouchable}
+                onPress={() => onNavigate(`/renters/${item.renter_id}`)}
+                activeOpacity={0.6}
+                accessibilityRole="button"
+                hitSlop={{ top: 6, bottom: 6 }}
+              >
+                <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+                  {name}
+                </Text>
+              </TouchableOpacity>
               <View style={[styles.infoBadge, { backgroundColor: amberBg }]}>
                 <Text style={[styles.infoBadgeText, { color: colors.warning }]}>
                   {t(item.days_until_expiry === 1 ? 'home.expiresIn' : 'home.expiresInPlural', { count: item.days_until_expiry })}
@@ -169,9 +177,17 @@ function AttentionItemRow({
         </View>
         <View style={styles.centerContent}>
           <View style={styles.topLine}>
-            <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-              {name}
-            </Text>
+            <TouchableOpacity
+              style={styles.nameTouchable}
+              onPress={() => onNavigate(`/renters/${item.renter_id}`)}
+              activeOpacity={0.6}
+              accessibilityRole="button"
+              hitSlop={{ top: 6, bottom: 6 }}
+            >
+              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+                {name}
+              </Text>
+            </TouchableOpacity>
             <View style={[styles.infoBadge, { backgroundColor: colors.expBg }]}>
               <Text style={[styles.infoBadgeText, { color: colors.expFg }]}>
                 {t(item.days_overdue === 1 ? 'home.daysOverdue' : 'home.daysOverduePlural', { count: item.days_overdue })}
@@ -474,6 +490,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.xs,
+  },
+  nameTouchable: {
+    flex: 1,
   },
   name: {
     fontSize: 13,

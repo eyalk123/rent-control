@@ -5,7 +5,7 @@ import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Renter } from '@/src/shared/types';
 import { getLeaseEndDate } from '@/src/shared/types';
-import { formatDateFull } from '@/src/shared/utils/dates';
+import { formatDateFull, getLeaseUrgency } from '@/src/shared/utils/dates';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { lightColors, darkColors } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
@@ -24,12 +24,7 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
   const colors = theme.dark ? darkColors : lightColors;
 
   const leaseEndDate = getLeaseEndDate(renter);
-  const isExpiringSoon = useMemo(() => {
-    if (leaseEndDate == null) return false;
-    const threeMonthsFromNow = new Date();
-    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
-    return leaseEndDate <= threeMonthsFromNow;
-  }, [leaseEndDate]);
+  const leaseUrgency = useMemo(() => getLeaseUrgency(leaseEndDate), [leaseEndDate]);
   const leaseEndLabel = leaseEndDate
     ? t('renter.leaseEnd', { date: formatDateFull(leaseEndDate, language) })
     : null;
@@ -73,7 +68,8 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
                 style={[
                   styles.leaseEndText,
                   { color: colors.textSecondary },
-                  isExpiringSoon && { color: colors.accent, fontWeight: '700' },
+                  leaseUrgency === 'soon' && { color: colors.accent, fontWeight: '700' },
+                  leaseUrgency === 'expired' && { color: colors.error, fontWeight: '700' },
                 ]}
                 numberOfLines={1}
               >

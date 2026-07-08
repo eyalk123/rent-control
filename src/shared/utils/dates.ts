@@ -17,3 +17,21 @@ export function formatDateFull(date: Date, locale: string): string {
 export function formatDateShort(date: Date, locale: string): string {
   return `${date.getDate()} ${shortMonth(locale, date.getMonth())}`;
 }
+
+/**
+ * Classifies a lease-end date for at-a-glance urgency styling:
+ * - `'expired'` — the lease end is before today
+ * - `'soon'`    — the lease ends within `monthsAhead` months (default 3)
+ * - `null`      — further out, or no lease-end date
+ */
+export function getLeaseUrgency(
+  leaseEnd: Date | null,
+  monthsAhead = 3,
+): 'expired' | 'soon' | null {
+  if (leaseEnd == null) return null;
+  const now = new Date();
+  if (leaseEnd < now) return 'expired';
+  const threshold = new Date(now);
+  threshold.setMonth(threshold.getMonth() + monthsAhead);
+  return leaseEnd <= threshold ? 'soon' : null;
+}
