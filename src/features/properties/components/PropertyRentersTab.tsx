@@ -4,7 +4,7 @@ import { Card, Text, useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
-import { getRenterMonthlyRent } from '@/src/shared/types';
+import { getCurrentMonthlyRent } from '@/src/shared/types';
 import { EmptyState, Icon } from '@/src/shared/components/ui';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
@@ -53,7 +53,7 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
                   style={{ color: colors.textSecondary }}
                   numberOfLines={1}
                 >
-                  {t('renter.monthlyRent')}: {formatMoney(getRenterMonthlyRent(renter))}/{t('renter.frequencyMonthly').toLowerCase()}
+                  {t('renter.monthlyRent')}: {formatMoney(getCurrentMonthlyRent(renter))}/{t('renter.frequencyMonthly').toLowerCase()}
                 </Text>
                 <Text
                   variant="bodySmall"

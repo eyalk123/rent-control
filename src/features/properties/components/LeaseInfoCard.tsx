@@ -51,6 +51,7 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
         control={control}
         name={"numberOfRooms" as any}
         label={t("property.numberOfRooms")}
+        keyboardType="decimal-pad"
       />
       <FormInput
         control={control}

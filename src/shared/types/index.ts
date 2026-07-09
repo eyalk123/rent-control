@@ -132,6 +132,13 @@ export function getRentForMonth(renter: Renter, monthStr: string): number {
   return entry.amount;
 }
 
+/** Monthly rent for the lease year that covers today. Use for headline "current rent" display. */
+export function getCurrentMonthlyRent(renter: Renter): number {
+  const now = new Date();
+  const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  return getRentForMonth(renter, monthStr);
+}
+
 /** Lease end date calculated from lease_start + number of contract (non-option) years. */
 export function getLeaseEndDate(renter: Renter): Date | null {
   if (!renter.lease_start || !renter.lease_years?.length) return null;

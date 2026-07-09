@@ -4,6 +4,7 @@ import { SegmentedButtons, Text, useTheme } from "react-native-paper";
 import type { TFunction } from "i18next";
 import { spacing } from "@/src/core/theme";
 import type { RenterFieldConflict } from "@/src/features/document-scan/diffRenter";
+import { formatConflictValue } from "@/src/features/document-scan/conflictValue";
 
 /** Keep/use-lease chooser for the fields where a re-scanned lease disagrees with the existing
  *  renter it matched. Mirrors the property conflict block on the scan summary. */
@@ -40,8 +41,8 @@ export function RenterScanConflicts({
             value={choices[c.formKey] ?? "keep"}
             onValueChange={(v) => onResolve(c.formKey, v as "keep" | "update")}
             buttons={[
-              { value: "keep", label: t("documentScan.fieldKeepExisting", { value: c.existing }) },
-              { value: "update", label: t("documentScan.fieldUseLease", { value: c.scanned }) },
+              { value: "keep", label: t("documentScan.fieldKeepExisting", { value: formatConflictValue(c.formKey, c.existing, t) }) },
+              { value: "update", label: t("documentScan.fieldUseLease", { value: formatConflictValue(c.formKey, c.scanned, t) }) },
             ]}
           />
         </View>

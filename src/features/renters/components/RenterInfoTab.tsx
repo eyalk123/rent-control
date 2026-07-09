@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { getRenterMonthlyRent, type Renter } from '@/src/shared/types';
+import { getCurrentMonthlyRent, type Renter } from '@/src/shared/types';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
 import {
@@ -22,7 +22,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const monthlyRent = getRenterMonthlyRent(renter);
+  const monthlyRent = getCurrentMonthlyRent(renter);
 
   const insuranceTypeLabel = (insuranceType: string) => {
     switch (insuranceType) {
