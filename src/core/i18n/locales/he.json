@@ -366,7 +366,8 @@
     "showLess": "הצג פחות",
     "step_n_of_m": "שלב {{n}} מתוך {{m}}",
     "remove": "הסר",
-    "undo": "בטל"
+    "undo": "בטל",
+    "save": "שמירה"
   },
   "validation": {
     "title": "אימות",

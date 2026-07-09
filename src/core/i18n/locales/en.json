@@ -366,7 +366,8 @@
     "showLess": "Show less",
     "step_n_of_m": "Step {{n}} of {{m}}",
     "remove": "Remove",
-    "undo": "Undo"
+    "undo": "Undo",
+    "save": "Save"
   },
   "validation": {
     "title": "Validation",

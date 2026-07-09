@@ -180,12 +180,11 @@ export function ExtendLeaseScreen() {
         : t("renter.rentChangeFixed"),
   }));
 
-  // The app forces native RTL via I18nManager.forceRTL (see core/i18n), so a plain "row"
-  // already lays children out right-to-left in Hebrew. Manually reversing here double-flips
-  // it back to LTR — which is why the steppers/labels/rows landed on the wrong side.
-  const rowDirection = "row" as const;
-  // Standalone/multi-line Text still gets explicit alignment (matches useRtlLabelStyle etc.).
-  const rtlText = isRtl ? { textAlign: "right" as const, writingDirection: "rtl" as const } : {};
+  // forceRTL is set but the app never reloads, so native layout isn't actually mirrored:
+  // a plain "row" stays visually LTR and an explicit textAlign: "right" gets flipped left by
+  // the RTL flag. So we derive direction from `isRtl` (like StepHeader/Stepper) and let text
+  // fall back to the default "auto" alignment, which aligns Hebrew to the right correctly.
+  const rowDirection = isRtl ? ("row-reverse" as const) : ("row" as const);
 
   if (loading) {
     return (
@@ -209,7 +208,7 @@ export function ExtendLeaseScreen() {
 
           {/* Add years — the number inputs drive the schedule; no button */}
           <View style={[styles.card, { borderColor: colors.outline, backgroundColor: colors.surface }]}>
-            <View style={[styles.stepperRow, { flexDirection: rowDirection }]}>
+            <View style={[styles.stepperRow, { flexDirection: rowDirection, justifyContent: isRtl ? "flex-end" : "flex-start" }]}>
               <Stepper
                 label={t("renter.yearsToAdd")}
                 unitLabel={t("renter.yearsUnit")}
@@ -234,10 +233,10 @@ export function ExtendLeaseScreen() {
                 // CPI-linked lease: linkage is preserved and priced server-side; no
                 // manual increment choice here.
                 <>
-                  <Text style={[styles.escCaption, rtlText, { color: colors.textPrimary, fontWeight: "600", marginBottom: spacing.xs }]}>
+                  <Text style={[styles.escCaption, { color: colors.textPrimary, fontWeight: "600", marginBottom: spacing.xs }]}>
                     {t("renter.newYearIncrement")}
                   </Text>
-                  <Text style={[styles.cpiNote, rtlText, { color: colors.textSecondary }]}>
+                  <Text style={[styles.cpiNote, { color: colors.textSecondary }]}>
                     {t("renter.rentChangeCpiNote")}
                   </Text>
                 </>
@@ -256,13 +255,13 @@ export function ExtendLeaseScreen() {
           </View>
 
           {/* New lease schedule = live preview */}
-          <Text variant="bodyMedium" style={[styles.scheduleTitle, rtlText, { color: colors.textPrimary }]}>
+          <Text variant="bodyMedium" style={[styles.scheduleTitle, { color: colors.textPrimary }]}>
             {t("renter.newLeaseSchedule")}
           </Text>
           {orderInvalid && (
             <View style={[styles.warning, { flexDirection: rowDirection, borderColor: colors.warning, backgroundColor: colors.inputFilledBackground }]}>
               <Icon name="alert-circle" size={ICON_SM} color={colors.warning} />
-              <Text style={[styles.warningText, rtlText, { color: colors.warning }]}>{t("renter.leaseOrderWarning")}</Text>
+              <Text style={[styles.warningText, { color: colors.warning }]}>{t("renter.leaseOrderWarning")}</Text>
             </View>
           )}
           {allYears.length === 0 ? (
@@ -282,7 +281,7 @@ export function ExtendLeaseScreen() {
                     ]}
                   >
                     <Text
-                      style={[styles.yearLabel, rtlText, { color: colors.textPrimary }, isCurrent && styles.yearLabelCurrent]}
+                      style={[styles.yearLabel, { color: colors.textPrimary }, isCurrent && styles.yearLabelCurrent]}
                     >
                       {getLeaseYearLabel(leaseStart, index)}
                     </Text>
@@ -323,10 +322,10 @@ export function ExtendLeaseScreen() {
                 const index = existingRows.length + j;
                 return (
                   <View key={`added-${j}`} style={[styles.yearRow, { flexDirection: rowDirection }]}>
-                    <Text style={[styles.yearLabel, rtlText, { color: colors.textPrimary }]}>
+                    <Text style={[styles.yearLabel, { color: colors.textPrimary }]}>
                       {getLeaseYearLabel(leaseStart, index)}
                     </Text>
-                    <Text style={[styles.addedAmount, rtlText, { color: colors.textPrimary }]}>
+                    <Text style={[styles.addedAmount, { color: colors.textPrimary }]}>
                       {year.amount > 0 ? formatMoney(year.amount) : "—"}
                     </Text>
                     <LeaseYearTypeText type={year.type} style={styles.typeText} />
@@ -343,7 +342,7 @@ export function ExtendLeaseScreen() {
           <View style={[styles.summaryCard, { borderColor: colors.outline, backgroundColor: colors.inputFilledBackground }]}>
             <View style={[styles.summaryRow, { flexDirection: rowDirection }]}>
               <Icon name="calendar-clock" size={ICON_SM} color={colors.textSecondary} />
-              <Text style={[styles.summaryText, rtlText, { color: colors.textSecondary }]}>
+              <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
                 {originalEnd ? formatDateFull(originalEnd, language) : "—"}
                 {isRtl ? "  ←  " : "  →  "}
                 <Text style={{ color: colors.textPrimary, fontWeight: "700" }}>
@@ -353,7 +352,7 @@ export function ExtendLeaseScreen() {
             </View>
             {yearDelta !== 0 && (
               <Text
-                style={[styles.deltaText, rtlText, { color: yearDelta > 0 ? colors.primary : colors.error }]}
+                style={[styles.deltaText, { color: yearDelta > 0 ? colors.primary : colors.error }]}
               >
                 {yearDelta > 0
                   ? t("renter.yearsAdded", { count: yearDelta })
