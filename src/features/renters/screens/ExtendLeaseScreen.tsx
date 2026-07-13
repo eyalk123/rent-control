@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, TextInput as RNTextInput, Pressable } from "react-native";
+import { StyleSheet, View, Pressable } from "react-native";
 import { Button, Text, useTheme } from "react-native-paper";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -13,9 +13,9 @@ import {
   Icon,
   type Segment,
 } from "@/src/shared/components/ui";
-import { FormScrollView, EscalationValueField, LeaseYearTypeText } from "@/src/shared/components/form";
+import { FormScrollView, EscalationValueField, LeaseYearAmountField, LeaseYearTypeText } from "@/src/shared/components/form";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
-import { useLanguageContext, useRtlInputStyle, useAlert } from "@/src/core/context";
+import { useLanguageContext, useAlert } from "@/src/core/context";
 import { useRenterContext } from "@/src/context";
 import { getRenterById, updateRenter } from "@/src/features/renters/api/renters";
 import { getApiErrorMessage } from "@/src/core/api/client";
@@ -48,7 +48,6 @@ export function ExtendLeaseScreen() {
   const { appAlert } = useAlert();
   const { refreshRenters } = useRenterContext();
   const { isRtl, language } = useLanguageContext();
-  const rtlInputStyle = useRtlInputStyle();
 
   const [renter, setRenter] = React.useState<Renter | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -285,18 +284,7 @@ export function ExtendLeaseScreen() {
                     >
                       {getLeaseYearLabel(leaseStart, index)}
                     </Text>
-                    <RNTextInput
-                      value={row.amount}
-                      onChangeText={(v) => updateAmount(index, v)}
-                      keyboardType="decimal-pad"
-                      placeholder="0"
-                      placeholderTextColor={colors.textSecondary}
-                      style={[
-                        styles.amountInput,
-                        { borderColor: colors.outline, backgroundColor: colors.inputFilledBackground, color: colors.textPrimary },
-                        rtlInputStyle,
-                      ]}
-                    />
+                    <LeaseYearAmountField value={row.amount} onChangeText={(v) => updateAmount(index, v)} />
                     <Pressable
                       onPress={() => toggleType(index)}
                       hitSlop={6}
@@ -418,15 +406,6 @@ const styles = StyleSheet.create({
   },
   yearLabel: { fontSize: 15, fontWeight: "600", minWidth: 52 },
   yearLabelCurrent: { fontWeight: "800" },
-  amountInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 0,
-    height: 40,
-    fontSize: 15,
-  },
   addedAmount: { flex: 1, fontSize: 15, fontWeight: "600" },
   typeToggle: { minWidth: 56, alignItems: "center" },
   typeText: { fontSize: 13, textAlign: "center" },

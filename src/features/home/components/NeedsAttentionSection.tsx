@@ -16,17 +16,10 @@ import { createRevenueTransaction } from '@/src/features/transactions/api/transa
 import { useTransactionSummaryContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { useAlert } from '@/src/core/context';
-import type { PaymentMethod } from '@/src/shared/types';
+import { normalizePaymentType } from '@/src/shared/constants/paymentMethods';
 
 const PREVIEW_LIMIT = 2;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-
-function mapPaymentType(pt?: string | null): PaymentMethod {
-  if (pt === 'wire_transfer') return 'bank_transfer';
-  if (pt === 'bit') return 'bit';
-  if (pt === 'check') return 'check';
-  return 'cash';
-}
 
 function todayIso() { return new Date().toISOString().slice(0, 10); }
 function currentMonthFor() {
@@ -282,7 +275,7 @@ export function NeedsAttentionSection() {
         amount: item.monthly_amount,
         date_of_payment: todayIso(),
         month_for: currentMonthFor(),
-        payment_method: mapPaymentType(item.payment_type),
+        payment_method: normalizePaymentType(item.payment_type),
       });
       await dismissNotification(item.notifId);
       setItems((prev) => prev.filter((i) => i.notifId !== item.notifId));

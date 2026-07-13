@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getCurrentMonthlyRent, type Renter } from '@/src/shared/types';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
+import { getPaymentMethodLabel } from '@/src/shared/constants/paymentMethods';
 import {
   ContactActionsRow,
   DocumentsCard,
@@ -32,15 +33,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
     }
   };
 
-  const paymentTypeLabel = (paymentType: string) => {
-    switch (paymentType) {
-      case 'bank_transfer': return t('renter.paymentTypeWireTransfer');
-      case 'cash': return t('renter.paymentTypeCash');
-      case 'bit': return t('renter.paymentTypeBit');
-      case 'check': return t('transactions.paymentMethodCheck');
-      default: return paymentType;
-    }
-  };
+  const paymentTypeLabel = (paymentType: string) => getPaymentMethodLabel(paymentType, t);
 
   const formatDate = (dateStr: string) => {
     const parts = dateStr.split('-');

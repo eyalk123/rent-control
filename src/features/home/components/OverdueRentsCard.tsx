@@ -8,7 +8,7 @@ import { usePropertyContext } from '@/src/context';
 import { useTransactionSummaryContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
-import { type PaymentMethod } from '@/src/shared/types';
+import { normalizePaymentType } from '@/src/shared/constants/paymentMethods';
 import { useAlert } from '@/src/core/context';
 import { formatMoney } from '@/src/shared/utils/money';
 import { Icon } from '@/src/shared/components/ui/Icon';
@@ -16,13 +16,6 @@ import { FilterBottomSheet, type FilterOption } from '@/src/shared/components/ui
 import { getOverdueRenters, type OverdueRenter } from '@/src/features/home/api/homeApi';
 
 type ButtonState = 'idle' | 'loading';
-
-function mapPaymentType(pt?: string | null): PaymentMethod {
-  if (pt === 'wire_transfer') return 'bank_transfer';
-  if (pt === 'bit') return 'bit';
-  if (pt === 'check') return 'check';
-  return 'cash';
-}
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -90,7 +83,7 @@ export function OverdueRentsCard() {
         amount: renter.monthly_amount,
         date_of_payment: todayIso(),
         month_for: currentMonthFor(),
-        payment_method: mapPaymentType(null),
+        payment_method: normalizePaymentType(renter.payment_type),
       });
       setPaidIds((prev) => new Set(prev).add(renter.renter_id));
       await Promise.all([refreshSummary(), refreshTransactions()]);

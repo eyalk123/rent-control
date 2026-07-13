@@ -17,6 +17,7 @@ export { FormCreatableDropdown } from "./FormCreatableDropdown";
 export { FormChipInput } from "./FormChipInput";
 export { LeaseTermBuilder } from "./LeaseTermBuilder";
 export { EscalationValueField } from "./EscalationValueField";
+export { LeaseYearAmountField } from "./LeaseYearAmountField";
 export { LeaseYearTypeText } from "./LeaseYearTypeText";
 export { FormExtraContactsField } from "./FormExtraContactsField";
 export { FormSingleFileField } from "./FormSingleFileField";

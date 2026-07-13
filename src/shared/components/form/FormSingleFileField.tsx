@@ -9,6 +9,7 @@ import { spacing, lightColors, darkColors } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 import { Icon } from '@/src/shared/components/ui';
+import { fileNameFromUrl } from '@/src/shared/utils/fileName';
 
 type EntityType = 'properties' | 'renters' | 'transactions';
 
@@ -38,9 +39,7 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
   const { uploadFile, uploading } = useFirebaseUpload(entityType, ownerId);
   const url: string | null = (field.value as string | null | undefined) ?? null;
 
-  const filename = url
-    ? (url.split('/').pop()?.split('?')[0] ?? url)
-    : null;
+  const filename = url ? fileNameFromUrl(url) : null;
 
   const handlePick = async () => {
     try {

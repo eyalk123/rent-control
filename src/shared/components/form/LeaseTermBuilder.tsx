@@ -7,11 +7,11 @@ import {
   type FieldValues,
   type Path,
 } from "react-hook-form";
-import { StyleSheet, View, TextInput as RNTextInput } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import type { TFunction } from "i18next";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
-import { useLanguageContext, useRtlInputStyle } from "@/src/core/context";
+import { useLanguageContext } from "@/src/core/context";
 import type { LeaseYearType, RentEscalationMode } from "@/src/shared/types";
 import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
 import { buildLeaseYears } from "@/src/shared/utils/leaseSchedule";
@@ -19,6 +19,7 @@ import { formatDateFull } from "@/src/shared/utils/dates";
 import { Stepper, SegmentedControl, Icon, type Segment } from "@/src/shared/components/ui";
 import { FormNumericField } from "./FormFields";
 import { EscalationValueField } from "./EscalationValueField";
+import { LeaseYearAmountField } from "./LeaseYearAmountField";
 import { LeaseYearTypeText } from "./LeaseYearTypeText";
 
 type LeaseTermBuilderProps<TFieldValues extends FieldValues> = {
@@ -35,7 +36,6 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { language } = useLanguageContext();
-  const rtlInputStyle = useRtlInputStyle();
 
   const contractStr = useWatch({ control, name: "contractTermYears" as any }) as string | undefined;
   const optionStr = useWatch({ control, name: "optionYears" as any }) as string | undefined;
@@ -261,22 +261,10 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
                       control={control}
                       name={`leaseYears.${index}.amount` as Path<TFieldValues>}
                       render={({ field }) => (
-                        <RNTextInput
+                        <LeaseYearAmountField
                           value={(field.value as string) ?? ""}
                           onChangeText={field.onChange}
                           onBlur={field.onBlur}
-                          keyboardType="decimal-pad"
-                          placeholder="0"
-                          placeholderTextColor={colors.textSecondary}
-                          style={[
-                            styles.inlineAmount,
-                            {
-                              borderColor: colors.outline,
-                              backgroundColor: colors.inputFilledBackground,
-                              color: colors.textPrimary,
-                            },
-                            rtlInputStyle,
-                          ]}
                         />
                       )}
                     />
@@ -436,15 +424,6 @@ const styles = StyleSheet.create({
   nowChipText: {
     fontSize: 11,
     fontWeight: "700",
-  },
-  inlineAmount: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 0,
-    height: 40,
-    fontSize: 15,
   },
   endRow: {
     alignItems: "center",
