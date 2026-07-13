@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import type { Control, FieldValues, Path } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import WheelPicker from '@quidone/react-native-wheel-picker';
 import { Button, Text, useTheme } from 'react-native-paper';
 import {
@@ -153,6 +154,7 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
   maxYear,
 }: FormWheelDateFieldProps<TFieldValues>) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlLabelStyle = useRtlLabelStyle();
   const { language, isRtl } = useLanguageContext();
@@ -256,7 +258,9 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
                 variant="bodySmall"
                 style={[styles.errorText, { color: colors.error }]}
               >
-                {error.message}
+                {/* Zod messages are i18n keys (e.g. "validation.paymentDayInvalid"); fall
+                    back to the raw string so a non-key message still renders. */}
+                {t(error.message ?? '', { defaultValue: error.message ?? '' })}
               </Text>
             ) : null}
             {flagged ? <FieldReviewNotice source={review!.source} /> : null}

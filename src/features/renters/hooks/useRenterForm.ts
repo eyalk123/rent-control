@@ -30,6 +30,18 @@ import {
 import { diffScannedRenter, type RenterFieldConflict } from "@/src/features/document-scan/diffRenter";
 import type { ProvenanceItem } from "@/src/features/document-scan/types";
 
+/** The form holds the payment day as a date-shaped string ("2000-01-DD"); pull the day out.
+ *  Parse it as a real ISO date instead of slicing fixed offsets: `slice(8, 10)` silently
+ *  turned a malformed "2000-01-521234567" into 52 — a plausible-looking wrong number that
+ *  no client check caught. Anything that isn't a well-formed date with a day in 1..31 is
+ *  rejected outright (null) rather than truncated into something believable. */
+const parsePaymentDay = (value: string | undefined | null): number | null => {
+  const match = /^\d{4}-\d{2}-(\d{2})$/.exec((value ?? "").trim());
+  if (!match) return null;
+  const day = Number(match[1]);
+  return day >= 1 && day <= 31 ? day : null;
+};
+
 type UseRenterFormParams = {
   id?: string;
   t: TFunction;
@@ -77,6 +89,10 @@ export function useRenterForm({
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
   const [conflicts, setConflicts] = React.useState<RenterFieldConflict[]>([]);
   const [conflictChoices, setConflictChoices] = React.useState<Record<string, "keep" | "update">>({});
+  // The scanned lease vs. a contract the matched renter already has. Tracked apart from the scalar
+  // conflicts because the choice drives `fullContractUrl` (and so the submit-time upload).
+  const [contractConflict, setContractConflict] = React.useState<{ existingUrl: string } | null>(null);
+  const [contractChoice, setContractChoice] = React.useState<"keep" | "update">("keep");
 
   const buildDefaults = React.useCallback(
     (pf?: Partial<RenterFormValues>): RenterFormValues => ({
@@ -125,6 +141,8 @@ export function useRenterForm({
     reset(buildDefaults(prefill));
     setConflicts([]);
     setConflictChoices({});
+    setContractConflict(null);
+    setContractChoice("keep");
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fires only when prefillNonce changes
   }, [prefillNonce]);
 
@@ -225,9 +243,19 @@ export function useRenterForm({
           );
           reset({ ...existingReset, ...fills });
           setConflicts(cf);
+          // The scanned lease is the renter's contract: it uploads on submit whenever
+          // `fullContractUrl` is empty (the file analogue of a `fill`). When the renter already has
+          // one, offer keep/replace instead of silently discarding the freshly scanned lease.
+          if (pendingFullContract && renter.full_contract_url) {
+            setContractConflict({ existingUrl: renter.full_contract_url });
+            setContractChoice("keep");
+          } else {
+            setContractConflict(null);
+          }
         } else {
           reset(existingReset);
           setConflicts([]);
+          setContractConflict(null);
         }
         setConflictChoices({});
       })
@@ -250,10 +278,7 @@ export function useRenterForm({
       }
     }
     const leaseStartTrimmed = values.leaseStart?.trim() ?? "";
-    const paymentDayNum =
-      values.paymentDate && values.paymentDate.length >= 10
-        ? Number(values.paymentDate.slice(8, 10))
-        : null;
+    const paymentDayNum = parsePaymentDay(values.paymentDate);
     const numPayments =
       values.paymentFrequency === "monthly"
         ? 12
@@ -391,6 +416,21 @@ export function useRenterForm({
     [conflicts, formMethods],
   );
 
+  // Keeping the stored contract restores its URL, so submit() finds `fullContractUrl` set and skips
+  // the upload; replacing it clears the URL, which is what lets the scanned lease upload instead.
+  const resolveContractConflict = React.useCallback(
+    (mode: "keep" | "update") => {
+      if (!contractConflict) return;
+      setContractChoice(mode);
+      formMethods.setValue(
+        "fullContractUrl",
+        mode === "keep" ? contractConflict.existingUrl : null,
+        { shouldDirty: true },
+      );
+    },
+    [contractConflict, formMethods],
+  );
+
   return {
     formMethods,
     onSubmit: submit,
@@ -400,5 +440,8 @@ export function useRenterForm({
     conflicts,
     conflictChoices,
     resolveConflict,
+    contractConflict,
+    contractChoice,
+    resolveContractConflict,
   };
 }

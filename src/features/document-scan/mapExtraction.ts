@@ -83,9 +83,15 @@ export function mapExtraction(extraction: LeaseExtraction): MappedExtraction {
 function mapRenter(r: ExtractedRenter, index: number, notes: Map<string, FieldNote>): MappedRenter {
   const n = r.number_of_payments;
   const freq = n === 12 ? 'monthly' : n === 4 ? 'quarterly' : n === 1 ? 'yearly' : undefined;
-  // payment_day_of_month -> the form's date-shaped paymentDate ("2000-01-DD").
+  // payment_day_of_month -> the form's date-shaped paymentDate ("2000-01-DD"). Guard the
+  // 1-31 range: padStart only pads, it never truncates, so an out-of-range day used to
+  // produce a non-date like "2000-01-521234567" that later got sliced back down to a
+  // plausible-but-wrong number. Drop it instead and leave the field blank for the user.
+  const day = r.payment_day_of_month;
   const paymentDate =
-    r.payment_day_of_month != null ? `2000-01-${String(r.payment_day_of_month).padStart(2, '0')}` : undefined;
+    day != null && Number.isInteger(day) && day >= 1 && day <= 31
+      ? `2000-01-${String(day).padStart(2, '0')}`
+      : undefined;
 
   const renterAssigns: Assign[] = [
     { key: 'firstName', i18n: 'renter.firstName', field: 'first_name', get: () => s(r.first_name) },

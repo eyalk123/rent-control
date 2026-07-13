@@ -52,7 +52,7 @@ export function AddEditRenterScreen() {
   const current = renters[qIndex];
   const hasNextRenter = qIndex < renters.length - 1;
 
-  const { formMethods, onSubmit, isSubmitting, isFetching, ownerId, conflicts, conflictChoices, resolveConflict } = useRenterForm({
+  const { formMethods, onSubmit, isSubmitting, isFetching, ownerId, conflicts, conflictChoices, resolveConflict, contractConflict, contractChoice, resolveContractConflict } = useRenterForm({
     id,
     t,
     refreshRenters,
@@ -235,6 +235,10 @@ export function AddEditRenterScreen() {
                 conflicts={conflicts}
                 choices={conflictChoices}
                 onResolve={resolveConflict}
+                contractConflict={contractConflict}
+                contractChoice={contractChoice}
+                onResolveContract={resolveContractConflict}
+                scannedFileName={scan?.file?.name}
                 t={t}
               />
               <RenterBasicInfoCard

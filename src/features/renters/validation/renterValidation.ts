@@ -47,14 +47,27 @@ export const renterFormSchema = z.object({
   email: optionalString,
   leaseStart: z.string().transform((val) => val.trim()).refine(
     (val) => val === "" || /^\d{4}-\d{2}-\d{2}$/.test(val),
-    { message: "dateFormatInvalid" },
+    { message: "validation.dateFormatInvalid" },
   ),
   propertyId: z.number().nullable(),
   paymentType: optionalString,
+  // Date-shaped ("2000-01-DD"); only the day component is submitted, as payment_day_of_month.
+  // Mirrors the backend's RenterCreate.payment_day_in_range (1..31) so a bad value — typed, or
+  // prefilled by a lease scan — is caught here instead of only as a 422 at submit.
   paymentDate: z
     .string()
     .transform((val) => val.trim())
-    .optional(),
+    .optional()
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const match = /^\d{4}-\d{2}-(\d{2})$/.exec(val);
+        if (!match) return false;
+        const day = Number(match[1]);
+        return day >= 1 && day <= 31;
+      },
+      { message: "validation.paymentDayInvalid" },
+    ),
   paymentFrequency: z
     .enum(["monthly", "quarterly", "yearly"])
     .optional(),
