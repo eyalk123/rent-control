@@ -5,9 +5,32 @@ import { useTranslation } from "react-i18next";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
 import { Icon } from "@/src/shared/components/ui";
 import { formatMoney } from "@/src/shared/utils/money";
-import type { LeaseYearType } from "@/src/shared/types";
+import type { LeaseYearRuleMode, LeaseYearType } from "@/src/shared/types";
 import { LeaseYearAmountField } from "./LeaseYearAmountField";
 import { LeaseYearTypeText } from "./LeaseYearTypeText";
+import { EscalationValueField } from "./EscalationValueField";
+import { DropdownField } from "./DropdownField";
+
+/**
+ * The per-year rule options, in display order. Mirrors the whole-lease choices in
+ * RENT_ESCALATION_MODES (minus `custom`, which has no meaning for a single year), plus
+ * `manual` — the neutral default, meaning "this amount was typed, not derived".
+ */
+export const LEASE_YEAR_RULE_MODES: LeaseYearRuleMode[] = [
+  "manual",
+  "none",
+  "percent",
+  "fixed",
+  "cpi",
+];
+
+export const LEASE_YEAR_RULE_LABEL_KEYS: Record<LeaseYearRuleMode, string> = {
+  manual: "renter.rentChangeManual",
+  none: "renter.rentChangeSame",
+  percent: "renter.rentChangePercent",
+  fixed: "renter.rentChangeFixed",
+  cpi: "renter.rentChangeCpi",
+};
 
 type LeaseYearRowProps = {
   /** Year caption, e.g. "2026" or "Year 2". */
@@ -35,6 +58,18 @@ type LeaseYearRowProps = {
    * RTL, so each one passes its own rather than this component guessing.
    */
   rowDirection: ViewStyle["flexDirection"];
+  /**
+   * How this year's rent derives from the previous year's. The dropdown renders only when
+   * `onRuleChange` is passed (custom mode, and never on year one, which *is* the base rent).
+   */
+  ruleMode?: LeaseYearRuleMode;
+  onRuleChange?: (mode: LeaseYearRuleMode) => void;
+  /** The percent / ₪ step. Its field appears only for the `percent` and `fixed` rules. */
+  ruleValue?: string;
+  onRuleValueChange?: (value: string) => void;
+  onRuleValueBlur?: () => void;
+  /** Per-row validation message, e.g. a percent rule with no value. */
+  error?: string;
 };
 
 /**
@@ -55,18 +90,30 @@ function LeaseYearRowInner({
   projected = false,
   badge,
   rowDirection,
+  ruleMode = "manual",
+  onRuleChange,
+  ruleValue = "",
+  onRuleValueChange,
+  onRuleValueBlur,
+  error,
 }: LeaseYearRowProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const amountNum = Number(amount) || 0;
+  const showRuleValue = ruleMode === "percent" || ruleMode === "fixed";
+
+  const ruleOptions = LEASE_YEAR_RULE_MODES.map((m) => ({
+    value: m,
+    label: t(LEASE_YEAR_RULE_LABEL_KEYS[m]),
+  }));
 
   return (
+    <View style={isCurrent ? { backgroundColor: colors.accent + "14", borderRadius: 8 } : undefined}>
     <View
       style={[
         styles.row,
         { flexDirection: rowDirection },
-        isCurrent && { backgroundColor: colors.accent + "14", borderRadius: 8 },
       ]}
     >
       <Text
@@ -108,6 +155,22 @@ function LeaseYearRowInner({
         </View>
       )}
 
+      {/* An editable row shows the projection chip here — its amount lives in an input, so
+          the read-only branch above (which owns the other chip) never renders. */}
+      {onAmountChange && projected ? (
+        <View
+          style={[
+            styles.cpiChip,
+            { backgroundColor: colors.inputFilledBackground, flexDirection: rowDirection },
+          ]}
+        >
+          <Icon name="trending-up" size={12} color={colors.textSecondary} />
+          <Text style={[styles.cpiChipText, { color: colors.textSecondary }]}>
+            {t("renter.rentChangeCpi")}
+          </Text>
+        </View>
+      ) : null}
+
       {onTypeToggle ? (
         <Pressable
           onPress={onTypeToggle}
@@ -142,6 +205,35 @@ function LeaseYearRowInner({
         </Pressable>
       ) : null}
     </View>
+
+    {/* The rule sits on its own line: a phone row has no space for year + amount + rule +
+        value + type side by side. */}
+    {onRuleChange ? (
+      <View style={[styles.ruleRow, { flexDirection: rowDirection }]}>
+        <DropdownField
+          data={ruleOptions}
+          value={ruleMode}
+          onChange={(m) => onRuleChange(m as LeaseYearRuleMode)}
+          inputStyle={styles.ruleDropdown}
+        />
+        {showRuleValue && onRuleValueChange ? (
+          <EscalationValueField
+            mode={ruleMode as "percent" | "fixed"}
+            value={ruleValue}
+            onChangeText={onRuleValueChange}
+            onBlur={onRuleValueBlur}
+            label=""
+          />
+        ) : null}
+      </View>
+    ) : null}
+
+    {error ? (
+      <Text style={[styles.errorText, { color: colors.error }]}>
+        {t(error, { defaultValue: error })}
+      </Text>
+    ) : null}
+    </View>
   );
 }
 
@@ -168,6 +260,15 @@ const styles = StyleSheet.create({
   cpiChipText: { fontSize: 11, fontWeight: "700" },
   typeToggle: { minWidth: 56, alignItems: "center" },
   typeText: { fontSize: 13, textAlign: "center" },
+  ruleRow: {
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    paddingBottom: spacing.xs,
+    paddingStart: 52 + spacing.sm,
+  },
+  ruleDropdown: { minWidth: 120, height: 40 },
+  errorText: { fontSize: 12, paddingHorizontal: spacing.xs, paddingBottom: spacing.xs, paddingStart: 52 + spacing.sm },
   chip: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,

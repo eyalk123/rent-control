@@ -221,6 +221,15 @@ export function useRenterForm({
           leaseYears: lease_years.map((y) => ({
             amount: String(y.amount),
             type: y.type,
+            // Rules round-trip as form strings; an absent rule stays absent (= manual).
+            ...(y.rule
+              ? {
+                  rule: {
+                    mode: y.rule.mode,
+                    value: y.rule.value != null ? String(y.rule.value) : "",
+                  },
+                }
+              : {}),
           })),
           contactId: renter.contact_id ?? null,
           extraContacts: (renter.extra_contacts ?? []).map((c) => ({
@@ -296,13 +305,22 @@ export function useRenterForm({
 
     const leaseYearsForm = values.leaseYears ?? [];
     const lease_years: LeaseYear[] = leaseYearsForm
-      .map((row) => {
+      .map((row): LeaseYear | null => {
         const amount = row?.amount ? Number(row.amount) : NaN;
         const type = row?.type === "option" || row?.type === "contract"
           ? row.type
           : "contract";
         if (!Number.isFinite(amount) || amount < 0) return null;
-        return { amount, type };
+        // Per-year rules only exist in custom mode, and "manual" is the absence of a rule —
+        // omit it so the payload stays the legacy shape for every other lease.
+        const rule =
+          values.escalationMode === "custom" && row?.rule && row.rule.mode !== "manual"
+            ? {
+                mode: row.rule.mode,
+                value: row.rule.value ? Number(row.rule.value) : undefined,
+              }
+            : undefined;
+        return rule ? { amount, type, rule } : { amount, type };
       })
       .filter((y): y is LeaseYear => y != null);
 

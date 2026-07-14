@@ -17,12 +17,45 @@ import { useLanguageContext, useAlert } from "@/src/core/context";
 import { useRenterContext } from "@/src/context";
 import { getRenterById, updateRenter } from "@/src/features/renters/api/renters";
 import { getApiErrorMessage } from "@/src/core/api/client";
-import { buildAddedYears, hasContractAfterOptionYear, reconstructIntentFromLeaseYears } from "@/src/shared/utils/leaseSchedule";
-import { getLeaseEndDate, type LeaseYear, type LeaseYearType, type RentEscalationMode, type Renter } from "@/src/shared/types";
+import {
+  buildAddedYears,
+  hasContractAfterOptionYear,
+  isProjectedYear,
+  materializeRuledYears,
+  reconstructIntentFromLeaseYears,
+} from "@/src/shared/utils/leaseSchedule";
+import { getLeaseEndDate, type LeaseYear, type LeaseYearRuleMode, type LeaseYearType, type RentEscalationMode, type Renter } from "@/src/shared/types";
 import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
 import { formatDateFull } from "@/src/shared/utils/dates";
 
-type Row = { amount: string; type: LeaseYearType };
+type Row = {
+  amount: string;
+  type: LeaseYearType;
+  /** Custom mode only: how this year derives from the previous one. Absent = manual. */
+  rule?: { mode: LeaseYearRuleMode; value: string };
+};
+
+/**
+ * Rows -> the numeric model the schedule helpers work on. Rules only mean anything in custom
+ * mode, so `withRules: false` drops them — leaving custom mode discards them rather than
+ * letting them ride along into a percent/fixed lease.
+ */
+function toModel(rows: Row[], withRules = true): LeaseYear[] {
+  return rows.map((r) => {
+    const year: LeaseYear = { amount: Number(r.amount) || 0, type: r.type };
+    if (withRules && r.rule && r.rule.mode !== "manual") {
+      year.rule = { mode: r.rule.mode, value: Number(r.rule.value) || 0 };
+    }
+    return year;
+  });
+}
+
+/** A percent/fixed rule with no number behind it can't price its year. */
+function ruleValueMissing(rows: Row[]): boolean {
+  return rows.some(
+    (r) => (r.rule?.mode === "percent" || r.rule?.mode === "fixed") && !r.rule.value.trim(),
+  );
+}
 
 /**
  * Focused lease-extension screen. Shows the current lease, grows it via a single "years to
@@ -74,6 +107,9 @@ export function ExtendLeaseScreen() {
         const seededRows: Row[] = (data.lease_years ?? []).map((y) => ({
           amount: String(y.amount),
           type: y.type,
+          ...(y.rule
+            ? { rule: { mode: y.rule.mode, value: y.rule.value != null ? String(y.rule.value) : "" } }
+            : {}),
         }));
         const seededMode: RentEscalationMode =
           data.rent_escalation_mode ?? reconstructIntentFromLeaseYears(data.lease_years).escalationMode;
@@ -90,10 +126,15 @@ export function ExtendLeaseScreen() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const existingYears: LeaseYear[] = React.useMemo(
-    () => existingRows.map((r) => ({ amount: Number(r.amount) || 0, type: r.type })),
-    [existingRows],
-  );
+  const isCustom = mode === "custom";
+
+  // In custom mode every ruled year is *derived* from the year before it, so the schedule is a
+  // pure function of the rows — walk it rather than storing the computed amounts. Hand-typed
+  // ("manual") amounts are what the walk reads; everything else it writes.
+  const existingYears: LeaseYear[] = React.useMemo(() => {
+    const model = toModel(existingRows, isCustom);
+    return isCustom ? materializeRuledYears(model, model[0]?.amount ?? 0) : model;
+  }, [existingRows, isCustom]);
 
   // New-year pricing walks the escalation rule forward from the last existing amount, so the
   // derivation only needs the tail of the schedule — and only re-runs when that amount
@@ -102,7 +143,8 @@ export function ExtendLeaseScreen() {
     existingYears.length > 0 ? existingYears[existingYears.length - 1].amount : 0;
 
   // New years grow/shrink reactively with the number inputs — no explicit "add" action.
-  // In custom mode the owner hand-prices them, so re-deriving preserves what they typed.
+  // In custom mode the owner hand-prices them (or gives them a rule), so re-deriving preserves
+  // what they typed and chose.
   React.useEffect(() => {
     setAddedRows((prev) => {
       const next = buildAddedYears(
@@ -111,22 +153,39 @@ export function ExtendLeaseScreen() {
         addOptionCount,
         mode,
         Number(value) || 0,
+        mode === "custom" ? toModel(prev) : undefined,
       );
       return next.map((y, i) => ({
         amount: mode === "custom" && prev[i] ? prev[i].amount : String(y.amount),
         type: y.type,
+        ...(mode === "custom" && prev[i]?.rule ? { rule: prev[i].rule } : {}),
       }));
     });
   }, [addCount, addOptionCount, mode, value, lastExistingAmount]);
 
-  const addedYears: LeaseYear[] = React.useMemo(
-    () => addedRows.map((r) => ({ amount: Number(r.amount) || 0, type: r.type })),
-    [addedRows],
-  );
+  // The added block prices off the last existing year, so in custom mode the two halves have
+  // to be walked together and the added tail taken from the result.
+  const addedYears: LeaseYear[] = React.useMemo(() => {
+    const model = toModel(addedRows, isCustom);
+    if (!isCustom) return model;
+    return materializeRuledYears(
+      [...existingYears, ...model],
+      existingYears[0]?.amount ?? model[0]?.amount ?? 0,
+    ).slice(existingYears.length);
+  }, [addedRows, existingYears, isCustom]);
 
   const allYears: LeaseYear[] = React.useMemo(() => [...existingYears, ...addedYears], [existingYears, addedYears]);
 
+  /** A ruled year shows the walked amount; a manual one shows exactly what was typed. */
+  const displayAmount = (row: Row, walked: LeaseYear | undefined) =>
+    isCustom && row.rule && row.rule.mode !== "manual" ? String(walked?.amount ?? 0) : row.amount;
+
   const orderInvalid = React.useMemo(() => hasContractAfterOptionYear(allYears), [allYears]);
+  // The renter form gets this from Zod; this screen has no schema, so it gates Save by hand.
+  const ruleIncomplete = React.useMemo(
+    () => isCustom && ruleValueMissing([...existingRows, ...addedRows]),
+    [isCustom, existingRows, addedRows],
+  );
 
   const dirty =
     JSON.stringify({ rows: existingRows, added: addedRows, mode, value }) !== initialSnapshot.current;
@@ -156,8 +215,24 @@ export function ExtendLeaseScreen() {
   );
   const yearDelta = allYears.length - (renter?.lease_years?.length ?? 0);
 
+  /** Typing an amount by hand means the stated rule no longer describes it — drop to manual. */
+  const setAmount = (rows: Row[], index: number, amount: string): Row[] =>
+    rows.map((r, i) => (i === index ? { amount, type: r.type } : r));
+
+  const setRule = (rows: Row[], index: number, ruleMode: LeaseYearRuleMode): Row[] =>
+    rows.map((r, i) =>
+      i === index
+        ? ruleMode === "manual"
+          ? { amount: r.amount, type: r.type }
+          : { ...r, rule: { mode: ruleMode, value: r.rule?.value ?? "" } }
+        : r,
+    );
+
+  const setRuleValue = (rows: Row[], index: number, ruleValue: string): Row[] =>
+    rows.map((r, i) => (i === index && r.rule ? { ...r, rule: { ...r.rule, value: ruleValue } } : r));
+
   const updateAmount = (index: number, amount: string) =>
-    setExistingRows((prev) => prev.map((r, i) => (i === index ? { ...r, amount } : r)));
+    setExistingRows((prev) => setAmount(prev, index, amount));
 
   const removeRow = (index: number) => setExistingRows((prev) => prev.filter((_, i) => i !== index));
 
@@ -169,10 +244,10 @@ export function ExtendLeaseScreen() {
   };
 
   const updateAddedAmount = (index: number, amount: string) =>
-    setAddedRows((prev) => prev.map((r, i) => (i === index ? { ...r, amount } : r)));
+    setAddedRows((prev) => setAmount(prev, index, amount));
 
   const handleSave = async () => {
-    if (!renter || orderInvalid) return;
+    if (!renter || orderInvalid || ruleIncomplete) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSaving(true);
     try {
@@ -268,42 +343,71 @@ export function ExtendLeaseScreen() {
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t("renter.noLeaseYears")}</Text>
           ) : (
             <>
-              {/* Existing years — editable amount, deletable, type convertible */}
+              {/* Existing years — editable amount, deletable, type convertible. In custom
+                  mode each year past the first also carries its own rule. */}
               {existingRows.map((row, index) => (
                 <LeaseYearRow
                   key={`existing-${index}`}
                   label={getLeaseYearLabel(leaseStart, index)}
-                  amount={row.amount}
+                  amount={displayAmount(row, existingYears[index])}
                   type={row.type}
                   isCurrent={isCurrentLeaseYear(leaseStart, index)}
                   onAmountChange={(v) => updateAmount(index, v)}
                   onTypeToggle={() => toggleType(index)}
                   onRemove={() => removeRow(index)}
+                  projected={isCustom && isProjectedYear(allYears, index)}
+                  // Year one is the base rent — nothing to derive it from.
+                  ruleMode={row.rule?.mode ?? "manual"}
+                  onRuleChange={
+                    isCustom && index > 0
+                      ? (m) => setExistingRows((prev) => setRule(prev, index, m))
+                      : undefined
+                  }
+                  ruleValue={row.rule?.value ?? ""}
+                  onRuleValueChange={(v) => setExistingRows((prev) => setRuleValue(prev, index, v))}
                   rowDirection={rowDirection}
                 />
               ))}
               {/* Added years — auto-priced from the escalation rule, except in custom mode
-                  where the owner prices them by hand. */}
-              {addedRows.map((row, j) => (
-                <LeaseYearRow
-                  key={`added-${j}`}
-                  label={getLeaseYearLabel(leaseStart, existingRows.length + j)}
-                  amount={row.amount}
-                  type={row.type}
-                  onAmountChange={mode === "custom" ? (v) => updateAddedAmount(j, v) : undefined}
-                  // CPI amounts are index-linked and priced server-side — a client-side
-                  // figure here is only an estimate.
-                  projected={mode === "cpi"}
-                  badge={
-                    <View style={[styles.newTag, { backgroundColor: colors.primary }]}>
-                      <Text style={[styles.newTagText, { color: colors.onPrimary }]}>
-                        {t("renter.newYearTag")}
-                      </Text>
-                    </View>
-                  }
-                  rowDirection={rowDirection}
-                />
-              ))}
+                  where the owner prices them by hand or gives each its own rule. */}
+              {addedRows.map((row, j) => {
+                const absoluteIndex = existingRows.length + j;
+                return (
+                  <LeaseYearRow
+                    key={`added-${j}`}
+                    label={getLeaseYearLabel(leaseStart, absoluteIndex)}
+                    amount={displayAmount(row, addedYears[j])}
+                    type={row.type}
+                    onAmountChange={isCustom ? (v) => updateAddedAmount(j, v) : undefined}
+                    // CPI amounts are index-linked and priced server-side — a client-side
+                    // figure here is only an estimate. In custom mode that's true of a CPI
+                    // year and everything downstream of it.
+                    projected={isCustom ? isProjectedYear(allYears, absoluteIndex) : mode === "cpi"}
+                    ruleMode={row.rule?.mode ?? "manual"}
+                    onRuleChange={
+                      isCustom && absoluteIndex > 0
+                        ? (m) => setAddedRows((prev) => setRule(prev, j, m))
+                        : undefined
+                    }
+                    ruleValue={row.rule?.value ?? ""}
+                    onRuleValueChange={(v) => setAddedRows((prev) => setRuleValue(prev, j, v))}
+                    badge={
+                      <View style={[styles.newTag, { backgroundColor: colors.primary }]}>
+                        <Text style={[styles.newTagText, { color: colors.onPrimary }]}>
+                          {t("renter.newYearTag")}
+                        </Text>
+                      </View>
+                    }
+                    rowDirection={rowDirection}
+                  />
+                );
+              })}
+
+              {isCustom && isProjectedYear(allYears, allYears.length - 1) ? (
+                <Text style={[styles.projectedNote, { color: colors.textSecondary }]}>
+                  {t("renter.cpiProjectedNote")}
+                </Text>
+              ) : null}
             </>
           )}
 
@@ -336,7 +440,7 @@ export function ExtendLeaseScreen() {
             mode="contained"
             onPress={handleSave}
             loading={saving}
-            disabled={saving || !dirty || orderInvalid}
+            disabled={saving || !dirty || orderInvalid || ruleIncomplete}
             style={styles.saveButton}
             contentStyle={styles.saveButtonContent}
             accessibilityLabel={t("common.save")}
@@ -377,6 +481,7 @@ const styles = StyleSheet.create({
   warningText: { flex: 1, fontSize: 13 },
   scheduleTitle: { fontWeight: "700", marginTop: spacing.md, marginBottom: spacing.xs },
   emptyText: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
+  projectedNote: { fontSize: 13, lineHeight: 18, marginTop: spacing.sm },
   newTag: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,

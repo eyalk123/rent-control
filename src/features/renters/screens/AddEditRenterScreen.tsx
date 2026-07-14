@@ -251,7 +251,9 @@ export function AddEditRenterScreen() {
               />
             </>
           )}
-          {step === "lease" && <RenterLeaseInfoCard control={control} t={t} ownerId={ownerId} />}
+          {step === "lease" && (
+            <RenterLeaseInfoCard control={control} t={t} ownerId={ownerId} setValue={setValue} />
+          )}
           </FieldReviewProvider>
         </FormScrollView>
         <View style={styles.fixedButtonBar}>

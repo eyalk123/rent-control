@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { type Control, type FieldValues } from "react-hook-form";
+import { type Control, type FieldValues, type UseFormSetValue } from "react-hook-form";
 import type { TFunction } from "i18next";
 import { spacing } from "@/src/core/theme";
 import { getPaymentMethodOptions } from "@/src/shared/constants/paymentMethods";
@@ -17,12 +17,15 @@ type RenterLeaseInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   t: TFunction;
   ownerId: string;
+  /** Passed through to LeaseTermBuilder, which keeps year one and the base rent in step. */
+  setValue: UseFormSetValue<TFieldValues>;
 };
 
 function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   control,
   t,
   ownerId,
+  setValue,
 }: RenterLeaseInfoCardProps<TFieldValues>) {
   return (
     <FormSectionCard title={t("renter.leaseInfo")}>
@@ -37,7 +40,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
       </View>
 
       <View style={styles.inputWrap}>
-        <LeaseTermBuilder control={control} t={t} />
+        <LeaseTermBuilder control={control} t={t} setValue={setValue} />
       </View>
 
       <View style={styles.inputWrap}>
