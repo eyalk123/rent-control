@@ -16,6 +16,8 @@ export { FormDropdownOptions } from "./FormDropdownOptions";
 export { FormCreatableDropdown } from "./FormCreatableDropdown";
 export { FormChipInput } from "./FormChipInput";
 export { LeaseTermBuilder } from "./LeaseTermBuilder";
+export { RentChangeField, RENT_ESCALATION_MODES } from "./RentChangeField";
+export { LeaseYearRow } from "./LeaseYearRow";
 export { EscalationValueField } from "./EscalationValueField";
 export { LeaseYearAmountField } from "./LeaseYearAmountField";
 export { LeaseYearTypeText } from "./LeaseYearTypeText";

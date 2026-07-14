@@ -16,18 +16,17 @@ import type { LeaseYearType, RentEscalationMode } from "@/src/shared/types";
 import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
 import { buildLeaseYears } from "@/src/shared/utils/leaseSchedule";
 import { formatDateFull } from "@/src/shared/utils/dates";
-import { Stepper, SegmentedControl, Icon, type Segment } from "@/src/shared/components/ui";
+import { Stepper, Icon } from "@/src/shared/components/ui";
 import { FormNumericField } from "./FormFields";
-import { EscalationValueField } from "./EscalationValueField";
-import { LeaseYearAmountField } from "./LeaseYearAmountField";
-import { LeaseYearTypeText } from "./LeaseYearTypeText";
+import { RentChangeField } from "./RentChangeField";
+import { LeaseYearRow } from "./LeaseYearRow";
 
 type LeaseTermBuilderProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   t: TFunction;
 };
 
-type LeaseYearRow = { amount?: string; type?: LeaseYearType };
+type LeaseYearRowValue = { amount?: string; type?: LeaseYearType };
 
 function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
   control,
@@ -45,7 +44,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
   const escValStr = useWatch({ control, name: "escalationValue" as any }) as string | undefined;
   const leaseStart = useWatch({ control, name: "leaseStart" as any }) as string | undefined;
   const leaseYears =
-    (useWatch({ control, name: "leaseYears" as any }) as LeaseYearRow[] | undefined) ?? [];
+    (useWatch({ control, name: "leaseYears" as any }) as LeaseYearRowValue[] | undefined) ?? [];
 
   // Latest rows without making them an effect dependency (avoids regenerate loops
   // and lets "custom" mode preserve per-year amounts the user typed).
@@ -94,14 +93,6 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
 
   const isCustom = escMode === "custom";
 
-  const escalationSegments: Segment<RentEscalationMode>[] = [
-    { value: "none", label: t("renter.rentChangeSame") },
-    { value: "percent", label: t("renter.rentChangePercent") },
-    { value: "fixed", label: t("renter.rentChangeFixed") },
-    { value: "cpi", label: t("renter.rentChangeCpi") },
-    { value: "custom", label: t("renter.rentChangeCustom") },
-  ];
-
   const contractCount = Number(contractStr) || 0;
   let endDate: Date | null = null;
   if (leaseStart && contractCount > 0) {
@@ -116,14 +107,6 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
   // back to LTR — which is why inputs/labels landed on the wrong side.
   const rowDirection = "row" as const;
   const total = leaseYears.length;
-
-  const renderNowChip = () => (
-    <View style={[styles.nowChip, { backgroundColor: colors.accent }]}>
-      <Text style={[styles.nowChipText, { color: colors.accentFg }]}>
-        {t("renter.currentYear")}
-      </Text>
-    </View>
-  );
 
   return (
     <View>
@@ -167,40 +150,27 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
       <Controller
         control={control}
         name={"escalationMode" as Path<TFieldValues>}
-        render={({ field }) => (
-          <SegmentedControl
-            label={t("renter.rentChange")}
-            segments={escalationSegments}
-            fitContent
-            value={(field.value as RentEscalationMode) ?? "none"}
-            onChange={(v) => {
-              if (v === "cpi") cpiSwitchRef.current = true;
-              field.onChange(v);
-            }}
+        render={({ field: modeField }) => (
+          <Controller
+            control={control}
+            name={"escalationValue" as Path<TFieldValues>}
+            render={({ field: valueField }) => (
+              <RentChangeField
+                label={t("renter.rentChange")}
+                fitContent
+                mode={(modeField.value as RentEscalationMode) ?? "none"}
+                onModeChange={(v) => {
+                  if (v === "cpi") cpiSwitchRef.current = true;
+                  modeField.onChange(v);
+                }}
+                value={(valueField.value as string) ?? ""}
+                onValueChange={valueField.onChange}
+                onValueBlur={valueField.onBlur}
+              />
+            )}
           />
         )}
       />
-
-      {escMode === "cpi" ? (
-        <Text style={[styles.cpiNote, { color: colors.textSecondary }]}>
-          {t("renter.rentChangeCpiNote")}
-        </Text>
-      ) : null}
-
-      {escMode === "percent" || escMode === "fixed" ? (
-        <Controller
-          control={control}
-          name={"escalationValue" as Path<TFieldValues>}
-          render={({ field }) => (
-            <EscalationValueField
-              mode={escMode}
-              value={(field.value as string) ?? ""}
-              onChangeText={field.onChange}
-              onBlur={field.onBlur}
-            />
-          )}
-        />
-      ) : null}
 
       {total > 0 ? (
         <View>
@@ -210,112 +180,37 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
           </Text>
 
           {leaseYears.map((row, index) => {
-            const isCurrent = isCurrentLeaseYear(leaseStart, index);
             const yearType: LeaseYearType = row?.type ?? "contract";
-            const amountNum = Number(row?.amount) || 0;
-            const isFirst = index === 0;
-            const isLast = index === total - 1;
             // Year 1 is the known base; later CPI years are index-linked projections.
             const isCpiProjected = escMode === "cpi" && index > 0;
 
-            const nodeStyle =
-              isCurrent
-                ? [styles.node, styles.nodeCurrent, { backgroundColor: colors.accent }]
-                : yearType === "option"
-                ? [styles.node, { borderWidth: 2, borderColor: colors.primary, backgroundColor: "transparent" }]
-                : [styles.node, { backgroundColor: colors.primary }];
-
-            return (
-              <View
+            return isCustom ? (
+              <Controller
                 key={index}
-                style={[
-                  styles.timelineRow,
-                  { flexDirection: rowDirection },
-                  isCurrent && { backgroundColor: colors.accent + "14" },
-                ]}
-              >
-                <View style={styles.rail}>
-                  <View
-                    style={[styles.railLine, { backgroundColor: isFirst ? "transparent" : colors.outline }]}
+                control={control}
+                name={`leaseYears.${index}.amount` as Path<TFieldValues>}
+                render={({ field }) => (
+                  <LeaseYearRow
+                    label={getLeaseYearLabel(leaseStart, index)}
+                    amount={(field.value as string) ?? ""}
+                    type={yearType}
+                    isCurrent={isCurrentLeaseYear(leaseStart, index)}
+                    onAmountChange={field.onChange}
+                    onAmountBlur={field.onBlur}
+                    rowDirection={rowDirection}
                   />
-                  <View style={nodeStyle} />
-                  <View
-                    style={[styles.railLine, { backgroundColor: isLast ? "transparent" : colors.outline }]}
-                  />
-                </View>
-
-                {isCustom ? (
-                  <View
-                    style={[styles.rowContent, styles.previewContent, { flexDirection: rowDirection }]}
-                  >
-                    <Text
-                      style={[
-                        styles.previewYear,
-                        { color: colors.textPrimary },
-                        isCurrent && styles.previewYearCurrent,
-                      ]}
-                    >
-                      {getLeaseYearLabel(leaseStart, index)}
-                    </Text>
-                    <Controller
-                      control={control}
-                      name={`leaseYears.${index}.amount` as Path<TFieldValues>}
-                      render={({ field }) => (
-                        <LeaseYearAmountField
-                          value={(field.value as string) ?? ""}
-                          onChangeText={field.onChange}
-                          onBlur={field.onBlur}
-                        />
-                      )}
-                    />
-                    <LeaseYearTypeText type={yearType} />
-                    {isCurrent ? renderNowChip() : null}
-                  </View>
-                ) : (
-                  <View
-                    style={[styles.rowContent, styles.previewContent, { flexDirection: rowDirection }]}
-                  >
-                    <Text
-                      style={[
-                        styles.previewYear,
-                        { color: colors.textPrimary },
-                        isCurrent && styles.previewYearCurrent,
-                      ]}
-                    >
-                      {getLeaseYearLabel(leaseStart, index)}
-                    </Text>
-                    <View style={[styles.previewAmount, styles.amountRow, { flexDirection: rowDirection }]}>
-                      {/* CPI amounts past year 1 are index-linked projections the
-                          client can't know exactly — mark them approximate/muted. */}
-                      <Text
-                        style={[
-                          styles.previewAmountText,
-                          { color: isCpiProjected ? colors.textSecondary : colors.textPrimary },
-                        ]}
-                      >
-                        {amountNum > 0
-                          ? `${isCpiProjected ? "≈ " : ""}₪${amountNum.toLocaleString()}`
-                          : "—"}
-                      </Text>
-                      {isCpiProjected ? (
-                        <View
-                          style={[
-                            styles.cpiChip,
-                            { backgroundColor: colors.inputFilledBackground, flexDirection: rowDirection },
-                          ]}
-                        >
-                          <Icon name="trending-up" size={12} color={colors.textSecondary} />
-                          <Text style={[styles.cpiChipText, { color: colors.textSecondary }]}>
-                            {t("renter.rentChangeCpi")}
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
-                    <LeaseYearTypeText type={yearType} />
-                    {isCurrent ? renderNowChip() : null}
-                  </View>
                 )}
-              </View>
+              />
+            ) : (
+              <LeaseYearRow
+                key={index}
+                label={getLeaseYearLabel(leaseStart, index)}
+                amount={String(row?.amount ?? "")}
+                type={yearType}
+                isCurrent={isCurrentLeaseYear(leaseStart, index)}
+                projected={isCpiProjected}
+                rowDirection={rowDirection}
+              />
             );
           })}
 
@@ -338,11 +233,6 @@ export const LeaseTermBuilder = React.memo(
 ) as typeof LeaseTermBuilderInner;
 
 const styles = StyleSheet.create({
-  cpiNote: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: spacing.md,
-  },
   divider: {
     height: 1,
     marginTop: spacing.xs,
@@ -351,79 +241,6 @@ const styles = StyleSheet.create({
   timelineTitle: {
     fontWeight: "700",
     marginBottom: spacing.sm,
-  },
-  timelineRow: {
-    alignItems: "stretch",
-    paddingHorizontal: spacing.xs,
-  },
-  rail: {
-    width: 24,
-    alignItems: "center",
-  },
-  railLine: {
-    width: 2,
-    flex: 1,
-  },
-  node: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginVertical: 2,
-  },
-  nodeCurrent: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-  },
-  rowContent: {
-    flex: 1,
-    justifyContent: "center",
-    paddingVertical: spacing.sm,
-  },
-  previewContent: {
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  previewYear: {
-    fontWeight: "600",
-    fontSize: 15,
-    minWidth: 52,
-  },
-  previewYearCurrent: {
-    fontWeight: "800",
-  },
-  previewAmount: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  amountRow: {
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  previewAmountText: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  cpiChip: {
-    alignItems: "center",
-    gap: 3,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  cpiChipText: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  nowChip: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  nowChipText: {
-    fontSize: 11,
-    fontWeight: "700",
   },
   endRow: {
     alignItems: "center",
