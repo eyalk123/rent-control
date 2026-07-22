@@ -12,7 +12,7 @@ Mobile-first property management app (iOS/Android/web). English + Hebrew (RTL).
 
 **Directories & Aliases:**
 
-- `app/`: Expo Router routes. `(tabs)/` is 4-tab shell; `(auth)/` is sign-in. Root layouts hold providers.
+- `app/`: Expo Router routes. `(tabs)/` is a 5-tab shell (Home, Properties, Renters, Transactions, Settings); `(auth)/` is sign-in. Root layouts hold providers.
 - `src/core/`: Axios, theme, i18n, core contexts.
 - `src/features/`: Feature slices (properties, renters, transactions, settings).
 - `@/*` resolves to repo root. All imports must use `@/src/...` (no relative `../`).

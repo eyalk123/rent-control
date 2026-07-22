@@ -1,58 +1,95 @@
-# Welcome to your Expo app 👋
+# Rent Control — Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+iOS and Android client for **Rent Control**, a property-management app for landlords
+(Hebrew/RTL + English). It talks to the [Rent Control backend](https://github.com/eyalk123/rent-control-backend),
+whose README is the **overview of the whole system** — read it first if you're new here.
 
-## Get started
+Sibling clients: [rent-control-web](https://github.com/eyalk123/rent-control-web) (web app).
 
-1. Install dependencies
+## Tech stack
 
-   ```bash
-   npm install
-   ```
+- **Expo 54** + **React Native 0.81** + **React 19** + **TypeScript 5.9**
+- **Expo Router 6** — file-based routing
+- **React Native Paper** (Material Design 3)
+- **React Hook Form** + **zod** for forms/validation
+- **Axios** for the API client; Context API for state
+- **Firebase** Auth (email/password + Google Sign-In)
+- **i18next** (en + he, with RTL layout)
+- **AsyncStorage** for local persistence
+- **Sentry** for crash reporting
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Backend API
-
-The app connects to a FastAPI backend. Configure the base URL via `EXPO_PUBLIC_API_URL` in `.env`:
-
-- **iOS Simulator / Web:** `http://localhost:8000`
-- **Android Emulator:** `http://10.0.2.2:8000`
-- **Physical device:** `http://YOUR_COMPUTER_IP:8000`
-
-## Get a fresh project
-
-When you're ready, run:
+## Getting started
 
 ```bash
-npm run reset-project
+npm install
+cp .env.example .env   # then fill in the values
+npm start              # interactive Expo dev server
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Start the backend before the app, or point `EXPO_PUBLIC_API_URL` at the deployed one.
 
-## Learn more
+### Environment variables
 
-To learn more about developing your project with Expo, look at the following resources:
+All client vars are prefixed `EXPO_PUBLIC_` and are **embedded in the build** — treat them as
+public.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Variable | Purpose |
+|---|---|
+| `EXPO_PUBLIC_API_URL` | Backend base URL — see the table below |
+| `EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID` | Firebase web client ID (Console → Project Settings → Your apps → Web app) |
+| `EXPO_PUBLIC_SENTRY_DSN` | Sentry DSN for crash reporting |
 
-## Join the community
+**`EXPO_PUBLIC_API_URL` depends on where the app runs** — an Android emulator cannot reach
+`localhost`, since that resolves to the emulator itself:
 
-Join our community of developers creating universal apps.
+| Target | Value |
+|---|---|
+| iOS simulator / web | `http://localhost:8000` |
+| Android emulator | `http://10.0.2.2:8000` |
+| Physical device | `http://YOUR_COMPUTER_IP:8000` |
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Mock API
+
+To work on UI with no backend running, toggle `USE_MOCK_API` in `src/core/api/mock.ts`.
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm start` | Expo dev server (interactive) |
+| `npm run android` | `expo run:android` — native build + run |
+| `npm run ios` | `expo run:ios` — native build + run |
+| `npm run web` | Expo on web |
+| `npm run lint` | `expo lint` |
+| `npm run pad-icon` | Regenerate padded app icon assets |
+
+> **There is currently no test suite in this repo** — no unit tests, no E2E. Verify changes by
+> running the app.
+
+> **Do not run `npm run reset-project`.** It is a leftover from the `create-expo-app` template
+> and it *moves the entire `app/` directory aside* to scaffold a blank one. It would gut this app.
+
+## Project layout
+
+- `app/` — Expo Router routes. `(tabs)/` is the 4-tab shell; `(auth)/` is sign-in. Root layouts
+  hold the providers.
+- `src/core/` — Axios client, theme, i18n, core contexts.
+- `src/features/` — feature slices (properties, renters, transactions, settings).
+
+`@/*` resolves to the repo root, and **all imports must use `@/src/...`** — no relative `../`
+paths. (Note this differs from the web app, where `@` maps to `src` itself.)
+
+## Builds and releases
+
+Built and shipped with **EAS** (`eas.json`), bundle id `com.eyalk123.rentcontrol`:
+
+| Profile | Purpose |
+|---|---|
+| `development` | Dev client build |
+| `preview` | Internal distribution |
+| `simulator` | iOS simulator build |
+| `production` | App Store release |
+
+All profiles point at the production backend
+(`https://rent-control-backend-production.up.railway.app`), so a build will not talk to your
+local API unless you change that. iOS submission credentials are configured in `eas.json`.
