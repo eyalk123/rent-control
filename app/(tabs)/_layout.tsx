@@ -142,11 +142,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="chat"
         options={{
-          title: t('tabs.settings'),
+          title: t('tabs.chat', { defaultValue: 'Chat' }),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="settings" color={color} focused={focused} />
+            <TabBarIcon name="message-square" color={color} focused={focused} />
           ),
         }}
       />

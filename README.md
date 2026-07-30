@@ -38,6 +38,7 @@ public.
 | `EXPO_PUBLIC_API_URL` | Backend base URL — see the table below |
 | `EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID` | Firebase web client ID (Console → Project Settings → Your apps → Web app) |
 | `EXPO_PUBLIC_SENTRY_DSN` | Sentry DSN for crash reporting |
+| `EXPO_PUBLIC_DEV_WEB_PREVIEW` | `1` enables the dev-only browser preview — see [Mock API](#mock-api) |
 
 **`EXPO_PUBLIC_API_URL` depends on where the app runs** — an Android emulator cannot reach
 `localhost`, since that resolves to the emulator itself:
@@ -50,7 +51,13 @@ public.
 
 ### Mock API
 
-To work on UI with no backend running, toggle `USE_MOCK_API` in `src/core/api/mock.ts`.
+To look at the UI in a browser with no backend running, set `EXPO_PUBLIC_DEV_WEB_PREVIEW=1` and run
+`npm run web`.
+
+`@react-native-firebase` is a native module, so `getAuth()` throws in a browser and the app can
+never get past the auth guard. That flag skips Firebase, pretends you are signed in, and turns
+`USE_MOCK_API` on (`src/core/api/mock.ts`) — there is no real token to call the backend with. It is
+guarded by `__DEV__` **and** `Platform.OS === 'web'`, so it cannot reach a build or a device.
 
 ## Scripts
 
@@ -71,10 +78,13 @@ To work on UI with no backend running, toggle `USE_MOCK_API` in `src/core/api/mo
 
 ## Project layout
 
-- `app/` — Expo Router routes. `(tabs)/` is the 4-tab shell; `(auth)/` is sign-in. Root layouts
-  hold the providers.
+- `app/` — Expo Router routes. `(tabs)/` is the 5-tab shell (Home, Properties, Renters,
+  Transactions, Chat); `(auth)/` is sign-in. **Settings is deliberately not a tab** — it lives at
+  `app/settings/` outside the tab navigator, opened from the gear button in each tab header, and
+  guards auth itself because signing out happens there. Root layouts hold the providers.
 - `src/core/` — Axios client, theme, i18n, core contexts.
-- `src/features/` — feature slices (properties, renters, transactions, settings).
+- `src/features/` — feature slices (home, properties, renters, transactions, suppliers, reports,
+  notifications, settings, document-scan, agent).
 
 `@/*` resolves to the repo root, and **all imports must use `@/src/...`** — no relative `../`
 paths. (Note this differs from the web app, where `@` maps to `src` itself.)

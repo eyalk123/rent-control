@@ -1,6 +1,6 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
-import { List, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { IconButton, List, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
@@ -16,7 +16,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { themeMode, setThemeMode } = useThemeContext();
-  const { language, setLanguage } = useLanguageContext();
+  const { language, setLanguage, isRtl } = useLanguageContext();
   const { signOut } = useAppAuth();
   const { unregisterDevice } = useNotifications();
   const rtlLabelStyle = useRtlLabelStyle();
@@ -31,9 +31,16 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   return (
     <ScreenContainer>
       <ScrollView style={styles.container}>
-        <Text variant="headlineLarge" style={[styles.pageTitle, rtlLabelStyle]}>
-          {t('tabs.settings')}
-        </Text>
+        <View style={styles.titleRow}>
+          <IconButton
+            icon={isRtl ? 'chevron-right' : 'chevron-left'}
+            accessibilityLabel={t('common.back', { defaultValue: 'Back' })}
+            onPress={() => router.back()}
+          />
+          <Text variant="headlineLarge" style={[styles.pageTitle, rtlLabelStyle]}>
+            {t('tabs.settings')}
+          </Text>
+        </View>
         <DevProfiler id="AccountPreviewCard">
           <AccountPreviewCard />
         </DevProfiler>
@@ -119,11 +126,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   pageTitle: {
     fontWeight: '700',
     fontSize: 28,
     marginBottom: spacing.sm,
-    paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
   themeTitle: {

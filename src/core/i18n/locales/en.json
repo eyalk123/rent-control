@@ -4,7 +4,46 @@
     "properties": "Properties",
     "renters": "Renters",
     "settings": "Settings",
-    "transactions": "Transactions"
+    "transactions": "Transactions",
+    "chat": "Chat"
+  },
+  "agent": {
+    "title": "Assistant",
+    "assistantName": "Rent Control",
+    "placeholder": "Ask about your properties, renters, or transactions…",
+    "send": "Send",
+    "stop": "Stop",
+    "newChat": "New chat",
+    "history": "Conversations",
+    "historyEmpty": "No conversations yet.",
+    "delete": "Delete conversation",
+    "deleteConfirm": "Delete this conversation?",
+    "sources": "Sources",
+    "emptyTitle": "Ask about your portfolio",
+    "emptyHint": "Ask in Hebrew or English. I only use your own data, and I show my sources.",
+    "startersLabel": "Try asking",
+    "working": "Working…",
+    "disabled": "The assistant isn't available right now.",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "errorLimit": "You've reached today's message limit for the assistant. Try again tomorrow.",
+    "starters": [
+      "Who hasn't paid this month?",
+      "How much did I earn this year?",
+      "When does each lease end?"
+    ],
+    "tool": {
+      "get_overdue": "Checking who hasn't paid…",
+      "query_transactions": "Checking transactions…",
+      "explain_cpi": "Working out the CPI…",
+      "get_report_summary": "Adding up the reports…",
+      "get_lease_schedule": "Reading the lease…",
+      "list_properties": "Looking at your properties…",
+      "list_renters": "Looking at your renters…",
+      "get_property": "Opening the property…",
+      "list_suppliers": "Checking suppliers…",
+      "aggregate": "Crunching the numbers…",
+      "default": "Checking your data…"
+    }
   },
   "home": {
     "greetingMorning": "Good Morning",

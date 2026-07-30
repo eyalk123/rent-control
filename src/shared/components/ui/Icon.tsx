@@ -67,6 +67,7 @@ import Search from "lucide-react-native/icons/search";
 import Settings from "lucide-react-native/icons/settings";
 import Shield from "lucide-react-native/icons/shield";
 import ShieldCheck from "lucide-react-native/icons/shield-check";
+import Sparkles from "lucide-react-native/icons/sparkles";
 import Square from "lucide-react-native/icons/square";
 import Store from "lucide-react-native/icons/store";
 import Sun from "lucide-react-native/icons/sun";
@@ -140,6 +141,7 @@ const REGISTRY = {
   settings: Settings,
   shield: Shield,
   "shield-check": ShieldCheck,
+  sparkles: Sparkles,
   store: Store,
   sun: Sun,
   trash: Trash2,

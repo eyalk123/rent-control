@@ -25,6 +25,7 @@ import {
   ActiveFilterPills,
 } from '@/src/shared/components/ui';
 import { PropertyCard } from '@/src/features/properties/components/PropertyCard';
+import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { deleteProperty } from '@/src/features/properties/api/properties';
 import { spacing } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
@@ -267,9 +268,12 @@ export function PropertiesListScreen() {
             <IconButton icon="close" onPress={handleCancelSelect} />
           </View>
         ) : (
-          <Text variant="headlineLarge" style={[styles.screenTitle, rtlLabelStyle]}>
-            {t('screens.properties')}
-          </Text>
+          <View style={styles.titleRow}>
+            <Text variant="headlineLarge" style={[styles.screenTitle, rtlLabelStyle]}>
+              {t('screens.properties')}
+            </Text>
+            <SettingsGearButton />
+          </View>
         )}
         <FilterChipsBar chips={filterChips} stretch />
         <ActiveFilterPills chips={filterChips} />
@@ -358,6 +362,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   selectionHeader: {
     flexDirection: 'row',
