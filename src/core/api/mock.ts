@@ -16,8 +16,10 @@ import type {
 } from '@/src/shared/types';
 import { getLeaseEndDate } from '@/src/shared/types';
 
-// Set to true to use in-memory mock data when no backend is available
-export const USE_MOCK_API = false;
+// Set to true to use in-memory mock data when no backend is available.
+// The dev web preview (EXPO_PUBLIC_DEV_WEB_PREVIEW=1, see src/core/auth/AuthContext.tsx)
+// forces it on — that mode has no auth token, so real API calls would all 401.
+export const USE_MOCK_API = process.env.EXPO_PUBLIC_DEV_WEB_PREVIEW === '1';
 
 function toPropertyBrief(p: Property): PropertyBrief {
   return { id: p.id, address: p.address, city: p.city, type: p.type, image_url: p.image_url };
