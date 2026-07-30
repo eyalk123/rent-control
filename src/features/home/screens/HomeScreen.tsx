@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
+import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { PortfolioSection } from '@/src/features/home/components/PortfolioSection';
 import { QuickActionsSection } from '@/src/features/home/components/QuickActionsSection';
@@ -40,19 +41,28 @@ function GreetingHeader() {
   const locale = i18n.language === 'he' ? 'he-IL' : 'en-US';
 
   return (
-    <View style={greetingStyles.container}>
-      <Text style={[greetingStyles.greeting, { color: colors.textSecondary }]}>
-        {`${t(getGreetingKey())}${firstName ? `, ${firstName}` : ''}`}
-      </Text>
-      <Text style={[greetingStyles.date, { color: colors.textPrimary }]}>
-        {formatHeaderDate(locale)}
-      </Text>
+    <View style={greetingStyles.row}>
+      <View style={greetingStyles.container}>
+        <Text style={[greetingStyles.greeting, { color: colors.textSecondary }]}>
+          {`${t(getGreetingKey())}${firstName ? `, ${firstName}` : ''}`}
+        </Text>
+        <Text style={[greetingStyles.date, { color: colors.textPrimary }]}>
+          {formatHeaderDate(locale)}
+        </Text>
+      </View>
+      <SettingsGearButton />
     </View>
   );
 }
 
 const greetingStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
   container: {
+    flex: 1,
     gap: 4,
   },
   greeting: {

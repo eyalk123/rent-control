@@ -11,6 +11,7 @@ import { MonthsBarChart } from './MonthsBarChart';
 import { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
 import { TypeFilterChips, type TransactionTypeFilter } from './TypeFilterChips';
 import { ActiveFilterPills } from '@/src/shared/components/ui/ActiveFilterPills';
+import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 
 interface TransactionsListHeaderProps {
   filterChipsRef: RefObject<FilterChipsBarHandle | null>;
@@ -41,9 +42,12 @@ export function TransactionsListHeader({
 
   return (
     <View>
-      <Text variant="headlineLarge" style={[styles.screenTitle, rtlLabelStyle]}>
-        {t('screens.transactions')}
-      </Text>
+      <View style={styles.titleRow}>
+        <Text variant="headlineLarge" style={[styles.screenTitle, rtlLabelStyle]}>
+          {t('screens.transactions')}
+        </Text>
+        <SettingsGearButton />
+      </View>
       <DevProfiler id="TransactionsHero">
         <TransactionsHero bucket={heroBucket} loading={summaryLoading} />
       </DevProfiler>
@@ -64,6 +68,11 @@ export function TransactionsListHeader({
 }
 
 const styles = StyleSheet.create({
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   screenTitle: {
     fontWeight: '700',
     fontSize: 28,

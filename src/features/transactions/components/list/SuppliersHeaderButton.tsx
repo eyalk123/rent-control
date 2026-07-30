@@ -46,7 +46,9 @@ export function SuppliersHeaderButton({ colors, onPress, label }: SuppliersHeade
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    top: spacing.xxl + 16,
+    // Sits below the title row (~52pt: the settings gear's IconButton drives its height),
+    // over the empty side of the hero — otherwise it covers the gear.
+    top: spacing.xxl + spacing.xl + spacing.lg,
     right: spacing.lg,
   },
   btn: {
