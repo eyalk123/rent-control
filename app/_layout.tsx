@@ -10,6 +10,7 @@ import {
 } from "@/src/context";
 import { AlertProvider } from "@/src/core/context";
 import { AuthProvider } from "@/src/core/auth/AuthContext";
+import { AgentChatProvider } from "@/src/features/agent/context/AgentChatContext";
 import { NotificationProvider } from "@/src/features/notifications/context/NotificationContext";
 import "@/src/core/i18n";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -85,7 +86,9 @@ function AppContent() {
             <PaginatedTransactionProvider>
             <TransactionSummaryProvider>
               <LanguageProvider>
-                <DirectionalContent />
+                <AgentChatProvider>
+                  <DirectionalContent />
+                </AgentChatProvider>
               </LanguageProvider>
             </TransactionSummaryProvider>
             </PaginatedTransactionProvider>
