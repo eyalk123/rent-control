@@ -1,4 +1,5 @@
 import * as FileSystem from 'expo-file-system/legacy';
+import i18n from 'i18next';
 
 import apiClient from '@/src/core/api/client';
 
@@ -21,6 +22,11 @@ export async function deleteReportExport(id: number): Promise<void> {
 
 type ReportFormat = 'pdf' | 'csv';
 
+/** The report is rendered in the language the app is currently in, right-to-left included. */
+function reportLang(): 'en' | 'he' {
+  return i18n.language?.startsWith('he') ? 'he' : 'en';
+}
+
 async function downloadAndShare(
   endpoint: string,
   year: number,
@@ -30,7 +36,7 @@ async function downloadAndShare(
   const mimeType = format === 'pdf' ? 'application/pdf' : 'text/csv';
 
   const response = await apiClient.get<ArrayBuffer>(endpoint, {
-    params: { year, format },
+    params: { year, format, lang: reportLang() },
     responseType: 'arraybuffer',
     timeout: 30000,
   });

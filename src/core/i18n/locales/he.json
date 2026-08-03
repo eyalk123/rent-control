@@ -1,4 +1,11 @@
 {
+  "legal": {
+    "sectionTitle": "משפטי ופרטיות",
+    "privacyPolicy": "מדיניות פרטיות",
+    "termsOfService": "תנאי שימוש",
+    "accessibility": "הצהרת נגישות",
+    "lastUpdated": "עודכן לאחרונה"
+  },
   "tabs": {
     "home": "בית",
     "properties": "נכסים",
@@ -69,11 +76,6 @@
     "addRenter": "דייר",
     "addProperty": "נכס",
     "suppliers": "ספקים",
-    "annualSummary": "סיכום שנתי",
-    "expenseReport": "דוח הוצאות",
-    "tenantReport": "דוח דיירים",
-    "taxReport": "דוח מס",
-    "comingSoon": "בקרוב",
     "allCaughtUp": "אין משימות פתוחות",
     "nextDueMeta": "מועד הבא {{date}} · {{days}} ימים",
     "nextDueMetaShort": "מועד הבא {{date}}",
@@ -128,13 +130,24 @@
     "masterHint": "מתג ראשי לכל ההתראות (פוש ובאפליקציה).",
     "event": {
       "overdue": "שכר דירה לתשלום",
-      "lease_expiring": "חוזה שמסתיים"
+      "lease_expiring": "חוזה שמסתיים",
+      "cpi_rent_change": "עדכון שכר דירה לפי המדד"
     },
     "usingDefault": "שימוש בתזכורות ברירת מחדל",
     "default": {
       "overdue": "ביום התשלום, ושלושה ימים אחריו אם לא שולם · כל הנכסים",
-      "lease_expiring": "90 ו-30 ימים לפני סיום החוזה · כל הנכסים"
+      "lease_expiring": "90 ו-30 ימים לפני סיום החוזה · כל הנכסים",
+      "cpi_rent_change": "30 יום לפני מועד השנה בחוזה, ושוב כשהסכום נקבע"
     },
+    "cpiThresholdTitle": "להודיע לי רק על שינוי מעל",
+    "cpiThresholdHint": "השינוי צריך לעבור את הגבוה מבין השניים.",
+    "cpiMinAmount": "שינוי מזערי",
+    "cpiMinPercent": "שינוי מזערי",
+    "cpiChangesOn": "משתנה ב-{{date}}",
+    "cpiEffective": "החל מ-{{date}}",
+    "cpiBadgeUpcoming": "הערכה",
+    "cpiBadgeChanged": "נקבע",
+    "cpiViewRenter": "מעבר לשוכר",
     "customize": "התאמה אישית",
     "addRule": "הוספת כלל",
     "newRule": "כלל חדש",

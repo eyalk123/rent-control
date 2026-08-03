@@ -14,7 +14,7 @@ Mobile-first property management app (iOS/Android/web). English + Hebrew (RTL).
 
 - `app/`: Expo Router routes. `(tabs)/` is a 5-tab shell (Home, Properties, Renters, Transactions, Chat); `(auth)/` is sign-in. **Settings is not a tab** — it lives at `app/settings/`, outside the tab navigator, reached from the `SettingsGearButton` in each tab header, and carries its own auth guard. Root layouts hold providers.
 - `src/core/`: Axios, theme, i18n, core contexts.
-- `src/features/`: Feature slices (home, properties, renters, transactions, suppliers, reports, notifications, settings, document-scan, agent). `agent/` is the "Ask Rent Control" assistant — SSE streaming against `POST /agent/chat`, read-only.
+- `src/features/`: Feature slices (home, properties, renters, transactions, suppliers, reports, notifications, settings, legal, document-scan, agent). `legal/` holds the Privacy Policy, Terms and Accessibility Statement, reached from Settings; its `legalContent.ts` is a **duplicate** of the web app's copy and must be edited in both repos together. `agent/` is the "Ask Rent Control" assistant — SSE streaming against `POST /agent/chat`, read-only.
 - `@/*` resolves to repo root. All imports must use `@/src/...` (no relative `../`).
 
 **ROUTING INSTRUCTIONS:**

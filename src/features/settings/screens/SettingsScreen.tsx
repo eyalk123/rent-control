@@ -102,6 +102,33 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
           />
         </List.Section>
 
+        <Text
+          variant="titleMedium"
+          style={[styles.sectionTitle, rtlLabelStyle]}
+        >
+          {t('legal.sectionTitle')}
+        </Text>
+        <List.Section>
+          <List.Item
+            title={t('legal.privacyPolicy')}
+            left={(props) => <Icon name="shield" size={20} color={props.color} />}
+            onPress={() => router.push('/settings/legal/privacy' as any)}
+            style={styles.listItem}
+          />
+          <List.Item
+            title={t('legal.termsOfService')}
+            left={(props) => <Icon name="file-text" size={20} color={props.color} />}
+            onPress={() => router.push('/settings/legal/terms' as any)}
+            style={styles.listItem}
+          />
+          <List.Item
+            title={t('legal.accessibility')}
+            left={(props) => <Icon name="eye" size={20} color={props.color} />}
+            onPress={() => router.push('/settings/legal/accessibility' as any)}
+            style={styles.listItem}
+          />
+        </List.Section>
+
         <List.Section>
           <List.Item
             title={t('settings.signOut')}

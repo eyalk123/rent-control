@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Switch, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -9,7 +9,69 @@ import { useAlert } from '@/src/core/context';
 import { useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { deleteRule, getPreferences, updateRule, updateSettings } from '../api/preferences';
-import { NOTIFICATION_EVENTS, type NotificationEvent, type NotificationPreferences, type NotificationRule } from '../types';
+import {
+  NOTIFICATION_EVENTS,
+  isRuleEvent,
+  type NotificationEvent,
+  type NotificationPreferences,
+  type NotificationRule,
+} from '../types';
+
+/**
+ * The CPI event's stand-in for a rule editor. Offsets and scope make no sense for it —
+ * it fires when the index moves — so the only dial is how big a change has to be before
+ * it's worth an alert. Committed on blur so every keystroke isn't a PUT.
+ */
+function ThresholdField({
+  label,
+  suffix,
+  value,
+  onCommit,
+  colors,
+  surface,
+  rtlLabelStyle,
+}: {
+  label: string;
+  suffix: string;
+  value: number;
+  onCommit: (v: number) => void;
+  colors: typeof lightColors | typeof darkColors;
+  surface: string;
+  rtlLabelStyle: object;
+}) {
+  const [text, setText] = React.useState(String(value));
+
+  // Re-sync when a failed save rolls the stored value back under us.
+  React.useEffect(() => setText(String(value)), [value]);
+
+  const commit = () => {
+    const parsed = Number(text);
+    if (text.trim() === '' || Number.isNaN(parsed) || parsed < 0) {
+      setText(String(value)); // reject nonsense by snapping back to what is stored
+      return;
+    }
+    if (parsed !== value) onCommit(parsed);
+  };
+
+  return (
+    <View style={styles.thresholdField}>
+      <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>{label}</Text>
+      <View style={styles.thresholdInputRow}>
+        <TextInput
+          value={text}
+          onChangeText={setText}
+          onBlur={commit}
+          keyboardType="decimal-pad"
+          style={[
+            styles.thresholdInput,
+            { borderColor: colors.outline, color: colors.textPrimary, backgroundColor: surface },
+          ]}
+        />
+        <Text style={{ color: colors.textSecondary }}>{suffix}</Text>
+      </View>
+    </View>
+  );
+}
 
 export function NotificationsSettingsScreen() {
   const { t } = useTranslation();
@@ -157,7 +219,38 @@ export function NotificationsSettingsScreen() {
               </View>
 
               <View pointerEvents={dimmed ? 'none' : 'auto'} style={{ opacity: dimmed ? 0.5 : 1 }}>
-                {rules.length === 0 ? (
+                {!isRuleEvent(event) ? (
+                  <View style={cardStyle}>
+                    <View style={styles.thresholdBlock}>
+                      <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>
+                        {t('notifications.cpiThresholdTitle')}
+                      </Text>
+                      <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>
+                        {t('notifications.cpiThresholdHint')}
+                      </Text>
+                      <View style={styles.thresholdFields}>
+                        <ThresholdField
+                          label={t('notifications.cpiMinAmount')}
+                          suffix="₪"
+                          value={settings.cpi_min_change_amount}
+                          onCommit={(v) => patchSettings({ cpi_min_change_amount: v })}
+                          colors={colors}
+                          surface={theme.colors.surface}
+                          rtlLabelStyle={rtlLabelStyle}
+                        />
+                        <ThresholdField
+                          label={t('notifications.cpiMinPercent')}
+                          suffix="%"
+                          value={settings.cpi_min_change_percent}
+                          onCommit={(v) => patchSettings({ cpi_min_change_percent: v })}
+                          colors={colors}
+                          surface={theme.colors.surface}
+                          rtlLabelStyle={rtlLabelStyle}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                ) : rules.length === 0 ? (
                   <View style={cardStyle}>
                     <View style={styles.row}>
                       <View style={styles.rowText}>
@@ -265,6 +358,30 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   ruleInfo: { flex: 1, gap: 2 },
+  thresholdBlock: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    gap: 4,
+  },
+  thresholdFields: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  thresholdField: { flex: 1, gap: 4 },
+  thresholdInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  thresholdInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 9,
+    paddingHorizontal: 10,
+    fontSize: 14,
+  },
   iconBtn: { padding: 4 },
   addRow: {
     flexDirection: 'row',

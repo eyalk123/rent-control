@@ -9,7 +9,13 @@ import type {
 } from '../types';
 
 const EMPTY_PREFS: NotificationPreferences = {
-  settings: { master_enabled: true, muted_events: [] },
+  // Mirrors the backend's column defaults, so mock mode shows the same starting state.
+  settings: {
+    master_enabled: true,
+    muted_events: [],
+    cpi_min_change_amount: 10,
+    cpi_min_change_percent: 0.5,
+  },
   rules: [],
 };
 

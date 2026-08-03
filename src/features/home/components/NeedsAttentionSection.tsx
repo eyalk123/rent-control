@@ -11,7 +11,7 @@ import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { formatMoney } from '@/src/shared/utils/money';
 import { formatDateShort } from '@/src/shared/utils/dates';
 import { getNotifications, dismissNotification } from '@/src/features/notifications/api/feed';
-import type { NotificationItem } from '@/src/features/notifications/types';
+import type { CpiChangeStage, NotificationItem } from '@/src/features/notifications/types';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
 import { useTransactionSummaryContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
@@ -46,6 +46,13 @@ type AttentionItem = {
 } & (
   | { _type: 'expiring'; days_until_expiry: number; lease_end_date: string }
   | { _type: 'overdue'; days_overdue: number; monthly_amount: number }
+  | {
+      _type: 'cpi';
+      stage: CpiChangeStage;
+      old_amount: number;
+      new_amount: number;
+      effective_date: string;
+    }
 );
 
 function toAttentionItem(n: NotificationItem): AttentionItem {
@@ -61,6 +68,16 @@ function toAttentionItem(n: NotificationItem): AttentionItem {
   if (n.type === 'lease_expiring') {
     const days = n.data.days_until_expiry ?? 0;
     return { ...base, _type: 'expiring', days_until_expiry: days, lease_end_date: isoFromDaysOut(days) };
+  }
+  if (n.type === 'cpi_rent_change') {
+    return {
+      ...base,
+      _type: 'cpi',
+      stage: n.data.stage ?? 'changed',
+      old_amount: n.data.old_amount ?? 0,
+      new_amount: n.data.new_amount ?? 0,
+      effective_date: n.data.effective_date ?? '',
+    };
   }
   return { ...base, _type: 'overdue', days_overdue: n.data.days_overdue ?? 0, monthly_amount: n.data.amount ?? 0 };
 }
@@ -153,6 +170,65 @@ function AttentionItemRow({
                 bg={primaryBg}
                 textColor={colors.primary}
                 onPress={() => onNavigate(`/renters/extend/${item.renter_id}`)}
+              />
+            </View>
+          </View>
+        </View>
+        {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
+      </View>
+    );
+  }
+
+  if (item._type === 'cpi') {
+    const upcoming = item.stage === 'upcoming';
+    return (
+      <View>
+        <View style={styles.itemRow}>
+          <View style={[styles.iconBadge, { backgroundColor: primaryBg }]}>
+            <Icon name="trending-up" size={ICON_MD} color={colors.primary} />
+          </View>
+          <View style={styles.centerContent}>
+            <View style={styles.topLine}>
+              <TouchableOpacity
+                style={styles.nameTouchable}
+                onPress={() => onNavigate(`/renters/${item.renter_id}`)}
+                activeOpacity={0.6}
+                accessibilityRole="button"
+                hitSlop={{ top: 6, bottom: 6 }}
+              >
+                <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+                  {name}
+                </Text>
+              </TouchableOpacity>
+              <View style={[styles.infoBadge, { backgroundColor: primaryBg }]}>
+                <Text style={[styles.infoBadgeText, { color: colors.primary }]}>
+                  {t(upcoming ? 'notifications.cpiBadgeUpcoming' : 'notifications.cpiBadgeChanged')}
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
+              {address}
+            </Text>
+            <Text style={[styles.subInfo, { color: colors.textPrimary }]}>
+              {formatMoney(item.old_amount)} → {formatMoney(item.new_amount)}
+            </Text>
+            <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
+              {t(upcoming ? 'notifications.cpiChangesOn' : 'notifications.cpiEffective', {
+                date: item.effective_date ? formatLeaseDate(item.effective_date, i18n.language) : '',
+              })}
+            </Text>
+            <View style={styles.actionsRow}>
+              <ActionPill
+                label={t('home.actionIgnore')}
+                bg={neutralBg}
+                textColor={colors.textSecondary}
+                onPress={() => onDismiss(item.notifId)}
+              />
+              <ActionPill
+                label={t('notifications.cpiViewRenter')}
+                bg={primaryBg}
+                textColor={colors.primary}
+                onPress={() => onNavigate(`/renters/${item.renter_id}`)}
               />
             </View>
           </View>
@@ -292,8 +368,13 @@ export function NeedsAttentionSection() {
   }, [refreshSummary, refreshTransactions, appAlert]);
 
   const expiring = items.filter((i): i is Extract<AttentionItem, { _type: 'expiring' }> => i._type === 'expiring');
-  // Lease-expiring first, then overdue (preserves the prior ordering).
-  const allItems: AttentionItem[] = [...expiring, ...items.filter((i) => i._type === 'overdue')];
+  // Lease-expiring first, then CPI changes, then overdue (preserves the prior ordering
+  // of the two originals and slots the new type between them).
+  const allItems: AttentionItem[] = [
+    ...expiring,
+    ...items.filter((i) => i._type === 'cpi'),
+    ...items.filter((i) => i._type === 'overdue'),
+  ];
 
   const previewItems = allItems.slice(0, PREVIEW_LIMIT);
   const hasMore = allItems.length > PREVIEW_LIMIT;

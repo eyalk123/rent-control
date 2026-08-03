@@ -30,6 +30,18 @@ export default function SettingsLayout() {
         name="delete-account"
         options={{ headerTitle: t('settings.deleteAccountTitle') }}
       />
+      <Stack.Screen
+        name="legal/privacy"
+        options={{ headerTitle: t('legal.privacyPolicy') }}
+      />
+      <Stack.Screen
+        name="legal/terms"
+        options={{ headerTitle: t('legal.termsOfService') }}
+      />
+      <Stack.Screen
+        name="legal/accessibility"
+        options={{ headerTitle: t('legal.accessibility') }}
+      />
     </Stack>
   );
 }
