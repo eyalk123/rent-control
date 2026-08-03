@@ -88,6 +88,7 @@
     "actionUpdateLease": "Update Lease",
     "actionMarkPaid": "Mark Paid",
     "actionSaving": "Saving…",
+    "actionMessage": "Message",
     "needsAttention": "Needs Attention",
     "seeAllCount": "See All ({{count}})"
   },
@@ -120,7 +121,7 @@
   },
   "contact": {
     "call": "Call",
-    "sms": "SMS",
+    "whatsapp": "WhatsApp",
     "email": "Email"
   },
   "notifications": {
@@ -182,7 +183,44 @@
     "ruleEnabled": "Rule enabled",
     "deleteRuleTitle": "Delete rule?",
     "deleteRuleMessage": "This notification rule will be permanently removed.",
-    "saveError": "Could not save. Please try again."
+    "saveError": "Could not save. Please try again.",
+    "messagesRow": "WhatsApp messages",
+    "messagesRowHint": "Edit the message that opens when you tap Message on an alert."
+  },
+  "whatsappTemplates": {
+    "title": "WhatsApp messages",
+    "subtitle": "Tapping Message on an alert opens WhatsApp with the text already typed. Nothing is sent until you press send, so you can always edit it first.",
+    "insertLabel": "Tap to insert",
+    "previewLabel": "Preview",
+    "reset": "Reset",
+    "edited": "Edited",
+    "resetTitle": "Restore the default message?",
+    "resetMessage": "Your edited version for this language will be replaced with the original.",
+    "emptyHint": "Empty — the default message will be used.",
+    "saveError": "Could not save your message. Please try again.",
+    "key": {
+      "overdue": "Rent due",
+      "lease_expiring": "Lease expiring",
+      "cpi_upcoming": "CPI rent change — estimate",
+      "cpi_changed": "CPI rent change — confirmed"
+    },
+    "token": {
+      "name": "First name",
+      "full_name": "Full name",
+      "address": "Property",
+      "amount": "Amount",
+      "days": "Days",
+      "date": "Date",
+      "old_amount": "Old rent",
+      "new_amount": "New rent",
+      "change": "Change"
+    },
+    "defaults": {
+      "overdue": "Hi {name}, just a reminder that the rent for {address} — {amount} — is due. Could you let me know once it's on its way? Thanks!",
+      "lease_expiring": "Hi {name}, a heads-up that the lease for {address} ends on {date}. Let me know if you'd like to renew and we can sort out the details.",
+      "cpi_upcoming": "Hi {name}, a heads-up: the rent for {address} is index-linked and updates on {date}. Based on the latest published index it should come to about {new_amount} (currently {old_amount}). I'll confirm the exact figure once the index for that month is published.",
+      "cpi_changed": "Hi {name}, the index-linked rent for {address} has been updated from {old_amount} to {new_amount} ({change}), effective {date}. Happy to go through the calculation if you'd like."
+    }
   },
   "screens": {
     "properties": "Properties",

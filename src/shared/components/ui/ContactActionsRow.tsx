@@ -10,6 +10,7 @@ import {
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { openWhatsApp } from '@/src/shared/utils/whatsapp';
 import { Icon, type IconName } from './Icon';
 
 export type ContactActionsRowProps = {
@@ -110,11 +111,14 @@ export function ContactActionsRow({
       ) : null}
       {hasPhone ? (
         <ContactActionCircle
-          icon="message-square"
-          label={t('contact.sms')}
-          backgroundColor="rgba(30,58,95,0.12)"
-          iconColor={colors.primary}
-          onPress={() => Linking.openURL(`sms:${phoneTrim}`)}
+          icon="message-circle"
+          label={t('contact.whatsapp')}
+          backgroundColor="rgba(37,211,102,0.16)"
+          iconColor="#128C7E"
+          // No prefilled text here: this is "open the chat", the counterpart of the call
+          // button. The templated messages belong to the alert rows, which have something
+          // specific to say.
+          onPress={() => openWhatsApp(phoneTrim)}
           variant={variant}
         />
       ) : null}

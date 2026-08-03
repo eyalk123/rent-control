@@ -295,6 +295,25 @@ export function NotificationsSettingsScreen() {
             </View>
           );
         })}
+
+        {/* The WhatsApp copy behind each alert's Message button. Not gated on the
+            master switch: these messages are sent by hand from a feed row, so they
+            still work for someone who has turned push off entirely. */}
+        <TouchableOpacity
+          style={[...cardStyle, styles.row]}
+          onPress={() => router.push('/notifications/templates' as never)}
+          accessibilityRole="button"
+        >
+          <View style={styles.rowText}>
+            <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>
+              {t('notifications.messagesRow')}
+            </Text>
+            <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>
+              {t('notifications.messagesRowHint')}
+            </Text>
+          </View>
+          <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={ICON_SM} color={colors.textSecondary} />
+        </TouchableOpacity>
       </ScrollView>
     </ScreenContainer>
   );

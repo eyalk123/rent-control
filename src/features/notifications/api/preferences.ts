@@ -15,6 +15,7 @@ const EMPTY_PREFS: NotificationPreferences = {
     muted_events: [],
     cpi_min_change_amount: 10,
     cpi_min_change_percent: 0.5,
+    whatsapp_templates: {},
   },
   rules: [],
 };

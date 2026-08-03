@@ -1,6 +1,8 @@
 // Shared types for the notifications feed and the preferences/rules engine.
 // Mirrors the backend schemas in app/schemas/notification.py (and the web app).
 
+import type { WhatsAppTemplates } from './templates';
+
 export type NotificationEvent = 'overdue' | 'lease_expiring' | 'cpi_rent_change';
 
 export const NOTIFICATION_EVENTS: NotificationEvent[] = [
@@ -45,6 +47,8 @@ export interface NotificationItem {
   renter_id: number;
   first_name: string | null;
   last_name: string | null;
+  /** Carried so a row can offer "message this renter" without a second request. */
+  phone: string | null;
   property_id: number | null;
   property_address: string | null;
   payment_type: string | null;
@@ -61,6 +65,9 @@ export interface NotificationSettings {
   // Materiality floor for cpi_rent_change: a change must clear the larger of the two.
   cpi_min_change_amount: number;
   cpi_min_change_percent: number;
+  // The owner's edited WhatsApp copy, keyed by template then locale. Overrides only —
+  // a missing entry means the shipped default is used. See ./templates.ts.
+  whatsapp_templates: WhatsAppTemplates;
 }
 
 export interface NotificationRule {

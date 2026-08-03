@@ -88,6 +88,7 @@
     "actionUpdateLease": "עדכן חוזה",
     "actionMarkPaid": "סמן כשולם",
     "actionSaving": "שומר…",
+    "actionMessage": "שליחת הודעה",
     "needsAttention": "דורש טיפול",
     "seeAllCount": "הצג הכל ({{count}})"
   },
@@ -120,7 +121,7 @@
   },
   "contact": {
     "call": "התקשרות",
-    "sms": "הודעה",
+    "whatsapp": "וואטסאפ",
     "email": "אימייל"
   },
   "notifications": {
@@ -182,7 +183,44 @@
     "ruleEnabled": "כלל פעיל",
     "deleteRuleTitle": "למחוק את הכלל?",
     "deleteRuleMessage": "כלל ההתראה יימחק לצמיתות.",
-    "saveError": "השמירה נכשלה. נסו שוב."
+    "saveError": "השמירה נכשלה. נסו שוב.",
+    "messagesRow": "הודעות וואטסאפ",
+    "messagesRowHint": "עריכת ההודעה שנפתחת בלחיצה על ״שליחת הודעה״ בהתראה."
+  },
+  "whatsappTemplates": {
+    "title": "הודעות וואטסאפ",
+    "subtitle": "לחיצה על ״שליחת הודעה״ בהתראה פותחת את וואטסאפ כשההודעה כבר מוקלדת. שום דבר לא נשלח עד שתלחצו שליחה, כך שתמיד אפשר לערוך קודם.",
+    "insertLabel": "לחצו כדי להוסיף",
+    "previewLabel": "תצוגה מקדימה",
+    "reset": "איפוס",
+    "edited": "נערך",
+    "resetTitle": "לשחזר את הנוסח המקורי?",
+    "resetMessage": "הנוסח שערכתם בשפה הזו יוחלף בנוסח המקורי.",
+    "emptyHint": "ריק — תישלח ההודעה המקורית.",
+    "saveError": "שמירת ההודעה נכשלה. נסו שוב.",
+    "key": {
+      "overdue": "תשלום שכר דירה",
+      "lease_expiring": "חוזה מסתיים",
+      "cpi_upcoming": "עדכון מדד — הערכה",
+      "cpi_changed": "עדכון מדד — מאושר"
+    },
+    "token": {
+      "name": "שם פרטי",
+      "full_name": "שם מלא",
+      "address": "נכס",
+      "amount": "סכום",
+      "days": "ימים",
+      "date": "תאריך",
+      "old_amount": "שכר קודם",
+      "new_amount": "שכר חדש",
+      "change": "שינוי"
+    },
+    "defaults": {
+      "overdue": "היי {name}, תזכורת קטנה ששכר הדירה עבור {address} — {amount} — ממתין לתשלום. אשמח לעדכון כשההעברה יוצאת. תודה!",
+      "lease_expiring": "היי {name}, רק להזכיר שחוזה השכירות עבור {address} מסתיים בתאריך {date}. אשמח לדעת אם תרצו להאריך ונסגור את הפרטים.",
+      "cpi_upcoming": "היי {name}, עדכון: שכר הדירה עבור {address} צמוד למדד ומתעדכן בתאריך {date}. לפי המדד האחרון שפורסם הוא צפוי לעמוד על {new_amount} בערך (כיום {old_amount}). אעדכן בסכום המדויק עם פרסום המדד לאותו חודש.",
+      "cpi_changed": "היי {name}, שכר הדירה עבור {address} עודכן לפי המדד מ-{old_amount} ל-{new_amount} ({change}), החל מתאריך {date}. אשמח לעבור על החישוב יחד אם תרצו."
+    }
   },
   "screens": {
     "properties": "נכסים",

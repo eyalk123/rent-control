@@ -53,6 +53,8 @@ import LayoutDashboard from "lucide-react-native/icons/layout-dashboard";
 import Lock from "lucide-react-native/icons/lock";
 import MapPin from "lucide-react-native/icons/map-pin";
 import Mail from "lucide-react-native/icons/mail";
+// Lucide carries no brand marks, so WhatsApp is represented by the generic chat bubble.
+import MessageCircle from "lucide-react-native/icons/message-circle";
 import MessageSquare from "lucide-react-native/icons/message-square";
 import MinusCircle from "lucide-react-native/icons/circle-minus";
 import Moon from "lucide-react-native/icons/moon";
@@ -127,6 +129,7 @@ const REGISTRY = {
   lock: Lock,
   mail: Mail,
   "map-pin": MapPin,
+  "message-circle": MessageCircle,
   "message-square": MessageSquare,
   "minus-circle": MinusCircle,
   moon: Moon,

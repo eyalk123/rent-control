@@ -11,6 +11,13 @@ import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { formatMoney } from '@/src/shared/utils/money';
 import { formatDateShort } from '@/src/shared/utils/dates';
 import { getNotifications, dismissNotification } from '@/src/features/notifications/api/feed';
+import { getPreferences } from '@/src/features/notifications/api/preferences';
+import {
+  buildAlertMessage,
+  type AlertMessageSource,
+  type WhatsAppTemplates,
+} from '@/src/features/notifications/templates';
+import { openWhatsApp, toWhatsAppNumber } from '@/src/shared/utils/whatsapp';
 import type { CpiChangeStage, NotificationItem } from '@/src/features/notifications/types';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
 import { useTransactionSummaryContext } from '@/src/context';
@@ -40,6 +47,7 @@ type AttentionItem = {
   renter_id: number;
   first_name: string;
   last_name: string;
+  phone: string | null;
   property_id: number | null;
   property_address: string | null;
   payment_type: string | null;
@@ -61,6 +69,7 @@ function toAttentionItem(n: NotificationItem): AttentionItem {
     renter_id: n.renter_id,
     first_name: n.first_name ?? '',
     last_name: n.last_name ?? '',
+    phone: n.phone,
     property_id: n.property_id,
     property_address: n.property_address,
     payment_type: n.payment_type,
@@ -80,6 +89,34 @@ function toAttentionItem(n: NotificationItem): AttentionItem {
     };
   }
   return { ...base, _type: 'overdue', days_overdue: n.data.days_overdue ?? 0, monthly_amount: n.data.amount ?? 0 };
+}
+
+/** Flatten a row back into the shape the message builder works from. */
+function toMessageSource(item: AttentionItem): AlertMessageSource {
+  const who = {
+    first_name: item.first_name,
+    last_name: item.last_name,
+    property_address: item.property_address,
+  };
+  if (item._type === 'expiring') {
+    return {
+      ...who,
+      kind: 'lease_expiring',
+      leaseEndIso: item.lease_end_date,
+      days: item.days_until_expiry,
+    };
+  }
+  if (item._type === 'cpi') {
+    return {
+      ...who,
+      kind: 'cpi',
+      stage: item.stage,
+      oldAmount: item.old_amount,
+      newAmount: item.new_amount,
+      effectiveIso: item.effective_date,
+    };
+  }
+  return { ...who, kind: 'overdue', amount: item.monthly_amount, days: item.days_overdue };
 }
 
 function formatLeaseDate(iso: string, locale: string): string {
@@ -113,18 +150,33 @@ interface AttentionItemRowProps {
   amberBg: string;
   primaryBg: string;
   neutralBg: string;
+  waBg: string;
+  waFg: string;
   onDismiss: (notifId: number) => void;
   onNavigate: (path: string) => void;
   onMarkPaid: (item: AttentionItem) => void;
+  onMessage: (item: AttentionItem) => void;
   markPaidLoadingIds: Set<number>;
 }
 
 function AttentionItemRow({
-  item, isLast, colors, amberBg, primaryBg, neutralBg, onDismiss, onNavigate, onMarkPaid, markPaidLoadingIds,
+  item, isLast, colors, amberBg, primaryBg, neutralBg, waBg, waFg, onDismiss, onNavigate, onMarkPaid, onMessage, markPaidLoadingIds,
 }: AttentionItemRowProps) {
   const { t, i18n } = useTranslation();
   const name = `${item.first_name} ${item.last_name}`;
   const address = item.property_address ?? '';
+
+  // Leftmost of the actions, and separated from the green "Mark Paid" by the neutral
+  // Ignore pill so two green pills never sit side by side. Hidden outright when there is
+  // no number to open a chat with.
+  const messagePill = toWhatsAppNumber(item.phone) ? (
+    <ActionPill
+      label={t('home.actionMessage')}
+      bg={waBg}
+      textColor={waFg}
+      onPress={() => onMessage(item)}
+    />
+  ) : null;
 
   if (item._type === 'expiring') {
     return (
@@ -159,6 +211,7 @@ function AttentionItemRow({
               {t('home.expiresLabel', { date: formatLeaseDate(item.lease_end_date, i18n.language) })}
             </Text>
             <View style={styles.actionsRow}>
+              {messagePill}
               <ActionPill
                 label={t('home.actionIgnore')}
                 bg={neutralBg}
@@ -218,6 +271,7 @@ function AttentionItemRow({
               })}
             </Text>
             <View style={styles.actionsRow}>
+              {messagePill}
               <ActionPill
                 label={t('home.actionIgnore')}
                 bg={neutralBg}
@@ -270,6 +324,7 @@ function AttentionItemRow({
             {formatMoney(item.monthly_amount)}
           </Text>
           <View style={styles.actionsRow}>
+            {messagePill}
             <ActionPill
               label={t('home.actionIgnore')}
               bg={neutralBg}
@@ -301,6 +356,7 @@ export function NeedsAttentionSection() {
   const { refresh: refreshTransactions } = usePaginatedTransactionContext();
 
   const [items, setItems] = useState<AttentionItem[]>([]);
+  const [templates, setTemplates] = useState<WhatsAppTemplates>({});
   const [loading, setLoading] = useState(true);
   const [markPaidLoadingIds, setMarkPaidLoadingIds] = useState<Set<number>>(new Set());
   const [modalVisible, setModalVisible] = useState(false);
@@ -318,12 +374,25 @@ export function NeedsAttentionSection() {
     }
   }, []);
 
+  // The owner's edited WhatsApp copy, fetched separately from the feed so a failure here
+  // can never blank the alerts: without it the messages simply fall back to the shipped
+  // defaults, which is a working button rather than a missing one.
+  const fetchTemplates = useCallback(async () => {
+    try {
+      const prefs = await getPreferences();
+      setTemplates(prefs.settings.whatsapp_templates ?? {});
+    } catch {
+      // defaults it is
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       const silent = !isFirstLoad.current;
       isFirstLoad.current = false;
       fetchData(silent);
-    }, [fetchData]),
+      fetchTemplates(); // refetched on focus so an edit in settings takes effect on return
+    }, [fetchData, fetchTemplates]),
   );
 
   const navigate = (path: string) => {
@@ -367,6 +436,15 @@ export function NeedsAttentionSection() {
     }
   }, [refreshSummary, refreshTransactions, appAlert]);
 
+  // Opens WhatsApp with the message typed but unsent — the owner reads it and presses
+  // send. See src/shared/utils/whatsapp.ts.
+  const handleMessage = useCallback((item: AttentionItem) => {
+    openWhatsApp(
+      item.phone,
+      buildAlertMessage(toMessageSource(item), i18n.language, templates, t),
+    );
+  }, [templates, i18n.language, t]);
+
   const expiring = items.filter((i): i is Extract<AttentionItem, { _type: 'expiring' }> => i._type === 'expiring');
   // Lease-expiring first, then CPI changes, then overdue (preserves the prior ordering
   // of the two originals and slots the new type between them).
@@ -382,9 +460,12 @@ export function NeedsAttentionSection() {
   const amberBg = theme.dark ? 'rgba(194,149,67,0.18)' : 'rgba(212,162,76,0.15)';
   const primaryBg = theme.dark ? 'rgba(62,111,168,0.18)' : 'rgba(30,58,95,0.10)';
   const neutralBg = theme.dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  // WhatsApp's own green, so the action is recognisable at a glance.
+  const waBg = theme.dark ? 'rgba(37,211,102,0.20)' : 'rgba(37,211,102,0.16)';
+  const waFg = theme.dark ? '#5BD98A' : '#0B7A5E';
 
   const shimmer = useShimmer(loading);
-  const rowProps = { colors, amberBg, primaryBg, neutralBg, onDismiss: dismiss, onNavigate: navigate, onMarkPaid: handleMarkPaid, markPaidLoadingIds };
+  const rowProps = { colors, amberBg, primaryBg, neutralBg, waBg, waFg, onDismiss: dismiss, onNavigate: navigate, onMarkPaid: handleMarkPaid, onMessage: handleMessage, markPaidLoadingIds };
 
   // Label + a manage button that opens the notification rules page, shown in
   // every state so the rules are always reachable from Home.
@@ -425,7 +506,12 @@ export function NeedsAttentionSection() {
                 </View>
                 <SkeletonBlock opacity={shimmer} width="35%" height={11} borderRadius={4} />
                 <SkeletonBlock opacity={shimmer} width="25%" height={11} borderRadius={4} />
+                {/* Three pills, matching the loaded row: Message, Ignore, and the
+                    type-specific action. A row for a renter with no phone loads with
+                    only two — a placeholder can't know that in advance, and guessing
+                    low would make the row jump wider on nearly every load. */}
                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.xs, marginTop: 3 }}>
+                  <SkeletonBlock opacity={shimmer} width={72} height={26} borderRadius={20} />
                   <SkeletonBlock opacity={shimmer} width={52} height={26} borderRadius={20} />
                   <SkeletonBlock opacity={shimmer} width={80} height={26} borderRadius={20} />
                 </View>
