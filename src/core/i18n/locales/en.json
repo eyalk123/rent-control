@@ -328,6 +328,7 @@
     "dateOfStart": "Date of start",
     "dateOfEnd": "Date of end",
     "dateOfPayment": "Date of payment",
+    "dateOfPaymentDefault": "{{day}} (default)",
     "leaseStart": "Lease Start",
     "leaseEnd": "Lease ends: {{date}}",
     "numberOfPayments": "Number of payments",

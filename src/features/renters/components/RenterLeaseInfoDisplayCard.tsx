@@ -6,6 +6,7 @@ import { Icon } from '@/src/shared/components/ui';
 import { IconDetailRow } from '@/src/shared/components/ui/IconDetailRow';
 import { formatMoney } from '@/src/shared/utils/money';
 import { getLeaseYearLabel, isCurrentLeaseYear } from '@/src/shared/utils/leaseYear';
+import { DEFAULT_PAYMENT_DAY_NUM } from '@/src/shared/constants/paymentDay';
 import type { Renter } from '@/src/shared/types';
 
 interface RenterLeaseInfoDisplayCardProps {
@@ -77,15 +78,20 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
           </ScrollView>
         )}
 
-        {renter.payment_day_of_month != null && (
-          <IconDetailRow
-            icon="calendar-clock"
-            label={t('renter.dateOfPayment')}
-            value={String(renter.payment_day_of_month)}
-            iconColor={colors.primary}
-            secondaryColor={colors.textSecondary}
-          />
-        )}
+        {/* A renter saved before the form pre-filled this still has no stored day, but the
+            overdue engine already chases them on the 1st — so show that rather than hiding the
+            row, which left the behaviour unexplained. */}
+        <IconDetailRow
+          icon="calendar-clock"
+          label={t('renter.dateOfPayment')}
+          value={
+            renter.payment_day_of_month != null
+              ? String(renter.payment_day_of_month)
+              : t('renter.dateOfPaymentDefault', { day: DEFAULT_PAYMENT_DAY_NUM })
+          }
+          iconColor={colors.primary}
+          secondaryColor={colors.textSecondary}
+        />
         {renter.payment_type != null && renter.payment_type !== '' && (
           <IconDetailRow
             icon="arrow-right-left"

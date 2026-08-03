@@ -328,6 +328,7 @@
     "dateOfStart": "תאריך התחלה",
     "dateOfEnd": "תאריך סיום",
     "dateOfPayment": "יום התשלום בחודש",
+    "dateOfPaymentDefault": "{{day}} (ברירת מחדל)",
     "leaseStart": "תחילת שכירות",
     "leaseEnd": "תאריך סיום: {{date}}",
     "numberOfPayments": "מספר תשלומים",

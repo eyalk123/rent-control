@@ -17,6 +17,7 @@ import type {
   RenterUpdate,
 } from "@/src/shared/types";
 import { reconstructIntentFromLeaseYears } from "@/src/shared/utils/leaseSchedule";
+import { DEFAULT_PAYMENT_DATE } from "@/src/shared/constants/paymentDay";
 import {
   renterFormSchema,
   type RenterFormValues,
@@ -103,7 +104,9 @@ export function useRenterForm({
       leaseStart: "",
       propertyId: initialPropertyId,
       paymentType: "",
-      paymentDate: "",
+      // Pre-filled rather than empty so the 1st-of-month fallback the overdue engine
+      // already applies is visible and editable instead of silent.
+      paymentDate: DEFAULT_PAYMENT_DATE,
       paymentFrequency: undefined,
       insuranceType: "",
       insuranceAmount: "",
@@ -199,7 +202,7 @@ export function useRenterForm({
           paymentDate:
             renter.payment_day_of_month != null
               ? `2000-01-${String(renter.payment_day_of_month).padStart(2, "0")}`
-              : "",
+              : DEFAULT_PAYMENT_DATE,
           paymentFrequency:
             renter.number_of_payments === 12
               ? "monthly"
