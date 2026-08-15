@@ -58,6 +58,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           name={"paymentType" as any}
           label={t("renter.paymentType")}
           options={getPaymentMethodOptions(t)}
+          sorted={false}
         />
       </View>
 
@@ -71,6 +72,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
             { value: "quarterly", label: t("renter.frequencyQuarterly") },
             { value: "yearly", label: t("renter.frequencyYearly") },
           ]}
+          sorted={false}
         />
       </View>
 

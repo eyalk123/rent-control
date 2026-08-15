@@ -10,6 +10,8 @@ import { DropdownField } from "./DropdownField";
 type Option = {
   label: string;
   value: string;
+  /** Sentinel rows stay above the sorted options. */
+  pinned?: boolean;
 };
 
 type FormDropdownOptionsProps<TFieldValues extends FieldValues> = {
@@ -19,6 +21,8 @@ type FormDropdownOptionsProps<TFieldValues extends FieldValues> = {
   options: Option[];
   placeholder?: string;
   required?: boolean;
+  /** See DropdownField: false keeps a meaningful given order. */
+  sorted?: boolean;
 };
 
 export function FormDropdownOptions<TFieldValues extends FieldValues>({
@@ -28,6 +32,7 @@ export function FormDropdownOptions<TFieldValues extends FieldValues>({
   options,
   placeholder,
   required,
+  sorted,
 }: FormDropdownOptionsProps<TFieldValues>) {
   return (
     <Controller
@@ -42,6 +47,7 @@ export function FormDropdownOptions<TFieldValues extends FieldValues>({
           placeholder={placeholder}
           error={error}
           required={required}
+          sorted={sorted}
           reviewName={name}
         />
       )}

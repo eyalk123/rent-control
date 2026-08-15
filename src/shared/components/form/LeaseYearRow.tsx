@@ -212,6 +212,7 @@ function LeaseYearRowInner({
       <View style={[styles.ruleRow, { flexDirection: rowDirection }]}>
         <DropdownField
           data={ruleOptions}
+          sorted={false}
           value={ruleMode}
           onChange={(m) => onRuleChange(m as LeaseYearRuleMode)}
           inputStyle={styles.ruleDropdown}

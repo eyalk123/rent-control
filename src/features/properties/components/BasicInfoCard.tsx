@@ -40,6 +40,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
     return t(`property.type${key}`);
   };
 
+  // FormCreatableDropdown applies the locale-aware ordering.
   const ownerOptions = React.useMemo(
     () =>
       Array.from(
@@ -48,7 +49,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
             .map((p) => p.property_owner?.trim())
             .filter((o): o is string => !!o),
         ),
-      ).sort(),
+      ),
     [properties],
   );
 

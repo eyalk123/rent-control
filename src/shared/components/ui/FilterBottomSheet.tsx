@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Keyboard,
@@ -12,12 +12,16 @@ import {
 import { Text, TextInput, TouchableRipple, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useLanguageContext } from '@/src/core/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
+import { sortOptions } from '@/src/shared/utils/sortOptions';
 
 export interface FilterOption {
   id: string | number;
   label: string;
+  /** Sentinel rows ("All", "Unassigned") stay above the sorted options. */
+  pinned?: boolean;
 }
 
 interface FilterBottomSheetProps {
@@ -41,6 +45,7 @@ export function FilterBottomSheet({
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { language } = useLanguageContext();
   const [search, setSearch] = useState('');
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
@@ -75,11 +80,13 @@ export function FilterBottomSheet({
     }),
   ).current;
 
+  const sorted = useMemo(() => sortOptions(options, language), [options, language]);
+
   const filtered = search.trim()
-    ? options.filter((o) =>
+    ? sorted.filter((o) =>
         o.label.toLowerCase().includes(search.toLowerCase().trim()),
       )
-    : options;
+    : sorted;
 
   const handleSelect = (id: string | number | null) => {
     onSelect(id);

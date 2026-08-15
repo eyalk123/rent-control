@@ -16,6 +16,7 @@ import {
   useRtlLabelStyle,
 } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import { sortOptions } from "@/src/shared/utils/sortOptions";
 import type { DropdownItem } from "./DropdownField";
 
 const SELECT_ALL_VALUE = "__select_all__";
@@ -46,21 +47,29 @@ export function MultiSelectField<T extends string | number>({
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
   const rtlLabelStyle = useRtlLabelStyle();
-  const { isRtl } = useLanguageContext();
+  const { isRtl, language } = useLanguageContext();
 
   const stringValue = useMemo(() => value.map((v) => String(v)), [value]);
 
-  // Only show unselected items; prepend Select All when there are items to add
+  // Only show unselected items, alphabetically; prepend Select All when there are items to add
   const availableData = useMemo(() => {
-    const unselected = data
-      .filter((item) => !stringValue.includes(String(item.value)))
-      .map((item) => ({ label: item.label, value: String(item.value) }));
+    const unselected = sortOptions(
+      data
+        .filter((item) => !stringValue.includes(String(item.value)))
+        .map((item) => ({ label: item.label, value: String(item.value) })),
+      language,
+    );
     if (unselected.length === 0) return [];
     return [
       { label: t("common.selectAll", { defaultValue: "Select All" }), value: SELECT_ALL_VALUE },
       ...unselected,
     ];
-  }, [data, stringValue, t]);
+  }, [data, stringValue, t, language]);
+
+  const selectedItems = useMemo(
+    () => sortOptions(data.filter((item) => stringValue.includes(String(item.value))), language),
+    [data, stringValue, language],
+  );
 
   const handleChange = (strings: string[]) => {
     if (strings.includes(SELECT_ALL_VALUE)) {
@@ -187,21 +196,18 @@ export function MultiSelectField<T extends string | number>({
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled
         >
-          {value.map((v) => {
-            const item = data.find((d) => d.value === v);
-            if (!item) return null;
-            return (
-              <Chip
-                key={String(v)}
-                mode="outlined"
-                onClose={() => handleUnselect(String(v))}
-                style={styles.chip}
-                textStyle={{ color: colors.textPrimary }}
-              >
-                {item.label}
-              </Chip>
-            );
-          })}
+          {/* Chips follow the same alphabetical order as the list, not selection order. */}
+          {selectedItems.map((item) => (
+            <Chip
+              key={String(item.value)}
+              mode="outlined"
+              onClose={() => handleUnselect(String(item.value))}
+              style={styles.chip}
+              textStyle={{ color: colors.textPrimary }}
+            >
+              {item.label}
+            </Chip>
+          ))}
         </ScrollView>
       ) : null}
 

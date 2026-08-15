@@ -5,7 +5,8 @@ import {
 } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
 import { Icon } from "@/src/shared/components/ui";
-import React, { useState } from "react";
+import { sortLabels } from "@/src/shared/utils/sortOptions";
+import React, { useMemo, useState } from "react";
 import {
   Controller,
   type Control,
@@ -59,8 +60,9 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
-  const { isRtl } = useLanguageContext();
+  const { isRtl, language } = useLanguageContext();
   const rtlLabelStyle = useRtlLabelStyle();
+  const sortedOptions = useMemo(() => sortLabels(options, language), [options, language]);
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -158,7 +160,7 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
                   keyboardShouldPersistTaps="handled"
                   showsVerticalScrollIndicator
                 >
-                  {options.map((owner) => (
+                  {sortedOptions.map((owner) => (
                     <TouchableRipple
                       key={owner}
                       onPress={() => {

@@ -1,5 +1,5 @@
 import { Icon } from "@/src/shared/components/ui";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   StyleSheet,
   View,
@@ -15,6 +15,7 @@ import {
   useRtlLabelStyle,
 } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import { sortOptions } from "@/src/shared/utils/sortOptions";
 import {
   FieldReviewNotice,
   useDismissFieldReview,
@@ -24,6 +25,8 @@ import {
 export type DropdownItem<T extends string | number | null = string> = {
   label: string;
   value: T;
+  /** Sentinel rows ("All owners", "Unassigned", "+ Create new") stay above the sorted options. */
+  pinned?: boolean;
 };
 
 interface DropdownFieldProps<T extends string | number | null> {
@@ -38,6 +41,11 @@ interface DropdownFieldProps<T extends string | number | null> {
   required?: boolean;
   /** RHF field name, set only when this dropdown should participate in document-scan review. */
   reviewName?: string;
+  /**
+   * Options are ordered alphabetically in the active language by default. Set false where the
+   * given order carries meaning (payment method/frequency, lease rule modes, periods).
+   */
+  sorted?: boolean;
 }
 
 export function DropdownField<T extends string | number | null>({
@@ -51,13 +59,18 @@ export function DropdownField<T extends string | number | null>({
   inputStyle,
   required,
   reviewName,
+  sorted = true,
 }: DropdownFieldProps<T>) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
   const rtlLabelStyle = useRtlLabelStyle();
-  const { isRtl } = useLanguageContext();
+  const { isRtl, language } = useLanguageContext();
+  const items = useMemo(
+    () => (sorted ? sortOptions(data, language) : data),
+    [data, sorted, language],
+  );
   const review = useFieldReview(reviewName);
   const dismissReview = useDismissFieldReview();
   const flagged = !!review && !error;
@@ -103,7 +116,7 @@ export function DropdownField<T extends string | number | null>({
 
       <View style={{ direction: "ltr" }}>
       <Dropdown
-        data={data}
+        data={items}
         labelField="label"
         valueField="value"
         value={value}

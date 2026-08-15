@@ -7,7 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { FormScrollView, FormSectionCard } from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
-import { useAlert } from '@/src/core/context';
+import { useAlert, useLanguageContext } from '@/src/core/context';
+import { sortLabels } from '@/src/shared/utils/sortOptions';
 import { usePropertyContext, useRenterContext } from '@/src/context';
 import { type PaymentMethod, type Property, type Renter, getRentForMonth } from '@/src/shared/types';
 import { PAYMENT_METHOD_VALUES } from '@/src/shared/constants/paymentMethods';
@@ -38,6 +39,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   const insets = useSafeAreaInsets();
   const { properties } = usePropertyContext();
   const { renters } = useRenterContext();
+  const { language } = useLanguageContext();
 
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
   const [periodType, setPeriodType] = useState<TimePeriodType>('1month');
@@ -52,14 +54,18 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   });
   const dateOfPayment = dateForm.watch('dateOfPayment');
 
+  // This filter renders a raw Dropdown rather than DropdownField, so it sorts its own owners.
   const ownerOptions = useMemo<{ label: string; value: string | null }[]>(() => {
-    const owners = Array.from(
-      new Set(
-        properties
-          .map((p) => p.property_owner?.trim())
-          .filter((o): o is string => !!o),
+    const owners = sortLabels(
+      Array.from(
+        new Set(
+          properties
+            .map((p) => p.property_owner?.trim())
+            .filter((o): o is string => !!o),
+        ),
       ),
-    ).sort();
+      language,
+    );
     return [
       {
         label: t('transactions.bulkRevenue.allOwners', { defaultValue: 'All owners' }),
@@ -67,7 +73,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
       },
       ...owners.map((o) => ({ label: o, value: o })),
     ];
-  }, [properties, t]);
+  }, [properties, t, language]);
 
   const filteredGroups = useMemo<PropertyGroup[]>(() => {
     const filteredProps = ownerFilter

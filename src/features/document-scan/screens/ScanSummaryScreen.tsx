@@ -65,7 +65,7 @@ export function ScanSummaryScreen() {
 
   const propertyData = React.useMemo(
     () => [
-      { label: t('documentScan.createNewProperty'), value: null as number | null },
+      { label: t('documentScan.createNewProperty'), value: null as number | null, pinned: true },
       ...properties.map((p) => ({
         label: `${p.address}${formatFloorApartment(p, t)} - ${p.city}`,
         value: p.id as number,

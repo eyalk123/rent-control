@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguageContext, usePropertyContext, useRenterContext, useRtlLabelStyle } from '@/src/context';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { sortOptions } from '@/src/shared/utils/sortOptions';
 
 export type ScopeKind = 'all' | 'owners' | 'properties' | 'renters';
 
@@ -116,25 +117,34 @@ export function ScopeSelector({ value, onChange }: Props) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlLabelStyle = useRtlLabelStyle();
-  const { isRtl } = useLanguageContext();
+  const { isRtl, language } = useLanguageContext();
   const [kind, setKind] = useState<ScopeKind>(() => initialKind(value));
   const { properties } = usePropertyContext();
   const { renters } = useRenterContext();
 
+  // These render as inline checklists rather than through DropdownField, so they sort themselves.
   const ownerOptions = useMemo<Option<string>[]>(
     () =>
-      [...new Set(properties.map((p) => p.property_owner).filter((o): o is string => !!o))]
-        .sort()
-        .map((o) => ({ label: o, value: o })),
-    [properties],
+      sortOptions(
+        [...new Set(properties.map((p) => p.property_owner).filter((o): o is string => !!o))]
+          .map((o) => ({ label: o, value: o })),
+        language,
+      ),
+    [properties, language],
   );
   const propertyOptions = useMemo<Option<number>[]>(
-    () => properties.map((p) => ({ label: `${p.address}, ${p.city}`, value: p.id })),
-    [properties],
+    () => sortOptions(
+      properties.map((p) => ({ label: `${p.address}, ${p.city}`, value: p.id })),
+      language,
+    ),
+    [properties, language],
   );
   const renterOptions = useMemo<Option<number>[]>(
-    () => renters.map((r) => ({ label: `${r.first_name} ${r.last_name}`, value: r.id })),
-    [renters],
+    () => sortOptions(
+      renters.map((r) => ({ label: `${r.first_name} ${r.last_name}`, value: r.id })),
+      language,
+    ),
+    [renters, language],
   );
 
   const changeKind = (next: ScopeKind) => {

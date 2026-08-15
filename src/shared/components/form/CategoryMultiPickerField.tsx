@@ -9,6 +9,7 @@ import { Icon } from '@/src/shared/components/ui';
 import { createExpenseCategory } from '@/src/features/transactions/api/transactions';
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
 import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
+import { sortOptions } from '@/src/shared/utils/sortOptions';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -53,7 +54,7 @@ export function CategoryMultiPickerField({
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
   const rtlLabelStyle = useRtlLabelStyle();
-  const { isRtl } = useLanguageContext();
+  const { isRtl, language } = useLanguageContext();
 
   const { categories, loading, refreshCategories } = useExpenseCategories();
 
@@ -64,14 +65,19 @@ export function CategoryMultiPickerField({
 
   const stringValue = useMemo(() => value.map((v) => String(v)), [value]);
 
-  // Only show unselected categories; always append the "Create new" action row.
+  // Only show unselected categories, alphabetically by their translated name (the backend's
+  // `sort_order` is a curated order over keys, unrelated to what is displayed here); always
+  // append the "Create new" action row.
   const availableData = useMemo(() => {
-    const unselected = categories
-      .filter((cat) => !stringValue.includes(String(cat.id)))
-      .map((cat) => ({
-        label: getCategoryDisplayName(cat, t),
-        value: String(cat.id),
-      }));
+    const unselected = sortOptions(
+      categories
+        .filter((cat) => !stringValue.includes(String(cat.id)))
+        .map((cat) => ({
+          label: getCategoryDisplayName(cat, t),
+          value: String(cat.id),
+        })),
+      language,
+    );
     return [
       ...unselected,
       {
@@ -81,7 +87,18 @@ export function CategoryMultiPickerField({
         value: CREATE_NEW_VALUE,
       },
     ];
-  }, [categories, stringValue, t]);
+  }, [categories, stringValue, t, language]);
+
+  // Chips follow the same alphabetical order as the list, not selection order.
+  const selectedCategories = useMemo(
+    () => sortOptions(
+      categories
+        .filter((cat) => stringValue.includes(String(cat.id)))
+        .map((cat) => ({ id: cat.id, label: getCategoryDisplayName(cat, t) })),
+      language,
+    ),
+    [categories, stringValue, t, language],
+  );
 
   const handleChange = (strings: string[]) => {
     if (strings.includes(CREATE_NEW_VALUE)) {
@@ -258,21 +275,17 @@ export function CategoryMultiPickerField({
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled
         >
-          {value.map((id) => {
-            const cat = categories.find((c) => c.id === id);
-            if (!cat) return null;
-            return (
-              <Chip
-                key={String(id)}
-                mode="outlined"
-                onClose={() => handleUnselect(id)}
-                style={styles.chip}
-                textStyle={{ color: colors.textPrimary }}
-              >
-                {getCategoryDisplayName(cat, t)}
-              </Chip>
-            );
-          })}
+          {selectedCategories.map((cat) => (
+            <Chip
+              key={String(cat.id)}
+              mode="outlined"
+              onClose={() => handleUnselect(cat.id)}
+              style={styles.chip}
+              textStyle={{ color: colors.textPrimary }}
+            >
+              {cat.label}
+            </Chip>
+          ))}
         </ScrollView>
       ) : null}
 
