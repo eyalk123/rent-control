@@ -12,9 +12,10 @@ import { EscalationValueField } from "./EscalationValueField";
 import { DropdownField } from "./DropdownField";
 
 /**
- * The per-year rule options, in display order. Mirrors the whole-lease choices in
- * RENT_ESCALATION_MODES (minus `custom`, which has no meaning for a single year), plus
- * `manual` — the neutral default, meaning "this amount was typed, not derived".
+ * The per-year rule options. Same set as the whole-lease RENT_ESCALATION_MODES (minus
+ * `custom`, which has no meaning for a single year), plus `manual` — the neutral default,
+ * meaning "this amount was typed, not derived", which is why it leads here rather than
+ * following that array's order.
  */
 export const LEASE_YEAR_RULE_MODES: LeaseYearRuleMode[] = [
   "manual",
@@ -40,7 +41,10 @@ type LeaseYearRowProps = {
   type: LeaseYearType;
   /** Highlights the row the lease is currently in. */
   isCurrent?: boolean;
-  /** Editable amount when provided; a read-only formatted amount otherwise. */
+  /**
+   * Editable amount when provided; a read-only formatted amount otherwise. Ignored on a
+   * `cpi` year, whose amount is never editable — see `amountEditable`.
+   */
   onAmountChange?: (value: string) => void;
   onAmountBlur?: () => void;
   /** Makes the contract/option label a tappable switch. */
@@ -102,6 +106,9 @@ function LeaseYearRowInner({
   const colors = theme.dark ? darkColors : lightColors;
   const amountNum = Number(amount) || 0;
   const showRuleValue = ruleMode === "percent" || ruleMode === "fixed";
+  // A CPI year's rent is index-linked and priced server-side, so the figure here is only an
+  // estimate — and typing over it would silently drop the rule. Show it, don't let it be edited.
+  const amountEditable = Boolean(onAmountChange) && ruleMode !== "cpi";
 
   const ruleOptions = LEASE_YEAR_RULE_MODES.map((m) => ({
     value: m,
@@ -122,7 +129,7 @@ function LeaseYearRowInner({
         {label}
       </Text>
 
-      {onAmountChange ? (
+      {amountEditable && onAmountChange ? (
         <LeaseYearAmountField
           value={amount}
           onChangeText={onAmountChange}
@@ -157,7 +164,7 @@ function LeaseYearRowInner({
 
       {/* An editable row shows the projection chip here — its amount lives in an input, so
           the read-only branch above (which owns the other chip) never renders. */}
-      {onAmountChange && projected ? (
+      {amountEditable && projected ? (
         <View
           style={[
             styles.cpiChip,
