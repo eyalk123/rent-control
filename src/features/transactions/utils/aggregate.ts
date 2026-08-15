@@ -1,6 +1,7 @@
 /**
  * Month-bucketing utilities for the Transactions list view.
- * Uses `date_of_payment` as the canonical date for both revenues and expenses.
+ * Uses the *effective* date as the canonical date: the month rent was paid `for`
+ * on revenues, falling back to `date_of_payment` on expenses. See `effectiveDate`.
  */
 import type { Transaction } from '@/src/shared/types';
 
@@ -19,6 +20,17 @@ export interface MonthBucket {
   expenses: number;
   profit: number;
   transactions: Transaction[];
+}
+
+/**
+ * The date a transaction belongs to for the user: the month rent was paid *for*
+ * when there is one (revenue), otherwise the day the money moved (expenses).
+ *
+ * Must stay in step with `EFFECTIVE_DATE` in the backend's `transaction_repository.py`
+ * — the server paginates in this order, so a mismatch scrambles the list on scroll.
+ */
+export function effectiveDate(tx: Transaction): string {
+  return tx.month_for ?? tx.date_of_payment;
 }
 
 const toNumber = (n: unknown): number => {
@@ -49,7 +61,7 @@ function emptyBucket(key: MonthKey): MonthBucket {
 export function bucketByMonth(transactions: Transaction[]): MonthBucket[] {
   const map = new Map<MonthKey, MonthBucket>();
   for (const tx of transactions) {
-    const key = monthKeyFromDate(tx.date_of_payment);
+    const key = monthKeyFromDate(effectiveDate(tx));
     if (!key) continue;
     let bucket = map.get(key);
     if (!bucket) {
@@ -136,4 +148,17 @@ export function formatTransactionDate(dateStr: string, locale: string): string {
   const day = dateStr.slice(8, 10);
   const month = parseInt(dateStr.slice(5, 7), 10);
   return `${day} ${shortMonth(locale, month - 1)}`;
+}
+
+/**
+ * How a transaction's date reads in a list: "Apr 2026" for revenue — `month_for`
+ * stores the 1st of the month, so the day carries no meaning — and "15 Apr" for
+ * expenses, where the payment day is real.
+ */
+export function fmtTxDate(tx: Transaction, locale: string): string {
+  if (tx.type === 'revenue' && tx.month_for) {
+    const month = parseInt(tx.month_for.slice(5, 7), 10);
+    return `${shortMonth(locale, month - 1)} ${tx.month_for.slice(0, 4)}`;
+  }
+  return formatTransactionDate(tx.date_of_payment, locale);
 }

@@ -533,7 +533,6 @@
     "renterOptional": "דייר (אופציונלי)",
     "amount": "סכום",
     "dateOfPayment": "תאריך תשלום",
-    "monthFor": "עבור: {{month}}",
     "monthForLabel": "חודש",
     "monthForPlaceholder": "חודש, שנה",
     "paymentMethod": "אמצעי תשלום",

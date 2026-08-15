@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { EmptyState, LoadingOverlay } from '@/src/shared/components/ui';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
+import { fmtTxDate } from '@/src/features/transactions/utils/aggregate';
+import { useLanguageContext } from '@/src/context';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import type { Transaction } from '@/src/shared/types';
 import { formatMoney } from '@/src/shared/utils/money';
@@ -19,6 +21,8 @@ export function RenterTransactionsTab({ renterId }: RenterTransactionsTabProps) 
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const { language } = useLanguageContext();
+  const locale = language === 'he' ? 'he-IL' : 'en-US';
 
   const router = useRouter();
 
@@ -76,13 +80,8 @@ export function RenterTransactionsTab({ renterId }: RenterTransactionsTabProps) 
         </View>
         <View style={styles.txFooter}>
           <Text style={[styles.txFooterText, { color: colors.textSecondary }]}>
-            {item.date_of_payment}
+            {fmtTxDate(item, locale)}
           </Text>
-          {item.month_for ? (
-            <Text style={[styles.txFooterText, { color: colors.textSecondary }]}>
-              {t('transactions.monthFor', { month: item.month_for })}
-            </Text>
-          ) : null}
         </View>
       </TouchableOpacity>
     );

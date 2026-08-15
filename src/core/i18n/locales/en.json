@@ -533,7 +533,6 @@
     "renterOptional": "Renter (optional)",
     "amount": "Amount",
     "dateOfPayment": "Date of payment",
-    "monthFor": "For: {{month}}",
     "monthForLabel": "Month",
     "monthForPlaceholder": "Month, Year",
     "paymentMethod": "Payment method",

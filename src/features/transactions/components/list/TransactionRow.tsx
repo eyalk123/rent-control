@@ -19,7 +19,7 @@ import { darkColors, ICON_XS, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui';
 import { formatMoney } from '@/src/shared/utils/money';
 import type { Transaction } from '@/src/shared/types';
-import { formatTransactionDate } from '@/src/features/transactions/utils/aggregate';
+import { fmtTxDate } from '@/src/features/transactions/utils/aggregate';
 import type { TFunction } from 'i18next';
 
 interface TransactionRowProps {
@@ -56,8 +56,8 @@ export const TransactionRow = React.memo(function TransactionRow({
   ), [transaction.category_name, transaction.renter_name, transaction.supplier_name, t]);
 
   const formattedDate = React.useMemo(
-    () => formatTransactionDate(transaction.date_of_payment, locale),
-    [transaction.date_of_payment, locale],
+    () => fmtTxDate(transaction, locale),
+    [transaction, locale],
   );
 
   const isRevenue = transaction.type === 'revenue';
