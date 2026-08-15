@@ -16,7 +16,7 @@ import { getApiErrorMessage } from '@/src/core/api/client';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
 import type { TimePeriodType } from '@/src/features/transactions/screens/types';
 import { useRenterSelection } from '@/src/features/transactions/hooks/useRenterSelection';
-import { BulkRevenueFilters } from './BulkRevenueFilters';
+import { BulkRevenueOwnerFilter, BulkRevenuePeriodFilter } from './BulkRevenueFilters';
 import { RenterSelectionSection } from './RenterSelectionSection';
 import { PaymentDetailsSection } from './PaymentDetailsSection';
 import { getContractYearMonths, getDefaultPeriodValue, getMonthsForPeriod } from './periodHelpers';
@@ -221,18 +221,10 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
     <View style={styles.container}>
       <FormScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <FormSectionCard title={t('transactions.revenueTitle', { defaultValue: 'Revenue' })}>
-          <BulkRevenueFilters
+          <BulkRevenueOwnerFilter
             ownerOptions={ownerOptions}
             ownerFilter={ownerFilter}
             onOwnerChange={setOwnerFilter}
-            periodType={periodType}
-            onPeriodTypeChange={handleChangePeriodType}
-            periodValue={periodValue}
-            onPeriodValueChange={setPeriodValue}
-            customMonths={customMonths}
-            onToggleCustomMonth={handleToggleCustomMonth}
-            gridYear={gridYear}
-            onGridYearChange={setGridYear}
           />
 
           <Divider style={styles.sectionDivider} />
@@ -252,6 +244,17 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
           />
 
           <Divider style={styles.sectionDivider} />
+
+          <BulkRevenuePeriodFilter
+            periodType={periodType}
+            onPeriodTypeChange={handleChangePeriodType}
+            periodValue={periodValue}
+            onPeriodValueChange={setPeriodValue}
+            customMonths={customMonths}
+            onToggleCustomMonth={handleToggleCustomMonth}
+            gridYear={gridYear}
+            onGridYearChange={setGridYear}
+          />
 
           <PaymentDetailsSection
             control={dateForm.control}

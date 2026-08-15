@@ -12,11 +12,13 @@ import { generatePeriodOptions } from './periodHelpers';
 
 type OwnerOption = { label: string; value: string | null };
 
-type BulkRevenueFiltersProps = {
+type BulkRevenueOwnerFilterProps = {
   ownerOptions: OwnerOption[];
   ownerFilter: string | null;
   onOwnerChange: (value: string | null) => void;
+};
 
+type BulkRevenuePeriodFilterProps = {
   periodType: TimePeriodType;
   onPeriodTypeChange: (type: TimePeriodType) => void;
 
@@ -29,36 +31,18 @@ type BulkRevenueFiltersProps = {
   onGridYearChange: (year: number) => void;
 };
 
-export function BulkRevenueFilters({
-  ownerOptions,
-  ownerFilter,
-  onOwnerChange,
-  periodType,
-  onPeriodTypeChange,
-  periodValue,
-  onPeriodValueChange,
-  customMonths,
-  onToggleCustomMonth,
-  gridYear,
-  onGridYearChange,
-}: BulkRevenueFiltersProps) {
-  const { t } = useTranslation();
+/**
+ * Shared styling for the owner + period dropdowns. Both filters render the same
+ * control, but they sit in different parts of the form (owner above the tenant
+ * list, period below it), so the theme lives in a hook instead of a local object.
+ */
+function useDropdownTheme() {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
-  const { language, isRtl } = useLanguageContext();
-  const locale = language === 'he' ? 'he-IL' : 'en-US';
+  const { isRtl } = useLanguageContext();
   const rtlInputStyle = useRtlInputStyle();
-  const rtlLabelStyle = useRtlLabelStyle();
 
-  const periodValueOptions = useMemo(
-    () =>
-      periodType !== 'custom'
-        ? generatePeriodOptions(periodType, locale)
-        : [],
-    [periodType, locale],
-  );
-
-  const dropdownTheme = {
+  return {
     style: [
       styles.dropdown,
       { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
@@ -89,31 +73,72 @@ export function BulkRevenueFilters({
         )
       : undefined,
   };
+}
+
+export function BulkRevenueOwnerFilter({
+  ownerOptions,
+  ownerFilter,
+  onOwnerChange,
+}: BulkRevenueOwnerFilterProps) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const rtlLabelStyle = useRtlLabelStyle();
+  const dropdownTheme = useDropdownTheme();
+
+  if (ownerOptions.length <= 1) return null;
+
+  return (
+    <View style={styles.fieldWrap}>
+      <Text
+        variant="labelMedium"
+        style={[styles.fieldLabel, rtlLabelStyle, { color: colors.textSecondary }]}
+      >
+        {t('transactions.bulkRevenue.ownerFilter', { defaultValue: 'Owner' })}
+      </Text>
+      <View style={{ direction: 'ltr' }}>
+        <Dropdown
+          data={ownerOptions}
+          labelField="label"
+          valueField="value"
+          value={ownerFilter}
+          onChange={(item) => onOwnerChange(item.value)}
+          placeholder={t('transactions.bulkRevenue.allOwners', { defaultValue: 'All owners' })}
+          {...dropdownTheme}
+        />
+      </View>
+    </View>
+  );
+}
+
+export function BulkRevenuePeriodFilter({
+  periodType,
+  onPeriodTypeChange,
+  periodValue,
+  onPeriodValueChange,
+  customMonths,
+  onToggleCustomMonth,
+  gridYear,
+  onGridYearChange,
+}: BulkRevenuePeriodFilterProps) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const { language } = useLanguageContext();
+  const locale = language === 'he' ? 'he-IL' : 'en-US';
+  const rtlLabelStyle = useRtlLabelStyle();
+  const dropdownTheme = useDropdownTheme();
+
+  const periodValueOptions = useMemo(
+    () =>
+      periodType !== 'custom'
+        ? generatePeriodOptions(periodType, locale)
+        : [],
+    [periodType, locale],
+  );
 
   return (
     <View style={styles.filtersSection}>
-      {ownerOptions.length > 1 && (
-        <View style={styles.fieldWrap}>
-          <Text
-            variant="labelMedium"
-            style={[styles.fieldLabel, rtlLabelStyle, { color: colors.textSecondary }]}
-          >
-            {t('transactions.bulkRevenue.ownerFilter', { defaultValue: 'Owner' })}
-          </Text>
-          <View style={{ direction: 'ltr' }}>
-            <Dropdown
-              data={ownerOptions}
-              labelField="label"
-              valueField="value"
-              value={ownerFilter}
-              onChange={(item) => onOwnerChange(item.value)}
-              placeholder={t('transactions.bulkRevenue.allOwners', { defaultValue: 'All owners' })}
-              {...dropdownTheme}
-            />
-          </View>
-        </View>
-      )}
-
       <View style={styles.fieldWrap}>
         <Text
           variant="labelMedium"
