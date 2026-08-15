@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Checkbox, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { getRenterMonthlyRent, type Property, type Renter } from '@/src/shared/types';
+import { getCurrentMonthlyRent, type Property, type Renter } from '@/src/shared/types';
 import { RenterContractCard } from './RenterContractCard';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
@@ -102,7 +102,7 @@ export function RenterSelectionSection({
                   key={renter.id}
                   renter={renter}
                   checked={checkedIds.has(renter.id)}
-                  amount={amounts.get(renter.id) ?? String(getRenterMonthlyRent(renter) || '')}
+                  amount={amounts.get(renter.id) ?? String(getCurrentMonthlyRent(renter) || '')}
                   overridden={overriddenIds.has(renter.id)}
                   onToggle={() => onToggleRenter(renter)}
                   onAmountChange={(v) => onAmountChange(renter.id, v)}

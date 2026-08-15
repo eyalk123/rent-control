@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getRenterMonthlyRent, type Renter } from '@/src/shared/types';
+import { getCurrentMonthlyRent, type Renter } from '@/src/shared/types';
 
 interface UseRenterSelectionParams {
   allRenters: Renter[];
@@ -24,7 +24,7 @@ export function useRenterSelection({ allRenters, onDirtyChange }: UseRenterSelec
         const next = new Map(prev);
         for (const r of allRenters) {
           if (!next.has(r.id)) {
-            next.set(r.id, String(getRenterMonthlyRent(r) || ''));
+            next.set(r.id, String(getCurrentMonthlyRent(r) || ''));
           }
         }
         return next;
@@ -44,7 +44,7 @@ export function useRenterSelection({ allRenters, onDirtyChange }: UseRenterSelec
         setAmounts((am) => {
           if (am.has(renter.id)) return am;
           const next2 = new Map(am);
-          next2.set(renter.id, String(getRenterMonthlyRent(renter) || ''));
+          next2.set(renter.id, String(getCurrentMonthlyRent(renter) || ''));
           return next2;
         });
         onDirtyChange?.(true);
@@ -67,7 +67,7 @@ export function useRenterSelection({ allRenters, onDirtyChange }: UseRenterSelec
         setAmounts((am) => {
           if (am.has(renterId)) return am;
           const next2 = new Map(am);
-          next2.set(renterId, String(getRenterMonthlyRent(renter) || ''));
+          next2.set(renterId, String(getCurrentMonthlyRent(renter) || ''));
           return next2;
         });
       }
