@@ -87,7 +87,7 @@ export async function createRevenueTransaction(
   payload: TransactionCreateRevenue,
 ): Promise<Transaction> {
   if (USE_MOCK_API) {
-    return {
+    const created: Transaction = {
       id: Date.now(),
       type: 'revenue',
       property_id: payload.property_id,
@@ -107,6 +107,11 @@ export async function createRevenueTransaction(
       category_name: null,
       supplier_name: null,
     };
+    // Persist into the in-memory store, so a subsequent refetch sees it. Without this the
+    // preview silently discards every write and screens like the payment grid — which read
+    // their state back out of the transaction list — never appear to save anything.
+    mockTransactionsApi.addTransaction(created);
+    return created;
   }
 
   const response = await apiClient.post<Transaction>(

@@ -25,6 +25,10 @@ import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { PropertyInfoTab } from '@/src/features/properties/components/PropertyInfoTab';
 import { PropertyRentersTab } from '@/src/features/properties/components/PropertyRentersTab';
 import { PropertyTransactionsTab } from '@/src/features/properties/components/PropertyTransactionsTab';
+import {
+  initialTransactionsTabState,
+  type TransactionsTabState,
+} from '@/src/features/transactions/components/detail/tabState';
 import { PropertyDocumentsTab } from '@/src/features/properties/components/PropertyDocumentsTab';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
 
@@ -41,6 +45,9 @@ export function PropertyDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>('info');
+  // Owned here, not in the tab: the tabs render conditionally, so leaving Transactions
+  // unmounts the panel and would otherwise discard the section and its filters.
+  const [txTabState, setTxTabState] = useState<TransactionsTabState>(initialTransactionsTabState);
 
   useFocusEffect(
     useCallback(() => {
@@ -171,7 +178,11 @@ export function PropertyDetailScreen() {
           {activeTab === 'info' && <PropertyInfoTab property={property} />}
           {activeTab === 'renters' && <PropertyRentersTab property={property} />}
           {activeTab === 'transactions' && (
-            <PropertyTransactionsTab propertyId={property.id} />
+            <PropertyTransactionsTab
+              property={property}
+              state={txTabState}
+              onStateChange={setTxTabState}
+            />
           )}
           {activeTab === 'documents' && <PropertyDocumentsTab property={property} />}
         </View>

@@ -20,6 +20,10 @@ import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { RenterInfoTab } from '@/src/features/renters/components/RenterInfoTab';
 import { RenterPropertyTab } from '@/src/features/renters/components/RenterPropertyTab';
 import { RenterTransactionsTab } from '@/src/features/renters/components/RenterTransactionsTab';
+import {
+  initialTransactionsTabState,
+  type TransactionsTabState,
+} from '@/src/features/transactions/components/detail/tabState';
 
 type TabKey = 'info' | 'property' | 'transactions';
 
@@ -34,6 +38,9 @@ export function RenterDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>('info');
+  // Owned here, not in the tab: the tabs render conditionally, so leaving Transactions
+  // unmounts the panel and would otherwise discard the section and its filters.
+  const [txTabState, setTxTabState] = useState<TransactionsTabState>(initialTransactionsTabState);
 
   useFocusEffect(
     useCallback(() => {
@@ -179,7 +186,11 @@ export function RenterDetailScreen() {
           {activeTab === 'info' && <RenterInfoTab renter={renter} />}
           {activeTab === 'property' && <RenterPropertyTab renter={renter} />}
           {activeTab === 'transactions' && (
-            <RenterTransactionsTab renterId={renter.id} />
+            <RenterTransactionsTab
+              renter={renter}
+              state={txTabState}
+              onStateChange={setTxTabState}
+            />
           )}
         </View>
       </View>

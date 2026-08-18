@@ -7,8 +7,7 @@ import { CompactRenterRow } from './CompactRenterRow';
 import { usePropertyContext } from '@/src/context';
 import { useTransactionSummaryContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
-import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
-import { normalizePaymentType } from '@/src/shared/constants/paymentMethods';
+import { currentMonthKey, markRentPaid } from '@/src/features/transactions/utils/markRentPaid';
 import { useAlert } from '@/src/core/context';
 import { formatMoney } from '@/src/shared/utils/money';
 import { Icon } from '@/src/shared/components/ui/Icon';
@@ -16,15 +15,6 @@ import { FilterBottomSheet, type FilterOption } from '@/src/shared/components/ui
 import { getOverdueRenters, type OverdueRenter } from '@/src/features/home/api/homeApi';
 
 type ButtonState = 'idle' | 'loading';
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function currentMonthFor(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-}
 
 export function OverdueRentsCard() {
   const { t } = useTranslation();
@@ -77,13 +67,14 @@ export function OverdueRentsCard() {
     if (!renter.property_id) return;
     setButtonState(renter.renter_id, 'loading');
     try {
-      await createRevenueTransaction({
+      // Overdue candidates are only ever generated for the current month
+      // (`renter_repository.get_overdue_this_month`), so that is the month being paid for.
+      await markRentPaid({
         property_id: renter.property_id,
         renter_id: renter.renter_id,
         amount: renter.monthly_amount,
-        date_of_payment: todayIso(),
-        month_for: currentMonthFor(),
-        payment_method: normalizePaymentType(renter.payment_type),
+        monthFor: currentMonthKey(),
+        paymentType: renter.payment_type,
       });
       setPaidIds((prev) => new Set(prev).add(renter.renter_id));
       await Promise.all([refreshSummary(), refreshTransactions()]);

@@ -1,91 +1,38 @@
-import React, { useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { SegmentedButtons, Text, useTheme } from 'react-native-paper';
-import { useRouter } from 'expo-router';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { EmptyState, LoadingOverlay } from '@/src/shared/components/ui';
-import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
-import { fmtTxDate } from '@/src/features/transactions/utils/aggregate';
-import { useLanguageContext } from '@/src/context';
-import { lightColors, darkColors, spacing } from '@/src/core/theme';
-import type { Transaction } from '@/src/shared/types';
-import { formatMoney } from '@/src/shared/utils/money';
 
-type TransactionTypeFilter = 'all' | 'revenue' | 'expense';
+import { EmptyState, LoadingOverlay, SegmentedControl } from '@/src/shared/components/ui';
+import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
+import { RevenuePaymentPanel } from '@/src/features/transactions/components/detail/RevenuePaymentPanel';
+import { ExpensePanel } from '@/src/features/transactions/components/detail/ExpensePanel';
+import type { TransactionsTabState } from '@/src/features/transactions/components/detail/tabState';
+import { spacing } from '@/src/core/theme';
+import type { Property } from '@/src/shared/types';
 
 interface PropertyTransactionsTabProps {
-  propertyId: number;
+  property: Property;
+  /** Held by the screen, which outlives this tab — see `detail/tabState.ts`. */
+  state: TransactionsTabState;
+  onStateChange: (state: TransactionsTabState) => void;
 }
 
-export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabProps) {
+/**
+ * Revenue renders as a renter × month matrix here rather than a single strip, because a
+ * property's payment history is several leases laid end to end. The property payload nests
+ * every renter with their lease intact — active and past alike — so a renter who moved out
+ * still gets a row in the years they lived there.
+ *
+ * That matrix keeps its year selector: unlike the renter screen, stacking every year would
+ * multiply by the number of renters.
+ */
+export function PropertyTransactionsTab({ property, state, onStateChange }: PropertyTransactionsTabProps) {
   const { t } = useTranslation();
-  const theme = useTheme();
-  const colors = theme.dark ? darkColors : lightColors;
-  const { language } = useLanguageContext();
-  const locale = language === 'he' ? 'he-IL' : 'en-US';
+  const patch = (next: Partial<TransactionsTabState>) => onStateChange({ ...state, ...next });
 
-  const router = useRouter();
-
-  const {
-    transactions,
-    loading,
-    refreshing,
-    error,
-    refreshTransactions,
-    retryLoad,
-  } = useTransactionsList({ propertyId });
-
-  const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
-
-  const filteredTransactions = useMemo(() => {
-    if (typeFilter === 'all') return transactions;
-    return transactions.filter((tx) => tx.type === typeFilter);
-  }, [transactions, typeFilter]);
-
-  const renderItem = ({ item }: { item: Transaction }) => {
-    const isRevenue = item.type === 'revenue';
-    const typeLabel = isRevenue
-      ? t('transactions.typeRevenue')
-      : t('transactions.typeExpense');
-    const amountColor = isRevenue ? colors.chooseRevenueIcon : colors.chooseExpenseIcon;
-    const cardBg = isRevenue ? colors.chooseRevenueBg : colors.chooseExpenseBg;
-
-    return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => router.push(`/transactions/${item.id}` as any)}
-        style={[styles.txCard, { backgroundColor: cardBg, borderColor: colors.outline }]}
-      >
-        <View style={styles.txHeader}>
-          <Text style={[styles.txType, { color: colors.textPrimary }]}>
-            {typeLabel}
-          </Text>
-          <Text style={[styles.txAmount, { color: amountColor }]}>
-            {formatMoney(item.amount)}
-          </Text>
-        </View>
-        <View style={styles.txMeta}>
-          {item.renter_name ? (
-            <Text style={[styles.txMetaText, { color: colors.textSecondary }]}>
-              {item.renter_name}
-            </Text>
-          ) : null}
-          {item.category_name ? (
-            <Text style={[styles.txMetaText, { color: colors.textSecondary }]}>
-              {t(`expenseCategories.${item.category_name.toLowerCase()}`, {
-                defaultValue: item.category_name,
-              })}
-            </Text>
-          ) : null}
-        </View>
-        <View style={styles.txFooter}>
-          <Text style={[styles.txFooterText, { color: colors.textSecondary }]}>
-            {fmtTxDate(item, locale)}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  const { transactions, loading, error, refreshTransactions, retryLoad } = useTransactionsList({
+    propertyId: property.id,
+  });
 
   if (loading && transactions.length === 0) {
     return (
@@ -111,35 +58,37 @@ export function PropertyTransactionsTab({ propertyId }: PropertyTransactionsTabP
   return (
     <View style={styles.container}>
       <View style={styles.filterRow}>
-        <SegmentedButtons
-          value={typeFilter}
-          onValueChange={(v) => setTypeFilter(v as TransactionTypeFilter)}
-          buttons={[
-            { value: 'all', label: t('transactions.filterAll') },
-            { value: 'revenue', label: t('transactions.filterRevenue') },
-            { value: 'expense', label: t('transactions.filterExpense') },
+        <SegmentedControl
+          value={state.section}
+          onChange={(section) => patch({ section })}
+          segments={[
+            { value: 'revenue', label: t('transactions.revenue', { defaultValue: 'Revenue' }) },
+            { value: 'expenses', label: t('transactions.expenses', { defaultValue: 'Expenses' }) },
           ]}
         />
       </View>
-      <FlatList
-        data={filteredTransactions}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={refreshTransactions}
-            tintColor={theme.colors.primary}
-          />
-        }
-        ListEmptyComponent={
-          <EmptyState
-            message={t('property.noTransactions')}
-            icon="wallet"
-          />
-        }
-      />
+
+      {state.section === 'revenue' ? (
+        <RevenuePaymentPanel
+          renters={property.renters ?? []}
+          transactions={transactions}
+          propertyId={property.id}
+          onRecorded={refreshTransactions}
+          layout="single-year"
+          year={state.revYear}
+          onYearChange={(revYear) => patch({ revYear })}
+        />
+      ) : (
+        <ExpensePanel
+          transactions={transactions}
+          year={state.expYear}
+          onYearChange={(expYear) => patch({ expYear })}
+          month={state.expMonth}
+          onMonthChange={(expMonth) => patch({ expMonth })}
+          category={state.expCategory}
+          onCategoryChange={(expCategory) => patch({ expCategory })}
+        />
+      )}
     </View>
   );
 }
@@ -156,47 +105,6 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
-  },
-  listContent: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
-    gap: spacing.sm,
-  },
-  txCard: {
-    borderRadius: 12,
-    padding: spacing.md,
-    borderWidth: 1,
-  },
-  txHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  txType: {
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  txAmount: {
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  txMeta: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
-  },
-  txMetaText: {
-    fontSize: 12,
-  },
-  txFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  txFooterText: {
-    fontSize: 12,
+    paddingVertical: spacing.sm,
   },
 });

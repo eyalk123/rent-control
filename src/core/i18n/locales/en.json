@@ -521,6 +521,38 @@
     "filterAll": "All",
     "filterRevenue": "Revenues",
     "filterExpense": "Expenses",
+    "revenue": "Revenue",
+    "expenses": "Expenses",
+    "uncategorized": "Uncategorized",
+    "rentStatus": {
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "due": "Due now",
+      "future": "Not due yet"
+    },
+    "rentGrid": {
+      "summary": "{{collected}} collected of {{expected}}",
+      "outstanding": "{{count}} month outstanding",
+      "outstandingPlural": "{{count}} months outstanding",
+      "noLease": "No lease dates recorded, so there is nothing to track payments against.",
+      "noPropertyLinked": "This renter is not linked to a property, so rent cannot be recorded.",
+      "expectedWas": "expected {{amount}}",
+      "paidLate": "paid late",
+      "legendMismatch": "Amount differs from the lease",
+      "legendLate": "Paid after the due day"
+    },
+    "recordPayment": {
+      "title": "Record rent payment",
+      "confirm": "Record payment"
+    },
+    "expenseChart": {
+      "total": "Total",
+      "avgPerMonth": "Average / month",
+      "topCategory": "Biggest category",
+      "otherCategories": "Other",
+      "noExpenses": "No expenses recorded yet.",
+      "clearFilter": "Clear filter"
+    },
     "profit": "Profit",
     "loss": "Loss",
     "revenueLowercase": "revenue",

@@ -521,6 +521,38 @@
     "filterAll": "הכל",
     "filterRevenue": "הכנסות",
     "filterExpense": "הוצאות",
+    "revenue": "הכנסה",
+    "expenses": "הוצאות",
+    "uncategorized": "ללא קטגוריה",
+    "rentStatus": {
+      "paid": "שולם",
+      "overdue": "באיחור",
+      "due": "לתשלום עכשיו",
+      "future": "טרם הגיע מועד התשלום"
+    },
+    "rentGrid": {
+      "summary": "נגבו {{collected}} מתוך {{expected}}",
+      "outstanding": "חודש אחד לא שולם",
+      "outstandingPlural": "{{count}} חודשים לא שולמו",
+      "noLease": "לא הוזנו תאריכי חוזה, ולכן אין מול מה לעקוב אחר תשלומים.",
+      "noPropertyLinked": "הדייר אינו משויך לנכס, ולכן לא ניתן לרשום שכר דירה.",
+      "expectedWas": "צפוי {{amount}}",
+      "paidLate": "שולם באיחור",
+      "legendMismatch": "הסכום שונה מהחוזה",
+      "legendLate": "שולם אחרי מועד התשלום"
+    },
+    "recordPayment": {
+      "title": "רישום תשלום שכר דירה",
+      "confirm": "רשום תשלום"
+    },
+    "expenseChart": {
+      "total": "סה\"כ",
+      "avgPerMonth": "ממוצע לחודש",
+      "topCategory": "הקטגוריה הגדולה",
+      "otherCategories": "אחר",
+      "noExpenses": "טרם נרשמו הוצאות.",
+      "clearFilter": "נקה סינון"
+    },
     "profit": "רווח",
     "loss": "הפסד",
     "revenueLowercase": "הכנסות",

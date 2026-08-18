@@ -19,20 +19,13 @@ import {
 } from '@/src/features/notifications/templates';
 import { openWhatsApp, toWhatsAppNumber } from '@/src/shared/utils/whatsapp';
 import type { CpiChangeStage, NotificationItem } from '@/src/features/notifications/types';
-import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
 import { useTransactionSummaryContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { useAlert } from '@/src/core/context';
-import { normalizePaymentType } from '@/src/shared/constants/paymentMethods';
+import { currentMonthKey, markRentPaid } from '@/src/features/transactions/utils/markRentPaid';
 
 const PREVIEW_LIMIT = 2;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-
-function todayIso() { return new Date().toISOString().slice(0, 10); }
-function currentMonthFor() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-}
 
 function isoFromDaysOut(days: number): string {
   const d = new Date();
@@ -414,19 +407,20 @@ export function NeedsAttentionSection() {
     if (item._type !== 'overdue' || !item.property_id) return;
     setMarkPaidLoadingIds((prev) => new Set(prev).add(item.renter_id));
     try {
-      await createRevenueTransaction({
+      // Overdue candidates are only ever generated for the current month
+      // (`renter_repository.get_overdue_this_month`), so that is the month being paid for.
+      await markRentPaid({
         property_id: item.property_id,
         renter_id: item.renter_id,
         amount: item.monthly_amount,
-        date_of_payment: todayIso(),
-        month_for: currentMonthFor(),
-        payment_method: normalizePaymentType(item.payment_type),
+        monthFor: currentMonthKey(),
+        paymentType: item.payment_type,
       });
       await dismissNotification(item.notifId);
       setItems((prev) => prev.filter((i) => i.notifId !== item.notifId));
       await Promise.allSettled([refreshSummary(), refreshTransactions()]);
     } catch {
-      appAlert('Error', 'Failed to record payment. Please try again.');
+      appAlert(t('error.title'), t('error.saveTransactionFailed'));
     } finally {
       setMarkPaidLoadingIds((prev) => {
         const next = new Set(prev);
@@ -434,7 +428,7 @@ export function NeedsAttentionSection() {
         return next;
       });
     }
-  }, [refreshSummary, refreshTransactions, appAlert]);
+  }, [refreshSummary, refreshTransactions, appAlert, t]);
 
   // Opens WhatsApp with the message typed but unsent — the owner reads it and presses
   // send. See src/shared/utils/whatsapp.ts.
