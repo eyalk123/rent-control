@@ -22,6 +22,7 @@ import type {
 } from "@/src/shared/types";
 import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
 import { buildLeaseYears, isProjectedYear } from "@/src/shared/utils/leaseSchedule";
+import { addMonths, periodMonths } from "@/src/shared/types";
 import { formatDateFull } from "@/src/shared/utils/dates";
 import { Stepper, Icon } from "@/src/shared/components/ui";
 import { FormNumericField } from "./FormFields";
@@ -43,6 +44,8 @@ type LeaseYearRowValue = {
   amount?: string;
   type?: LeaseYearType;
   rule?: { mode: LeaseYearRuleMode; value: string };
+  /** Absent means twelve. Set by the steppers, never typed directly. */
+  months?: number;
 };
 
 /** Form rows -> the numeric model the schedule helpers work on. */
@@ -56,6 +59,9 @@ function toModel(rows: LeaseYearRowValue[]): LeaseYear[] {
     if (r?.rule && r.rule.mode !== "manual") {
       year.rule = { mode: r.rule.mode, value: Number(r.rule.value) || 0 };
     }
+    // Absent means twelve, so a full-year period never carries the field — which keeps
+    // an ordinary lease's payload identical to what it has always been.
+    if (r?.months && r.months < 12) year.months = r.months;
     return year;
   });
 }
@@ -70,7 +76,9 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
   const { language } = useLanguageContext();
 
   const contractStr = useWatch({ control, name: "contractTermYears" as any }) as string | undefined;
+  const contractMonthsStr = useWatch({ control, name: "contractTermMonths" as any }) as string | undefined;
   const optionStr = useWatch({ control, name: "optionYears" as any }) as string | undefined;
+  const optionMonthsStr = useWatch({ control, name: "optionTermMonths" as any }) as string | undefined;
   const baseRentStr = useWatch({ control, name: "baseRent" as any }) as string | undefined;
   const escMode =
     (useWatch({ control, name: "escalationMode" as any }) as RentEscalationMode | undefined) ?? "none";
@@ -111,7 +119,9 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
     const next = buildLeaseYears(
       {
         contractYears: Number(contractStr) || 0,
+        contractMonths: Number(contractMonthsStr) || 0,
         optionYears: Number(optionStr) || 0,
+        optionMonths: Number(optionMonthsStr) || 0,
         baseRent: Number(baseRentStr) || 0,
         escalationMode: escMode,
         escalationValue: Number(escValStr) || 0,
@@ -125,7 +135,10 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
     // still attached). Amount-only changes go through setValue on the leaf below — a replace()
     // there would tear down the rule inputs mid-keystroke and steal focus.
     const structureChanged =
-      next.length !== current.length || next.some((y, i) => y.type !== current[i]?.type);
+      next.length !== current.length ||
+      next.some(
+        (y, i) => y.type !== current[i]?.type || (y.months ?? 12) !== (current[i]?.months ?? 12),
+      );
     const staleRules = !isCustom && current.some((r) => r?.rule);
 
     if (structureChanged || staleRules) {
@@ -133,6 +146,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
         next.map((y, i) => ({
           amount: String(y.amount),
           type: y.type,
+          ...(y.months ? { months: y.months } : {}),
           // buildLeaseYears only returns a rule in custom mode, so this drops them on exit.
           ...(y.rule && current[i]?.rule ? { rule: current[i]!.rule } : {}),
         })) as any,
@@ -152,17 +166,28 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contractStr, optionStr, baseRentStr, escMode, escValStr, rulesKey, amountsKey]);
+  }, [
+    contractStr,
+    contractMonthsStr,
+    optionStr,
+    optionMonthsStr,
+    baseRentStr,
+    escMode,
+    escValStr,
+    rulesKey,
+    amountsKey,
+  ]);
 
   /** Rows in the numeric model, for deriving which years render as projections. */
   const modelRows = toModel(leaseYears);
 
-  const contractCount = Number(contractStr) || 0;
+  // Summed from the periods rather than the year stepper, so a short tail counts — and
+  // so the option periods do too, which the old arithmetic silently dropped.
   let endDate: Date | null = null;
-  if (leaseStart && contractCount > 0) {
+  if (leaseStart && modelRows.length > 0) {
     const s = new Date(leaseStart);
     if (!isNaN(s.getTime())) {
-      endDate = new Date(s.getFullYear() + contractCount, s.getMonth(), s.getDate());
+      endDate = addMonths(s, modelRows.reduce((sum, y) => sum + periodMonths(y), 0));
     }
   }
 
@@ -191,6 +216,21 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
 
       <Controller
         control={control}
+        name={"contractTermMonths" as Path<TFieldValues>}
+        render={({ field }) => (
+          <Stepper
+            label={t("renter.extraMonths")}
+            unitLabel={t("renter.monthsUnit")}
+            min={0}
+            max={11}
+            value={Number(field.value) || 0}
+            onChange={(v) => field.onChange(String(v))}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
         name={"optionYears" as Path<TFieldValues>}
         render={({ field }) => (
           <Stepper
@@ -198,6 +238,21 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
             unitLabel={t("renter.yearsUnit")}
             min={0}
             max={10}
+            value={Number(field.value) || 0}
+            onChange={(v) => field.onChange(String(v))}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name={"optionTermMonths" as Path<TFieldValues>}
+        render={({ field }) => (
+          <Stepper
+            label={t("renter.extraMonths")}
+            unitLabel={t("renter.monthsUnit")}
+            min={0}
+            max={11}
             value={Number(field.value) || 0}
             onChange={(v) => field.onChange(String(v))}
           />
@@ -269,10 +324,10 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
 
                       return (
                         <LeaseYearRow
-                          label={getLeaseYearLabel(leaseStart, index)}
+                          label={getLeaseYearLabel(leaseStart, modelRows, index, language)}
                           amount={(amountField.value as string) ?? ""}
                           type={yearType}
-                          isCurrent={isCurrentLeaseYear(leaseStart, index)}
+                          isCurrent={isCurrentLeaseYear(leaseStart, modelRows, index)}
                           projected={isProjectedYear(modelRows, index)}
                           onAmountBlur={amountField.onBlur}
                           onAmountChange={(v) => {
@@ -316,10 +371,10 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
             ) : (
               <LeaseYearRow
                 key={index}
-                label={getLeaseYearLabel(leaseStart, index)}
+                label={getLeaseYearLabel(leaseStart, modelRows, index, language)}
                 amount={String(row?.amount ?? "")}
                 type={yearType}
-                isCurrent={isCurrentLeaseYear(leaseStart, index)}
+                isCurrent={isCurrentLeaseYear(leaseStart, modelRows, index)}
                 projected={isCpiProjected}
                 rowDirection={rowDirection}
               />

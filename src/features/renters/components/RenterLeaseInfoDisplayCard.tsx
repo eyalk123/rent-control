@@ -15,7 +15,7 @@ interface RenterLeaseInfoDisplayCardProps {
 }
 
 export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterLeaseInfoDisplayCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
@@ -35,7 +35,7 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
           >
             {[...renter.lease_years].reverse().map((year, reversedIdx) => {
               const idx = renter.lease_years.length - 1 - reversedIdx;
-              const isCurrent = isCurrentLeaseYear(renter.lease_start, idx);
+              const isCurrent = isCurrentLeaseYear(renter.lease_start, renter.lease_years, idx);
               return (
                 <View
                   key={idx}
@@ -58,7 +58,7 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
                           fontWeight: isCurrent ? '700' : '400',
                         }}
                       >
-                        {getLeaseYearLabel(renter.lease_start, idx)}
+                        {getLeaseYearLabel(renter.lease_start, renter.lease_years, idx, language)}
                       </Text>
                       <Text
                         variant="bodyMedium"

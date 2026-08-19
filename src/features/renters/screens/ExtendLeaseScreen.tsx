@@ -24,7 +24,7 @@ import {
   materializeRuledYears,
   reconstructIntentFromLeaseYears,
 } from "@/src/shared/utils/leaseSchedule";
-import { getLeaseEndDate, type LeaseYear, type LeaseYearRuleMode, type LeaseYearType, type RentEscalationMode, type Renter } from "@/src/shared/types";
+import { getLeaseEndDate, periodMonths, type LeaseYear, type LeaseYearRuleMode, type LeaseYearType, type RentEscalationMode, type Renter } from "@/src/shared/types";
 import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
 import { formatDateFull } from "@/src/shared/utils/dates";
 
@@ -33,6 +33,8 @@ type Row = {
   type: LeaseYearType;
   /** Custom mode only: how this year derives from the previous one. Absent = manual. */
   rule?: { mode: LeaseYearRuleMode; value: string };
+  /** Absent means twelve. Comes from the stepper or the saved schedule, never typed. */
+  months?: number;
 };
 
 /**
@@ -43,6 +45,8 @@ type Row = {
 function toModel(rows: Row[], withRules = true): LeaseYear[] {
   return rows.map((r) => {
     const year: LeaseYear = { amount: Number(r.amount) || 0, type: r.type };
+    // Absent means twelve, so only a short period carries it.
+    if (r.months && r.months < 12) year.months = r.months;
     if (withRules && r.rule && r.rule.mode !== "manual") {
       year.rule = { mode: r.rule.mode, value: Number(r.rule.value) || 0 };
     }
@@ -86,7 +90,9 @@ export function ExtendLeaseScreen() {
   const [mode, setMode] = React.useState<RentEscalationMode>("none");
   const [value, setValue] = React.useState("");
   const [addCount, setAddCount] = React.useState(0);
+  const [addMonths, setAddMonths] = React.useState(0);
   const [addOptionCount, setAddOptionCount] = React.useState(0);
+  const [addOptionMonths, setAddOptionMonths] = React.useState(0);
 
   const initialSnapshot = React.useRef("");
   const savedRef = React.useRef(false);
@@ -154,14 +160,17 @@ export function ExtendLeaseScreen() {
         mode,
         Number(value) || 0,
         mode === "custom" ? toModel(prev) : undefined,
+        addMonths,
+        addOptionMonths,
       );
       return next.map((y, i) => ({
         amount: mode === "custom" && prev[i] ? prev[i].amount : String(y.amount),
         type: y.type,
+        ...(y.months ? { months: y.months } : {}),
         ...(mode === "custom" && prev[i]?.rule ? { rule: prev[i].rule } : {}),
       }));
     });
-  }, [addCount, addOptionCount, mode, value, lastExistingAmount]);
+  }, [addCount, addMonths, addOptionCount, addOptionMonths, mode, value, lastExistingAmount]);
 
   // The added block prices off the last existing year, so in custom mode the two halves have
   // to be walked together and the added tail taken from the result.
@@ -181,6 +190,12 @@ export function ExtendLeaseScreen() {
     isCustom && row.rule && row.rule.mode !== "manual" ? String(walked?.amount ?? 0) : row.amount;
 
   const orderInvalid = React.useMemo(() => hasContractAfterOptionYear(allYears), [allYears]);
+  const contractTermMonths = allYears
+    .filter((y) => y.type === "contract")
+    .reduce((sum, y) => sum + periodMonths(y), 0);
+  const optionTermMonths = allYears
+    .filter((y) => y.type === "option")
+    .reduce((sum, y) => sum + periodMonths(y), 0);
   // The renter form gets this from Zod; this screen has no schema, so it gates Save by hand.
   const ruleIncomplete = React.useMemo(
     () => isCustom && ruleValueMissing([...existingRows, ...addedRows]),
@@ -253,8 +268,13 @@ export function ExtendLeaseScreen() {
     try {
       await updateRenter(renter.id, {
         lease_years: allYears,
-        contract_term_years: allYears.filter((y) => y.type === "contract").length,
-        option_years: allYears.filter((y) => y.type === "option").length,
+        // Whole years plus a remainder, derived from the periods' real lengths —
+        // counting rows would record a 4-month tail as another whole year and push the
+        // lease end date out by eight months on the next edit.
+        contract_term_years: Math.floor(contractTermMonths / 12),
+        contract_term_months: contractTermMonths % 12,
+        option_years: Math.floor(optionTermMonths / 12),
+        option_term_months: optionTermMonths % 12,
         rent_escalation_mode: mode,
         // Only percent/fixed carry a step; none/cpi/custom must not keep a stale one.
         rent_escalation_value: (mode === "percent" || mode === "fixed") && value ? Number(value) : null,
@@ -306,6 +326,16 @@ export function ExtendLeaseScreen() {
                 value={addCount}
                 onChange={setAddCount}
               />
+              {/* A few months is the common holdover, and the reason this stepper
+                  exists: extending by a whole year is often not what was agreed. */}
+              <Stepper
+                label={t("renter.extraMonths")}
+                unitLabel={t("renter.monthsUnit")}
+                min={0}
+                max={11}
+                value={addMonths}
+                onChange={setAddMonths}
+              />
               <Stepper
                 label={t("renter.optionYearsToAdd")}
                 unitLabel={t("renter.yearsUnit")}
@@ -313,6 +343,14 @@ export function ExtendLeaseScreen() {
                 max={10}
                 value={addOptionCount}
                 onChange={setAddOptionCount}
+              />
+              <Stepper
+                label={t("renter.extraMonths")}
+                unitLabel={t("renter.monthsUnit")}
+                min={0}
+                max={11}
+                value={addOptionMonths}
+                onChange={setAddOptionMonths}
               />
             </View>
 
@@ -348,10 +386,10 @@ export function ExtendLeaseScreen() {
               {existingRows.map((row, index) => (
                 <LeaseYearRow
                   key={`existing-${index}`}
-                  label={getLeaseYearLabel(leaseStart, index)}
+                  label={getLeaseYearLabel(leaseStart, allYears, index, language)}
                   amount={displayAmount(row, existingYears[index])}
                   type={row.type}
-                  isCurrent={isCurrentLeaseYear(leaseStart, index)}
+                  isCurrent={isCurrentLeaseYear(leaseStart, allYears, index)}
                   onAmountChange={(v) => updateAmount(index, v)}
                   onTypeToggle={() => toggleType(index)}
                   onRemove={() => removeRow(index)}
@@ -375,7 +413,7 @@ export function ExtendLeaseScreen() {
                 return (
                   <LeaseYearRow
                     key={`added-${j}`}
-                    label={getLeaseYearLabel(leaseStart, absoluteIndex)}
+                    label={getLeaseYearLabel(leaseStart, allYears, absoluteIndex, language)}
                     amount={displayAmount(row, addedYears[j])}
                     type={row.type}
                     onAmountChange={isCustom ? (v) => updateAddedAmount(j, v) : undefined}

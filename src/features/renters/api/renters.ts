@@ -32,7 +32,9 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     full_contract_url,
     id_image_url,
     contract_term_years,
+    contract_term_months,
     option_years,
+    option_term_months,
     base_rent,
     rent_escalation_mode,
     rent_escalation_value,
@@ -47,7 +49,9 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     lease_start,
   };
   if (contract_term_years !== undefined) out.contract_term_years = contract_term_years;
+  if (contract_term_months !== undefined) out.contract_term_months = contract_term_months;
   if (option_years !== undefined) out.option_years = option_years;
+  if (option_term_months !== undefined) out.option_term_months = option_term_months;
   if (base_rent !== undefined) out.base_rent = base_rent;
   if (rent_escalation_mode !== undefined) out.rent_escalation_mode = rent_escalation_mode;
   if (rent_escalation_value !== undefined) out.rent_escalation_value = rent_escalation_value;
@@ -80,7 +84,9 @@ function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
     'full_contract_url',
     'id_image_url',
     'contract_term_years',
+    'contract_term_months',
     'option_years',
+    'option_term_months',
     'base_rent',
     'rent_escalation_mode',
     'rent_escalation_value',

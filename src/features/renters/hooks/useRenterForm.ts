@@ -111,7 +111,9 @@ export function useRenterForm({
       insuranceType: "",
       insuranceAmount: "",
       contractTermYears: "",
+      contractTermMonths: "",
       optionYears: "",
+      optionTermMonths: "",
       baseRent: "",
       escalationMode: "none",
       escalationValue: "",
@@ -162,11 +164,21 @@ export function useRenterForm({
         const lease_years = renter.lease_years ?? [];
         // Prefer the structured intent the backend persisted; otherwise infer it
         // from the materialized lease_years so the builder re-opens sensibly.
+        // The stored intent records whole years only; the odd months live in the
+        // schedule, so they are always recovered from it. Taking them from the stored
+        // fields alone would drop a short tail on the next save.
+        const fromSchedule = reconstructIntentFromLeaseYears(lease_years);
         const intent =
           renter.contract_term_years != null
             ? {
                 contractTermYears: String(renter.contract_term_years ?? 0),
+                contractTermMonths: String(
+                  renter.contract_term_months ?? fromSchedule.contractTermMonths,
+                ),
                 optionYears: String(renter.option_years ?? 0),
+                optionTermMonths: String(
+                  renter.option_term_months ?? fromSchedule.optionTermMonths,
+                ),
                 baseRent:
                   renter.base_rent != null
                     ? String(renter.base_rent)
@@ -179,18 +191,19 @@ export function useRenterForm({
                     ? String(renter.rent_escalation_value)
                     : "",
               }
-            : (() => {
-                const r = reconstructIntentFromLeaseYears(lease_years);
-                return {
-                  contractTermYears: r.contractTermYears
-                    ? String(r.contractTermYears)
-                    : "",
-                  optionYears: r.optionYears ? String(r.optionYears) : "",
-                  baseRent: r.baseRent ? String(r.baseRent) : "",
-                  escalationMode: r.escalationMode,
-                  escalationValue: "",
-                };
-              })();
+            : {
+                contractTermYears: fromSchedule.contractTermYears
+                  ? String(fromSchedule.contractTermYears)
+                  : "",
+                contractTermMonths: String(fromSchedule.contractTermMonths),
+                optionYears: fromSchedule.optionYears
+                  ? String(fromSchedule.optionYears)
+                  : "",
+                optionTermMonths: String(fromSchedule.optionTermMonths),
+                baseRent: fromSchedule.baseRent ? String(fromSchedule.baseRent) : "",
+                escalationMode: fromSchedule.escalationMode,
+                escalationValue: "",
+              };
         const existingReset: DefaultValues<RenterFormValues> = {
           firstName: renter.first_name ?? "",
           lastName: renter.last_name ?? "",
@@ -217,13 +230,16 @@ export function useRenterForm({
               ? String(renter.insurance_amount)
               : "",
           contractTermYears: intent.contractTermYears,
+          contractTermMonths: intent.contractTermMonths,
           optionYears: intent.optionYears,
+          optionTermMonths: intent.optionTermMonths,
           baseRent: intent.baseRent,
           escalationMode: intent.escalationMode,
           escalationValue: intent.escalationValue,
           leaseYears: lease_years.map((y) => ({
             amount: String(y.amount),
             type: y.type,
+            ...(y.months != null ? { months: y.months } : {}),
             // Rules round-trip as form strings; an absent rule stays absent (= manual).
             ...(y.rule
               ? {
@@ -334,7 +350,9 @@ export function useRenterForm({
     };
     const leaseIntent: LeaseTermIntent = {
       contract_term_years: toNumOrNull(values.contractTermYears),
+      contract_term_months: toNumOrNull(values.contractTermMonths),
       option_years: toNumOrNull(values.optionYears),
+      option_term_months: toNumOrNull(values.optionTermMonths),
       base_rent: toNumOrNull(values.baseRent),
       rent_escalation_mode: values.escalationMode ?? "none",
       rent_escalation_value: toNumOrNull(values.escalationValue),
