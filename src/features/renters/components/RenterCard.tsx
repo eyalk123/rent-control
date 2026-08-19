@@ -5,6 +5,7 @@ import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Renter } from '@/src/shared/types';
 import { getLeaseEndDate } from '@/src/shared/types';
+import { getEffectiveLeaseEnd, getRenterLifecycle } from '@/src/shared/utils/renterStatus';
 import { formatDateFull, getLeaseUrgency } from '@/src/shared/utils/dates';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { lightColors, darkColors } from '@/src/core/theme';
@@ -23,7 +24,11 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const leaseEndDate = getLeaseEndDate(renter);
+  // The badge used to be hard-coded green "Active" for every renter, including leases
+  // that ran out years ago. It follows the lifecycle now.
+  const lifecycle = getRenterLifecycle(renter);
+  const ended = lifecycle === 'ended';
+  const leaseEndDate = getEffectiveLeaseEnd(renter) ?? getLeaseEndDate(renter);
   const leaseUrgency = useMemo(() => getLeaseUrgency(leaseEndDate), [leaseEndDate]);
   const leaseEndLabel = leaseEndDate
     ? t('renter.leaseEnd', { date: formatDateFull(leaseEndDate, language) })
@@ -57,9 +62,14 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
             >
               {renter.property ? `${renter.property.address}${formatFloorApartment(renter.property, t)}` : t('renter.unassigned')}
             </Text>
-            <View style={[styles.badge, { backgroundColor: colors.success }]}>
+            <View
+              style={[
+                styles.badge,
+                { backgroundColor: ended ? colors.textSecondary : colors.success },
+              ]}
+            >
               <Text variant="labelSmall" style={[styles.badgeText, { color: colors.onPrimary }]}>
-                {t('renter.status.active')}
+                {t(ended ? 'renter.status.ended' : 'renter.status.active')}
               </Text>
             </View>
             {leaseEndLabel && (

@@ -7,7 +7,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePropertyContext, useRenterContext, useRtlLabelStyle } from '@/src/context';
-import { getLeaseEndDate } from '@/src/shared/types';
 import {
   AppFab,
   AddOptionsDialog,
@@ -23,10 +22,15 @@ import {
 import { RenterCard } from '@/src/features/renters/components/RenterCard';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { deleteRenter } from '@/src/features/renters/api/renters';
+import { getEffectiveLeaseEnd, getRenterLifecycle } from '@/src/shared/utils/renterStatus';
 import { spacing } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 
-type ActiveSheet = 'property' | 'renter' | 'owner' | null;
+type ActiveSheet = 'property' | 'renter' | 'owner' | 'lifecycle' | null;
+
+/** Which slice of the lifecycle the list is showing. Current is the default: past
+ * tenants stay in the database forever, but they shouldn't crowd out the live ones. */
+type LifecycleFilter = 'current' | 'ended' | 'all';
 
 export function RentersListScreen() {
   const { t } = useTranslation();
@@ -45,6 +49,7 @@ export function RentersListScreen() {
   const [propertyFilter, setPropertyFilter] = useState<number | null>(null);
   const [renterFilter, setRenterFilter] = useState<number | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
+  const [lifecycleFilter, setLifecycleFilter] = useState<LifecycleFilter>('current');
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
   const [addChooserOpen, setAddChooserOpen] = useState(false);
 
@@ -98,6 +103,9 @@ export function RentersListScreen() {
 
   const filteredRenters = useMemo(() => {
     let list = renters.filter((renter) => {
+      const ended = getRenterLifecycle(renter) === 'ended';
+      if (lifecycleFilter === 'current' && ended) return false;
+      if (lifecycleFilter === 'ended' && !ended) return false;
       if (propertyFilter !== null && renter.property_id !== propertyFilter) return false;
       if (renterFilter !== null && renter.id !== renterFilter) return false;
       if (ownerFilter !== null) {
@@ -108,18 +116,39 @@ export function RentersListScreen() {
       return true;
     });
     list = [...list].sort((a, b) => {
-      const da = getLeaseEndDate(a);
-      const db = getLeaseEndDate(b);
+      const da = getEffectiveLeaseEnd(a);
+      const db = getEffectiveLeaseEnd(b);
       if (da == null && db == null) return 0;
       if (da == null) return 1;
       if (db == null) return -1;
       return da.getTime() - db.getTime();
     });
     return list;
-  }, [renters, propertyFilter, renterFilter, ownerFilter, ownerByPropertyId]);
+  }, [renters, lifecycleFilter, propertyFilter, renterFilter, ownerFilter, ownerByPropertyId]);
+
+  const lifecycleOptions = useMemo(
+    () => [
+      { id: 'current', label: t('renter.filterCurrent') },
+      { id: 'ended', label: t('renter.filterEnded') },
+      { id: 'all', label: t('renter.filterAllLeases') },
+    ],
+    [t],
+  );
 
   const filterChips = useMemo<FilterChip[]>(
     () => [
+      {
+        key: 'lifecycle',
+        label: t('renter.filterLease'),
+        // Only shown as an active pill when it differs from the default, so the common
+        // case doesn't carry a pill that says "the usual".
+        selectedLabel:
+          lifecycleFilter === 'current'
+            ? null
+            : (lifecycleOptions.find((o) => o.id === lifecycleFilter)?.label ?? null),
+        onPress: () => setActiveSheet('lifecycle'),
+        onClear: () => setLifecycleFilter('current'),
+      },
       {
         key: 'property',
         label: t('filters.property', { defaultValue: 'Property' }),
@@ -142,7 +171,7 @@ export function RentersListScreen() {
         onClear: () => setOwnerFilter(null),
       },
     ],
-    [t, propertyOptions, renterOptions, propertyFilter, renterFilter, ownerFilter],
+    [t, propertyOptions, renterOptions, lifecycleOptions, propertyFilter, renterFilter, ownerFilter, lifecycleFilter],
   );
 
   const allSelected =
@@ -350,6 +379,14 @@ export function RentersListScreen() {
         onManual={() => { setAddChooserOpen(false); handleAddPress(); }}
         onScan={() => { setAddChooserOpen(false); handleScanPress(); }}
         onDismiss={() => setAddChooserOpen(false)}
+      />
+      <FilterBottomSheet
+        visible={activeSheet === 'lifecycle'}
+        onDismiss={() => setActiveSheet(null)}
+        title={t('renter.filterLease')}
+        options={lifecycleOptions}
+        selectedId={lifecycleFilter}
+        onSelect={(id) => setLifecycleFilter((id as LifecycleFilter | null) ?? 'current')}
       />
       <FilterBottomSheet
         visible={activeSheet === 'property'}

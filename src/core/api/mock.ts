@@ -464,6 +464,27 @@ export const mockRentersApi = {
     };
     return mockRentersApi.getRenterById(id);
   },
+  terminateLease: async (
+    id: number,
+    data: { terminated_on: string; reason?: string | null }
+  ): Promise<Renter> => {
+    const idx = mockRenters.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error('Renter not found');
+    // Mirrors the server: only the two termination columns move. lease_years and
+    // cpi_base_index are left exactly as they are.
+    mockRenters[idx] = {
+      ...mockRenters[idx],
+      terminated_on: data.terminated_on,
+      termination_reason: data.reason ?? null,
+    };
+    return mockRentersApi.getRenterById(id);
+  },
+  undoTermination: async (id: number): Promise<Renter> => {
+    const idx = mockRenters.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error('Renter not found');
+    mockRenters[idx] = { ...mockRenters[idx], terminated_on: null, termination_reason: null };
+    return mockRentersApi.getRenterById(id);
+  },
   deleteRenter: async (id: number): Promise<void> => {
     mockRenters = mockRenters.filter((x) => x.id !== id);
   },

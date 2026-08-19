@@ -1,12 +1,16 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
-import { IconButton, Text, useTheme } from 'react-native-paper';
+import { Button, IconButton, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getRenterById } from '@/src/features/renters/api/renters';
+import {
+  getRenterById,
+  terminateLease,
+  undoTermination,
+} from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Renter } from '@/src/shared/types';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
@@ -17,6 +21,9 @@ import {
 } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
+import { EndLeaseDialog } from '@/src/features/renters/components/EndLeaseDialog';
+import { getRenterLifecycle, isTerminated } from '@/src/shared/utils/renterStatus';
+import { formatDateFull } from '@/src/shared/utils/dates';
 import { RenterInfoTab } from '@/src/features/renters/components/RenterInfoTab';
 import { RenterPropertyTab } from '@/src/features/renters/components/RenterPropertyTab';
 import { RenterTransactionsTab } from '@/src/features/renters/components/RenterTransactionsTab';
@@ -28,7 +35,7 @@ import {
 type TabKey = 'info' | 'property' | 'transactions';
 
 export function RenterDetailScreen() {
-  const { t } = useTranslation();
+  const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const colors = theme.dark ? darkColors : lightColors;
@@ -41,6 +48,8 @@ export function RenterDetailScreen() {
   // Owned here, not in the tab: the tabs render conditionally, so leaving Transactions
   // unmounts the panel and would otherwise discard the section and its filters.
   const [txTabState, setTxTabState] = useState<TransactionsTabState>(initialTransactionsTabState);
+  const [endLeaseOpen, setEndLeaseOpen] = useState(false);
+  const [lifecyclePending, setLifecyclePending] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -80,6 +89,33 @@ export function RenterDetailScreen() {
     }
   };
 
+  const handleEndLease = async (terminatedOn: string, reason: string | null) => {
+    if (!renter) return;
+    setLifecyclePending(true);
+    try {
+      // The response carries the updated renter, so the screen refreshes from it rather
+      // than re-fetching.
+      setRenter(await terminateLease(renter.id, { terminated_on: terminatedOn, reason }));
+      setEndLeaseOpen(false);
+    } catch (err) {
+      setError(getApiErrorMessage(err, t('error.saveFailed')));
+    } finally {
+      setLifecyclePending(false);
+    }
+  };
+
+  const handleReopenLease = async () => {
+    if (!renter) return;
+    setLifecyclePending(true);
+    try {
+      setRenter(await undoTermination(renter.id));
+    } catch (err) {
+      setError(getApiErrorMessage(err, t('error.saveFailed')));
+    } finally {
+      setLifecyclePending(false);
+    }
+  };
+
   if (loading) {
     return (
       <ScreenContainer>
@@ -98,6 +134,9 @@ export function RenterDetailScreen() {
       </ScreenContainer>
     );
   }
+
+  const ended = getRenterLifecycle(renter) === 'ended';
+  const terminated = isTerminated(renter);
 
   return (
     <ScreenContainer edges={['left', 'right']}>
@@ -124,14 +163,28 @@ export function RenterDetailScreen() {
               onPress={handleEdit}
               accessibilityLabel={t('renter.editRenter')}
             />
-            <IconButton
-              icon="calendar-plus"
-              iconColor="#FFF"
-              size={20}
-              style={[styles.extendIcon, { backgroundColor: colors.primary }]}
-              onPress={handleExtend}
-              accessibilityLabel={t('renter.extendLease')}
-            />
+            {/* An ended lease has nothing left to extend; Edit stays, since a past
+                tenancy's record can still need correcting. */}
+            {!ended && (
+              <IconButton
+                icon="calendar-plus"
+                iconColor="#FFF"
+                size={20}
+                style={[styles.extendIcon, { backgroundColor: colors.primary }]}
+                onPress={handleExtend}
+                accessibilityLabel={t('renter.extendLease')}
+              />
+            )}
+            {!ended && (
+              <IconButton
+                icon="calendar-remove"
+                iconColor="#FFF"
+                size={20}
+                style={[styles.endLeaseIcon, { backgroundColor: colors.primary }]}
+                onPress={() => setEndLeaseOpen(true)}
+                accessibilityLabel={t('renter.endLease')}
+              />
+            )}
           </View>
 
           <View style={styles.nameRow}>
@@ -148,6 +201,40 @@ export function RenterDetailScreen() {
               {renter.property ? `${renter.property.address}${formatFloorApartment(renter.property, t)}` : t('renter.unassigned')}
             </Text>
           </View>
+
+          {ended && (
+            <View
+              style={[
+                styles.endedBanner,
+                { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
+              ]}
+            >
+              <View style={styles.endedBannerText}>
+                <Text variant="labelLarge" style={{ color: colors.textPrimary }}>
+                  {terminated && renter.terminated_on
+                    ? t('renter.terminatedLease', {
+                        date: formatDateFull(new Date(renter.terminated_on), language),
+                      })
+                    : t('renter.endedLeaseShort')}
+                </Text>
+                {!!renter.termination_reason && (
+                  <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
+                    {t('renter.terminatedReason', { reason: renter.termination_reason })}
+                  </Text>
+                )}
+              </View>
+              {terminated && (
+                <Button
+                  mode="outlined"
+                  compact
+                  disabled={lifecyclePending}
+                  onPress={handleReopenLease}
+                >
+                  {t('renter.reopenLease')}
+                </Button>
+              )}
+            </View>
+          )}
 
           {/* Tab bar */}
           <View style={[styles.tabBar, { backgroundColor: colors.inputBackground }]}>
@@ -194,11 +281,41 @@ export function RenterDetailScreen() {
           )}
         </View>
       </View>
+      <EndLeaseDialog
+        visible={endLeaseOpen}
+        renter={renter}
+        loading={lifecyclePending}
+        onConfirm={handleEndLease}
+        onDismiss={() => setEndLeaseOpen(false)}
+      />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  endedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderRadius: 12,
+  },
+  endedBannerText: {
+    flex: 1,
+    gap: 2,
+  },
+  // Sits immediately inboard of the extend button, matching its physical (not
+  // logical) positioning so the two stay a pair in both directions.
+  endLeaseIcon: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    right: spacing.sm + 44,
+    margin: 0,
+  },
   container: {
     flex: 1,
   },
