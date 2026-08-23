@@ -57,3 +57,5 @@ app-example
 .emulator-metro*.log
 .emulator-emu*.log
 .emulator-metro-tmp-*/
+# ad-hoc logs from a second agent session driving its own emulator/Metro
+.agent*-preview.log
