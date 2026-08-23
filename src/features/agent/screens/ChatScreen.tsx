@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { IconButton, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { EmptyState, ScreenContainer } from '@/src/shared/components/ui';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { useRtlLabelStyle } from '@/src/context';
@@ -16,6 +17,11 @@ export function ChatScreen() {
   const router = useRouter();
   const rtlLabelStyle = useRtlLabelStyle();
   const { enabled, statusLoading, newChat } = useAgentChat();
+  // Android needs a KeyboardAvoidingView behavior too, not just iOS: `edgeToEdgeEnabled`
+  // (app.json) stops the window resizing for the keyboard, so the manifest's `adjustResize`
+  // no longer moves anything and the composer ends up hidden behind the keyboard. The offset
+  // is the tab bar, which sits below this screen and would otherwise be double-counted.
+  const tabBarHeight = useBottomTabBarHeight();
 
   return (
     <ScreenContainer edges={['top', 'left', 'right']}>
@@ -55,7 +61,8 @@ export function ChatScreen() {
       ) : (
         <KeyboardAvoidingView
           style={styles.filler}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? tabBarHeight : 0}
         >
           <MessageList />
           <Composer />

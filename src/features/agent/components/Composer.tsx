@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Keyboard, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconButton, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useLanguageContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
@@ -14,6 +15,26 @@ export function Composer() {
   const rtlInputStyle = useRtlInputStyle();
   const rtlPlaceholder = useRtlPlaceholder();
   const { send, stop, status } = useAgentChat();
+  // ChatScreen's ScreenContainer omits the bottom edge (like every other tab screen), so the
+  // bar has to add the gesture-bar inset itself or it sits flush against it — but only while
+  // the keyboard is down, since the keyboard covers the gesture bar and the inset would
+  // otherwise leave a gap between the two. Same listener pattern as FilterBottomSheet.
+  const insets = useSafeAreaInsets();
+  const [keyboardUp, setKeyboardUp] = useState(false);
+  useEffect(() => {
+    const shown = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setKeyboardUp(true),
+    );
+    const hidden = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardUp(false),
+    );
+    return () => {
+      shown.remove();
+      hidden.remove();
+    };
+  }, []);
   const [text, setText] = useState('');
   const streaming = status === 'streaming';
   const canSend = !!text.trim();
@@ -29,7 +50,11 @@ export function Composer() {
     <View
       style={[
         styles.bar,
-        { backgroundColor: theme.colors.surface, borderTopColor: colors.outline },
+        {
+          backgroundColor: theme.colors.surface,
+          borderTopColor: colors.outline,
+          paddingBottom: spacing.sm + (keyboardUp ? 0 : insets.bottom),
+        },
       ]}
     >
       {/* Plain RN TextInput, like every other input in the app (src/shared/components/form) —
