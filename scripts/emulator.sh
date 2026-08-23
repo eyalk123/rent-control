@@ -13,12 +13,14 @@
 # Two agents can drive two emulators in parallel from this one checkout. Give the second one
 # its own emulator console port and its own Metro port; everything else keys off those:
 #
-#   EMU_PORT=5556 PORT=8084 EMU_FLAGS=-read-only ./scripts/emulator.sh preview
+#   AVD=rent_control_dev2 EMU_PORT=5556 PORT=8084 ./scripts/emulator.sh preview
 #
-# `-read-only` is what lets a second instance boot off the *same* AVD (the AVD is otherwise
-# locked by the first). It runs on a throwaway overlay, so that instance loses its app install
-# when it exits and needs `build` again on the next boot. To avoid that, create a second AVD
-# and pass `AVD=` instead. Budget ~4G RAM per emulator plus ~1.4G per Metro.
+# Each instance needs its OWN AVD. `-read-only` (via EMU_FLAGS) also allows sharing one AVD,
+# but only if *every* running instance has the flag — starting one emulator normally takes an
+# exclusive lock, and a later `-read-only` one dies with "Another emulator instance is
+# running". Read-only instances also run on a throwaway overlay and lose their app install on
+# exit, so a second AVD is simply better. `rent_control_dev2` exists for this.
+# Budget ~4G RAM per emulator plus ~1.4G per Metro; ~3 agents fit in 32G with Chrome closed.
 #
 # `build` is the one verb that must NOT run in two agents at once from this checkout — Gradle
 # locks the build dir. Build once, then `adb install -r` the APK to each emulator with

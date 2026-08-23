@@ -92,11 +92,15 @@ export function Composer() {
         onChangeText={setText}
         placeholder={rtlPlaceholder(t('agent.placeholder'))}
         multiline
+        maxLength={MAX_MESSAGE_CHARS}
+        accessibilityLabel={t('agent.placeholder')}
       />
       {streaming ? (
         <IconButton
           mode="contained"
           icon="stop"
+          hitSlop={8}
+          style={styles.action}
           containerColor={colors.accent}
           iconColor={colors.accentFg}
           accessibilityLabel={t('agent.stop')}
@@ -106,6 +110,8 @@ export function Composer() {
         <IconButton
           mode="contained"
           icon="send"
+          hitSlop={8}
+          style={styles.action}
           containerColor={canSend ? colors.accent : theme.colors.surfaceVariant}
           iconColor={canSend ? colors.accentFg : colors.placeholder}
           accessibilityLabel={t('agent.send')}
@@ -136,6 +142,13 @@ const styles = StyleSheet.create({
     // inherits the RTL paragraph direction and renders as "4000 / 3853", reading as though
     // the count and the limit had swapped places. Pin it LTR.
     writingDirection: 'ltr',
+  },
+  action: {
+    // 48dp for real: hitSlop alone leaves the view's bounds — what accessibility services
+    // report — at Paper's default 40dp.
+    width: 48,
+    height: 48,
+    margin: 0,
   },
   input: {
     flex: 1,

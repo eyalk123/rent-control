@@ -11,6 +11,9 @@ export function ToolActivity({ name }: { name: string }) {
   const colors = theme.dark ? darkColors : lightColors;
   return (
     <View
+      accessible
+      accessibilityLiveRegion="polite"
+      accessibilityLabel={t([`agent.tool.${name}`, 'agent.tool.default'])}
       style={[
         styles.pill,
         { backgroundColor: theme.colors.surface, borderColor: colors.outline },

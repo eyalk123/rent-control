@@ -37,6 +37,9 @@
     "errorUnavailable": "The assistant isn't available right now. Please try again later.",
     "errorTimeout": "The answer stopped coming through. You can try again.",
     "statusFailed": "Couldn't check whether the assistant is available.",
+    "you": "You",
+    "typing": "The assistant is replying",
+    "jumpToLatest": "Jump to latest",
     "starters": [
       "Who hasn't paid this month?",
       "How much did I earn this year?",

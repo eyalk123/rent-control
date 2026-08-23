@@ -39,6 +39,7 @@ export function ChatScreen() {
               icon="plus"
               size={ICON_MD}
               style={styles.action}
+              hitSlop={8}
               accessibilityLabel={t('agent.newChat')}
               onPress={newChat}
             />
@@ -46,10 +47,11 @@ export function ChatScreen() {
               icon="history"
               size={ICON_MD}
               style={styles.action}
+              hitSlop={8}
               accessibilityLabel={t('agent.history')}
               onPress={() => router.push('/(tabs)/chat/history' as any)}
             />
-            <SettingsGearButton />
+            <SettingsGearButton style={styles.action} />
           </View>
         </View>
       </View>
@@ -102,7 +104,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   action: {
-    margin: 0,
+    // Sized explicitly rather than left at Paper's `size + 16` (36dp at ICON_MD). hitSlop
+    // widens where a finger lands but not the view's bounds, which is what accessibility
+    // services read — so the target has to actually be 48dp. `margin: 0` also butted the
+    // three of them together with no gap.
+    width: 48,
+    height: 48,
+    marginHorizontal: 0,
+    marginVertical: 0,
   },
   filler: {
     flex: 1,

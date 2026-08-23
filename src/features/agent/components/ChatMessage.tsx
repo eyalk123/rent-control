@@ -9,11 +9,30 @@ import { Markdown } from './Markdown';
 import { SourceChips } from './SourceChips';
 import type { ChatDisplayMessage } from '../types';
 
+/**
+ * Strip the Markdown syntax out of an answer before handing it to a screen reader — otherwise
+ * `**Sarah Johnson**` is read out with its asterisks, and every list item starts with "dash".
+ * Only the emphasis, heading, code and bullet markers the assistant actually emits.
+ */
+function speakable(text: string): string {
+  return text
+    .replace(/^[ \t]*[-*+][ \t]+/gm, '')
+    .replace(/^[ \t]*#{1,6}[ \t]+/gm, '')
+    .replace(/[*_`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /** Three pulsing dots shown inside the assistant bubble before the first token lands. */
-function TypingDots({ color }: { color: string }) {
+function TypingDots({ color, label }: { color: string; label: string }) {
   const shimmer = useShimmer(true);
   return (
-    <Animated.View style={[styles.dots, { opacity: shimmer }]}>
+    <Animated.View
+      style={[styles.dots, { opacity: shimmer }]}
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel={label}
+    >
       {[0, 1, 2].map((i) => (
         <View key={i} style={[styles.dot, { backgroundColor: color }]} />
       ))}
@@ -54,7 +73,7 @@ export const ChatMessage = React.memo(function ChatMessage({
   return (
     // Assistant/error bubbles stretch so wide Markdown tables keep their scroll width.
     <View style={[styles.row, { alignItems: isUser ? 'flex-end' : 'stretch' }]}>
-      {!isUser && !isError ? (
+      {!isUser && !errorOnly ? (
         <View style={styles.identity}>
           <View style={[styles.mark, { backgroundColor: accentBg }]}>
             <Icon name="sparkles" size={ICON_XS} color={colors.accent} />
@@ -65,11 +84,18 @@ export const ChatMessage = React.memo(function ChatMessage({
         </View>
       ) : null}
       <View
+        // The identity row is a separate node, so without this the bubble never said who was
+        // speaking. `polite` announces the answer as it lands instead of leaving it silent.
+        accessible
+        accessibilityLabel={`${isUser ? t('agent.you') : t('agent.assistantName')}: ${speakable(
+          message.text || message.errorText || '',
+        )}`}
+        accessibilityLiveRegion={message.streaming ? 'polite' : 'none'}
         style={[
           styles.bubble,
           isUser ? styles.bubbleUser : styles.bubbleAssistant,
           { backgroundColor: bg },
-          !isUser && !isError
+          !isUser && !errorOnly
             ? { borderWidth: 1, borderColor: colors.outline, ...styles.cardShadow }
             : null,
         ]}
@@ -77,7 +103,7 @@ export const ChatMessage = React.memo(function ChatMessage({
         {asMarkdown ? (
           <Markdown>{message.text}</Markdown>
         ) : !isUser && !errorOnly && message.streaming && !hasText ? (
-          <TypingDots color={colors.textSecondary} />
+          <TypingDots color={colors.textSecondary} label={t('agent.typing')} />
         ) : message.text ? (
           <Text style={{ color: fg, writingDirection: 'auto' }}>{message.text}</Text>
         ) : null}
