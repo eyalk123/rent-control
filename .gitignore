@@ -56,3 +56,4 @@ app-example
 .emulator-metro-mode*
 .emulator-metro*.log
 .emulator-emu*.log
+.emulator-metro-tmp-*/

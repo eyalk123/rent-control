@@ -90,9 +90,21 @@ free_port() {
   return 1
 }
 
+# Metro keys its transform cache off the OS temp dir, so two bundlers started from this one
+# checkout share a cache and clobber each other — the second one then serves a 1-module stub
+# (`Bundled 96ms ... (1 module)`) and the app hangs forever on "Loading from 10.0.2.2:<port>".
+# Give each port its own temp root. Metro reads TMPDIR; node's os.tmpdir() on Windows reads
+# TEMP/TMP, so set all three.
+metro_tmp() {
+  local d="$PWD/.emulator-metro-tmp-$PORT"
+  mkdir -p "$d"
+  echo "$d"
+}
+
 spawn_metro() {
   free_port
-  nohup "$@" npx expo start --dev-client --port "$PORT" </dev/null >"$METRO_LOG" 2>&1 &
+  local tmp; tmp="$(metro_tmp)"
+  nohup env TMPDIR="$tmp" TEMP="$tmp" TMP="$tmp" "$@"     npx expo start --dev-client --port "$PORT" </dev/null >"$METRO_LOG" 2>&1 &
   disown
   until metro_up; do sleep 2; done
 }
@@ -182,17 +194,42 @@ prewarm() {
   local url="http://127.0.0.1:$PORT/.expo/.virtual-metro-entry.bundle"
   url="$url?platform=android&dev=true&hot=false&transform.engine=hermes&transform.routerRoot=app"
   echo "building the bundle (first run after a Metro start takes ~1 min) ..."
-  if ! curl -s -o /dev/null --max-time 600 "$url"; then
+  # NOT `-o /dev/null`: MSYS_NO_PATHCONV=1 above stops Git Bash rewriting the path, so curl
+  # tries to open a literal /dev/null, fails to write, and exits 23 on an otherwise fine 200.
+  if ! curl -s -o NUL --max-time 600 "$url"; then
     echo "warning: could not pre-build the bundle; the app may time out on first load" >&2
   fi
 }
 
+# Route the device to Metro over adb's own transport, not the emulator's slirp NAT.
+#
+# 10.0.2.2 works for small requests but corrupts the 21MB bundle: the dev client fetches it as
+# a multipart/chunked stream and okhttp dies mid-body with
+#   ProtocolException: Expected leading [0-9a-fA-F] character but was 0xd
+#   at MultipartStreamReader.readAllParts / BundleDownloader.processMultipartResponse
+# leaving the app parked on "Bundling 100.0%" forever. Metro is fine -- curl pulls the same
+# 21MB multipart response from the host in 0.5s -- the framing is mangled in transit.
+#
+# `adb reverse` + localhost fixes it outright (ProtocolException count 0, app renders). The
+# older note that reverse "looks configured and still fails" held only for 8081/8082, which the
+# WSL `netsh portproxy` hijacks on localhost; 8083+ are clear, so guard on that instead of
+# avoiding reverse altogether.
+host_for_device() {
+  case "$PORT" in
+    8081|8082) echo "10.0.2.2" ;;
+    *) if "$ADB" reverse "tcp:$PORT" "tcp:$PORT" >/dev/null 2>&1; then
+         echo "localhost"
+       else
+         echo "10.0.2.2"
+       fi ;;
+  esac
+}
+
 launch() {
   prewarm
-  # Reach Metro via the emulator's host alias 10.0.2.2, not `adb reverse` +
-  # localhost — localhost is what the WSL portproxy above intercepts.
-  "$ADB" shell am start -a android.intent.action.VIEW \
-    -d "rentcontrol://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A$PORT" >/dev/null
+  local host; host="$(host_for_device)"
+  echo "device will reach Metro at $host:$PORT"
+  "$ADB" shell am start -a android.intent.action.VIEW     -d "rentcontrol://expo-development-client/?url=http%3A%2F%2F$host%3A$PORT" >/dev/null
   echo "launched — the bundle is already built, so this should come up in seconds"
 }
 

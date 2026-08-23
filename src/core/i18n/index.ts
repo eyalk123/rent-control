@@ -70,6 +70,15 @@ export function isRtlLanguage(lang: string): boolean {
  * it silently leaves them tapping a button that does nothing.
  */
 export async function restartAppForRTL(): Promise<boolean> {
+  // Don't reload automatically in a dev client. Reloading there intermittently leaves the app
+  // on a redbox — "[runtime not ready]: Cannot read property 'EventEmitter' of undefined",
+  // with "reactInstance is null. Dropping work." in logcat — and it needs a force-stop to
+  // recover. Both Updates.reloadAsync() and DevSettings.reload() hit it, so it is the dev
+  // client's reload machinery rather than either API, and it is not worth risking a wedged
+  // app to save a developer one manual restart. Returning false makes the caller show the
+  // "please restart the app" message instead. Release builds have no DevLauncher and take the
+  // reloadAsync path below.
+  if (__DEV__) return false;
   try {
     const Updates = await import('expo-updates');
     if (!Updates.reloadAsync) return false;
