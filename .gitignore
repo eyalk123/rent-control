@@ -50,3 +50,9 @@ app-example
 # generated native folders
 /ios
 /android
+
+# local emulator screenshots
+.emulator-shot.png
+.emulator-metro-mode
+.emulator-metro.log
+.emulator-emu.log

@@ -1,19 +1,22 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Platform } from 'react-native';
 import { getAuth, onAuthStateChanged, signOut, getIdToken, FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { setAuthTokenGetter } from '@/src/core/api/client';
 
 /**
- * Dev-only browser preview. `@react-native-firebase` is a native module: in a browser
- * `getAuth()` throws "No Firebase App '[DEFAULT]'", so `npx expo start --web` can't get past
- * the auth guard. With `EXPO_PUBLIC_DEV_WEB_PREVIEW=1` we skip Firebase and pretend to be
- * signed in, which makes the UI reachable for design work. `USE_MOCK_API` turns on with the
- * same flag (src/core/api/mock.ts) because there is no real token to call the backend with.
- * Guarded by `__DEV__` and `Platform.OS === 'web'` — it can never reach a build or a device.
+ * Dev-only preview mode, for design work on a UI that normally sits behind the auth guard.
+ * Two situations need it. In a browser `@react-native-firebase` is a native module, so
+ * `getAuth()` throws "No Firebase App '[DEFAULT]'" and `npx expo start --web` never gets past
+ * the guard at all. On a simulator or emulator Firebase works fine, but signing in means a
+ * real account against the production API — the wrong data to be poking at while iterating on
+ * layout. With `EXPO_PUBLIC_DEV_WEB_PREVIEW=1` we skip Firebase and pretend to be signed in,
+ * which makes the UI reachable in both cases. `USE_MOCK_API` turns on with the same flag
+ * (src/core/api/mock.ts) because there is no real token to call the backend with.
+ *
+ * Not platform-gated: `__DEV__` plus an opt-in env var already keeps it out of every release
+ * build, and the emulator is exactly where it earns its keep. See scripts/emulator.sh.
  */
-const DEV_WEB_PREVIEW =
-  __DEV__ && Platform.OS === 'web' && process.env.EXPO_PUBLIC_DEV_WEB_PREVIEW === '1';
+const DEV_PREVIEW = __DEV__ && process.env.EXPO_PUBLIC_DEV_WEB_PREVIEW === '1';
 
 const DEV_PREVIEW_USER = {
   uid: 'dev-web-preview',
@@ -21,7 +24,7 @@ const DEV_PREVIEW_USER = {
   displayName: 'Preview',
 } as FirebaseAuthTypes.User;
 
-if (!DEV_WEB_PREVIEW) {
+if (!DEV_PREVIEW) {
   GoogleSignin.configure({
     webClientId: '934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com',
   });
@@ -50,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (DEV_WEB_PREVIEW) {
+    if (DEV_PREVIEW) {
       setUser(DEV_PREVIEW_USER);
       setIsLoaded(true);
       setAuthTokenGetter(() => Promise.resolve(null));
@@ -64,11 +67,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const getToken = useCallback(
-    () => (user && !DEV_WEB_PREVIEW ? getIdToken(user) : Promise.resolve(null)),
+    () => (user && !DEV_PREVIEW ? getIdToken(user) : Promise.resolve(null)),
     [user],
   );
   const handleSignOut = useCallback(async () => {
-    if (DEV_WEB_PREVIEW) {
+    if (DEV_PREVIEW) {
       setUser(null);
       return;
     }
