@@ -51,8 +51,8 @@ app-example
 /ios
 /android
 
-# local emulator screenshots
-.emulator-shot.png
-.emulator-metro-mode
-.emulator-metro.log
-.emulator-emu.log
+# local emulator scratch — the script scopes these by port, so match any suffix
+.emulator-shot*.png
+.emulator-metro-mode*
+.emulator-metro*.log
+.emulator-emu*.log
