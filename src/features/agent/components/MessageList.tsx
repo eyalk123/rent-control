@@ -7,7 +7,7 @@ import { StarterPrompts } from './StarterPrompts';
 import { ToolActivity } from './ToolActivity';
 
 export function MessageList() {
-  const { messages, status, activity } = useAgentChat();
+  const { messages, status, activity, retry } = useAgentChat();
   const ref = useRef<ScrollView>(null);
 
   if (messages.length === 0) return <StarterPrompts />;
@@ -26,7 +26,7 @@ export function MessageList() {
       onContentSizeChange={() => ref.current?.scrollToEnd({ animated: true })}
     >
       {messages.map((m) => (
-        <ChatMessage key={m.id} message={m} />
+        <ChatMessage key={m.id} message={m} onRetry={retry} />
       ))}
       {status === 'streaming' && activity ? <ToolActivity name={activity} /> : null}
     </ScrollView>

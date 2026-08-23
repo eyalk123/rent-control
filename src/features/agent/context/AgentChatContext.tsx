@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -11,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { getAgentStatus, getConversation, streamAgentChat } from '../api/agentApi';
 import { AgentHttpError, AgentStreamTimeoutError } from '../api/agentStream';
-import { parseCitations } from '../utils/citations';
+import { createCitationScanner, parseCitations } from '../utils/citations';
 import type { ChatDisplayMessage, StoredMessage } from '../types';
 
 type ChatStatus = 'idle' | 'streaming' | 'error';
@@ -161,6 +162,7 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
       const controller = new AbortController();
       abortRef.current = controller;
       let raw = '';
+      const scanner = createCitationScanner();
 
       streamAgentChat({
         message: trimmed,
@@ -179,7 +181,7 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
             case 'text': {
               setActivity(null); // answer is arriving — drop the "checking…" line
               raw += ev.delta;
-              const { text: prose, refs } = parseCitations(raw);
+              const { text: prose, refs } = scanner.push(ev.delta);
               patchMessage(assistantId, { text: prose, sources: refs });
               break;
             }
@@ -263,24 +265,41 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
     [setBusy],
   );
 
+  const value = useMemo(
+    () => ({
+      enabled,
+      statusLoading,
+      statusFailed,
+      refreshStatus,
+      messages,
+      activeConversationId,
+      status,
+      activity,
+      send,
+      retry,
+      stop,
+      newChat,
+      openThread,
+    }),
+    [
+      enabled,
+      statusLoading,
+      statusFailed,
+      refreshStatus,
+      messages,
+      activeConversationId,
+      status,
+      activity,
+      send,
+      retry,
+      stop,
+      newChat,
+      openThread,
+    ],
+  );
+
   return (
-    <AgentChatContext.Provider
-      value={{
-        enabled,
-        statusLoading,
-        statusFailed,
-        refreshStatus,
-        messages,
-        activeConversationId,
-        status,
-        activity,
-        send,
-        retry,
-        stop,
-        newChat,
-        openThread,
-      }}
-    >
+    <AgentChatContext.Provider value={value}>
       {children}
     </AgentChatContext.Provider>
   );

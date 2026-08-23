@@ -6,9 +6,23 @@
 #   ./scripts/emulator.sh build    boot, build + install the dev client
 #   ./scripts/emulator.sh start    boot, start Metro, and launch the app
 #   ./scripts/emulator.sh preview  same as start, but signed-in + mock data (no backend)
-#   ./scripts/emulator.sh shot     save a screenshot to .emulator-shot.png
+#   ./scripts/emulator.sh shot     save a screenshot to .emulator-shot-<port>.png
 #
 # Several machine-specific quirks are handled here; see the notes on each.
+#
+# Two agents can drive two emulators in parallel from this one checkout. Give the second one
+# its own emulator console port and its own Metro port; everything else keys off those:
+#
+#   EMU_PORT=5556 PORT=8084 EMU_FLAGS=-read-only ./scripts/emulator.sh preview
+#
+# `-read-only` is what lets a second instance boot off the *same* AVD (the AVD is otherwise
+# locked by the first). It runs on a throwaway overlay, so that instance loses its app install
+# when it exits and needs `build` again on the next boot. To avoid that, create a second AVD
+# and pass `AVD=` instead. Budget ~4G RAM per emulator plus ~1.4G per Metro.
+#
+# `build` is the one verb that must NOT run in two agents at once from this checkout — Gradle
+# locks the build dir. Build once, then `adb install -r` the APK to each emulator with
+# ANDROID_SERIAL set.
 set -euo pipefail
 
 # A dev-only AVD on the google_apis image (Play services present, so Firebase and Google
@@ -27,11 +41,20 @@ PKG="com.eyalk123.rentcontrol"
 # ever stops working too.
 PORT="${PORT:-8083}"
 
+# The emulator's console port doubles as its adb serial (emulator-<port>), so pinning it is
+# what makes a second instance addressable instead of racing for whatever port is free.
+# Must be even. EMU_FLAGS carries extras like -read-only for same-AVD second instances.
+EMU_PORT="${EMU_PORT:-5554}"
+EMU_FLAGS="${EMU_FLAGS:-}"
+
 # Records which mode the running Metro was started in, so `preview` can reuse a Metro that
 # already has the flag instead of paying a full cold rebuild every invocation.
-MODE_FILE=".emulator-metro-mode"
-METRO_LOG=".emulator-metro.log"
-EMU_LOG=".emulator-emu.log"
+# Scoped by port: two agents share this checkout, and MODE_FILE in particular decides whether
+# `preview` may reuse a warm Metro — a shared one makes each agent misread the other's mode.
+MODE_FILE=".emulator-metro-mode-$PORT"
+METRO_LOG=".emulator-metro-$PORT.log"
+EMU_LOG=".emulator-emu-$EMU_PORT.log"
+SHOT=".emulator-shot-$PORT.png"
 
 # Metro has to outlive this script, or every run starts a cold bundler and pays the full
 # rebuild. A plain `&` child is torn down when the shell that spawned it exits, so detach with
@@ -82,11 +105,11 @@ export MSYS_NO_PATHCONV=1   # keep Git Bash from mangling /data, /sdcard, etc.
 # that failure otherwise reads as "not booted" and starts a second emulator.
 # Ends with `return 0` deliberately: a bare `[ -n "$s" ] && …` that fails would take the whole
 # script down under `set -e`, and "no emulator yet" is a normal state here.
+# Derived from EMU_PORT rather than "first emulator in the list": with two running, picking the
+# first silently points both agents at the same device.
 pick_serial() {
   if [ -z "${ANDROID_SERIAL:-}" ]; then
-    local s
-    s=$("$ADB" devices | awk '/^emulator-/ {print $1; exit}')
-    if [ -n "$s" ]; then export ANDROID_SERIAL="$s"; fi
+    export ANDROID_SERIAL="emulator-$EMU_PORT"
   fi
   return 0
 }
@@ -99,10 +122,12 @@ boot() {
   echo "starting $AVD ..."
   # Detached for the same reason as Metro: a plain `&` child dies with the shell that spawned
   # it, which tears the emulator down the moment this script returns.
-  nohup "$EMULATOR" -avd "$AVD" -no-snapshot-load -no-boot-anim </dev/null >"$EMU_LOG" 2>&1 &
+  # shellcheck disable=SC2086 -- EMU_FLAGS is a deliberate word-split of extra emulator flags.
+  nohup "$EMULATOR" -avd "$AVD" -port "$EMU_PORT" $EMU_FLAGS -no-snapshot-load -no-boot-anim     </dev/null >"$EMU_LOG" 2>&1 &
   disown
-  until "$ADB" devices | grep -q '^emulator-'; do sleep 2; done
-  pick_serial
+  # Wait for *this* serial. A bare '^emulator-' match is already true when another agent's
+  # emulator is up, so it would fall through and then poll a device that never booted.
+  until "$ADB" devices | grep -q "^$ANDROID_SERIAL[[:space:]]"; do sleep 2; done
   until booted; do sleep 3; done
   echo "emulator ready (${ANDROID_SERIAL:-default})"
 }
@@ -174,6 +199,6 @@ case "${1:-boot}" in
   build)   build ;;
   start)   start ;;
   preview) preview ;;
-  shot)    "$ADB" exec-out screencap -p > .emulator-shot.png; echo "wrote .emulator-shot.png" ;;
+  shot)    "$ADB" exec-out screencap -p > "$SHOT"; echo "wrote $SHOT" ;;
   *)       echo "usage: $0 [boot|build|start|preview|shot]" >&2; exit 1 ;;
 esac

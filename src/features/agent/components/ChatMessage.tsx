@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '@/src/shared/components/ui';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { darkColors, ICON_XS, lightColors, spacing } from '@/src/core/theme';
-import { useAgentChat } from '../context/AgentChatContext';
 import { Markdown } from './Markdown';
 import { SourceChips } from './SourceChips';
 import type { ChatDisplayMessage } from '../types';
@@ -27,9 +26,14 @@ function TypingDots({ color }: { color: string }) {
  * errors stay plain text — we never Markdown-render what the user typed. `writingDirection:
  * 'auto'` lets each message pick its own script direction (Hebrew RTL, English LTR).
  */
-export function ChatMessage({ message }: { message: ChatDisplayMessage }) {
+export const ChatMessage = React.memo(function ChatMessage({
+  message,
+  onRetry,
+}: {
+  message: ChatDisplayMessage;
+  onRetry: () => void;
+}) {
   const { t } = useTranslation();
-  const { retry } = useAgentChat();
   const theme = useTheme();
   const c = theme.colors;
   const colors = theme.dark ? darkColors : lightColors;
@@ -89,7 +93,7 @@ export function ChatMessage({ message }: { message: ChatDisplayMessage }) {
           </Text>
         ) : null}
         {message.retryable ? (
-          <Button mode="text" compact onPress={retry} style={styles.retry}>
+          <Button mode="text" compact onPress={onRetry} style={styles.retry}>
             {t('common.tryAgain')}
           </Button>
         ) : null}
@@ -97,7 +101,7 @@ export function ChatMessage({ message }: { message: ChatDisplayMessage }) {
       {!isUser && !errorOnly ? <SourceChips sources={message.sources} /> : null}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   row: {

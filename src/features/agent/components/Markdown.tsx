@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Linking, ScrollView, useWindowDimensions, View } from 'react-native';
 import MarkdownDisplay from 'react-native-markdown-display';
 import { useTheme } from 'react-native-paper';
@@ -36,7 +36,7 @@ function detectDirection(text: string): 'ltr' | 'rtl' {
   return 'ltr';
 }
 
-export function Markdown({ children }: { children: string }) {
+export const Markdown = React.memo(function Markdown({ children }: { children: string }) {
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const c = theme.colors;
@@ -44,7 +44,7 @@ export function Markdown({ children }: { children: string }) {
 
   const mono = 'IBMPlexMono_400Regular';
 
-  const styles = {
+  const styles = useMemo(() => ({
     // The assistant answers in Hebrew or English regardless of the app's language, so each
     // answer has to carry its own direction. Two separate things are needed: `direction` on
     // this View drives *layout* (which side list bullets sit on), while `writingDirection` on
@@ -80,20 +80,23 @@ export function Markdown({ children }: { children: string }) {
     th: { padding: 6, borderColor: c.outline, fontWeight: '700' as const },
     td: { padding: 6, borderColor: c.outline },
     tr: { borderColor: c.outline },
-  };
+  }), [c, dir]);
 
-  const rules = {
-    // Wide tables scroll horizontally instead of squeezing to fit the phone width.
-    table: (node: { key: string }, children: React.ReactNode) => (
-      <ScrollView key={node.key} horizontal showsHorizontalScrollIndicator={false}>
-        <View style={[styles.table, { minWidth: width - 96, marginVertical: 8 }]}>{children}</View>
-      </ScrollView>
-    ),
-  };
+  const rules = useMemo(
+    () => ({
+      // Wide tables scroll horizontally instead of squeezing to fit the phone width.
+      table: (node: { key: string }, children: React.ReactNode) => (
+        <ScrollView key={node.key} horizontal showsHorizontalScrollIndicator={false}>
+          <View style={[styles.table, { minWidth: width - 96, marginVertical: 8 }]}>{children}</View>
+        </ScrollView>
+      ),
+    }),
+    [styles, width],
+  );
 
   return (
     <MarkdownDisplay style={styles as any} rules={rules as any} onLinkPress={openIfHttps}>
       {children}
     </MarkdownDisplay>
   );
-}
+});
