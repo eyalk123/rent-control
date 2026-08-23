@@ -60,11 +60,22 @@ export function isRtlLanguage(lang: string): boolean {
   return lang === 'he';
 }
 
-export async function restartAppForRTL(): Promise<void> {
+/**
+ * Reload the JS bundle so `I18nManager.forceRTL` above actually takes effect — native views
+ * (the navigation header, most notably) read the direction at startup and ignore it until then.
+ *
+ * Returns whether the reload was started. It can fail: `expo.modules.updates.ENABLED` is false
+ * in the Android manifest and there is no `updates` config, so `reloadAsync` is unavailable in
+ * some builds. Callers must handle `false` by telling the user to restart manually — swallowing
+ * it silently leaves them tapping a button that does nothing.
+ */
+export async function restartAppForRTL(): Promise<boolean> {
   try {
     const Updates = await import('expo-updates');
-    if (Updates.reloadAsync) await Updates.reloadAsync();
+    if (!Updates.reloadAsync) return false;
+    await Updates.reloadAsync();
+    return true;
   } catch {
-    // In dev/preview, reloadAsync may be unavailable; user must restart manually
+    return false;
   }
 }

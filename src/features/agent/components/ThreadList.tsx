@@ -3,6 +3,8 @@ import { Alert, ScrollView } from 'react-native';
 import { ActivityIndicator, IconButton, List, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useLanguageContext } from '@/src/context';
+import { formatDateFull } from '@/src/shared/utils/dates';
 import { deleteConversation, listConversations } from '../api/agentApi';
 import { useAgentChat } from '../context/AgentChatContext';
 import type { ConversationSummary } from '../types';
@@ -13,6 +15,7 @@ export function ThreadList() {
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
+  const { language } = useLanguageContext();
   const { openThread, activeConversationId, newChat } = useAgentChat();
   const [items, setItems] = useState<ConversationSummary[] | null>(null);
 
@@ -39,7 +42,7 @@ export function ThreadList() {
 
   const onDelete = (id: number) => {
     Alert.alert(t('agent.delete'), t('agent.deleteConfirm'), [
-      { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
+      { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('agent.delete'),
         style: 'destructive',
@@ -71,7 +74,7 @@ export function ThreadList() {
         <List.Item
           key={c.id}
           title={c.title || t('agent.title')}
-          description={new Date(c.updated_at).toLocaleDateString()}
+          description={formatDateFull(new Date(c.updated_at), language)}
           onPress={() => onPick(c.id)}
           right={(props) => (
             <IconButton

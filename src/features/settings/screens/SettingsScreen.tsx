@@ -6,6 +6,8 @@ import { useRouter } from 'expo-router';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useNotifications } from '@/src/features/notifications/context/NotificationContext';
 import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
+import { useAlert } from '@/src/core/context';
+import { restartAppForRTL, type SupportedLanguage } from '@/src/core/i18n';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
 import { Icon } from '@/src/shared/components/ui';
 import { DevProfiler } from '@/src/shared/components/dev/DevProfiler';
@@ -21,6 +23,30 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   const { unregisterDevice } = useNotifications();
   const rtlLabelStyle = useRtlLabelStyle();
   const theme = useTheme();
+
+  const { appAlert } = useAlert();
+
+  // Switching between English and Hebrew flips the writing direction, but native views only
+  // read that at launch — without a reload the navigation headers stay in the old direction
+  // while everything else mirrors. Offer the restart, and if the reload isn't available in
+  // this build, say so rather than appearing to do nothing.
+  const handleLanguage = React.useCallback(
+    async (lang: SupportedLanguage) => {
+      const directionChanged = await setLanguage(lang);
+      if (!directionChanged) return;
+      appAlert(t('restart.title'), t('restart.message'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.continue'),
+          onPress: async () => {
+            const reloaded = await restartAppForRTL();
+            if (!reloaded) appAlert(t('restart.title'), t('restart.message'));
+          },
+        },
+      ]);
+    },
+    [setLanguage, appAlert, t],
+  );
 
   const handleSignOut = React.useCallback(async () => {
     // Unregister the push token while the auth token is still valid, then sign out.
@@ -86,7 +112,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
                 <Icon name="check" size={20} color={props.color} style={props.style} />
               ) : null
             }
-            onPress={() => setLanguage('en')}
+            onPress={() => handleLanguage('en')}
             style={styles.listItem}
           />
           <List.Item
@@ -97,7 +123,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
                 <Icon name="check" size={20} color={props.color} style={props.style} />
               ) : null
             }
-            onPress={() => setLanguage('he')}
+            onPress={() => handleLanguage('he')}
             style={styles.listItem}
           />
         </List.Section>

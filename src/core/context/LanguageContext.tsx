@@ -18,7 +18,8 @@ import type { TextStyle, ViewStyle } from "react-native";
 
 export interface LanguageContextType {
   language: SupportedLanguage;
-  setLanguage: (lang: SupportedLanguage) => Promise<void>;
+  /** Resolves to `true` when the writing direction changed and a restart is needed. */
+  setLanguage: (lang: SupportedLanguage) => Promise<boolean>;
   isRtl: boolean;
 }
 
@@ -89,10 +90,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return () => i18n.off("languageChanged", handler);
   }, []);
 
-  const setLanguage = useCallback(async (lang: SupportedLanguage) => {
-    await setI18nLanguage(lang);
-    setLanguageState(lang);
-  }, []);
+  // Resolves to whether the writing direction changed. Native views only pick up
+  // `I18nManager.forceRTL` on the next launch, so a caller that gets `true` must offer a
+  // restart (see restartAppForRTL) — otherwise the app is left half-mirrored: the JS-level
+  // `direction` style flips immediately while native headers stay as they were.
+  const setLanguage = useCallback(
+    async (lang: SupportedLanguage) => {
+      const directionChanged = isRtlLanguage(lang) !== isRtl;
+      await setI18nLanguage(lang);
+      setLanguageState(lang);
+      return directionChanged;
+    },
+    [isRtl],
+  );
 
   const value = useMemo<LanguageContextType>(
     () => ({ language, setLanguage, isRtl }),
