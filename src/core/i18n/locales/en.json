@@ -33,6 +33,10 @@
     "disabled": "The assistant isn't available right now.",
     "errorGeneric": "Something went wrong. Please try again.",
     "errorLimit": "You've reached today's message limit for the assistant. Try again tomorrow.",
+    "errorAuth": "Your session expired. Please sign in again.",
+    "errorUnavailable": "The assistant isn't available right now. Please try again later.",
+    "errorTimeout": "The answer stopped coming through. You can try again.",
+    "statusFailed": "Couldn't check whether the assistant is available.",
     "starters": [
       "Who hasn't paid this month?",
       "How much did I earn this year?",

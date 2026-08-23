@@ -4,15 +4,15 @@ import type { AgentStatus, ConversationDetail, ConversationSummary } from '../ty
 import { streamAgentChatHttp, type StreamChatArgs } from './agentStream';
 import { getConversationMock, listConversationsMock, streamAgentChatMock } from './agentMock';
 
+/**
+ * Throws on failure rather than reporting `{enabled:false}`. "We couldn't ask" and "it is
+ * switched off" need different answers on screen: the first is worth retrying, the second is
+ * final. Callers decide — see AgentChatContext.
+ */
 export async function getAgentStatus(): Promise<AgentStatus> {
   if (USE_MOCK_API) return { enabled: true };
-  try {
-    const { data } = await apiClient.get<AgentStatus>('/agent/status');
-    return data;
-  } catch {
-    // Unreachable backend / error → treat the assistant as unavailable rather than crash the tab.
-    return { enabled: false };
-  }
+  const { data } = await apiClient.get<AgentStatus>('/agent/status');
+  return data;
 }
 
 export async function listConversations(): Promise<ConversationSummary[]> {

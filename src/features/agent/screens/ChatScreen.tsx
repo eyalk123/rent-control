@@ -1,6 +1,6 @@
 import React from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import { IconButton, Text } from 'react-native-paper';
+import { ActivityIndicator, IconButton, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -16,7 +16,7 @@ export function ChatScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const rtlLabelStyle = useRtlLabelStyle();
-  const { enabled, statusLoading, newChat } = useAgentChat();
+  const { enabled, statusLoading, statusFailed, refreshStatus, newChat } = useAgentChat();
   // Android needs a KeyboardAvoidingView behavior too, not just iOS: `edgeToEdgeEnabled`
   // (app.json) stops the window resizing for the keyboard, so the manifest's `adjustResize`
   // no longer moves anything and the composer ends up hidden behind the keyboard. The offset
@@ -55,7 +55,16 @@ export function ChatScreen() {
       </View>
 
       {statusLoading ? (
-        <View style={styles.filler} />
+        <View style={styles.filler}>
+          <ActivityIndicator style={styles.spinner} />
+        </View>
+      ) : statusFailed ? (
+        <EmptyState
+          message={t('agent.statusFailed')}
+          icon="alert-circle"
+          actionLabel={t('common.tryAgain')}
+          onAction={refreshStatus}
+        />
       ) : !enabled ? (
         <EmptyState message={t('agent.disabled')} icon="message-square" />
       ) : (
@@ -97,5 +106,8 @@ const styles = StyleSheet.create({
   },
   filler: {
     flex: 1,
+  },
+  spinner: {
+    marginTop: spacing.xl,
   },
 });

@@ -10,7 +10,7 @@ import React, {
 import { useTranslation } from 'react-i18next';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { getAgentStatus, getConversation, streamAgentChat } from '../api/agentApi';
-import { AgentHttpError } from '../api/agentStream';
+import { AgentHttpError, AgentStreamTimeoutError } from '../api/agentStream';
 import { parseCitations } from '../utils/citations';
 import type { ChatDisplayMessage, StoredMessage } from '../types';
 
@@ -20,12 +20,17 @@ interface AgentChatValue {
   /** Whether the backend agent is configured (has an API key). */
   enabled: boolean;
   statusLoading: boolean;
+  /** The availability check itself failed — distinct from a definitive "not configured". */
+  statusFailed: boolean;
+  refreshStatus: () => void;
   messages: ChatDisplayMessage[];
   activeConversationId: number | null;
   status: ChatStatus;
   /** i18n tool key for the current activity line, or null. */
   activity: string | null;
   send: (text: string) => void;
+  /** Resend the last question after a failed turn. */
+  retry: () => void;
   stop: () => void;
   newChat: () => void;
   openThread: (id: number) => Promise<void>;
@@ -65,6 +70,8 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
 
   const [enabled, setEnabled] = useState(false);
   const [statusLoading, setStatusLoading] = useState(true);
+  const [statusFailed, setStatusFailed] = useState(false);
+  const [statusAttempt, setStatusAttempt] = useState(0);
   const [messages, setMessages] = useState<ChatDisplayMessage[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
   const [status, setStatus] = useState<ChatStatus>('idle');
@@ -74,23 +81,32 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
   const statusRef = useRef<ChatStatus>('idle');
   const convoIdRef = useRef<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // The last question asked, so a failed turn can be resent without retyping it.
+  const lastSentRef = useRef<string>('');
 
   // Fetch the feature-flag status once the user is signed in (so the bearer token is ready —
   // fetching before auth restores would 401 and wrongly show "not available").
   useEffect(() => {
     if (!isSignedIn) {
       setEnabled(false);
+      setStatusFailed(false);
       setStatusLoading(false);
       return;
     }
     let alive = true;
     setStatusLoading(true);
+    setStatusFailed(false);
     getAgentStatus()
       .then((s) => {
-        if (alive) setEnabled(s.enabled);
+        if (!alive) return;
+        setEnabled(s.enabled);
       })
       .catch(() => {
-        if (alive) setEnabled(false);
+        // A failed check is not the same as "the assistant is switched off" — saying so would
+        // strand the tab on that message for the rest of the session. Let the user retry.
+        if (!alive) return;
+        setEnabled(false);
+        setStatusFailed(true);
       })
       .finally(() => {
         if (alive) setStatusLoading(false);
@@ -98,7 +114,9 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
     return () => {
       alive = false;
     };
-  }, [isSignedIn]);
+  }, [isSignedIn, statusAttempt]);
+
+  const refreshStatus = useCallback(() => setStatusAttempt((n) => n + 1), []);
 
   const patchMessage = useCallback((id: string, patch: Partial<ChatDisplayMessage>) => {
     setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
@@ -109,10 +127,27 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
     setStatus(s);
   }, []);
 
+  /** Turn a failure into something worth reading. Only 429 used to get its own wording. */
+  const describeError = useCallback(
+    (err: unknown): string => {
+      if (err instanceof AgentStreamTimeoutError) return t('agent.errorTimeout');
+      if (err instanceof AgentHttpError) {
+        if (err.status === 429) return t('agent.errorLimit');
+        if (err.status === 401) return t('agent.errorAuth');
+        if (err.status === 503) return t('agent.errorUnavailable');
+        // The backend puts a human sentence in `detail`; prefer it to a generic string.
+        if (err.message && !/^HTTP \d+$/.test(err.message)) return err.message;
+      }
+      return t('agent.errorGeneric');
+    },
+    [t],
+  );
+
   const send = useCallback(
     (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || statusRef.current === 'streaming') return;
+      lastSentRef.current = trimmed;
 
       const assistantId = uid();
       setMessages((prev) => [
@@ -154,44 +189,53 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
               break;
             }
             case 'error':
+              // Keep whatever streamed; the server's own wording beats a generic string.
               patchMessage(assistantId, {
                 streaming: false,
                 error: true,
-                text: t('agent.errorGeneric'),
+                retryable: true,
+                errorText: ev.detail || t('agent.errorGeneric'),
               });
               break;
           }
         },
       })
-        .then(() => {
-          setActivity(null);
-          setBusy('idle');
-        })
         .catch((err: unknown) => {
-          setActivity(null);
-          if (controller.signal.aborted) {
-            // User tapped Stop (or navigated away) — leave what streamed so far, no error.
-            patchMessage(assistantId, { streaming: false });
-          } else {
-            const limited = err instanceof AgentHttpError && err.status === 429;
-            patchMessage(assistantId, {
-              streaming: false,
-              error: true,
-              text: t(limited ? 'agent.errorLimit' : 'agent.errorGeneric'),
-            });
-          }
-          setBusy('idle');
+          if (controller.signal.aborted) return; // User tapped Stop — keep what streamed.
+          // Never overwrite `text`: a failure three paragraphs in used to delete all three.
+          patchMessage(assistantId, {
+            error: true,
+            retryable: true,
+            errorText: describeError(err),
+          });
         })
         .finally(() => {
+          // In `finally` because the mock resolves cleanly on abort while the real transport
+          // rejects — clearing this only in `.catch` left the typing dots spinning forever in
+          // preview mode.
+          patchMessage(assistantId, { streaming: false });
+          setActivity(null);
+          setBusy('idle');
           abortRef.current = null;
         });
     },
-    [getToken, patchMessage, setBusy, t],
+    [getToken, patchMessage, setBusy, t, describeError],
   );
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
   }, []);
+
+  /** Resend the last question, dropping the failed pair so the thread doesn't accumulate them. */
+  const retry = useCallback(() => {
+    const question = lastSentRef.current;
+    if (!question || statusRef.current === 'streaming') return;
+    setMessages((prev) => {
+      const lastUser = prev.map((m) => m.role === 'user').lastIndexOf(true);
+      return lastUser === -1 ? prev : prev.slice(0, lastUser);
+    });
+    send(question);
+  }, [send]);
 
   const newChat = useCallback(() => {
     abortRef.current?.abort();
@@ -202,6 +246,10 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
     setBusy('idle');
   }, [setBusy]);
 
+  /**
+   * Resolves to whether the thread loaded. It used to let a rejection escape as an unhandled
+   * promise rejection, leaving the caller navigating away from a chat that never changed.
+   */
   const openThread = useCallback(
     async (id: number) => {
       abortRef.current?.abort();
@@ -220,11 +268,14 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
       value={{
         enabled,
         statusLoading,
+        statusFailed,
+        refreshStatus,
         messages,
         activeConversationId,
         status,
         activity,
         send,
+        retry,
         stop,
         newChat,
         openThread,

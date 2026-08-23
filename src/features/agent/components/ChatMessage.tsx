@@ -1,10 +1,11 @@
 import React from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { Button, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/src/shared/components/ui';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { darkColors, ICON_XS, lightColors, spacing } from '@/src/core/theme';
+import { useAgentChat } from '../context/AgentChatContext';
 import { Markdown } from './Markdown';
 import { SourceChips } from './SourceChips';
 import type { ChatDisplayMessage } from '../types';
@@ -28,18 +29,22 @@ function TypingDots({ color }: { color: string }) {
  */
 export function ChatMessage({ message }: { message: ChatDisplayMessage }) {
   const { t } = useTranslation();
+  const { retry } = useAgentChat();
   const theme = useTheme();
   const c = theme.colors;
   const colors = theme.dark ? darkColors : lightColors;
   const isUser = message.role === 'user';
   const isError = !!message.error;
-  const asMarkdown = !isUser && !isError && !!message.text;
+  const hasText = !!message.text;
+  const asMarkdown = !isUser && hasText;
+  // Error styling only when there is nothing but the error to show.
+  const errorOnly = isError && !hasText;
 
   // Assistant answers read as cards — surface + hairline outline, like every other card in
   // the app. Dark mode needs the elevated surface to separate from the near-black background.
   const assistantBg = theme.dark ? darkColors.surfaceElevated : lightColors.surface;
-  const bg = isUser ? c.primary : isError ? c.errorContainer : assistantBg;
-  const fg = isUser ? c.onPrimary : isError ? c.onErrorContainer : c.onSurface;
+  const bg = isUser ? c.primary : errorOnly ? c.errorContainer : assistantBg;
+  const fg = isUser ? c.onPrimary : errorOnly ? c.onErrorContainer : c.onSurface;
   const accentBg = theme.dark ? 'rgba(194,149,67,0.15)' : 'rgba(212,162,76,0.12)';
 
   return (
@@ -67,13 +72,29 @@ export function ChatMessage({ message }: { message: ChatDisplayMessage }) {
       >
         {asMarkdown ? (
           <Markdown>{message.text}</Markdown>
-        ) : !isUser && !isError && message.streaming && !message.text ? (
+        ) : !isUser && !errorOnly && message.streaming && !hasText ? (
           <TypingDots color={colors.textSecondary} />
-        ) : (
+        ) : message.text ? (
           <Text style={{ color: fg, writingDirection: 'auto' }}>{message.text}</Text>
-        )}
+        ) : null}
+        {/* The reason sits below whatever streamed, instead of replacing it. */}
+        {message.errorText ? (
+          <Text
+            style={[
+              { color: c.error, writingDirection: 'auto' },
+              message.text ? styles.errorBelow : null,
+            ]}
+          >
+            {message.errorText}
+          </Text>
+        ) : null}
+        {message.retryable ? (
+          <Button mode="text" compact onPress={retry} style={styles.retry}>
+            {t('common.tryAgain')}
+          </Button>
+        ) : null}
       </View>
-      {!isUser && !isError ? <SourceChips sources={message.sources} /> : null}
+      {!isUser && !errorOnly ? <SourceChips sources={message.sources} /> : null}
     </View>
   );
 }
@@ -114,6 +135,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
+  },
+  errorBelow: {
+    marginTop: spacing.sm,
+  },
+  retry: {
+    alignSelf: 'flex-start',
+    marginTop: 2,
+    marginLeft: -8,
   },
   dots: {
     flexDirection: 'row',

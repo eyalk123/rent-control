@@ -20,6 +20,13 @@ export interface ChatDisplayMessage {
   /** Assistant message currently receiving streamed deltas. */
   streaming?: boolean;
   error?: boolean;
+  /**
+   * Why the turn failed, shown alongside whatever had already streamed. Kept separate from
+   * `text` so a mid-answer failure doesn't destroy the part that did arrive.
+   */
+  errorText?: string;
+  /** The turn can be resent — offer a retry. */
+  retryable?: boolean;
 }
 
 /** SSE events emitted by POST /agent/chat (payload carries its own `type`). */

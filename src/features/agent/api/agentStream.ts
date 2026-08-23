@@ -24,6 +24,32 @@ export class AgentHttpError extends Error {
   }
 }
 
+/** The stream went quiet for too long — see IDLE_TIMEOUT_MS. */
+export class AgentStreamTimeoutError extends Error {
+  constructor() {
+    super('The agent stream stalled');
+    this.name = 'AgentStreamTimeoutError';
+  }
+}
+
+/**
+ * How long to wait for the next chunk before giving up. The backend sends no heartbeat and has
+ * no idle timeout of its own, so a hung upstream call or a connection dropped without a FIN
+ * would otherwise leave the reader awaiting forever — the UI stuck showing Stop with no way
+ * back but killing the app. Generous enough to cover a slow tool call between text deltas.
+ */
+const IDLE_TIMEOUT_MS = 45_000;
+
+function readWithTimeout(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+): Promise<ReadableStreamReadResult<Uint8Array>> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const stalled = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new AgentStreamTimeoutError()), IDLE_TIMEOUT_MS);
+  });
+  return Promise.race([reader.read(), stalled]).finally(() => clearTimeout(timer));
+}
+
 /**
  * POST /agent/chat and consume the SSE stream. Uses `expo/fetch` (whose response `body` is a
  * ReadableStream) — axios can't stream. `TextDecoder` is a WinterCG global installed by Expo
@@ -66,19 +92,28 @@ export async function streamAgentChatHttp({
   const decoder = new TextDecoder();
   let buffer = '';
 
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
-    let sep: number;
-    while ((sep = buffer.indexOf('\n\n')) !== -1) {
-      const event = parseFrame(buffer.slice(0, sep));
-      buffer = buffer.slice(sep + 2);
-      if (event) onEvent(event);
+  try {
+    for (;;) {
+      const { done, value } = await readWithTimeout(reader);
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
+      let sep: number;
+      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+        const event = parseFrame(buffer.slice(0, sep));
+        buffer = buffer.slice(sep + 2);
+        if (!event) continue;
+        onEvent(event);
+        // `done` and `error` are terminal per the backend's protocol. Returning here means a
+        // server that holds the socket open afterwards can't leave the UI stuck streaming.
+        if (event.type === 'done' || event.type === 'error') return;
+      }
     }
+    const tail = parseFrame(buffer);
+    if (tail) onEvent(tail);
+  } finally {
+    // Release the connection on every exit — timeout, abort, or a terminal event mid-stream.
+    reader.cancel().catch(() => {});
   }
-  const tail = parseFrame(buffer);
-  if (tail) onEvent(tail);
 }
 
 function parseFrame(frame: string): AgentEvent | null {
