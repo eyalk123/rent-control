@@ -91,11 +91,16 @@ export async function streamAgentChatHttp({
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  // Whether the response body reached its own end. Drives the `finally` below.
+  let bodyComplete = false;
 
   try {
     for (;;) {
       const { done, value } = await readWithTimeout(reader);
-      if (done) break;
+      if (done) {
+        bodyComplete = true;
+        break;
+      }
       buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
       let sep: number;
       while ((sep = buffer.indexOf('\n\n')) !== -1) {
@@ -105,14 +110,27 @@ export async function streamAgentChatHttp({
         onEvent(event);
         // `done` and `error` are terminal per the backend's protocol. Returning here means a
         // server that holds the socket open afterwards can't leave the UI stuck streaming.
-        if (event.type === 'done' || event.type === 'error') return;
+        // The backend closes right after either one, so treat the body as finished as well —
+        // see the `finally` for why cancelling at that moment is the thing to avoid.
+        if (event.type === 'done' || event.type === 'error') {
+          bodyComplete = true;
+          return;
+        }
       }
     }
     const tail = parseFrame(buffer);
     if (tail) onEvent(tail);
   } finally {
-    // Release the connection on every exit — timeout, abort, or a terminal event mid-stream.
-    reader.cancel().catch(() => {});
+    // Release the connection only when walking away from a body that is still open — a
+    // timeout or an abort. Cancelling one that is about to finish on its own throws
+    // `TypeError: The stream is not in a state that permits close`, and NOT here where it
+    // could be caught: expo's own `didComplete` listener calls `controller.close()` without
+    // checking whether the stream was already cancelled, unlike the `didReceiveResponseData`
+    // listener right above it, which does (expo/src/winter/fetch/FetchResponse.ts). The throw
+    // therefore lands in expo's callback, escapes as an unhandled error, and — with Sentry
+    // wired up — reports itself on turns that actually succeeded. Measured at 5 of 6
+    // completed turns before this guard, 0 of 6 after.
+    if (!bodyComplete) reader.cancel().catch(() => {});
   }
 }
 
