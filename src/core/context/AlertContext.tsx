@@ -1,8 +1,10 @@
 import React, { createContext, useCallback, useContext, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { Button, Dialog, Portal, Text } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import { darkColors, lightColors } from "@/src/core/theme";
 import { spacing } from "@/src/core/theme";
+import { isRtlLanguage } from "@/src/core/i18n";
 import { useThemeContext } from "@/src/core/context/ThemeContext";
 
 export type AlertButtonStyle = "default" | "cancel" | "destructive";
@@ -17,7 +19,13 @@ interface AlertState {
   visible: boolean;
   title: string;
   message: string;
-  buttons: AlertButton[];
+  /**
+   * `null` means "no buttons supplied" — render the default OK. Kept as null rather than a
+   * prebuilt button so the label is translated at render time with the current language; a
+   * hardcoded default would stay English in Hebrew, and one built at call time would freeze
+   * the language the alert was raised in.
+   */
+  buttons: AlertButton[] | null;
   resolveConfirm?: (value: boolean) => void;
 }
 
@@ -28,17 +36,26 @@ interface AlertContextType {
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined);
 
-const DEFAULT_BUTTONS: AlertButton[] = [{ text: "OK", style: "default" }];
-
 export function AlertProvider({ children }: { children: React.ReactNode }) {
   const { theme } = useThemeContext();
   const colors = theme.dark ? darkColors : lightColors;
+
+  // AlertProvider sits ABOVE LanguageProvider in the tree (app/_layout.tsx), so it cannot use
+  // useLanguageContext() for the direction. i18next is a global singleton, so read the language
+  // from it instead — useTranslation() also re-renders this provider on `languageChanged`,
+  // which keeps an open dialog aligned with the text it is currently showing.
+  const { t, i18n } = useTranslation();
+  const isRtl = isRtlLanguage(i18n.language);
+  const rtlTextStyle = {
+    textAlign: isRtl ? ("right" as const) : ("left" as const),
+    writingDirection: isRtl ? ("rtl" as const) : ("ltr" as const),
+  };
 
   const [state, setState] = useState<AlertState>({
     visible: false,
     title: "",
     message: "",
-    buttons: DEFAULT_BUTTONS,
+    buttons: null,
   });
 
   const resolveRef = useRef<((value: boolean) => void) | undefined>(undefined);
@@ -49,9 +66,9 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const appAlert = useCallback(
-    (title: string, message = "", buttons: AlertButton[] = DEFAULT_BUTTONS) => {
+    (title: string, message = "", buttons?: AlertButton[]) => {
       resolveRef.current = undefined;
-      setState({ visible: true, title, message, buttons });
+      setState({ visible: true, title, message, buttons: buttons ?? null });
     },
     []
   );
@@ -85,14 +102,14 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
 
   const buttons: React.ReactElement[] = [];
 
-  if (state.buttons.length === 0 && resolveRef.current) {
+  if (state.buttons?.length === 0 && resolveRef.current) {
     buttons.push(
       <Button
         key="cancel"
         onPress={() => handleButtonPress({ text: "", style: "cancel" })}
         textColor={colors.textSecondary}
       >
-        Cancel
+        {t("common.cancel")}
       </Button>,
       <Button
         key="ok"
@@ -100,12 +117,13 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
         onPress={() => handleButtonPress({ text: "", style: "default" })}
         style={styles.confirmButton}
       >
-        OK
+        {t("common.ok")}
       </Button>,
     );
   } else {
-    const cancelBtn = state.buttons.find((b) => b.style === "cancel");
-    const actionBtns = state.buttons.filter((b) => b.style !== "cancel");
+    const supplied = state.buttons ?? [{ text: t("common.ok"), style: "default" as const }];
+    const cancelBtn = supplied.find((b) => b.style === "cancel");
+    const actionBtns = supplied.filter((b) => b.style !== "cancel");
 
     if (cancelBtn) {
       buttons.push(
@@ -144,7 +162,9 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
           style={[styles.dialog, { backgroundColor: bgColor }]}
         >
           {state.title ? (
-            <Dialog.Title style={[styles.title, { color: colors.textPrimary }]}>
+            <Dialog.Title
+              style={[styles.title, rtlTextStyle, { color: colors.textPrimary }]}
+            >
               {state.title}
             </Dialog.Title>
           ) : null}
@@ -152,7 +172,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
             <Dialog.Content>
               <Text
                 variant="bodyMedium"
-                style={[styles.message, { color: colors.textSecondary }]}
+                style={[styles.message, rtlTextStyle, { color: colors.textSecondary }]}
               >
                 {state.message}
               </Text>

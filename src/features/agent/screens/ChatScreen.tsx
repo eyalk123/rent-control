@@ -19,8 +19,13 @@ export function ChatScreen() {
   const { enabled, statusLoading, statusFailed, refreshStatus, newChat } = useAgentChat();
   // Android needs a KeyboardAvoidingView behavior too, not just iOS: `edgeToEdgeEnabled`
   // (app.json) stops the window resizing for the keyboard, so the manifest's `adjustResize`
-  // no longer moves anything and the composer ends up hidden behind the keyboard. The offset
-  // is the tab bar, which sits below this screen and would otherwise be double-counted.
+  // no longer moves anything and the composer ends up hidden behind the keyboard. `padding`
+  // on both platforms, not `height` on Android: `height` pins an explicit height captured at
+  // the first layout and drops `flex`, so once the keyboard had been opened and closed the
+  // view kept that stale height and hung below the tab bar, clipping the composer row. With
+  // the window not resizing, the situation is the same on both platforms anyway. The iOS
+  // offset is the tab bar, which sits below this screen and would otherwise be double-counted;
+  // on Android the keyboard's screen coordinates already account for it.
   const tabBarHeight = useBottomTabBarHeight();
 
   return (
@@ -72,7 +77,7 @@ export function ChatScreen() {
       ) : (
         <KeyboardAvoidingView
           style={styles.filler}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
           keyboardVerticalOffset={Platform.OS === 'ios' ? tabBarHeight : 0}
         >
           <MessageList />

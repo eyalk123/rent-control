@@ -485,6 +485,7 @@
     "discardChangesMessage": "You have unsaved changes. Are you sure you want to leave?",
     "discard": "Discard",
     "cancel": "Cancel",
+    "ok": "OK",
     "continue": "Continue",
     "next": "Next",
     "tryAgain": "Try Again",

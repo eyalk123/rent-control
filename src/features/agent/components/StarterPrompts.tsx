@@ -37,20 +37,20 @@ export function StarterPrompts() {
     >
       <Text
         variant="titleMedium"
-        style={[styles.emptyTitle, rtlLabelStyle, { color: colors.textPrimary }]}
+        style={[styles.emptyTitle, rtlLabelStyle, styles.fullWidth, { color: colors.textPrimary }]}
       >
         {t('agent.emptyTitle')}
       </Text>
       <Text
         variant="bodyMedium"
-        style={[styles.hint, rtlLabelStyle, { color: colors.textSecondary }]}
+        style={[styles.hint, rtlLabelStyle, styles.fullWidth, { color: colors.textSecondary }]}
       >
         {t('agent.emptyHint')}
       </Text>
 
       <Text
         variant="labelSmall"
-        style={[styles.sectionLabel, rtlLabelStyle, { color: colors.textSecondary }]}
+        style={[styles.sectionLabel, rtlLabelStyle, styles.fullWidth, { color: colors.textSecondary }]}
       >
         {t('agent.startersLabel')}
       </Text>
@@ -85,6 +85,14 @@ export function StarterPrompts() {
 }
 
 const styles = StyleSheet.create({
+  // `useRtlLabelStyle` sets `alignSelf: 'flex-start'`, which shrinks the Text box to its
+  // longest line — fine for a one-liner, but it left the two-line Hebrew hint in a box
+  // narrower than the column and pinned to the left edge, so `textAlign: 'right'` had nothing
+  // to align against and the paragraph read as LTR. Stretching the box back to full width
+  // (applied after the hook's style, so it wins) is what makes the right alignment visible.
+  fullWidth: {
+    alignSelf: 'stretch',
+  },
   content: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
