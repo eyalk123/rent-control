@@ -17,11 +17,15 @@ const MOCK_THREADS: ConversationSummary[] = [
   },
 ];
 
+// Markers sit after a complete clause, never inside one. The last line used to read
+// 'Everyone else at [[property:1|123 Main St]] has paid.', which strips to "Everyone else
+// at has paid." — the prose leaned on the marker's label to make sense, so the mock was
+// modelling a shape the backend does not produce and preview mode showed a broken sentence.
 const MOCK_ANSWER =
   'Two renters are behind this month.\n\n' +
   '- **Sarah Johnson** — ₪2,200, 6 days overdue [[renter:1|Sarah Johnson]]\n' +
   '- **Michael Chen** — ₪1,900, 2 days overdue [[renter:2|Michael Chen]]\n\n' +
-  'Everyone else at [[property:1|123 Main St]] has paid.';
+  'Everyone else at 123 Main St has paid. [[property:1|123 Main St]]';
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

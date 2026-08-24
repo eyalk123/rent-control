@@ -7,8 +7,18 @@ import { useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { darkColors, ICON_MD, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { useAgentChat } from '../context/AgentChatContext';
 
-/** Icons for the localized starters, in order: unpaid renters, earnings, lease dates. */
-const STARTER_ICONS: IconName[] = ['alert-circle', 'trending-up', 'calendar'];
+/**
+ * The quick questions, each owning its icon. Addressed by key rather than by position: an
+ * icon array indexed against `t('agent.starters')` meant reordering or adding a question in
+ * either locale silently paired it with the wrong icon, and kept the two locale arrays in
+ * step by convention alone. A missing key now shows up as a visible `agent.starters.…`
+ * string instead.
+ */
+const STARTERS: { key: string; icon: IconName }[] = [
+  { key: 'overdue', icon: 'alert-circle' },
+  { key: 'earnings', icon: 'trending-up' },
+  { key: 'leaseEnd', icon: 'calendar' },
+];
 
 /** Empty-conversation state: a hint + localized quick questions that send on tap. */
 export function StarterPrompts() {
@@ -18,9 +28,6 @@ export function StarterPrompts() {
   const { isRtl } = useLanguageContext();
   const rtlLabelStyle = useRtlLabelStyle();
   const { send } = useAgentChat();
-  const starters = t('agent.starters', { returnObjects: true });
-  const list = Array.isArray(starters) ? (starters as string[]) : [];
-
   const accentBg = theme.dark ? 'rgba(194,149,67,0.15)' : 'rgba(212,162,76,0.12)';
 
   return (
@@ -49,30 +56,29 @@ export function StarterPrompts() {
       </Text>
 
       <View style={styles.list}>
-        {list.map((prompt, i) => (
-          <TouchableOpacity
-            key={i}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            onPress={() => send(prompt)}
-            style={[
-              styles.card,
-              { backgroundColor: theme.colors.surface, borderColor: colors.outline },
-            ]}
-          >
-            <View style={[styles.iconWrap, { backgroundColor: accentBg }]}>
-              <Icon
-                name={STARTER_ICONS[i] ?? 'message-square'}
-                size={ICON_MD}
-                color={colors.accent}
-              />
-            </View>
-            <Text style={[styles.prompt, { color: colors.textPrimary }]}>{prompt}</Text>
-            <View style={{ transform: [{ scaleX: isRtl ? -1 : 1 }] }}>
-              <Icon name="chevron-right" size={ICON_SM} color={colors.textSecondary} />
-            </View>
-          </TouchableOpacity>
-        ))}
+        {STARTERS.map(({ key, icon }) => {
+          const prompt = t(`agent.starters.${key}`);
+          return (
+            <TouchableOpacity
+              key={key}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              onPress={() => send(prompt)}
+              style={[
+                styles.card,
+                { backgroundColor: theme.colors.surface, borderColor: colors.outline },
+              ]}
+            >
+              <View style={[styles.iconWrap, { backgroundColor: accentBg }]}>
+                <Icon name={icon} size={ICON_MD} color={colors.accent} />
+              </View>
+              <Text style={[styles.prompt, { color: colors.textPrimary }]}>{prompt}</Text>
+              <View style={{ transform: [{ scaleX: isRtl ? -1 : 1 }] }}>
+                <Icon name="chevron-right" size={ICON_SM} color={colors.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </ScrollView>
   );

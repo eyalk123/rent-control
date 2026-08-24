@@ -39,11 +39,11 @@
     "you": "You",
     "typing": "The assistant is replying",
     "jumpToLatest": "Jump to latest",
-    "starters": [
-      "Who hasn't paid this month?",
-      "How much did I earn this year?",
-      "When does each lease end?"
-    ],
+    "starters": {
+      "overdue": "Who hasn't paid this month?",
+      "earnings": "How much did I earn this year?",
+      "leaseEnd": "When does each lease end?"
+    },
     "tool": {
       "get_overdue": "Checking who hasn't paid…",
       "query_transactions": "Checking transactions…",
