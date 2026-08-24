@@ -31,6 +31,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BackHandler,
   Dimensions,
+  type LayoutChangeEvent,
   Pressable,
   StyleSheet,
   useWindowDimensions,
@@ -48,6 +49,8 @@ const SPOTLIGHT_PAD = 8;
 const SPOTLIGHT_RADIUS = 14;
 const CARD_GAP = 14;
 const CARD_MAX_WIDTH = 360;
+/** Minimum breathing room between the card and any screen edge. */
+const EDGE_MARGIN = 16;
 
 export function TourOverlay() {
   const controller = useTourController();
@@ -65,6 +68,15 @@ export function TourOverlay() {
   const handleHostLayout = useCallback(() => {
     hostRef.current?.measureInWindow?.((x, y) => setOrigin({ x, y }));
   }, []);
+
+  // The card's own height, so it can be kept inside the viewport. A large anchor (a list
+  // filling the screen) otherwise pushes it off the top, which clipped the title and the
+  // seed callback entirely.
+  const [cardHeight, setCardHeight] = useState(0);
+  const handleCardLayout = useCallback(
+    (e: LayoutChangeEvent) => setCardHeight(e.nativeEvent.layout.height),
+    [],
+  );
 
   const active = controller?.active ?? null;
   const step = controller?.step ?? null;
@@ -126,18 +138,28 @@ export function TourOverlay() {
       }
     : null;
 
-  // Place the card on whichever side of the anchor has more room, ignoring the step's
-  // stated preference when that side cannot actually fit it.
-  const spaceAbove = box ? box.y : 0;
-  const spaceBelow = box ? screenH - (box.y + box.height) : 0;
-  const preferTop = step.placement === 'top';
-  const placeAbove = box ? (preferTop ? spaceAbove > 180 : spaceBelow < 200 && spaceAbove > spaceBelow) : false;
+  // Card placement is always expressed as a top offset so it can be clamped. The step's
+  // preferred side is honoured only when the card actually fits there; when neither side
+  // fits — a list anchor covering most of the screen — it centres over the anchor rather
+  // than hanging off an edge.
+  const fits = (top: number) => top >= EDGE_MARGIN && top + cardHeight <= screenH - EDGE_MARGIN;
 
-  const cardPosition = box
-    ? placeAbove
-      ? { bottom: screenH - box.y + CARD_GAP }
-      : { top: box.y + box.height + CARD_GAP }
-    : { top: screenH / 2 - 120 };
+  let cardTop: number;
+  if (!box) {
+    cardTop = (screenH - cardHeight) / 2;
+  } else {
+    const below = box.y + box.height + CARD_GAP;
+    const above = box.y - CARD_GAP - cardHeight;
+    const preferred = step.placement === 'top' ? above : below;
+    const fallback = step.placement === 'top' ? below : above;
+    if (fits(preferred)) cardTop = preferred;
+    else if (fits(fallback)) cardTop = fallback;
+    else cardTop = (screenH - cardHeight) / 2;
+  }
+  // Final guard: never let the card leave the viewport, whatever the anchor did.
+  const cardPosition = {
+    top: Math.max(EDGE_MARGIN, Math.min(cardTop, screenH - cardHeight - EDGE_MARGIN)),
+  };
 
   return (
     <View
@@ -188,6 +210,7 @@ export function TourOverlay() {
         )}
 
         <View
+          onLayout={handleCardLayout}
           style={[
             styles.card,
             cardPosition,

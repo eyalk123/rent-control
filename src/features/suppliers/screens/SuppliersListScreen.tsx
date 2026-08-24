@@ -27,6 +27,9 @@ import {
 import { useSuppliersList } from '@/src/features/suppliers/hooks/useSuppliersList';
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
 import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 import { updateSupplier } from '@/src/features/suppliers/api/suppliers';
 import { SupplierDetailModal } from '@/src/features/suppliers/components/SupplierDetailModal';
 import { getApiErrorMessage } from '@/src/core/api/client';
@@ -50,6 +53,8 @@ export function SuppliersListScreen() {
     retryLoad,
   } = useSuppliersList();
   const { categories } = useExpenseCategories();
+  // Destination of the Suppliers seed planted on the first-run tour.
+  useTour('suppliers');
   const [refreshing, setRefreshing] = useState(false);
 
   const [nameFilter, setNameFilter] = useState<number | null>(null);
@@ -223,9 +228,14 @@ export function SuppliersListScreen() {
         <Text variant="headlineLarge" style={styles.heroTitle}>
           {t('suppliers.title', { defaultValue: 'Suppliers' })}
         </Text>
-        <FilterChipsBar chips={filterChips} stretch />
+        {/* Categories are reachable from here, which is what the tour's second step
+            points at — they are also what expense reports group by. */}
+        <TourAnchor id={ANCHORS.suppliersCategories}>
+          <FilterChipsBar chips={filterChips} stretch />
+        </TourAnchor>
         <ActiveFilterPills chips={filterChips} />
       </View>
+      <TourAnchor id={ANCHORS.suppliersList} style={styles.listAnchor}>
       <FlatList
         data={filteredSuppliers}
         keyExtractor={(item) => item.id.toString()}
@@ -307,6 +317,7 @@ export function SuppliersListScreen() {
           />
         }
       />
+      </TourAnchor>
       <AppFab
         icon="plus"
         onPress={handleAddPress}
@@ -342,6 +353,7 @@ export function SuppliersListScreen() {
 }
 
 const styles = StyleSheet.create({
+  listAnchor: { flex: 1 },
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
