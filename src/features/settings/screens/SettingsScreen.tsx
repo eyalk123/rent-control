@@ -29,18 +29,21 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   // Switching between English and Hebrew flips the writing direction, but native views only
   // read that at launch — without a reload the navigation headers stay in the old direction
   // while everything else mirrors. Offer the restart, and if the reload isn't available in
-  // this build, say so rather than appearing to do nothing.
+  // this build, say so rather than appearing to do nothing. The two alerts must use different
+  // copy — the first asks permission, the second asks for a manual restart — or the fallback
+  // reads as the same alert firing twice (which is what it looks like in a dev client, where
+  // restartAppForRTL always returns false).
   const handleLanguage = React.useCallback(
     async (lang: SupportedLanguage) => {
       const directionChanged = await setLanguage(lang);
       if (!directionChanged) return;
-      appAlert(t('restart.title'), t('restart.message'), [
+      appAlert(t('restart.title'), t('restart.confirmMessage'), [
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('common.continue'),
           onPress: async () => {
             const reloaded = await restartAppForRTL();
-            if (!reloaded) appAlert(t('restart.title'), t('restart.message'));
+            if (!reloaded) appAlert(t('restart.title'), t('restart.manualMessage'));
           },
         },
       ]);

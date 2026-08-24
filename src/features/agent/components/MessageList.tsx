@@ -10,6 +10,13 @@ import { ToolActivity } from './ToolActivity';
 
 /** How close to the bottom still counts as "following along", in px. */
 const AT_BOTTOM_SLOP = 80;
+/**
+ * How far up you have to be before the jump button appears, as a fraction of the visible
+ * height. Deliberately much larger than AT_BOTTOM_SLOP: auto-follow has to stop the moment
+ * you scroll at all, but the button showing up after a flick of the thumb is just noise —
+ * it only earns its place once the latest message is properly off screen.
+ */
+const JUMP_VISIBLE_FRACTION = 1.25;
 
 export function MessageList() {
   const { t } = useTranslation();
@@ -23,9 +30,9 @@ export function MessageList() {
   const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
     const distance = contentSize.height - layoutMeasurement.height - contentOffset.y;
-    const near = distance <= AT_BOTTOM_SLOP;
-    atBottom.current = near;
-    setShowJump((prev) => (prev === !near ? prev : !near));
+    atBottom.current = distance <= AT_BOTTOM_SLOP;
+    const far = distance > layoutMeasurement.height * JUMP_VISIBLE_FRACTION;
+    setShowJump((prev) => (prev === far ? prev : far));
   }, []);
 
   const jump = useCallback(() => {

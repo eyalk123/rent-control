@@ -123,7 +123,8 @@
   },
   "restart": {
     "title": "Restart Required",
-    "message": "Please restart the app for the layout direction change to take effect."
+    "confirmMessage": "The layout direction changed. Restart the app now to apply it?",
+    "manualMessage": "Please close and reopen the app for the layout direction change to take effect."
   },
   "contact": {
     "call": "Call",

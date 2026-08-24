@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { IconButton, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useLanguageContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
@@ -20,11 +21,13 @@ export function Composer() {
   const rtlInputStyle = useRtlInputStyle();
   const rtlPlaceholder = useRtlPlaceholder();
   const { send, stop, status } = useAgentChat();
-  // ChatScreen's ScreenContainer omits the bottom edge (like every other tab screen), so the
-  // bar has to add the gesture-bar inset itself or it sits flush against it — but only while
-  // the keyboard is down, since the keyboard covers the gesture bar and the inset would
-  // otherwise leave a gap between the two. Same listener pattern as FilterBottomSheet.
+  // The bar adds the gesture-bar inset itself only when nothing else already covers it. On the
+  // chat tab the tab bar sits below and applies that inset already, so adding it here just left
+  // a band of empty background between the bar and the tabs — hence `tabBarHeight` in the sum
+  // below. With the keyboard up the keyboard covers the gesture bar, so the inset is dropped
+  // then too. Same listener pattern as FilterBottomSheet.
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const [keyboardUp, setKeyboardUp] = useState(false);
   useEffect(() => {
     const shown = Keyboard.addListener(
@@ -61,7 +64,7 @@ export function Composer() {
         {
           backgroundColor: theme.colors.surface,
           borderTopColor: colors.outline,
-          paddingBottom: spacing.sm + (keyboardUp ? 0 : insets.bottom),
+          paddingBottom: spacing.sm + (keyboardUp || tabBarHeight > 0 ? 0 : insets.bottom),
         },
       ]}
     >
