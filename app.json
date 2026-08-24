@@ -98,7 +98,8 @@
         "@sentry/react-native/expo",
         {
           "organization": "eyal-kook",
-          "project": "rent-control"
+          "project": "rent-control",
+          "url": "https://de.sentry.io/"
         }
       ]
     ],

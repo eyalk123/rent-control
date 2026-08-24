@@ -37,7 +37,7 @@ public.
 |---|---|
 | `EXPO_PUBLIC_API_URL` | Backend base URL — see the table below |
 | `EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID` | Firebase web client ID (Console → Project Settings → Your apps → Web app) |
-| `EXPO_PUBLIC_SENTRY_DSN` | Sentry DSN for crash reporting |
+| `EXPO_PUBLIC_SENTRY_DSN` | Sentry DSN for crash reporting. Local runs only — EAS builds read it from `eas.json`, since `.env` is gitignored |
 | `EXPO_PUBLIC_DEV_WEB_PREVIEW` | `1` enables the dev-only browser preview — see [Mock API](#mock-api) |
 
 **`EXPO_PUBLIC_API_URL` depends on where the app runs** — an Android emulator cannot reach
@@ -88,6 +88,30 @@ guarded by `__DEV__` **and** `Platform.OS === 'web'`, so it cannot reach a build
 
 `@/*` resolves to the repo root, and **all imports must use `@/src/...`** — no relative `../`
 paths. (Note this differs from the web app, where `@` maps to `src` itself.)
+
+## Crash reporting (Sentry)
+
+Initialised in `app/_layout.tsx`. Three things about it regularly surprise people:
+
+- **Dev builds report nothing.** `enabled: !__DEV__` means Expo Go, a dev client and
+  `expo start` are all deliberately silent. Only release builds report, so a smoke test
+  has to be run against one.
+- **The DSN comes from `eas.json`, not `.env`.** `.env` is gitignored and never reaches an
+  EAS build, so the DSN lives in each build profile's `env` block. A DSN is public — it
+  identifies a project, it does not grant access to it.
+- **The org is EU-hosted**, so the config plugin points `sentry-cli` at
+  `https://de.sentry.io/`. Left at the default it talks to the US instance, where the
+  credentials do not resolve.
+
+Readable stack traces additionally need `SENTRY_AUTH_TOKEN` at build time — a real secret,
+so it belongs in EAS rather than in the repo:
+
+```bash
+eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value <token>
+```
+
+Without it the build still succeeds and still reports; the traces just arrive minified and
+unsymbolicated.
 
 ## Builds and releases
 
