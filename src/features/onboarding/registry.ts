@@ -1,0 +1,271 @@
+/**
+ * Onboarding — content registry (mobile).
+ *
+ * Copy lives in i18n under `onboarding.*`; this file holds structure only.
+ * Ordering inside a tour is the array order. See types.ts for the model.
+ */
+import { ANCHORS } from './anchors';
+import { assertBudget, type TourDefinition, type TourId } from './types';
+
+export const TOURS = {
+  /* ---------------------------------------------------------------- orientation */
+
+  'first-run': {
+    id: 'first-run',
+    route: '/(tabs)/home',
+    gate: 'always',
+    kind: 'orientation',
+    steps: [
+      { id: 'home', anchor: ANCHORS.tabHome, placement: 'top', seed: { id: 'alert-actions', opens: null } },
+      { id: 'portfolio', anchor: ANCHORS.tabProperties, placement: 'top', seed: { id: 'scan-lease', opens: 'lease-scan' } },
+      { id: 'money', anchor: ANCHORS.tabTransactions, placement: 'top', seed: { id: 'suppliers', opens: 'suppliers' } },
+      { id: 'chat', anchor: ANCHORS.tabChat, placement: 'top' },
+      { id: 'start', anchor: null, placement: 'center' },
+    ],
+  },
+
+  /**
+   * Deliberately NOT part of first-run: on day one Home is empty, so the two most
+   * hidden routes in the product (Reports, notification settings) are seeded later,
+   * once Home actually has something on it.
+   */
+  home: {
+    id: 'home',
+    route: '/(tabs)/home',
+    gate: 'hasRenters',
+    kind: 'page',
+    steps: [
+      { id: 'attention', anchor: ANCHORS.homeNeedsAttention, placement: 'bottom' },
+      { id: 'reports', anchor: ANCHORS.homeReportsCard, placement: 'top', seed: { id: 'reports', opens: 'reports' } },
+      { id: 'notifications', anchor: ANCHORS.homeManageNotifications, placement: 'top', seed: { id: 'notifications', opens: 'notifications' } },
+    ],
+  },
+
+  /* ----------------------------------------------------------------- page tours */
+
+  'properties-list': {
+    id: 'properties-list',
+    route: '/(tabs)/properties',
+    gate: 'hasProperties',
+    kind: 'page',
+    steps: [
+      { id: 'cards', anchor: ANCHORS.propertiesList, placement: 'bottom' },
+      { id: 'persistence', anchor: ANCHORS.propertiesList, placement: 'bottom', seed: { id: 'bulk-select', opens: null } },
+    ],
+  },
+
+  'property-form': {
+    id: 'property-form',
+    route: '/properties/add',
+    gate: 'always',
+    kind: 'page',
+    steps: [
+      { id: 'twoSteps', anchor: ANCHORS.propertyFormStepper, placement: 'bottom' },
+      { id: 'owner', anchor: ANCHORS.propertyFormOwnerField, placement: 'bottom', seed: { id: 'property-owner', opens: null } },
+    ],
+  },
+
+  'renters-list': {
+    id: 'renters-list',
+    route: '/(tabs)/renters',
+    gate: 'hasRenters',
+    kind: 'page',
+    steps: [
+      { id: 'current', anchor: ANCHORS.rentersList, placement: 'bottom' },
+      { id: 'ended', anchor: ANCHORS.rentersEndedFilter, placement: 'bottom', seed: { id: 'ended-tenants', opens: null } },
+    ],
+  },
+
+  /** The densest screen in the product — the only page tour that uses its full budget. */
+  'lease-form': {
+    id: 'lease-form',
+    route: '/renters/add',
+    gate: 'always',
+    kind: 'page',
+    steps: [
+      { id: 'term', anchor: ANCHORS.leaseTermBuilder, placement: 'bottom' },
+      { id: 'mode', anchor: ANCHORS.leaseRentChangeField, placement: 'bottom', seed: { id: 'cpi', opens: 'cpi-mode' } },
+      { id: 'baseYear', anchor: ANCHORS.leaseBaseRent, placement: 'bottom', seed: { id: 'custom-schedule', opens: 'custom-mode' } },
+    ],
+  },
+
+  'transactions-list': {
+    id: 'transactions-list',
+    route: '/(tabs)/transactions',
+    gate: 'hasProperties',
+    kind: 'page',
+    steps: [
+      { id: 'twoKinds', anchor: ANCHORS.transactionsList, placement: 'bottom' },
+      { id: 'forMonth', anchor: ANCHORS.transactionsAddButton, placement: 'top', seed: { id: 'no-auto-rent', opens: null } },
+      { id: 'recording', anchor: ANCHORS.transactionsAddButton, placement: 'top', seed: { id: 'bulk-rent', opens: 'revenue-form' } },
+    ],
+  },
+
+  'renter-detail': {
+    id: 'renter-detail',
+    route: '/(tabs)/renters/[id]',
+    gate: 'hasRenters',
+    kind: 'page',
+    steps: [
+      { id: 'timeline', anchor: ANCHORS.renterDetailTimeline, placement: 'bottom' },
+      { id: 'extend', anchor: ANCHORS.renterDetailExtend, placement: 'top', seed: { id: 'extend-lease', opens: 'extend-lease' } },
+      { id: 'end', anchor: ANCHORS.renterDetailEndLease, placement: 'top', seed: { id: 'end-lease', opens: null } },
+    ],
+  },
+
+  chat: {
+    id: 'chat',
+    route: '/(tabs)/chat',
+    gate: 'hasRenters',
+    kind: 'page',
+    steps: [
+      { id: 'ask', anchor: ANCHORS.chatInput, placement: 'top' },
+      { id: 'scope', anchor: null, placement: 'center' },
+    ],
+  },
+
+  /* ------------------------------------------------- destinations / elaborations */
+
+  'cpi-mode': {
+    id: 'cpi-mode',
+    route: '/renters/add',
+    gate: 'cpiSelected',
+    kind: 'elaboration',
+    arrivesFrom: 'cpi',
+    steps: [
+      { id: 'base', anchor: ANCHORS.leaseCpiBase, placement: 'bottom' },
+      { id: 'lag', anchor: null, placement: 'center' },
+      { id: 'reanchor', anchor: null, placement: 'center' },
+    ],
+  },
+
+  'custom-mode': {
+    id: 'custom-mode',
+    route: '/renters/add',
+    gate: 'customSelected',
+    kind: 'elaboration',
+    arrivesFrom: 'custom-schedule',
+    steps: [
+      { id: 'perYear', anchor: ANCHORS.leaseYearRows, placement: 'bottom' },
+      { id: 'forward', anchor: null, placement: 'center' },
+    ],
+  },
+
+  'revenue-form': {
+    id: 'revenue-form',
+    route: '/transactions/add',
+    gate: 'always',
+    kind: 'elaboration',
+    arrivesFrom: 'bulk-rent',
+    steps: [
+      { id: 'scope', anchor: ANCHORS.revenuePropertyPicker, placement: 'bottom' },
+      { id: 'perContract', anchor: ANCHORS.revenueAmountCell, placement: 'bottom' },
+      { id: 'saving', anchor: null, placement: 'center' },
+    ],
+  },
+
+  'expense-form': {
+    id: 'expense-form',
+    route: '/transactions/add',
+    gate: 'always',
+    kind: 'elaboration',
+    steps: [
+      { id: 'required', anchor: ANCHORS.expenseCategoryField, placement: 'bottom' },
+      { id: 'split', anchor: ANCHORS.expensePropertyPicker, placement: 'bottom', seed: { id: 'expense-split', opens: null } },
+    ],
+  },
+
+  'extend-lease': {
+    id: 'extend-lease',
+    route: '/renters/extend/[id]',
+    gate: 'always',
+    kind: 'elaboration',
+    arrivesFrom: 'extend-lease',
+    steps: [
+      { id: 'months', anchor: ANCHORS.extendYearsStepper, placement: 'bottom' },
+      { id: 'optionLast', anchor: ANCHORS.extendPreview, placement: 'top' },
+    ],
+  },
+
+  suppliers: {
+    id: 'suppliers',
+    route: '/transactions/suppliers',
+    gate: 'always',
+    kind: 'elaboration',
+    arrivesFrom: 'suppliers',
+    steps: [
+      { id: 'what', anchor: ANCHORS.suppliersList, placement: 'bottom' },
+      { id: 'categories', anchor: ANCHORS.suppliersCategories, placement: 'bottom' },
+    ],
+  },
+
+  notifications: {
+    id: 'notifications',
+    route: '/notifications',
+    gate: 'always',
+    kind: 'elaboration',
+    arrivesFrom: 'notifications',
+    steps: [
+      { id: 'events', anchor: ANCHORS.notificationsEventList, placement: 'bottom' },
+      { id: 'rules', anchor: ANCHORS.notificationsRulesEntry, placement: 'bottom', seed: { id: 'notification-rules', opens: 'notification-rules' } },
+      { id: 'templates', anchor: ANCHORS.notificationsTemplatesEntry, placement: 'bottom', seed: { id: 'whatsapp-templates', opens: 'whatsapp-templates' } },
+    ],
+  },
+
+  'notification-rules': {
+    id: 'notification-rules',
+    route: '/notifications/rule',
+    gate: 'always',
+    kind: 'elaboration',
+    arrivesFrom: 'notification-rules',
+    steps: [
+      { id: 'offsets', anchor: ANCHORS.ruleOffsets, placement: 'bottom' },
+      { id: 'scope', anchor: ANCHORS.ruleScope, placement: 'bottom' },
+      { id: 'cpiException', anchor: null, placement: 'center' },
+    ],
+  },
+
+  'whatsapp-templates': {
+    id: 'whatsapp-templates',
+    route: '/notifications/templates',
+    gate: 'always',
+    kind: 'elaboration',
+    arrivesFrom: 'whatsapp-templates',
+    steps: [
+      { id: 'placeholders', anchor: ANCHORS.templatePlaceholders, placement: 'bottom' },
+      { id: 'perLanguage', anchor: ANCHORS.templateLanguage, placement: 'bottom' },
+    ],
+  },
+
+  reports: {
+    id: 'reports',
+    route: '/reports',
+    gate: 'always',
+    kind: 'elaboration',
+    arrivesFrom: 'reports',
+    steps: [
+      { id: 'two', anchor: ANCHORS.reportsCards, placement: 'bottom' },
+      { id: 'export', anchor: ANCHORS.reportsExport, placement: 'bottom' },
+    ],
+  },
+
+  'lease-scan': {
+    id: 'lease-scan',
+    route: '/properties/scan',
+    gate: 'always',
+    kind: 'elaboration',
+    arrivesFrom: 'scan-lease',
+    steps: [
+      { id: 'pick', anchor: ANCHORS.scanPicker, placement: 'bottom' },
+      { id: 'review', anchor: ANCHORS.scanSummary, placement: 'bottom' },
+      { id: 'both', anchor: null, placement: 'center' },
+    ],
+  },
+} satisfies Partial<Record<TourId, TourDefinition>>;
+
+export type MobileTourId = keyof typeof TOURS;
+
+/** Run in a unit test — keeps the budget from quietly drifting as copy is added. */
+export function validateRegistry(): string[] {
+  return Object.values(TOURS as Record<string, TourDefinition>).flatMap(assertBudget);
+}

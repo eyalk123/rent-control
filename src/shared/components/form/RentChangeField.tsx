@@ -6,6 +6,8 @@ import { darkColors, lightColors, spacing } from "@/src/core/theme";
 import { SegmentedControl, type Segment } from "@/src/shared/components/ui";
 import type { RentEscalationMode } from "@/src/shared/types";
 import { EscalationValueField } from "./EscalationValueField";
+import { ANCHORS } from "@/src/features/onboarding/anchors";
+import { useTourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 
 /**
  * The escalation modes, in display order. Every caller offers all of them. `custom` leads
@@ -51,6 +53,9 @@ function RentChangeFieldInner({
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  // The lease-form tour seeds CPI and Custom from this control — neither mode is
+  // guessable from its label alone.
+  const anchorRef = useTourAnchor(ANCHORS.leaseRentChangeField);
 
   const segments: Segment<RentEscalationMode>[] = RENT_ESCALATION_MODES.map((m) => ({
     value: m,
@@ -66,7 +71,7 @@ function RentChangeFieldInner({
   }));
 
   return (
-    <View>
+    <View ref={anchorRef} collapsable={false}>
       <SegmentedControl
         label={label}
         segments={segments}

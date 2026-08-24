@@ -11,6 +11,10 @@ import {
 import { AlertProvider } from "@/src/core/context";
 import { AuthProvider } from "@/src/core/auth/AuthContext";
 import { AgentChatProvider } from "@/src/features/agent/context/AgentChatContext";
+import { AnchorRegistryProvider } from "@/src/features/onboarding/AnchorRegistry";
+import { TourStateProvider } from "@/src/features/onboarding/TourStateContext";
+import { TourControllerProvider } from "@/src/features/onboarding/TourController";
+import { TourOverlay } from "@/src/features/onboarding/TourOverlay";
 import { NotificationProvider } from "@/src/features/notifications/context/NotificationContext";
 import "@/src/core/i18n";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -53,6 +57,9 @@ function DirectionalContent() {
   return (
     <View style={{ direction: isRtl ? "rtl" : "ltr", flex: 1, backgroundColor: theme.colors.background }}>
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }} />
+      {/* Sibling of the navigator, not a Modal: the tour overlay measures anchors in this
+          window and must draw in the same coordinate space. */}
+      <TourOverlay />
     </View>
   );
 }
@@ -87,7 +94,13 @@ function AppContent() {
             <TransactionSummaryProvider>
               <LanguageProvider>
                 <AgentChatProvider>
-                  <DirectionalContent />
+                  <TourStateProvider>
+                    <AnchorRegistryProvider>
+                      <TourControllerProvider>
+                        <DirectionalContent />
+                      </TourControllerProvider>
+                    </AnchorRegistryProvider>
+                  </TourStateProvider>
                 </AgentChatProvider>
               </LanguageProvider>
             </TransactionSummaryProvider>

@@ -1,6 +1,8 @@
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/src/shared/components/ui';
 import { darkColors, ICON_LG, lightColors, spacing } from '@/src/core/theme';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 interface SuppliersHeaderButtonProps {
   colors: typeof lightColors | typeof darkColors;
@@ -9,6 +11,9 @@ interface SuppliersHeaderButtonProps {
 }
 
 export function SuppliersHeaderButton({ colors, onPress, label }: SuppliersHeaderButtonProps) {
+  // The seed on the Transactions tour points here — this button is the one thing a new
+  // user cannot identify without pressing it.
+  const anchorRef = useTourAnchor(ANCHORS.transactionsSuppliersButton);
   const shadow = Platform.select({
     ios: {
       shadowColor: colors.primary,
@@ -23,6 +28,8 @@ export function SuppliersHeaderButton({ colors, onPress, label }: SuppliersHeade
   return (
     <View pointerEvents="box-none" style={styles.wrapper}>
       <View
+        ref={anchorRef}
+        collapsable={false}
         style={[styles.btn, shadow, { backgroundColor: colors.primary }]}
         renderToHardwareTextureAndroid
       >

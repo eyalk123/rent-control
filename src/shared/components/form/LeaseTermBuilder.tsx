@@ -28,6 +28,8 @@ import { Stepper, Icon } from "@/src/shared/components/ui";
 import { FormNumericField } from "./FormFields";
 import { RentChangeField } from "./RentChangeField";
 import { LeaseYearRow } from "./LeaseYearRow";
+import { ANCHORS } from "@/src/features/onboarding/anchors";
+import { useTourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 
 type LeaseTermBuilderProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -196,9 +198,13 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
   // back to LTR — which is why inputs/labels landed on the wrong side.
   const rowDirection = "row" as const;
   const total = leaseYears.length;
+  // Two anchors: the term steppers (lease-form tour) and the per-year list, which the
+  // custom-mode elaboration points at once the user picks Custom.
+  const termAnchorRef = useTourAnchor(ANCHORS.leaseTermBuilder);
+  const yearRowsAnchorRef = useTourAnchor(ANCHORS.leaseYearRows);
 
   return (
-    <View>
+    <View ref={termAnchorRef} collapsable={false}>
       <Controller
         control={control}
         name={"contractTermYears" as Path<TFieldValues>}
@@ -292,7 +298,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
       />
 
       {total > 0 ? (
-        <View>
+        <View ref={yearRowsAnchorRef} collapsable={false}>
           <View style={[styles.divider, { backgroundColor: colors.outline }]} />
           <Text variant="bodyMedium" style={[styles.timelineTitle, { color: colors.textPrimary }]}>
             {t("renter.leaseTimeline")}

@@ -8,6 +8,8 @@ import { useTheme } from 'react-native-paper';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
 import { darkColors, ICON_MD, lightColors } from '@/src/core/theme';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 // DEV-ONLY: measures time from tab press → screen focus
 let __tabPressAt = 0;
@@ -25,12 +27,16 @@ function TabBarIcon({
   name,
   color,
   focused,
+  anchor,
 }: {
   name: IconName;
   color: string;
   focused: boolean;
+  /** Onboarding anchor key, so a tour can point at this tab. */
+  anchor?: string;
 }) {
   const theme = useTheme();
+  const anchorRef = useTourAnchor(anchor ?? '');
   const colors = theme.dark ? darkColors : lightColors;
   const pillBg = theme.dark
     ? 'rgba(62,111,168,0.18)'
@@ -38,6 +44,8 @@ function TabBarIcon({
 
   return (
     <View
+      ref={anchor ? anchorRef : undefined}
+      collapsable={false}
       style={{
         width: 44,
         height: 28,
@@ -110,7 +118,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.home'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="layout-dashboard" color={color} focused={focused} />
+            <TabBarIcon name="layout-dashboard" color={color} focused={focused} anchor={ANCHORS.tabHome} />
           ),
         }}
       />
@@ -119,7 +127,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.properties'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="building" color={color} focused={focused} />
+            <TabBarIcon name="building" color={color} focused={focused} anchor={ANCHORS.tabProperties} />
           ),
         }}
       />
@@ -128,7 +136,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.renters'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="users" color={color} focused={focused} />
+            <TabBarIcon name="users" color={color} focused={focused} anchor={ANCHORS.tabRenters} />
           ),
         }}
       />
@@ -137,7 +145,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.transactions', { defaultValue: 'Transactions' }),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="wallet" color={color} focused={focused} />
+            <TabBarIcon name="wallet" color={color} focused={focused} anchor={ANCHORS.tabTransactions} />
           ),
         }}
       />
@@ -146,7 +154,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.chat', { defaultValue: 'Chat' }),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="message-square" color={color} focused={focused} />
+            <TabBarIcon name="message-square" color={color} focused={focused} anchor={ANCHORS.tabChat} />
           ),
         }}
       />
