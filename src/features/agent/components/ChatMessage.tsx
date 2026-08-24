@@ -42,8 +42,9 @@ function TypingDots({ color, label }: { color: string; label: string }) {
 
 /**
  * A chat bubble. Assistant answers render as Markdown (tables, bold, lists); user input and
- * errors stay plain text — we never Markdown-render what the user typed. `writingDirection:
- * 'auto'` lets each message pick its own script direction (Hebrew RTL, English LTR).
+ * errors stay plain text — we never Markdown-render what the user typed. Plain text picks its
+ * own script direction with `writingDirection: 'auto'`; Markdown answers cannot, because the
+ * library renders the body as a View, so `Markdown.tsx` sniffs the direction itself.
  */
 export const ChatMessage = React.memo(function ChatMessage({
   message,

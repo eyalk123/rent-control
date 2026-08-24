@@ -15,7 +15,10 @@ import { AgentHttpError, AgentStreamTimeoutError } from '../api/agentStream';
 import { createCitationScanner, parseCitations } from '../utils/citations';
 import type { ChatDisplayMessage, StoredMessage } from '../types';
 
-type ChatStatus = 'idle' | 'streaming' | 'error';
+// No 'error' member: a failed turn is recorded on the message itself (`error`,
+// `errorText`, `retryable`), and the chat as a whole goes straight back to idle so the
+// composer is usable again. The old member was never set and never read.
+type ChatStatus = 'idle' | 'streaming';
 
 interface AgentChatValue {
   /** Whether the backend agent is configured (has an API key). */
@@ -249,8 +252,9 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
   }, [setBusy]);
 
   /**
-   * Resolves to whether the thread loaded. It used to let a rejection escape as an unhandled
-   * promise rejection, leaving the caller navigating away from a chat that never changed.
+   * Rejects if the thread does not load, so the caller can stay put — it used to let the
+   * rejection escape unhandled and navigate away from a chat that had never changed.
+   * ThreadList.onPick only calls `router.back()` once this resolves.
    */
   const openThread = useCallback(
     async (id: number) => {

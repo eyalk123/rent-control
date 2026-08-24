@@ -76,7 +76,7 @@ export async function streamAgentChatHttp({
     signal,
   });
 
-  if (!res.ok || !res.body) {
+  if (!res.ok) {
     // Raw fetch bypasses the axios error interceptor; surface a typed error for the caller.
     let detail = `HTTP ${res.status}`;
     try {
@@ -86,6 +86,15 @@ export async function streamAgentChatHttp({
       /* non-JSON error body */
     }
     throw new AgentHttpError(res.status, detail);
+  }
+
+  if (!res.body) {
+    // Distinct from the branch above, which used to swallow this case: a 2xx with no readable
+    // body was reported as `AgentHttpError(200, "HTTP 200")`, i.e. a server error carrying a
+    // success code. Nothing downstream could tell the two apart. `describeError` has no case
+    // for a plain Error, so the user sees `agent.errorGeneric` — right, because there is
+    // nothing useful to tell them; this message is for whoever reads the logs.
+    throw new Error('The agent responded without a readable body');
   }
 
   const reader = res.body.getReader();
