@@ -26,11 +26,43 @@ side, neither of which is visible in a browser. Reach for the emulator by defaul
 rather than waiting to be asked.
 
 Notes that will otherwise cost you an hour: Metro runs on **8083** (a WSL `netsh portproxy` hijacks
-8081 and 8082), the device reaches it at **10.0.2.2**, not `localhost`. The script pre-builds the
-bundle because a cold Metro takes ~1 min and the dev client's read timeout is shorter — without it
-the first launch dies in an unrelated-looking Java stack trace. If Metro starts returning 500s or
-you see `fork: Resource temporarily unavailable`, restart Metro; that is host process exhaustion,
-not an app bug.
+8081 and 8082). The device reaches Metro over **`adb reverse` + `localhost`**, which the script
+sets up for you — *not* `10.0.2.2`. Over 10.0.2.2 the emulator's NAT corrupts the 21MB multipart
+bundle stream and the app hangs on "Bundling 100.0%" forever with
+`ProtocolException: Expected leading [0-9a-fA-F] character` in logcat; only 8081/8082 still need
+10.0.2.2, because the portproxy owns localhost there. The script pre-builds the bundle because a
+cold Metro takes ~1 min and the dev client's read timeout is shorter — without it the first launch
+dies in an unrelated-looking Java stack trace. If Metro starts returning 500s, or `expo-updates`
+subprocesses exit `0xC0000142`, or you see `fork: Resource temporarily unavailable`, restart Metro;
+that is host process exhaustion, not an app bug.
+
+**Running more than one agent on emulators — read before booting a second one.**
+
+Each agent gets its own emulator and its own Metro. Second agent:
+
+```
+AVD=rent_control_dev2 EMU_PORT=5556 PORT=8084 ./scripts/emulator.sh preview
+```
+
+`./scripts/emulator.sh ps` shows what is already running and how much RAM is left; **run it before
+booting anything.** `EMU_PORT=<port> ./scripts/emulator.sh stop` shuts your instance down.
+
+**Cap: 2 emulators. Do not start a third without asking the user first.** Measured on this
+machine (32G): one emulator takes ~5.4G, two take **8.6G before the app even loads**, which leaves
+under 2G free — already into swapping. A third only fits if the user closes Chrome and other apps,
+and that is their call, not yours. If you need a third, say so and let them decide; if `ps` shows
+two already up and you are not one of them, stop and tell the user rather than booting another.
+
+Existing AVDs are `rent_control_dev` (8083/5554) and `rent_control_dev2` (8084/5556) — one AVD per
+running instance, they cannot be shared (`-read-only` only works if *every* instance uses it, and
+then none of them persist their app install).
+
+**Clean up after yourself.** If you booted an emulator that was not already running, `stop` it when
+you finish. Leave a pre-existing one alone — the user may be using it, and a cold boot costs ~90s.
+Two other things that are not automatic: `build` must not run in two agents at once from this
+checkout (Gradle locks the build dir — build once, then `adb install -r` per emulator with
+`ANDROID_SERIAL` set), and each Metro needs its own transform cache, which the script handles by
+scoping `TMPDIR` per port; two bundlers sharing one cache silently serve a **1-module** bundle.
 
 **Directories & Aliases:**
 

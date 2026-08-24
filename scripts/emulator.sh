@@ -233,11 +233,38 @@ launch() {
   echo "launched — the bundle is already built, so this should come up in seconds"
 }
 
+# Shut this agent's emulator and Metro down. Each emulator costs ~3-5G of host RAM (measured:
+# two took 8.6G before the app even loaded), so an agent that booted an EXTRA emulator should
+# stop it when done rather than leave it parked. `adb emu kill` is the clean shutdown; the
+# console port is the serial, so it targets only this agent's instance.
+stop() {
+  if "$ADB" devices | grep -q "^$ANDROID_SERIAL[[:space:]]"; then
+    "$ADB" emu kill >/dev/null 2>&1 || true
+    echo "stopped $ANDROID_SERIAL"
+  else
+    echo "$ANDROID_SERIAL not running"
+  fi
+  free_port || true
+  rm -f "$MODE_FILE"
+}
+
+# What is currently running, so an agent can check before booting another emulator.
+ps_all() {
+  echo "emulators:"; "$ADB" devices | grep '^emulator-' || echo "  (none)"
+  # Only 0.0.0.0 rows: the [::] duplicates are the same listener, and 127.0.0.1:8081/8082 are
+  # the WSL portproxy, not Metro.
+  echo "metro ports:"
+  netstat -ano | awk '$1=="TCP" && $2 ~ /^0\.0\.0\.0:808[0-9]$/ && $4=="LISTENING" {split($2,a,":"); print "  "a[2]}' | sort -u
+  powershell -NoProfile -Command "\$o=Get-CimInstance Win32_OperatingSystem; 'free RAM: {0} MB of {1} MB' -f [int](\$o.FreePhysicalMemory/1024),[int](\$o.TotalVisibleMemorySize/1024)" 2>/dev/null || true
+}
+
 case "${1:-boot}" in
   boot)    boot ;;
   build)   build ;;
   start)   start ;;
   preview) preview ;;
   shot)    "$ADB" exec-out screencap -p > "$SHOT"; echo "wrote $SHOT" ;;
-  *)       echo "usage: $0 [boot|build|start|preview|shot]" >&2; exit 1 ;;
+  stop)    stop ;;
+  ps)      ps_all ;;
+  *)       echo "usage: $0 [boot|build|start|preview|shot|stop|ps]" >&2; exit 1 ;;
 esac
