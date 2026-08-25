@@ -25,6 +25,9 @@ import { deleteRenter } from '@/src/features/renters/api/renters';
 import { getEffectiveLeaseEnd, getRenterLifecycle } from '@/src/shared/utils/renterStatus';
 import { spacing } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 type ActiveSheet = 'property' | 'renter' | 'owner' | 'lifecycle' | null;
 
@@ -32,7 +35,10 @@ type ActiveSheet = 'property' | 'renter' | 'owner' | 'lifecycle' | null;
  * tenants stay in the database forever, but they shouldn't crowd out the live ones. */
 type LifecycleFilter = 'current' | 'ended' | 'all';
 
+const LIST_ANCHOR = { flex: 1 } as const;
+
 export function RentersListScreen() {
+  useTour('renters-list');
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -326,9 +332,14 @@ export function RentersListScreen() {
             <SettingsGearButton />
           </View>
         )}
-        <FilterChipsBar chips={filterChips} stretch />
+        {/* The lease filter is the seed target: 'Ended' is where a departed tenant's
+            history lives, which is not guessable from the chip alone. */}
+        <TourAnchor id={ANCHORS.rentersEndedFilter}>
+          <FilterChipsBar chips={filterChips} stretch />
+        </TourAnchor>
         <ActiveFilterPills chips={filterChips} />
       </View>
+      <TourAnchor id={ANCHORS.rentersList} style={LIST_ANCHOR}>
       <FlatList
         data={filteredRenters}
         keyExtractor={(item) => item.id.toString()}
@@ -356,6 +367,7 @@ export function RentersListScreen() {
           />
         }
       />
+      </TourAnchor>
       {isSelectMode ? (
         <AppFab
           icon="trash"

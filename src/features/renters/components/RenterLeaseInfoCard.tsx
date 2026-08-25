@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { type Control, type FieldValues, type UseFormSetValue } from "react-hook-form";
+import { type Control, type FieldValues, type UseFormSetValue, useWatch } from "react-hook-form";
+import { useTour } from "@/src/features/onboarding/TourController";
 import type { TFunction } from "i18next";
 import { spacing } from "@/src/core/theme";
 import { getPaymentMethodOptions } from "@/src/shared/constants/paymentMethods";
@@ -27,6 +28,26 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   ownerId,
   setValue,
 }: RenterLeaseInfoCardProps<TFieldValues>) {
+  // The lease tours are requested from here rather than from the screen because this card
+  // is what mounts on step two of the form, and it owns every anchor they point at. Asking
+  // from the screen would ask while the user is still on step one, find nothing mounted,
+  // and defer a tour that was moments from being showable.
+  //
+  // LeaseTermBuilder would have been the other candidate, but the lease-extension screen
+  // renders it too and has a tour of its own.
+  // `as never` on the name plus a cast on the way out: this card is generic over the
+  // form's field types, so RHF cannot know the shape of this particular field.
+  const escalationMode = useWatch({ control, name: "escalationMode" as never }) as unknown as
+    | string
+    | undefined;
+
+  useTour("lease-form");
+  // Both elaborations are gated on the mode, so exactly one of these can ever open, and
+  // only once the user has actually chosen it. Selecting a mode changes `rentMode`, which
+  // re-runs the request — that is the whole trigger.
+  useTour("cpi-mode", { rentMode: escalationMode ?? null });
+  useTour("custom-mode", { rentMode: escalationMode ?? null });
+
   return (
     <FormSectionCard title={t("renter.leaseInfo")}>
       <View style={styles.inputWrap}>

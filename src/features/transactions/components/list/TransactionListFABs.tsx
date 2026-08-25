@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { AppFab } from '@/src/shared/components/ui';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
 
 interface TransactionListFABsProps {
   isSelectMode: boolean;
@@ -34,6 +35,7 @@ export function TransactionListFABs({
   return (
     <AppFab
       icon="plus"
+      anchor={ANCHORS.transactionsAddButton}
       onPress={onAdd}
       accessibilityLabel={t('transactions.addTransaction', {
         defaultValue: 'Add transaction',

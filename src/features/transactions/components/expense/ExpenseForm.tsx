@@ -20,6 +20,9 @@ import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
 import type { PaymentMethod } from '@/src/shared/types';
 import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 type ExpenseFormProps = {
   control: Control<ExpenseFormValues>;
@@ -43,6 +46,10 @@ export function ExpenseForm({
   const { t } = useTranslation();
   const { properties } = usePropertyContext();
 
+  // Requested here rather than from AddTransactionScreen: the screen also renders the
+  // revenue forms and the choose step, so it is mounted long before this form is.
+  useTour('expense-form');
+
   const propertyData = useMemo(
     () =>
       properties.map((p) => ({
@@ -63,19 +70,23 @@ export function ExpenseForm({
       <FormSectionCard
         title={t('transactions.expenseTitle', { defaultValue: 'Expense' })}
       >
-        <Controller
-          control={control}
-          name="propertyIds"
-          render={({ field: { value, onChange } }) => (
-            <MultiSelectField
-              data={propertyData}
-              value={value}
-              onChange={onChange}
-              label={t('transactions.property', { defaultValue: 'Property' })}
-              error={errors?.propertyIds}
-            />
-          )}
-        />
+        {/* Multi-select, and the expense tour seeds why: several properties split one
+            bill evenly between them. */}
+        <TourAnchor id={ANCHORS.expensePropertyPicker}>
+          <Controller
+            control={control}
+            name="propertyIds"
+            render={({ field: { value, onChange } }) => (
+              <MultiSelectField
+                data={propertyData}
+                value={value}
+                onChange={onChange}
+                label={t('transactions.property', { defaultValue: 'Property' })}
+                error={errors?.propertyIds}
+              />
+            )}
+          />
+        </TourAnchor>
         <Controller
           control={control}
           name="renterId"
@@ -108,21 +119,23 @@ export function ExpenseForm({
             <PaymentMethodRadios value={value as PaymentMethod | ''} onChange={onChange} />
           )}
         />
-        <Controller
-          control={control}
-          name="categoryIds"
-          render={({ field: { value, onChange } }) => (
-            <CategoryMultiPickerField
-              value={value}
-              onChange={(ids) => {
-                onChange(ids);
-                setValue('supplierId', null);
-              }}
-              label={t('transactions.category', { defaultValue: 'Category' })}
-              error={errors?.categoryIds}
-            />
-          )}
-        />
+        <TourAnchor id={ANCHORS.expenseCategoryField}>
+          <Controller
+            control={control}
+            name="categoryIds"
+            render={({ field: { value, onChange } }) => (
+              <CategoryMultiPickerField
+                value={value}
+                onChange={(ids) => {
+                  onChange(ids);
+                  setValue('supplierId', null);
+                }}
+                label={t('transactions.category', { defaultValue: 'Category' })}
+                error={errors?.categoryIds}
+              />
+            )}
+          />
+        </TourAnchor>
         <Controller
           control={control}
           name="supplierId"

@@ -23,6 +23,8 @@ import { useTransactionSummaryContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { useAlert } from '@/src/core/context';
 import { currentMonthKey, markRentPaid } from '@/src/features/transactions/utils/markRentPaid';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 const PREVIEW_LIMIT = 2;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -468,6 +470,7 @@ export function NeedsAttentionSection() {
       <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
         {t('home.needsAttention').toUpperCase()}
       </Text>
+      <TourAnchor id={ANCHORS.homeManageNotifications}>
       <TouchableOpacity
         onPress={() => navigate('/notifications')}
         hitSlop={10}
@@ -480,6 +483,7 @@ export function NeedsAttentionSection() {
           {t('notifications.manageTitle')}
         </Text>
       </TouchableOpacity>
+      </TourAnchor>
     </View>
   );
 
@@ -547,6 +551,7 @@ export function NeedsAttentionSection() {
   return (
     <>
       {header}
+      <TourAnchor id={ANCHORS.homeNeedsAttention}>
       <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
         {previewItems.map((item, idx) => (
           <AttentionItemRow
@@ -570,6 +575,7 @@ export function NeedsAttentionSection() {
           </>
         )}
       </View>
+      </TourAnchor>
 
       <Modal
         visible={modalVisible}

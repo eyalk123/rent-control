@@ -4,6 +4,7 @@ import { Checkbox, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import type { Renter } from '@/src/shared/types';
+import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 type RenterContractCardProps = {
   renter: Renter;
@@ -13,6 +14,8 @@ type RenterContractCardProps = {
   onToggle: () => void;
   onAmountChange: (value: string) => void;
   onToggleOverride: () => void;
+  /** Onboarding anchor — only the first card in the list carries it. */
+  anchor?: string;
 };
 
 export function RenterContractCard({
@@ -23,8 +26,10 @@ export function RenterContractCard({
   onToggle,
   onAmountChange,
   onToggleOverride,
+  anchor,
 }: RenterContractCardProps) {
   const { t } = useTranslation();
+  const anchorRef = useTourAnchor(anchor ?? '');
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
@@ -32,6 +37,8 @@ export function RenterContractCard({
 
   return (
     <View
+      ref={anchor ? anchorRef : undefined}
+      collapsable={false}
       style={[
         styles.card,
         { backgroundColor: colors.surface, borderColor: colors.outline },

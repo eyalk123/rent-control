@@ -20,8 +20,13 @@ import {
   getReportHistory,
   type ReportExport,
 } from '@/src/features/reports/api/reports';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 export function HomeReportsCard() {
+  // Reports are seeded from Home rather than from first-run: on day one there is nothing
+  // to report on, so the sentence would mean nothing.
+  const anchorRef = useTourAnchor(ANCHORS.homeReportsCard);
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;

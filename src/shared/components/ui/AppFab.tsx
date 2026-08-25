@@ -18,6 +18,7 @@ import {
 import { useTheme } from "react-native-paper";
 
 import { darkColors, ICON_HERO, lightColors, spacing } from "@/src/core/theme";
+import { useTourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 import { Icon, type IconName } from "./Icon";
 
 interface AppFabProps {
@@ -28,6 +29,8 @@ interface AppFabProps {
   bottomInset?: number;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** Onboarding anchor key, applied to the button itself rather than its position wrapper. */
+  anchor?: string;
 }
 
 export function AppFab({
@@ -38,8 +41,10 @@ export function AppFab({
   bottomInset = 0,
   disabled = false,
   style,
+  anchor,
 }: AppFabProps) {
   const theme = useTheme();
+  const anchorRef = useTourAnchor(anchor ?? '');
   const colors = theme.dark ? darkColors : lightColors;
 
   const bg = variant === "destructive" ? colors.error : colors.accent;
@@ -79,6 +84,8 @@ export function AppFab({
       {/* Shadow lives on a stable View so it's composited once and cached by the GPU.
           Keeping it off the Pressable prevents re-compositing on every press-state change. */}
       <View
+        ref={anchor ? anchorRef : undefined}
+        collapsable={false}
         style={[styles.fab, shadow, { backgroundColor: bg }]}
         renderToHardwareTextureAndroid
       >

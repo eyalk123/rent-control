@@ -16,6 +16,7 @@ import { HomeReportsCard } from '@/src/features/home/components/HomeReportsCard'
 import { RecentTransactionsSection } from '@/src/features/home/components/RecentTransactionsSection';
 import { getTransactions } from '@/src/features/transactions/api/transactions';
 import type { Transaction } from '@/src/shared/types';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 function getGreetingKey(): 'home.greetingMorning' | 'home.greetingAfternoon' | 'home.greetingEvening' {
   const hour = new Date().getHours();
@@ -84,6 +85,9 @@ function SectionLabel({ label }: { label: string }) {
 }
 
 export function HomeScreen() {
+  // Gated on hasRenters: the second Home tour waits until the dashboard has data, which
+  // is also when Reports and notification settings start to mean something.
+  useTour('home');
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;

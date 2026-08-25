@@ -29,7 +29,7 @@ import { FormNumericField } from "./FormFields";
 import { RentChangeField } from "./RentChangeField";
 import { LeaseYearRow } from "./LeaseYearRow";
 import { ANCHORS } from "@/src/features/onboarding/anchors";
-import { useTourAnchor } from "@/src/features/onboarding/AnchorRegistry";
+import { TourAnchor, useTourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 
 type LeaseTermBuilderProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -265,12 +265,14 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
         )}
       />
 
-      <FormNumericField
-        control={control}
-        name={"baseRent" as Path<TFieldValues>}
-        label={t("renter.firstYearRent")}
-        keyboardType="decimal-pad"
-      />
+      <TourAnchor id={ANCHORS.leaseBaseRent}>
+        <FormNumericField
+          control={control}
+          name={"baseRent" as Path<TFieldValues>}
+          label={t("renter.firstYearRent")}
+          keyboardType="decimal-pad"
+        />
+      </TourAnchor>
 
       <Controller
         control={control}

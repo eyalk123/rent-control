@@ -5,6 +5,8 @@ import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { getCurrentMonthlyRent, type Property, type Renter } from '@/src/shared/types';
 import { RenterContractCard } from './RenterContractCard';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 type PropertyGroup = {
   property: Property;
@@ -41,9 +43,14 @@ export function RenterSelectionSection({
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const sectionAnchorRef = useTourAnchor(ANCHORS.revenuePropertyPicker);
+
+  // Every card would otherwise claim the amount-cell anchor and the last one registered
+  // would win, which is whichever renter happens to sort last. One card, chosen here.
+  const firstRenterId = filteredGroups.flatMap((g) => g.renters)[0]?.id ?? null;
 
   return (
-    <>
+    <View ref={sectionAnchorRef} collapsable={false}>
       <Text
         variant="labelMedium"
         style={[styles.sectionSubLabel, { color: colors.textSecondary }]}
@@ -107,13 +114,14 @@ export function RenterSelectionSection({
                   onToggle={() => onToggleRenter(renter)}
                   onAmountChange={(v) => onAmountChange(renter.id, v)}
                   onToggleOverride={() => onToggleOverride(renter.id, renter)}
+                  anchor={renter.id === firstRenterId ? ANCHORS.revenueAmountCell : undefined}
                 />
               ))}
             </View>
           ))}
         </>
       )}
-    </>
+    </View>
   );
 }
 

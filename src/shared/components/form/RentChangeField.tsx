@@ -7,7 +7,7 @@ import { SegmentedControl, type Segment } from "@/src/shared/components/ui";
 import type { RentEscalationMode } from "@/src/shared/types";
 import { EscalationValueField } from "./EscalationValueField";
 import { ANCHORS } from "@/src/features/onboarding/anchors";
-import { useTourAnchor } from "@/src/features/onboarding/AnchorRegistry";
+import { TourAnchor, useTourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 
 /**
  * The escalation modes, in display order. Every caller offers all of them. `custom` leads
@@ -81,9 +81,13 @@ function RentChangeFieldInner({
       />
 
       {mode === "cpi" ? (
-        <Text style={[styles.cpiNote, { color: colors.textSecondary }]}>
-          {t("renter.rentChangeCpiNote")}
-        </Text>
+        // The CPI elaboration opens here. Picking CPI replaces the value field with this
+        // note, so the note is the only thing on screen for the tour to point at.
+        <TourAnchor id={ANCHORS.leaseCpiBase}>
+          <Text style={[styles.cpiNote, { color: colors.textSecondary }]}>
+            {t("renter.rentChangeCpiNote")}
+          </Text>
+        </TourAnchor>
       ) : null}
 
       {mode === "percent" || mode === "fixed" ? (

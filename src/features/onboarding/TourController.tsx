@@ -29,6 +29,7 @@ import { InteractionManager } from 'react-native';
 import { useAnchorRegistry } from './AnchorRegistry';
 import { TOURS } from './registry';
 import { useGates, type GateInputs } from './useGates';
+import { TOURS_ENABLED } from './flags';
 import { useTourState } from './TourStateContext';
 import type { SeedId, TourDefinition, TourId, TourStep } from './types';
 
@@ -70,7 +71,11 @@ export function TourControllerProvider({ children }: PropsWithChildren) {
   const declined = useRef(new Set<TourId>());
   const openingRef = useRef<TourId | null>(null);
 
-  const canRun = Boolean(tourState?.ready) && !tourState?.state.toursDisabled;
+  // TOURS_ENABLED is the master switch (see flags.ts). It is checked here as well as in
+  // the provider because this is the single place a tour can be opened from, so one false
+  // here is a hard guarantee that nothing appears.
+  const canRun =
+    TOURS_ENABLED && Boolean(tourState?.ready) && !tourState?.state.toursDisabled;
 
   /** Waits for the anchors a tour needs, then opens it. */
   const openWhenAnchored = useCallback(

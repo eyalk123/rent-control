@@ -21,6 +21,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { TOURS_ENABLED } from './flags';
 import {
   EMPTY_TOUR_STATE,
   getTourState,
@@ -75,7 +76,10 @@ export function TourStateProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    if (!isSignedIn) {
+    // With the master switch off, never ask the server for tour state: a build with tours
+    // disabled makes no onboarding request at all. `ready` stays false, which on its own
+    // keeps every tour shut.
+    if (!TOURS_ENABLED || !isSignedIn) {
       setReady(false);
       return;
     }

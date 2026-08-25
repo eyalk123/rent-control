@@ -20,6 +20,7 @@ import { BulkRevenueOwnerFilter, BulkRevenuePeriodFilter } from './BulkRevenueFi
 import { RenterSelectionSection } from './RenterSelectionSection';
 import { PaymentDetailsSection } from './PaymentDetailsSection';
 import { getContractYearMonths, getDefaultPeriodValue, getMonthsForPeriod } from './periodHelpers';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 type PropertyGroup = {
   property: Property;
@@ -40,6 +41,10 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   const { properties } = usePropertyContext();
   const { renters } = useRenterContext();
   const { language } = useLanguageContext();
+
+  // The bulk form is where the scope and per-contract anchors live, so it asks. Arriving
+  // from the `bulk-rent` seed adds the callback line on the first step.
+  useTour('revenue-form');
 
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
   const [periodType, setPeriodType] = useState<TimePeriodType>('1month');

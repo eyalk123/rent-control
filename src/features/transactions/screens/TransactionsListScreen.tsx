@@ -29,6 +29,9 @@ import { SelectionHeader } from '@/src/features/transactions/components/list/Sel
 import { TransactionsListHeader } from '@/src/features/transactions/components/list/TransactionsListHeader';
 import { TransactionSectionHeader } from '@/src/features/transactions/components/list/TransactionSectionHeader';
 import { TransactionListFABs } from '@/src/features/transactions/components/list/TransactionListFABs';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 import { TransactionFilterSheets } from '@/src/features/transactions/components/list/TransactionFilterSheets';
 import { SuppliersHeaderButton } from '@/src/features/transactions/components/list/SuppliersHeaderButton';
 
@@ -44,7 +47,12 @@ const EMPTY_DEFAULT: Record<string, string> = {
   expense: 'No expenses in this period.',
 };
 
+const LIST_ANCHOR = { flex: 1 } as const;
+
 export function TransactionsListScreen() {
+  // Gated on having properties: a money screen with nothing in it teaches nothing, and a
+  // failed gate defers rather than consuming the tour.
+  useTour('transactions-list');
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -163,6 +171,8 @@ export function TransactionsListScreen() {
         />
       )}
 
+      {/* flex:1 so the wrapper does not collapse and shrink the list it contains. */}
+      <TourAnchor id={ANCHORS.transactionsList} style={LIST_ANCHOR}>
       <SectionList
         sections={filters.listSections}
         keyExtractor={(item) => item.id.toString()}
@@ -229,6 +239,7 @@ export function TransactionsListScreen() {
           />
         }
       />
+      </TourAnchor>
 
       <TransactionListFABs
         isSelectMode={selectMode.isSelectMode}
