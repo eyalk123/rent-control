@@ -9,8 +9,16 @@
  * four plain Views composite on the UI thread and cost nothing.
  *
  * Direction: the app forces native RTL via I18nManager (see core/i18n), so `row` already
- * lays out right-to-left in Hebrew. Nothing here reverses anything manually — doing so
- * double-flips it, which is the bug the LeaseTermBuilder comment warns about.
+ * lays out right-to-left in Hebrew, and `borderStart*` puts the seed's accent bar on the
+ * leading edge. Nothing in the *card* reverses anything manually — doing so double-flips
+ * it, which is the bug the LeaseTermBuilder comment warns about.
+ *
+ * The *spotlight* is the exception, and it is not a contradiction. `measureInWindow`
+ * reports unmirrored physical coordinates, but RN swaps the `left` and `right` style
+ * props under RTL (I18nManager.doLeftAndRightSwapInRTL, on by default). Feeding a
+ * physical x into `left` therefore mirrored the cutout — in Hebrew the first step
+ * highlighted the Chat tab instead of Home. `physicalLeft` pre-compensates so the hole
+ * lands on the element that was actually measured.
  *
  * Deliberately NOT a Modal. A Modal is its own Android window with its own origin, which
  * does not line up with what `measureInWindow` reports for views in the app window — on
@@ -30,7 +38,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BackHandler,
-  Dimensions,
+  I18nManager,
   type LayoutChangeEvent,
   Pressable,
   StyleSheet,
@@ -127,6 +135,13 @@ export function TourOverlay() {
   const total = active.tour.steps.length;
   const current = active.stepIndex + 1;
 
+  /**
+   * Converts a physical x into the value `left` must carry for the box to land there.
+   * Under RTL the style is swapped to `right`, so the distance is measured from the
+   * opposite edge and has to be inverted here.
+   */
+  const physicalLeft = (x: number, w: number) => (I18nManager.isRTL ? screenW - x - w : x);
+
   // Spotlight geometry, clamped so a partially offscreen anchor cannot produce a
   // negative-size rect.
   const box = rect
@@ -174,20 +189,38 @@ export function TourOverlay() {
       <Pressable style={StyleSheet.absoluteFill} onPress={handleNext} accessible={false}>
         {box ? (
           <>
-            <View style={[styles.scrim, { top: 0, left: 0, right: 0, height: box.y }]} />
+            <View style={[styles.scrim, { top: 0, left: 0, width: screenW, height: box.y }]} />
             <View
               style={[
                 styles.scrim,
-                { top: box.y + box.height, left: 0, right: 0, bottom: 0 },
+                {
+                  top: box.y + box.height,
+                  left: 0,
+                  width: screenW,
+                  height: Math.max(0, screenH - (box.y + box.height)),
+                },
               ]}
             />
             <View
-              style={[styles.scrim, { top: box.y, left: 0, width: box.x, height: box.height }]}
+              style={[
+                styles.scrim,
+                {
+                  top: box.y,
+                  left: physicalLeft(0, box.x),
+                  width: box.x,
+                  height: box.height,
+                },
+              ]}
             />
             <View
               style={[
                 styles.scrim,
-                { top: box.y, left: box.x + box.width, right: 0, height: box.height },
+                {
+                  top: box.y,
+                  left: physicalLeft(box.x + box.width, Math.max(0, screenW - (box.x + box.width))),
+                  width: Math.max(0, screenW - (box.x + box.width)),
+                  height: box.height,
+                },
               ]}
             />
             {/* Ring around the cutout so the target reads as chosen, not merely unshaded. */}
@@ -196,7 +229,7 @@ export function TourOverlay() {
               style={{
                 position: 'absolute',
                 top: box.y,
-                left: box.x,
+                left: physicalLeft(box.x, box.width),
                 width: box.width,
                 height: box.height,
                 borderRadius: SPOTLIGHT_RADIUS,
@@ -217,6 +250,9 @@ export function TourOverlay() {
             {
               backgroundColor: colors.surface,
               borderColor: colors.outline,
+              // Live width: a module-level Dimensions read is captured once and goes
+              // stale on rotation.
+              width: screenW - spacing.lg * 2,
               maxWidth: Math.min(CARD_MAX_WIDTH, screenW - spacing.lg * 2),
             },
           ]}
@@ -305,7 +341,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    width: Dimensions.get('window').width - spacing.lg * 2,
     // Sits above the scrim in the same absolute layer.
     zIndex: 2,
     elevation: 12,
