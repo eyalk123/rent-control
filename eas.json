@@ -10,8 +10,7 @@
       "env": {
         "APP_VARIANT": "development",
         "EXPO_PUBLIC_API_URL": "https://rent-control-backend-production.up.railway.app",
-        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com",
-        "EXPO_PUBLIC_SENTRY_DSN": "https://e255a03024286824b14e474a5ed982cb@o4510964930510848.ingest.de.sentry.io/4511106639986768"
+        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com"
       }
     },
     "preview": {
@@ -19,8 +18,7 @@
       "env": {
         "APP_VARIANT": "preview",
         "EXPO_PUBLIC_API_URL": "https://rent-control-backend-production.up.railway.app",
-        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com",
-        "EXPO_PUBLIC_SENTRY_DSN": "https://e255a03024286824b14e474a5ed982cb@o4510964930510848.ingest.de.sentry.io/4511106639986768"
+        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com"
       }
     },
     "simulator": {
@@ -32,16 +30,14 @@
       "env": {
         "APP_VARIANT": "preview",
         "EXPO_PUBLIC_API_URL": "https://rent-control-backend-production.up.railway.app",
-        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com",
-        "EXPO_PUBLIC_SENTRY_DSN": "https://e255a03024286824b14e474a5ed982cb@o4510964930510848.ingest.de.sentry.io/4511106639986768"
+        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://rent-control-backend-production.up.railway.app",
-        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com",
-        "EXPO_PUBLIC_SENTRY_DSN": "https://e255a03024286824b14e474a5ed982cb@o4510964930510848.ingest.de.sentry.io/4511106639986768"
+        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com"
       }
     }
   },

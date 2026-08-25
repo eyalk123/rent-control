@@ -96,18 +96,22 @@ Initialised in `app/_layout.tsx`. Three things about it regularly surprise peopl
 - **Dev builds report nothing.** `enabled: !__DEV__` means Expo Go, a dev client and
   `expo start` are all deliberately silent. Only release builds report, so a smoke test
   has to be run against one.
-- **The DSN comes from `eas.json`, not `.env`.** `.env` is gitignored and never reaches an
-  EAS build, so the DSN lives in each build profile's `env` block. A DSN is public — it
-  identifies a project, it does not grant access to it.
+- **`.env` is for local runs only.** It is gitignored and never reaches an EAS build.
+  Builds get `EXPO_PUBLIC_SENTRY_DSN` from the EAS environment variables instead
+  (`eas env:list --environment production`), where it is already set for development,
+  preview and production. Do not copy it into `eas.json` — values there override the EAS
+  ones, so a rotated DSN on the server would be silently ignored.
 - **The org is EU-hosted**, so the config plugin points `sentry-cli` at
   `https://de.sentry.io/`. Left at the default it talks to the US instance, where the
   credentials do not resolve.
 
-Readable stack traces additionally need `SENTRY_AUTH_TOKEN` at build time — a real secret,
-so it belongs in EAS rather than in the repo:
+Readable stack traces additionally need `SENTRY_AUTH_TOKEN` at build time. It is a real
+secret, so it lives in EAS rather than in the repo — already set in all three
+environments. To inspect or rotate it:
 
 ```bash
-eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value <token>
+eas env:list --environment production
+eas env:update --environment production --name SENTRY_AUTH_TOKEN
 ```
 
 Without it the build still succeeds and still reports; the traces just arrive minified and
