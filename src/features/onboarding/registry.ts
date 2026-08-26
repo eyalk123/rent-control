@@ -48,6 +48,10 @@ export const TOURS = {
     gate: 'hasRenters',
     kind: 'orientation',
     steps: [
+      // A beat before the first spotlight, so the sweep does not go from the tab bar
+      // straight into one card with nothing saying you have arrived somewhere. Centred and
+      // unanchored: the full scrim makes it read as being about the screen as a whole.
+      { id: 'overview', anchor: null, placement: 'center' },
       { id: 'quickActions', anchor: ANCHORS.homeQuickActions, placement: 'bottom' },
       { id: 'attention', anchor: ANCHORS.homeNeedsAttention, placement: 'bottom', seed: { id: 'alert-actions', opens: null } },
       { id: 'portfolio', anchor: ANCHORS.homePortfolio, placement: 'bottom' },

@@ -846,6 +846,10 @@
         }
       },
       "home": {
+        "overview": {
+          "title": "What's on this screen",
+          "body": "Everything Home shows you, one block at a time — starting at the top."
+        },
         "quickActions": {
           "title": "Quick actions",
           "body": "Record rent, log an expense, add a property or a renter — all from here."
