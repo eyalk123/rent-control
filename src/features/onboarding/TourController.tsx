@@ -80,7 +80,12 @@ export function TourControllerProvider({ children }: PropsWithChildren) {
   /** Waits for the anchors a tour needs, then opens it. */
   const openWhenAnchored = useCallback(
     async (tour: TourDefinition, arrivedFrom: SeedId | null) => {
-      const needed = tour.steps.map((s) => s.anchor).filter((a): a is string => Boolean(a));
+      // Optional steps are excluded from the wait: their whole point is that the element
+      // may legitimately be absent, and waiting on one would suppress the entire tour.
+      const needed = tour.steps
+        .filter((s) => !s.optional)
+        .map((s) => s.anchor)
+        .filter((a): a is string => Boolean(a));
       const deadline = Date.now() + ANCHOR_WAIT_MS;
 
       // Let the screen finish its entrance animation first; measuring mid-transition
@@ -92,7 +97,17 @@ export function TourControllerProvider({ children }: PropsWithChildren) {
       while (Date.now() < deadline) {
         const ready = needed.every((key) => registry?.has(key));
         if (ready) {
-          setActive({ tour, stepIndex: 0, arrivedFrom });
+          // Resolve optional steps once, here: a step whose element is not mounted at the
+          // moment the tour opens is dropped, so the step counter stays truthful rather
+          // than promising a step that will never render.
+          const steps = tour.steps.filter(
+            (s) => !s.optional || (s.anchor != null && Boolean(registry?.has(s.anchor))),
+          );
+          setActive({
+            tour: steps.length === tour.steps.length ? tour : { ...tour, steps },
+            stepIndex: 0,
+            arrivedFrom,
+          });
           openingRef.current = null;
           return;
         }

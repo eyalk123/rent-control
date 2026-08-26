@@ -184,9 +184,13 @@ export function TourOverlay() {
       style={styles.host}
       pointerEvents="box-none"
     >
-      {/* Backdrop. Tapping outside advances rather than dismisses — a stray tap should
-          not silently end a tour the user has not read. */}
-      <Pressable style={StyleSheet.absoluteFill} onPress={handleNext} accessible={false}>
+      {/* Backdrop. Tapping outside does nothing at all — it neither advances nor
+          dismisses. It used to advance, which made the tour far too easy to click
+          through by accident: a tap anywhere, including on the highlighted control
+          itself, skipped a step the user had not read. Moving on is the button's job.
+          It still swallows the tap rather than passing it to the screen underneath, so
+          nothing is triggered behind the card. Web follows the same rule. */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="auto">
         {box ? (
           <>
             <View style={[styles.scrim, { top: 0, left: 0, width: screenW, height: box.y }]} />
@@ -318,7 +322,7 @@ export function TourOverlay() {
             </View>
           </View>
         </View>
-      </Pressable>
+      </View>
     </View>
   );
 }
