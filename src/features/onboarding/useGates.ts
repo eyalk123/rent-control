@@ -22,6 +22,38 @@ export interface GateInputs {
   rentMode?: string | null;
 }
 
+/**
+ * Whether a gate can be answered *at all* yet, as opposed to what the answer is.
+ *
+ * `useGates` folds "still loading" into `false`, which is the safe direction for a tour: an
+ * unanswerable gate defers it. `skipWhen` inverts that — false means "keep the step" — so
+ * a tour opening before the lists load would show the closing "start with one property"
+ * card to someone with a full portfolio. The controller waits on this instead, within the
+ * same anchor deadline.
+ */
+export function useGateKnown() {
+  const { loading: propertiesLoading } = usePropertyContext();
+  const { loading: rentersLoading } = useRenterContext();
+
+  return useCallback(
+    (gate: GateId): boolean => {
+      switch (gate) {
+        case 'hasProperties':
+          return !propertiesLoading;
+        case 'hasRenters':
+        case 'hasTransactions':
+          return !rentersLoading;
+        case 'listHasThreeItems':
+          return !propertiesLoading && !rentersLoading;
+        // `always` and the rent-mode gates read no server data — they are always answerable.
+        default:
+          return true;
+      }
+    },
+    [propertiesLoading, rentersLoading],
+  );
+}
+
 export function useGates() {
   const { properties, loading: propertiesLoading } = usePropertyContext();
   const { renters, loading: rentersLoading } = useRenterContext();

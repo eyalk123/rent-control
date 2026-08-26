@@ -17,6 +17,8 @@ import { RecentTransactionsSection } from '@/src/features/home/components/Recent
 import { getTransactions } from '@/src/features/transactions/api/transactions';
 import type { Transaction } from '@/src/shared/types';
 import { useTour } from '@/src/features/onboarding/TourController';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 function getGreetingKey(): 'home.greetingMorning' | 'home.greetingAfternoon' | 'home.greetingEvening' {
   const hour = new Date().getHours();
@@ -127,15 +129,20 @@ export function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <GreetingHeader />
-        <QuickActionsSection />
+        <TourAnchor id={ANCHORS.homeQuickActions}>
+          <QuickActionsSection />
+        </TourAnchor>
 
         <NeedsAttentionSection />
 
-        <PortfolioSection />
+        <TourAnchor id={ANCHORS.homePortfolio}>
+          <PortfolioSection />
+        </TourAnchor>
 
         <SectionLabel label={t('home.reports')} />
         <HomeReportsCard />
 
+        <TourAnchor id={ANCHORS.homeRecent}>
         <View style={styles.recentHeader}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('home.recentTransactions')}</Text>
           <TouchableOpacity onPress={() => router.push('/(tabs)/transactions')} disabled={transactionsLoading}>
@@ -165,6 +172,7 @@ export function HomeScreen() {
         ) : (
           <RecentTransactionsSection items={recentTransactions} />
         )}
+        </TourAnchor>
       </ScrollView>
     </SafeAreaView>
   );

@@ -17,15 +17,17 @@ export const ANCHORS = {
   // Tab bar — app/(tabs)/_layout.tsx
   tabHome: 'tab.home',
   tabProperties: 'tab.properties',
-  // RESERVED: plumbed on the tab bar, but first-run spends its five steps elsewhere.
   tabRenters: 'tab.renters',
   tabTransactions: 'tab.transactions',
   tabChat: 'tab.chat',
 
-  // Home — src/features/home/
+  // Home — src/features/home/ (the home sweep walks these in render order)
+  homeQuickActions: 'home.quickActions',
   homeNeedsAttention: 'home.needsAttention',
+  homePortfolio: 'home.portfolio',
   homeReportsCard: 'home.reportsCard',
   homeManageNotifications: 'home.manageNotifications',
+  homeRecent: 'home.recent',
 
   // Properties
   propertiesList: 'properties.list',

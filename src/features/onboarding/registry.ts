@@ -16,28 +16,44 @@ export const TOURS = {
     gate: 'always',
     kind: 'orientation',
     steps: [
-      { id: 'home', anchor: ANCHORS.tabHome, placement: 'top', seed: { id: 'alert-actions', opens: null } },
+      { id: 'home', anchor: ANCHORS.tabHome, placement: 'top' },
       { id: 'portfolio', anchor: ANCHORS.tabProperties, placement: 'top', seed: { id: 'scan-lease', opens: 'lease-scan' } },
+      // Its own step, rather than a clause inside the properties one. The copy was always
+      // about both — "properties are the units, renters are the people in them" — while
+      // the spotlight sat on Properties alone.
+      { id: 'renters', anchor: ANCHORS.tabRenters, placement: 'top' },
       { id: 'money', anchor: ANCHORS.tabTransactions, placement: 'top', seed: { id: 'suppliers', opens: 'suppliers' } },
       { id: 'chat', anchor: ANCHORS.tabChat, placement: 'top' },
-      { id: 'start', anchor: null, placement: 'center' },
+      // Dropped once there is a portfolio: it is the closing call to action for someone
+      // who still needs it, and noise to everyone else. See `skipWhen` in types.ts.
+      { id: 'start', anchor: null, placement: 'center', skipWhen: 'hasProperties' },
     ],
   },
 
   /**
-   * Deliberately NOT part of first-run: on day one Home is empty, so the two most
-   * hidden routes in the product (Reports, notification settings) are seeded later,
-   * once Home actually has something on it.
+   * The second half of the first-login sweep: first-run explains the tab bar, this
+   * explains the screen you land on. It opens the moment first-run closes, so the two read
+   * as one sequence and are budgeted as one (see BUDGET.orientation in types.ts).
+   *
+   * Deliberately NOT part of first-run: on day one Home is empty, so this waits behind
+   * `hasRenters` until the cards have something on them — and the two most hidden routes
+   * in the product (Reports, notification settings) are reached from here rather than
+   * from the tab bar, because on this platform that is where they actually live.
+   *
+   * The steps walk the screen top to bottom, in HomeScreen's render order.
    */
   home: {
     id: 'home',
     route: '/(tabs)/home',
     gate: 'hasRenters',
-    kind: 'page',
+    kind: 'orientation',
     steps: [
-      { id: 'attention', anchor: ANCHORS.homeNeedsAttention, placement: 'bottom' },
+      { id: 'quickActions', anchor: ANCHORS.homeQuickActions, placement: 'bottom' },
+      { id: 'attention', anchor: ANCHORS.homeNeedsAttention, placement: 'bottom', seed: { id: 'alert-actions', opens: null } },
+      { id: 'portfolio', anchor: ANCHORS.homePortfolio, placement: 'bottom' },
       { id: 'reports', anchor: ANCHORS.homeReportsCard, placement: 'top', seed: { id: 'reports', opens: 'reports' } },
       { id: 'notifications', anchor: ANCHORS.homeManageNotifications, placement: 'top', seed: { id: 'notifications', opens: 'notifications' } },
+      { id: 'recent', anchor: ANCHORS.homeRecent, placement: 'top' },
     ],
   },
 
