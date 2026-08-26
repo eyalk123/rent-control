@@ -272,7 +272,38 @@ export const TOURS = {
 
 export type MobileTourId = keyof typeof TOURS;
 
-/** Run in a unit test — keeps the budget from quietly drifting as copy is added. */
+/**
+ * The registry's structural invariants — everything checkable without i18n loaded.
+ *
+ * Web asserts this from `e2e/onboarding-registry.spec.ts`, which additionally checks that
+ * every step, seed and callback has copy in both languages. Mobile has no test layer, so
+ * it runs the same function at import time under `__DEV__` (see the bottom of this file).
+ */
 export function validateRegistry(): string[] {
-  return Object.values(TOURS as Record<string, TourDefinition>).flatMap(assertBudget);
+  const tours = Object.values(TOURS as Record<string, TourDefinition>);
+  const errors = tours.flatMap(assertBudget);
+  // A seed that opens a tour this platform does not define advertises a destination that
+  // can never open, and fails silently: nothing throws when the user finally gets there.
+  const defined = new Set(Object.keys(TOURS));
+  for (const tour of tours) {
+    for (const step of tour.steps) {
+      if (step.seed?.opens && !defined.has(step.seed.opens)) {
+        errors.push(
+          `${tour.id}.${step.id}: seed opens '${step.seed.opens}', which this platform has no tour for`,
+        );
+      }
+    }
+  }
+  return errors;
+}
+
+// Mobile has no test layer, so the check runs once, when this module is first imported.
+// `__DEV__` is compiled out of release builds, so it cannot reach a user, and Metro makes
+// a console.error loud enough to notice. The budget is the rule that keeps the two-layer
+// design from quietly becoming a firehose again, so it needs to be enforced somewhere.
+if (__DEV__) {
+  const problems = validateRegistry();
+  if (problems.length > 0) {
+    console.error('[onboarding] registry is invalid:', problems.join('; '));
+  }
 }

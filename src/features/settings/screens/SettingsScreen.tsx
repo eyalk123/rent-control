@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { IconButton, List, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import { IconButton, List, SegmentedButtons, Switch, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
@@ -13,6 +13,8 @@ import { Icon } from '@/src/shared/components/ui';
 import { DevProfiler } from '@/src/shared/components/dev/DevProfiler';
 import { spacing } from '@/src/core/theme';
 import { AccountPreviewCard } from '../components/AccountPreviewCard';
+import { TOURS_ENABLED } from '@/src/features/onboarding/flags';
+import { useTourState } from '@/src/features/onboarding/TourStateContext';
 
 export const SettingsScreen = React.memo(function SettingsScreen() {
   const { t } = useTranslation();
@@ -25,6 +27,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   const theme = useTheme();
 
   const { appAlert } = useAlert();
+  const tourState = useTourState();
 
   // Switching between English and Hebrew flips the writing direction, but native views only
   // read that at launch — without a reload the navigation headers stay in the old direction
@@ -50,6 +53,20 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
     },
     [setLanguage, appAlert, t],
   );
+
+  // Reset is not undoable and puts every tour back in front of the user, so it asks first.
+  const handleResetTours = React.useCallback(() => {
+    appAlert(t('onboarding.ui.replayTitle'), t('onboarding.ui.replayBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('onboarding.ui.replayAction'),
+        onPress: () => {
+          tourState?.resetTours();
+          appAlert(t('onboarding.ui.replayDone'));
+        },
+      },
+    ]);
+  }, [appAlert, t, tourState]);
 
   const handleSignOut = React.useCallback(async () => {
     // Unregister the push token while the auth token is still valid, then sign out.
@@ -130,6 +147,41 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
             style={styles.listItem}
           />
         </List.Section>
+
+        {/* Hidden entirely when the master switch is off (flags.ts): with no tours in the
+            build there is nothing to replay and nothing to turn off, and offering the
+            controls anyway would advertise a feature this build does not have. */}
+        {TOURS_ENABLED && tourState && (
+          <>
+            <Text
+              variant="titleMedium"
+              style={[styles.sectionTitle, rtlLabelStyle]}
+            >
+              {t('onboarding.ui.sectionTitle')}
+            </Text>
+            <List.Section>
+              <List.Item
+                title={t('onboarding.ui.replayTitle')}
+                description={t('onboarding.ui.replayBody')}
+                left={(props) => <Icon name="sparkles" size={20} color={props.color} />}
+                onPress={handleResetTours}
+                style={styles.listItem}
+              />
+              <List.Item
+                title={t('onboarding.ui.disable')}
+                left={(props) => <Icon name="eye-off" size={20} color={props.color} />}
+                right={() => (
+                  <Switch
+                    value={tourState.state.toursDisabled}
+                    onValueChange={(v) => tourState.setToursDisabled(v)}
+                    accessibilityLabel={t('onboarding.ui.disable')}
+                  />
+                )}
+                style={styles.listItem}
+              />
+            </List.Section>
+          </>
+        )}
 
         <Text
           variant="titleMedium"
