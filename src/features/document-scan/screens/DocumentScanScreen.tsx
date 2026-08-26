@@ -15,6 +15,9 @@ import { mapExtraction } from '@/src/features/document-scan/mapExtraction';
 import { matchProperty } from '@/src/features/document-scan/matchProperty';
 import { mergeImagesToPdf } from '@/src/features/document-scan/mergeImagesToPdf';
 import { setScanHandoff } from '@/src/features/document-scan/handoff';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 /** Which "Add" flow this scan feeds. `property` creates a property (chaining to a renter);
  *  `renter` fills a renter for an existing/matched property. */
@@ -37,6 +40,9 @@ const PROGRESS_STAGES = [
 ];
 
 export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarget } = {}) {
+  // The picker is the only anchored step — the review it promises happens on the summary
+  // screen, which is a different route, so that step is centred instead. See registry.ts.
+  useTour('lease-scan');
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
@@ -174,14 +180,14 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
               {t('documentScan.uploadPrompt')}
             </Text>
 
-            <View style={styles.sourceRow}>
+            <TourAnchor id={ANCHORS.scanPicker} style={styles.sourceRow}>
               <Button mode="contained-tonal" icon="camera" onPress={handleCamera} style={styles.sourceButton} contentStyle={styles.sourceButtonContent}>
                 {t('documentScan.takePhoto')}
               </Button>
               <Button mode="contained-tonal" icon="file-upload-outline" onPress={handlePickFile} style={styles.sourceButton} contentStyle={styles.sourceButtonContent}>
                 {t('documentScan.chooseFile')}
               </Button>
-            </View>
+            </TourAnchor>
 
             {pages.map((page, i) => (
               <View

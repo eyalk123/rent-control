@@ -22,6 +22,9 @@ import {
   getReportHistory,
   type ReportExport,
 } from '@/src/features/reports/api/reports';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 interface ReportCard {
   key: string;
@@ -166,6 +169,9 @@ function HistoryEmptyState() {
 }
 
 export function ReportsHubScreen() {
+  // Both anchors are on this screen from the first render — the history list loads into a
+  // block that is already mounted, so there is nothing to wait for.
+  useTour('reports');
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -250,10 +256,14 @@ export function ReportsHubScreen() {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <SectionLabel label={t('reports.generate')} />
-        <View style={styles.cardList}>
+        <TourAnchor id={ANCHORS.reportsCards} style={styles.cardList}>
           {cards.map((card) => <GenerateCard key={card.key} card={card} />)}
-        </View>
+        </TourAnchor>
 
+        {/* The export step points here: the hub itself has no export button — a report is
+            exported from its own screen — and this is where the resulting files land and
+            get shared onwards. The block is mounted whether or not there is history in it. */}
+        <TourAnchor id={ANCHORS.reportsExport}>
         <SectionLabel label={t('reports.history')} />
         {loading ? (
           <ActivityIndicator style={styles.loader} />
@@ -272,6 +282,7 @@ export function ReportsHubScreen() {
             ))}
           </View>
         )}
+        </TourAnchor>
       </ScrollView>
     </SafeAreaView>
   );

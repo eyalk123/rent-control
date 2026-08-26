@@ -27,6 +27,19 @@ import {
 import { getLeaseEndDate, periodMonths, type LeaseYear, type LeaseYearRuleMode, type LeaseYearType, type RentEscalationMode, type Renter } from "@/src/shared/types";
 import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
 import { formatDateFull } from "@/src/shared/utils/dates";
+import { ANCHORS } from "@/src/features/onboarding/anchors";
+import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
+import { useTour } from "@/src/features/onboarding/TourController";
+
+/**
+ * Asks for the tour from inside the loaded tree. The screen returns a spinner until the
+ * renter arrives, so requesting from the screen body would start the anchor wait against a
+ * screen that has no anchors on it yet.
+ */
+function ExtendLeaseTourRequest() {
+  useTour("extend-lease");
+  return null;
+}
 
 type Row = {
   amount: string;
@@ -307,6 +320,7 @@ export function ExtendLeaseScreen() {
     <ScreenContainer>
       <View style={styles.wrapper}>
         <FormScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+          <ExtendLeaseTourRequest />
           <StepHeader
             title={t("renter.extendLeaseTitle")}
             subtitle={renter ? `${renter.first_name} ${renter.last_name}` : undefined}
@@ -317,7 +331,10 @@ export function ExtendLeaseScreen() {
 
           {/* Add years — the number inputs drive the schedule; no button */}
           <View style={[styles.card, { borderColor: colors.outline, backgroundColor: colors.surface }]}>
-            <View style={[styles.stepperRow, { flexDirection: rowDirection, justifyContent: isRtl ? "flex-end" : "flex-start" }]}>
+            <TourAnchor
+              id={ANCHORS.extendYearsStepper}
+              style={[styles.stepperRow, { flexDirection: rowDirection, justifyContent: isRtl ? "flex-end" : "flex-start" }]}
+            >
               <Stepper
                 label={t("renter.yearsToAdd")}
                 unitLabel={t("renter.yearsUnit")}
@@ -352,7 +369,7 @@ export function ExtendLeaseScreen() {
                 value={addOptionMonths}
                 onChange={setAddOptionMonths}
               />
-            </View>
+            </TourAnchor>
 
             {/* Increment for new years */}
             <View style={styles.incrementBlock}>
@@ -367,7 +384,9 @@ export function ExtendLeaseScreen() {
             </View>
           </View>
 
-          {/* New lease schedule = live preview */}
+          {/* New lease schedule = live preview. The wrapper repeats the scroll container's
+              gap so grouping these children under one anchor does not change the spacing. */}
+          <TourAnchor id={ANCHORS.extendPreview} style={styles.previewAnchor}>
           <Text variant="bodyMedium" style={[styles.scheduleTitle, { color: colors.textPrimary }]}>
             {t("renter.newLeaseSchedule")}
           </Text>
@@ -448,6 +467,7 @@ export function ExtendLeaseScreen() {
               ) : null}
             </>
           )}
+          </TourAnchor>
 
           {/* Change summary */}
           <View style={[styles.summaryCard, { borderColor: colors.outline, backgroundColor: colors.inputFilledBackground }]}>
@@ -517,6 +537,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   warningText: { flex: 1, fontSize: 13 },
+  previewAnchor: { gap: spacing.sm },
   scheduleTitle: { fontWeight: "700", marginTop: spacing.md, marginBottom: spacing.xs },
   emptyText: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
   projectedNote: { fontSize: 13, lineHeight: 18, marginTop: spacing.sm },

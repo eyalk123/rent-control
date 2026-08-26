@@ -19,7 +19,7 @@ import React, {
   useRef,
   type PropsWithChildren,
 } from 'react';
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { View, type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
 
 export interface AnchorRect {
   x: number;
@@ -89,10 +89,13 @@ export function useAnchorRegistry(): AnchorRegistryValue | null {
  *   const ref = useTourAnchor(ANCHORS.transactionsList);
  *   <View ref={ref} collapsable={false} />
  */
-export function useTourAnchor(key: string) {
+export function useTourAnchor(key: string | undefined) {
   const registry = useAnchorRegistry();
   return useCallback(
     (node: Measurable | null) => {
+      // An undefined key is a deliberate opt-out — a repeated row where only the first
+      // one carries the anchor still renders the same wrapper, it just doesn't register.
+      if (!key) return;
       registry?.register(key, node);
     },
     [registry, key],
@@ -108,11 +111,17 @@ export function useTourAnchor(key: string) {
 export function TourAnchor({
   id,
   style,
+  pointerEvents,
   children,
-}: PropsWithChildren<{ id: string; style?: StyleProp<ViewStyle> }>) {
+}: PropsWithChildren<{
+  /** Undefined renders the wrapper without registering — see useTourAnchor. */
+  id?: string;
+  style?: StyleProp<ViewStyle>;
+  pointerEvents?: ViewProps['pointerEvents'];
+}>) {
   const ref = useTourAnchor(id);
   return (
-    <View ref={ref} collapsable={false} style={style}>
+    <View ref={ref} collapsable={false} style={style} pointerEvents={pointerEvents}>
       {children}
     </View>
   );

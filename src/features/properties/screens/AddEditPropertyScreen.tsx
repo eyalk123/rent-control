@@ -20,6 +20,8 @@ import {
 } from "react-native";
 import { Button } from "react-native-paper";
 import { FormScrollView } from "@/src/shared/components/form";
+import { ANCHORS } from "@/src/features/onboarding/anchors";
+import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 
 export function AddEditPropertyScreen() {
   const { t } = useTranslation();
@@ -145,12 +147,16 @@ export function AddEditPropertyScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <FieldReviewProvider items={scan?.propertyReview}>
-          <StepHeader
-            title={isEdit ? t("property.updateProperty") : t("property.addProperty")}
-            currentStep={step === "basic" ? 1 : 2}
-            totalSteps={2}
-            onBack={handleHeaderBack}
-          />
+          {/* Anchored here rather than inside StepHeader: the header is shared with the
+              renter form, and an anchor key must belong to exactly one screen. */}
+          <TourAnchor id={ANCHORS.propertyFormStepper}>
+            <StepHeader
+              title={isEdit ? t("property.updateProperty") : t("property.addProperty")}
+              currentStep={step === "basic" ? 1 : 2}
+              totalSteps={2}
+              onBack={handleHeaderBack}
+            />
+          </TourAnchor>
           {step === "basic" && (
             <>
               <PropertyScanConflicts

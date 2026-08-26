@@ -31,10 +31,17 @@ import {
   initialTransactionsTabState,
   type TransactionsTabState,
 } from '@/src/features/transactions/components/detail/tabState';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 type TabKey = 'info' | 'property' | 'transactions';
 
 export function RenterDetailScreen() {
+  // The Info tab is the default one, so the timeline anchor is mounted from the start;
+  // the extend/end buttons only exist on a live lease, and on an ended one the anchor
+  // wait simply times out and leaves the tour for the next renter.
+  useTour('renter-detail');
   const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -165,25 +172,32 @@ export function RenterDetailScreen() {
             />
             {/* An ended lease has nothing left to extend; Edit stays, since a past
                 tenancy's record can still need correcting. */}
+            {/* The absolute positioning moves to the anchor wrapper: a wrapper View around
+                an absolutely-positioned child would become its containing block and drag
+                the button back into the flow. */}
             {!ended && (
-              <IconButton
-                icon="calendar-plus"
-                iconColor="#FFF"
-                size={20}
-                style={[styles.extendIcon, { backgroundColor: colors.primary }]}
-                onPress={handleExtend}
-                accessibilityLabel={t('renter.extendLease')}
-              />
+              <TourAnchor id={ANCHORS.renterDetailExtend} style={styles.extendIcon}>
+                <IconButton
+                  icon="calendar-plus"
+                  iconColor="#FFF"
+                  size={20}
+                  style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                  onPress={handleExtend}
+                  accessibilityLabel={t('renter.extendLease')}
+                />
+              </TourAnchor>
             )}
             {!ended && (
-              <IconButton
-                icon="calendar-remove"
-                iconColor="#FFF"
-                size={20}
-                style={[styles.endLeaseIcon, { backgroundColor: colors.primary }]}
-                onPress={() => setEndLeaseOpen(true)}
-                accessibilityLabel={t('renter.endLease')}
-              />
+              <TourAnchor id={ANCHORS.renterDetailEndLease} style={styles.endLeaseIcon}>
+                <IconButton
+                  icon="calendar-remove"
+                  iconColor="#FFF"
+                  size={20}
+                  style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                  onPress={() => setEndLeaseOpen(true)}
+                  accessibilityLabel={t('renter.endLease')}
+                />
+              </TourAnchor>
             )}
           </View>
 
@@ -314,7 +328,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: spacing.sm,
     right: spacing.sm + 44,
-    margin: 0,
   },
   container: {
     flex: 1,
@@ -334,6 +347,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: spacing.sm,
     right: spacing.sm,
+  },
+  // IconButton ships its own margin; the anchor wrapper now owns the placement.
+  iconButtonReset: {
     margin: 0,
   },
   nameRow: {

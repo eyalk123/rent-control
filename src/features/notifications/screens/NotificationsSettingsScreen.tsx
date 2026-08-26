@@ -16,6 +16,18 @@ import {
   type NotificationPreferences,
   type NotificationRule,
 } from '../types';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
+
+/**
+ * Asks for the tour from inside the loaded tree — the screen renders a spinner until the
+ * preferences arrive, and none of the three anchors exist before then.
+ */
+function NotificationsTourRequest() {
+  useTour('notifications');
+  return null;
+}
 
 /**
  * The CPI event's stand-in for a rule editor. Offsets and scope make no sense for it —
@@ -184,10 +196,12 @@ export function NotificationsSettingsScreen() {
   }
 
   const cardStyle = [styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }];
+  const firstRuleEvent = NOTIFICATION_EVENTS.find(isRuleEvent);
 
   return (
     <ScreenContainer>
       {header}
+      <NotificationsTourRequest />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={[styles.subtitle, rtlLabelStyle, { color: colors.textSecondary }]}>
           {t('notifications.subtitle')}
@@ -204,7 +218,9 @@ export function NotificationsSettingsScreen() {
           </View>
         </View>
 
-        {/* Per-event sections */}
+        {/* Per-event sections. The anchor wrapper repeats the scroll container's gap so
+            grouping the sections under it does not change their spacing. */}
+        <TourAnchor id={ANCHORS.notificationsEventList} style={styles.eventListAnchor}>
         {NOTIFICATION_EVENTS.map((event) => {
           const rules = prefs.rules.filter((r) => r.event_type === event);
           const muted = isMuted(event);
@@ -218,7 +234,14 @@ export function NotificationsSettingsScreen() {
                 <Switch value={!muted} onValueChange={(v) => toggleMute(event, v)} />
               </View>
 
-              <View pointerEvents={dimmed ? 'none' : 'auto'} style={{ opacity: dimmed ? 0.5 : 1 }}>
+              {/* Only the first rule-bearing event carries the anchor — the block is
+                  repeated per event, and it is present whether the event has rules yet
+                  or is still on its default. */}
+              <TourAnchor
+                id={event === firstRuleEvent ? ANCHORS.notificationsRulesEntry : undefined}
+                pointerEvents={dimmed ? 'none' : 'auto'}
+                style={{ opacity: dimmed ? 0.5 : 1 }}
+              >
                 {!isRuleEvent(event) ? (
                   <View style={cardStyle}>
                     <View style={styles.thresholdBlock}>
@@ -291,14 +314,16 @@ export function NotificationsSettingsScreen() {
                     </TouchableOpacity>
                   </>
                 )}
-              </View>
+              </TourAnchor>
             </View>
           );
         })}
+        </TourAnchor>
 
         {/* The WhatsApp copy behind each alert's Message button. Not gated on the
             master switch: these messages are sent by hand from a feed row, so they
             still work for someone who has turned push off entirely. */}
+        <TourAnchor id={ANCHORS.notificationsTemplatesEntry}>
         <TouchableOpacity
           style={[...cardStyle, styles.row]}
           onPress={() => router.push('/notifications/templates' as never)}
@@ -314,6 +339,7 @@ export function NotificationsSettingsScreen() {
           </View>
           <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={ICON_SM} color={colors.textSecondary} />
         </TouchableOpacity>
+        </TourAnchor>
       </ScrollView>
     </ScreenContainer>
   );
@@ -334,6 +360,9 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
     paddingBottom: spacing.xl,
+    gap: spacing.md,
+  },
+  eventListAnchor: {
     gap: spacing.md,
   },
   subtitle: {

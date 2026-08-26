@@ -16,6 +16,18 @@ import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { ScopeSelector, type ScopeValue } from '../components/ScopeSelector';
 import { createRule, getPreferences, previewRule, updateRule } from '../api/preferences';
 import type { NotificationEvent, NotificationRuleDraft, RulePreview } from '../types';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
+
+/**
+ * Asks for the tour from inside the loaded tree — the screen shows a spinner until the
+ * rule (and the preferences behind it) arrive, and the anchors come with the form.
+ */
+function RuleEditorTourRequest() {
+  useTour('notification-rules');
+  return null;
+}
 
 const EMPTY_SCOPE: ScopeValue = {
   scope_property_ids: [],
@@ -163,12 +175,18 @@ export function RuleEditorScreen() {
       {header}
       <View style={styles.wrapper}>
         <FormScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+          <RuleEditorTourRequest />
           <FormInput control={control} name="label" label={t('notifications.ruleName')} placeholder={t('notifications.ruleNamePlaceholder')} />
 
-          <FormChipInput control={control} name="offsetsStr" label={offsetLabel} placeholder={t('notifications.offsetPlaceholder')} numeric sort />
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('notifications.offsetHint')}</Text>
+          {/* Offsets and their hint read as one control, so they share one anchor. */}
+          <TourAnchor id={ANCHORS.ruleOffsets}>
+            <FormChipInput control={control} name="offsetsStr" label={offsetLabel} placeholder={t('notifications.offsetPlaceholder')} numeric sort />
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('notifications.offsetHint')}</Text>
+          </TourAnchor>
 
-          <ScopeSelector value={scope} onChange={setScope} />
+          <TourAnchor id={ANCHORS.ruleScope}>
+            <ScopeSelector value={scope} onChange={setScope} />
+          </TourAnchor>
 
           {isEdit && (
             <View style={styles.toggleRow}>

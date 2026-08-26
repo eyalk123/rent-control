@@ -26,8 +26,20 @@ import {
   type WhatsAppTemplateKey,
   type WhatsAppTemplates,
 } from '../templates';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 type Colors = typeof lightColors | typeof darkColors;
+
+/**
+ * Asks for the tour from inside the loaded tree — the screen shows a spinner until the
+ * saved templates arrive, and both anchors live inside the first section's open body.
+ */
+function TemplatesTourRequest() {
+  useTour('whatsapp-templates');
+  return null;
+}
 
 /**
  * One template. The text box always shows the *effective* message — the owner's edit if
@@ -49,6 +61,7 @@ function TemplateSection({
   surface,
   language,
   rtlLabelStyle,
+  anchored,
 }: {
   templateKey: WhatsAppTemplateKey;
   effective: string;
@@ -61,6 +74,8 @@ function TemplateSection({
   surface: string;
   language: string;
   rtlLabelStyle: object;
+  /** Only the first section carries the tour anchors — every section renders the same body. */
+  anchored?: boolean;
 }) {
   const { t } = useTranslation();
   const [draft, setDraft] = React.useState(effective);
@@ -138,7 +153,10 @@ function TemplateSection({
           <Text style={[styles.label, rtlLabelStyle, { color: colors.textSecondary }]}>
             {t('whatsappTemplates.insertLabel')}
           </Text>
-          <View style={styles.chipRow}>
+          <TourAnchor
+            id={anchored ? ANCHORS.templatePlaceholders : undefined}
+            style={styles.chipRow}
+          >
             {TEMPLATE_TOKENS[templateKey].map((token) => (
               <TouchableOpacity
                 key={token}
@@ -151,8 +169,12 @@ function TemplateSection({
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </TourAnchor>
 
+          {/* The preview renders the message in the app's current language, and Reset puts
+              that language's default back — which is what the per-language step explains.
+              There is no language switch on this screen: the slot follows the app. */}
+          <TourAnchor id={anchored ? ANCHORS.templateLanguage : undefined}>
           <Text style={[styles.label, rtlLabelStyle, { color: colors.textSecondary }]}>
             {t('whatsappTemplates.previewLabel')}
           </Text>
@@ -169,6 +191,7 @@ function TemplateSection({
               </Text>
             </TouchableOpacity>
           ) : null}
+          </TourAnchor>
         </View>
       ) : null}
     </View>
@@ -292,12 +315,13 @@ export function WhatsAppTemplatesScreen() {
   return (
     <ScreenContainer>
       {header}
+      <TemplatesTourRequest />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={[styles.subtitle, rtlLabelStyle, { color: colors.textSecondary }]}>
           {t('whatsappTemplates.subtitle')}
         </Text>
 
-        {WHATSAPP_TEMPLATE_KEYS.map((key) => {
+        {WHATSAPP_TEMPLATE_KEYS.map((key, index) => {
           const override = templates[key]?.[locale];
           return (
             <TemplateSection
@@ -315,6 +339,9 @@ export function WhatsAppTemplatesScreen() {
               surface={theme.colors.surface}
               language={language}
               rtlLabelStyle={rtlLabelStyle}
+              // The first section is the one that starts expanded, so its body is the only
+              // one guaranteed to be on screen when the tour opens.
+              anchored={index === 0}
             />
           );
         })}

@@ -7,6 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { useLanguageContext, useRtlInputStyle, useRtlPlaceholder } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useAgentChat } from '../context/AgentChatContext';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 /** Matches `message` max_length in the backend's AgentChatRequest schema. */
 const MAX_MESSAGE_CHARS = 4000;
@@ -14,6 +17,9 @@ const MAX_MESSAGE_CHARS = 4000;
 const COUNTER_VISIBLE_FROM = 200;
 
 export function Composer() {
+  // Asked from here rather than from ChatScreen: the composer is the tour's only anchor and
+  // the screen renders it only once the agent's status has come back enabled.
+  useTour('chat');
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -76,7 +82,7 @@ export function Composer() {
           {`‎${text.length} / ${MAX_MESSAGE_CHARS}`}
         </Text>
       ) : null}
-      <View style={styles.bar}>
+      <TourAnchor id={ANCHORS.chatInput} style={styles.bar}>
       {/* Plain RN TextInput, like every other input in the app (src/shared/components/form) —
           Paper's TextInput brings its own MD3 typography, which reads foreign here. */}
       <TextInput
@@ -122,7 +128,7 @@ export function Composer() {
           onPress={submit}
         />
       )}
-      </View>
+      </TourAnchor>
     </View>
   );
 }

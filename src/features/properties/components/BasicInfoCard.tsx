@@ -14,6 +14,9 @@ import { PROPERTY_TYPES } from "@/src/features/properties/validation/propertyVal
 import type { PropertyType } from "@/src/shared/types";
 import type { TFunction } from "i18next";
 import { usePropertyContext } from "@/src/context";
+import { ANCHORS } from "@/src/features/onboarding/anchors";
+import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
+import { useTour } from "@/src/features/onboarding/TourController";
 
 type BasicInfoCardProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -33,6 +36,10 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   ownerId,
   addressEvidence,
 }: BasicInfoCardProps<TFieldValues>) {
+  // Asked from here, not from AddEditPropertyScreen: the owner field is one of the tour's
+  // anchors and it only exists while step 1 is mounted. Asking from the screen would ask
+  // again on step 2, where the anchor is gone.
+  useTour('property-form');
   const rtlPlaceholder = useRtlPlaceholder();
   const { properties } = usePropertyContext();
   const translateTypeLabel = (type: PropertyType) => {
@@ -129,16 +136,18 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
         label={t("property.plot")}
         keyboardType="numeric"
       />
-      <FormCreatableDropdown
-        control={control}
-        name={"propertyOwner" as any}
-        label={t("property.propertyOwner")}
-        options={ownerOptions}
-        placeholder={rtlPlaceholder(t("property.ownerPlaceholder"))}
-        createLabel={t("property.ownerCreate")}
-        createModalTitle={t("property.createOwnerTitle")}
-        createModalPlaceholder={t("property.ownerNamePlaceholder")}
-      />
+      <TourAnchor id={ANCHORS.propertyFormOwnerField}>
+        <FormCreatableDropdown
+          control={control}
+          name={"propertyOwner" as any}
+          label={t("property.propertyOwner")}
+          options={ownerOptions}
+          placeholder={rtlPlaceholder(t("property.ownerPlaceholder"))}
+          createLabel={t("property.ownerCreate")}
+          createModalTitle={t("property.createOwnerTitle")}
+          createModalPlaceholder={t("property.ownerNamePlaceholder")}
+        />
+      </TourAnchor>
       <FormNumericField
         control={control}
         name={"zipCode" as any}

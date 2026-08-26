@@ -29,10 +29,18 @@ import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButto
 import { deleteProperty } from '@/src/features/properties/api/properties';
 import { spacing } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour } from '@/src/features/onboarding/TourController';
 
 type ActiveSheet = 'property' | 'renter' | 'owner' | null;
 
+const LIST_ANCHOR = { flex: 1 } as const;
+
 export function PropertiesListScreen() {
+  // Gated on hasProperties: both steps point at the card list, so an empty list has
+  // nothing to spotlight. A failed gate defers instead of consuming the tour.
+  useTour('properties-list');
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -278,6 +286,7 @@ export function PropertiesListScreen() {
         <FilterChipsBar chips={filterChips} stretch />
         <ActiveFilterPills chips={filterChips} />
       </View>
+      <TourAnchor id={ANCHORS.propertiesList} style={LIST_ANCHOR}>
       <FlatList
         data={filteredProperties}
         keyExtractor={(item) => item.id.toString()}
@@ -305,6 +314,7 @@ export function PropertiesListScreen() {
           <EmptyState message={t('empty.noPropertySearchResults')} icon="search" />
         }
       />
+      </TourAnchor>
       {isSelectMode ? (
         <AppFab
           icon="trash"

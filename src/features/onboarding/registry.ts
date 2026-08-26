@@ -249,6 +249,13 @@ export const TOURS = {
     ],
   },
 
+  /**
+   * The review step is centred, not anchored. `scanSummary` lives on the summary screen,
+   * which is a separate route reached only *after* a document has been extracted — and a
+   * tour opens only when every anchored step's element is mounted at once, so pointing at
+   * it here would mean this tour could never open. Both remaining steps are promises about
+   * what happens next, which is what an elaboration arriving from the `scan-lease` seed is.
+   */
   'lease-scan': {
     id: 'lease-scan',
     route: '/properties/scan',
@@ -257,7 +264,7 @@ export const TOURS = {
     arrivesFrom: 'scan-lease',
     steps: [
       { id: 'pick', anchor: ANCHORS.scanPicker, placement: 'bottom' },
-      { id: 'review', anchor: ANCHORS.scanSummary, placement: 'bottom' },
+      { id: 'review', anchor: null, placement: 'center' },
       { id: 'both', anchor: null, placement: 'center' },
     ],
   },

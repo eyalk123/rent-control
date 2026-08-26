@@ -13,6 +13,8 @@ import {
 import { RenterExtraContactsCard } from './RenterExtraContactsCard';
 import { RenterLeaseInfoDisplayCard } from './RenterLeaseInfoDisplayCard';
 import { RenterInsuranceCard } from './RenterInsuranceCard';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 interface RenterInfoTabProps {
   renter: Renter;
@@ -96,7 +98,9 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
         <RenterExtraContactsCard contacts={renter.extra_contacts} />
       )}
 
-      <RenterLeaseInfoDisplayCard renter={renter} paymentTypeLabel={paymentTypeLabel} />
+      <TourAnchor id={ANCHORS.renterDetailTimeline}>
+        <RenterLeaseInfoDisplayCard renter={renter} paymentTypeLabel={paymentTypeLabel} />
+      </TourAnchor>
 
       <DocumentsCard documents={documents} />
 
