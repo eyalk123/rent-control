@@ -283,7 +283,9 @@ export function PropertiesListScreen() {
             <SettingsGearButton />
           </View>
         )}
-        <FilterChipsBar chips={filterChips} stretch />
+        <TourAnchor id={ANCHORS.propertiesFilters}>
+          <FilterChipsBar chips={filterChips} stretch />
+        </TourAnchor>
         <ActiveFilterPills chips={filterChips} />
       </View>
       <TourAnchor id={ANCHORS.propertiesList} style={LIST_ANCHOR}>
@@ -327,6 +329,7 @@ export function PropertiesListScreen() {
       ) : (
         <AppFab
           icon="plus"
+          anchor={ANCHORS.propertiesAddButton}
           onPress={() => setAddChooserOpen(true)}
           accessibilityLabel={t('property.addProperty')}
           bottomInset={insets.bottom}

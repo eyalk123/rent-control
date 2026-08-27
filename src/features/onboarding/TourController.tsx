@@ -108,10 +108,12 @@ export function TourControllerProvider({ children }: PropsWithChildren) {
         // first, so it counts for neither the wait nor the step counter.
         const live = tour.steps.filter((s) => !s.skipWhen || !gate(s.skipWhen));
 
-        // Optional steps are excluded from the wait: their whole point is that the element
-        // may legitimately be absent, and waiting on one would suppress the entire tour.
+        // Excluded from the wait, for opposite reasons. An optional step's element may
+        // legitimately be absent, and waiting on one would suppress the entire tour; a
+        // `revealsAnchor` step's element is absent by definition until the step is reached,
+        // because reaching it is what creates it.
         const needed = live
-          .filter((s) => !s.optional)
+          .filter((s) => !s.optional && !s.revealsAnchor)
           .map((s) => s.anchor)
           .filter((a): a is string => Boolean(a));
 
@@ -128,6 +130,8 @@ export function TourControllerProvider({ children }: PropsWithChildren) {
           // Resolve optional steps once, here: a step whose element is not mounted at the
           // moment the tour opens is dropped, so the step counter stays truthful rather
           // than promising a step that will never render.
+          // Only `optional` is resolved here. A `revealsAnchor` step is kept whatever the
+          // registry says right now — its element arrives later, on purpose.
           const steps = live.filter(
             (s) => !s.optional || (s.anchor != null && Boolean(registry?.has(s.anchor))),
           );

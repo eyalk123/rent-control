@@ -63,14 +63,17 @@ export const TOURS = {
 
   /* ----------------------------------------------------------------- page tours */
 
+  /** Opens on the screen, then walks it top to bottom — chips, list, the add button. */
   'properties-list': {
     id: 'properties-list',
     route: '/(tabs)/properties',
     gate: 'hasProperties',
     kind: 'page',
     steps: [
-      { id: 'cards', anchor: ANCHORS.propertiesList, placement: 'bottom' },
-      { id: 'persistence', anchor: ANCHORS.propertiesList, placement: 'bottom', seed: { id: 'bulk-select', opens: null } },
+      { id: 'overview', anchor: null, placement: 'center' },
+      { id: 'persistence', anchor: ANCHORS.propertiesFilters, placement: 'bottom' },
+      { id: 'cards', anchor: ANCHORS.propertiesList, placement: 'bottom', seed: { id: 'bulk-select', opens: null } },
+      { id: 'add', anchor: ANCHORS.propertiesAddButton, placement: 'top' },
     ],
   },
 
@@ -91,8 +94,10 @@ export const TOURS = {
     gate: 'hasRenters',
     kind: 'page',
     steps: [
-      { id: 'current', anchor: ANCHORS.rentersList, placement: 'bottom' },
+      { id: 'overview', anchor: null, placement: 'center' },
       { id: 'ended', anchor: ANCHORS.rentersEndedFilter, placement: 'bottom', seed: { id: 'ended-tenants', opens: null } },
+      { id: 'cards', anchor: ANCHORS.rentersList, placement: 'bottom' },
+      { id: 'add', anchor: ANCHORS.rentersAddButton, placement: 'top' },
     ],
   },
 
@@ -115,7 +120,11 @@ export const TOURS = {
     gate: 'hasProperties',
     kind: 'page',
     steps: [
+      { id: 'overview', anchor: null, placement: 'center' },
       { id: 'twoKinds', anchor: ANCHORS.transactionsList, placement: 'bottom' },
+      // The suppliers button is the one control on this screen nobody identifies without
+      // pressing it, so it gets a spotlight rather than only the seed it used to carry.
+      { id: 'suppliers', anchor: ANCHORS.transactionsSuppliersButton, placement: 'bottom' },
       { id: 'forMonth', anchor: ANCHORS.transactionsAddButton, placement: 'top', seed: { id: 'no-auto-rent', opens: null } },
       { id: 'recording', anchor: ANCHORS.transactionsAddButton, placement: 'top', seed: { id: 'bulk-rent', opens: 'revenue-form' } },
     ],
@@ -139,6 +148,7 @@ export const TOURS = {
     gate: 'hasRenters',
     kind: 'page',
     steps: [
+      { id: 'overview', anchor: null, placement: 'center' },
       { id: 'ask', anchor: ANCHORS.chatInput, placement: 'top' },
       { id: 'scope', anchor: null, placement: 'center' },
     ],

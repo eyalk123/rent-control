@@ -880,13 +880,21 @@
         }
       },
       "properties-list": {
-        "cards": {
-          "title": "One card per unit",
-          "body": "Open one for its lease, its tenant, and the money it has made."
+        "overview": {
+          "title": "Your properties",
+          "body": "Every unit you manage, and what is happening in each. Here is the screen."
         },
         "persistence": {
           "title": "It remembers you",
           "body": "Search, filters and sort stay exactly how you left them."
+        },
+        "cards": {
+          "title": "One card per unit",
+          "body": "Open one for its lease, its tenant, and the money it has made."
+        },
+        "add": {
+          "title": "Two ways in",
+          "body": "Type a property in yourself, or scan a lease and let us fill it in for you."
         }
       },
       "property-form": {
@@ -900,13 +908,25 @@
         }
       },
       "renters-list": {
-        "current": {
-          "title": "Who's leasing now",
-          "body": "Everyone with an active lease."
+        "overview": {
+          "title": "Your renters",
+          "body": "The people in your properties, and where each lease stands. Here is the screen."
         },
         "ended": {
           "title": "And who used to",
           "body": "Ended tenants have their own filter."
+        },
+        "cards": {
+          "title": "One card each",
+          "body": "A face, a phone number and the lease status — enough to know who you are looking at."
+        },
+        "add": {
+          "title": "Two ways in",
+          "body": "Add a renter and their lease by hand, or scan the lease and let us read it."
+        },
+        "current": {
+          "title": "Who's leasing now",
+          "body": "Everyone with an active lease."
         }
       },
       "lease-form": {
@@ -924,9 +944,17 @@
         }
       },
       "transactions-list": {
+        "overview": {
+          "title": "Every shekel, in one place",
+          "body": "What came in, what went out, and when. Here is the screen."
+        },
         "twoKinds": {
           "title": "Two kinds of money",
           "body": "Revenue is rent coming in. Expenses are what you pay out."
+        },
+        "suppliers": {
+          "title": "Suppliers live here",
+          "body": "The plumber, the electrician, the management company — saved once, attached to any expense."
         },
         "forMonth": {
           "title": "Which month it pays for",
@@ -952,6 +980,10 @@
         }
       },
       "chat": {
+        "overview": {
+          "title": "Ask Rent Control",
+          "body": "A question about your own portfolio, in your own words. Here is how it works."
+        },
         "ask": {
           "title": "Ask in plain language",
           "body": "'Who hasn't paid this month?' · 'What did I spend on plumbing?'"

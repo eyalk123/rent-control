@@ -31,15 +31,17 @@ export const ANCHORS = {
 
   // Properties
   propertiesList: 'properties.list',
-  // RESERVED: the properties tour explains the cards, not the FAB. Anchor the *add* FAB
-  // via AppFab's `anchor` prop if a step ever needs it — never wrap a FAB in TourAnchor.
+  propertiesFilters: 'properties.filters', // the chips bar above the list
+  // Applied through AppFab's `anchor` prop, which puts it on the button itself — never
+  // wrap a FAB in TourAnchor, which would measure its position wrapper instead.
   propertiesAddButton: 'properties.addButton',
   propertyFormStepper: 'propertyForm.stepper', // -> shared/components/ui Stepper
   propertyFormOwnerField: 'propertyForm.ownerField',
 
   // Renters
   rentersList: 'renters.list',
-  rentersEndedFilter: 'renters.endedFilter',
+  rentersEndedFilter: 'renters.endedFilter', // the lease-status chips bar
+  rentersAddButton: 'renters.addButton',     // via AppFab's `anchor` prop
   renterDetailTimeline: 'renterDetail.timeline', // -> RenterLeaseInfoDisplayCard
   renterDetailExtend: 'renterDetail.extendButton',
   renterDetailEndLease: 'renterDetail.endLeaseButton', // -> EndLeaseDialog trigger
@@ -57,8 +59,8 @@ export const ANCHORS = {
 
   // Transactions — src/features/transactions/
   transactionsList: 'transactions.list',
-  // RESERVED: the `suppliers` seed names this button in prose, but the seed is carried by
-  // the transactions add-button step, so nothing points a spotlight at it.
+  // The transactions tour spotlights this now, as well as naming it in the seed: it is the
+  // one control on that screen nobody identifies without pressing it.
   transactionsSuppliersButton: 'transactions.suppliersButton', // -> SuppliersHeaderButton.tsx
   transactionsAddButton: 'transactions.addButton',
   revenuePropertyPicker: 'revenueForm.propertyPicker',

@@ -294,6 +294,7 @@ export function RentersListScreen() {
         <EmptyState message={t('empty.noRenters')} icon="user" />
         <AppFab
           icon="plus"
+          anchor={ANCHORS.rentersAddButton}
           onPress={() => setAddChooserOpen(true)}
           accessibilityLabel={t('renter.addRenter')}
           bottomInset={insets.bottom}
@@ -380,6 +381,7 @@ export function RentersListScreen() {
       ) : (
         <AppFab
           icon="plus"
+          anchor={ANCHORS.rentersAddButton}
           onPress={() => setAddChooserOpen(true)}
           accessibilityLabel={t('renter.addRenter')}
           bottomInset={insets.bottom}
