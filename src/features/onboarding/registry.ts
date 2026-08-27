@@ -77,7 +77,9 @@ export const TOURS = {
       { id: 'overview', anchor: null, placement: 'center' },
       { id: 'persistence', anchor: ANCHORS.propertiesFilters, placement: 'bottom' },
       { id: 'cards', anchor: ANCHORS.propertiesList, placement: 'bottom', seed: { id: 'bulk-select', opens: null } },
-      { id: 'add', anchor: ANCHORS.propertiesAddButton, placement: 'top' },
+      // Shared with the renters tour, which says the same thing about the same control:
+      // whichever tab is opened first says it. See `sharedWith`.
+      { id: 'add', anchor: ANCHORS.propertiesAddButton, placement: 'top', sharedWith: ['renters-list'] },
     ],
   },
 
@@ -101,7 +103,8 @@ export const TOURS = {
       { id: 'overview', anchor: null, placement: 'center' },
       { id: 'ended', anchor: ANCHORS.rentersEndedFilter, placement: 'bottom', seed: { id: 'ended-tenants', opens: null } },
       { id: 'cards', anchor: ANCHORS.rentersList, placement: 'bottom' },
-      { id: 'add', anchor: ANCHORS.rentersAddButton, placement: 'top' },
+      // Shared with the properties tour — see the note there.
+      { id: 'add', anchor: ANCHORS.rentersAddButton, placement: 'top', sharedWith: ['properties-list'] },
     ],
   },
 
@@ -319,12 +322,31 @@ export function validateRegistry(): string[] {
   // A seed that opens a tour this platform does not define advertises a destination that
   // can never open, and fails silently: nothing throws when the user finally gets there.
   const defined = new Set(Object.keys(TOURS));
+  const byId = TOURS as Record<string, TourDefinition | undefined>;
   for (const tour of tours) {
     for (const step of tour.steps) {
       if (step.seed?.opens && !defined.has(step.seed.opens)) {
         errors.push(
           `${tour.id}.${step.id}: seed opens '${step.seed.opens}', which this platform has no tour for`,
         );
+      }
+      // A shared step has to be declared from both ends. Named one way only, one tab
+      // suppresses the step while the other still shows it — which looks like working
+      // software from either side on its own, and is why this is checked rather than
+      // trusted.
+      for (const other of step.sharedWith ?? []) {
+        const partner = byId[other];
+        if (!partner) {
+          errors.push(
+            `${tour.id}.${step.id}: shared with '${other}', which this platform has no tour for`,
+          );
+          continue;
+        }
+        if (!partner.steps.some((s) => s.sharedWith?.includes(tour.id))) {
+          errors.push(
+            `${tour.id}.${step.id}: shared with '${other}', but nothing there shares back`,
+          );
+        }
       }
     }
   }
