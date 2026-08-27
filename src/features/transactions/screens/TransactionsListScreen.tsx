@@ -194,6 +194,11 @@ export function TransactionsListScreen() {
           <TransactionSectionHeader
             title={section.title}
             profit={(section as { profit: number }).profit}
+            anchorId={
+              section === filters.listSections[0]
+                ? ANCHORS.transactionsMonthHeader
+                : undefined
+            }
           />
         )}
         renderItem={({ item }: { item: Transaction }) => (

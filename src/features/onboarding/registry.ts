@@ -128,11 +128,16 @@ export const TOURS = {
     kind: 'page',
     steps: [
       { id: 'overview', anchor: null, placement: 'center' },
-      { id: 'twoKinds', anchor: ANCHORS.transactionsList, placement: 'bottom' },
+      // The "nothing is charged automatically" seed rides here rather than on the month
+      // step below, which drops when there is no section list to point at.
+      { id: 'twoKinds', anchor: ANCHORS.transactionsList, placement: 'bottom', seed: { id: 'no-auto-rent', opens: null } },
       // The suppliers button is the one control on this screen nobody identifies without
       // pressing it, so it gets a spotlight rather than only the seed it used to carry.
       { id: 'suppliers', anchor: ANCHORS.transactionsSuppliersButton, placement: 'bottom' },
-      { id: 'forMonth', anchor: ANCHORS.transactionsAddButton, placement: 'top', seed: { id: 'no-auto-rent', opens: null } },
+      // Points at the first month heading, not the FAB: this step is about how the list is
+      // organised, and it sat on the same element as `recording` below, so two steps
+      // running about unrelated things spotlighted the same button.
+      { id: 'forMonth', anchor: ANCHORS.transactionsMonthHeader, placement: 'bottom', optional: true },
       { id: 'recording', anchor: ANCHORS.transactionsAddButton, placement: 'top', seed: { id: 'bulk-rent', opens: 'revenue-form' } },
     ],
   },

@@ -59,6 +59,11 @@ export const ANCHORS = {
 
   // Transactions — src/features/transactions/
   transactionsList: 'transactions.list',
+  // The "MARCH 2026" heading above the first month's rows. Only the first section claims
+  // the key — it is the grouping the tour points at, not that month — and the screen has
+  // no section list at all when there is nothing to show, which is why the step is
+  // `optional`.
+  transactionsMonthHeader: 'transactions.monthHeader', // -> TransactionSectionHeader.tsx
   // The transactions tour spotlights this now, as well as naming it in the seed: it is the
   // one control on that screen nobody identifies without pressing it.
   transactionsSuppliersButton: 'transactions.suppliersButton', // -> SuppliersHeaderButton.tsx
