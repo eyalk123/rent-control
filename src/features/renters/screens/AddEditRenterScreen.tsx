@@ -5,6 +5,7 @@ import { useRenterForm } from "@/src/features/renters/hooks/useRenterForm";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
 import { RenterBasicInfoCard } from "@/src/features/renters/components/RenterBasicInfoCard";
 import { RenterLeaseInfoCard } from "@/src/features/renters/components/RenterLeaseInfoCard";
+import { useTour, useTourStep } from "@/src/features/onboarding/TourController";
 import { RenterScanConflicts } from "@/src/features/renters/components/RenterScanConflicts";
 import { ScanPropertyNotice } from "@/src/features/document-scan/components/ScanPropertyNotice";
 import { consumeRenterPrefill, setScanHandoff } from "@/src/features/document-scan/handoff";
@@ -114,6 +115,14 @@ export function AddEditRenterScreen() {
     router.replace("/properties/add?fromScan=1" as any);
   };
   const [step, setStep] = React.useState<"basic" | "lease">("basic");
+  // The lease tour used to be asked for from inside the lease card, which lives on page two —
+  // so it could only open once the user was already there, and had nothing to say about the
+  // form as a whole. It opens with the screen now; every step after its opening card points at
+  // page two and is marked `revealsAnchor`, and this is what reveals them.
+  useTour("lease-form");
+  const tourStep = useTourStep("lease-form");
+  // Derived, never written — see AddEditPropertyScreen for why that matters.
+  const shownStep = tourStep && tourStep !== "overview" ? "lease" : step;
   const { requestPermission, pickContact } = useContactPicker();
 
   const handlePickFromContacts = React.useCallback(async () => {
@@ -212,7 +221,7 @@ export function AddEditRenterScreen() {
           <FieldReviewProvider items={current?.review}>
           <StepHeader
             title={isEdit ? t("renter.updateRenter") : t("renter.addRenter")}
-            currentStep={step === "basic" ? 1 : 2}
+            currentStep={shownStep === "basic" ? 1 : 2}
             totalSteps={2}
             onBack={handleHeaderBack}
           />
@@ -221,7 +230,7 @@ export function AddEditRenterScreen() {
               {t("documentScan.renterProgress", { current: qIndex + 1, total: renters.length })}
             </Text>
           )}
-          {step === "basic" && (
+          {shownStep === "basic" && (
             <>
               {scan && (
                 <ScanPropertyNotice
@@ -251,7 +260,7 @@ export function AddEditRenterScreen() {
               />
             </>
           )}
-          {step === "lease" && (
+          {shownStep === "lease" && (
             <RenterLeaseInfoCard control={control} t={t} ownerId={ownerId} setValue={setValue} />
           )}
           </FieldReviewProvider>

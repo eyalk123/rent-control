@@ -2,6 +2,8 @@ import { FormInput } from "@/src/shared/components/form/FormInput";
 import { FormChipInput } from "@/src/shared/components/form/FormChipInput";
 import { FormSingleFileField } from "@/src/shared/components/form/FormSingleFileField";
 import { useRtlPlaceholder } from "@/src/core/context";
+import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
+import { ANCHORS } from "@/src/features/onboarding/anchors";
 import { spacing } from "@/src/core/theme";
 import { FormSectionCard } from "@/src/shared/components/form/FormSectionCard";
 import { FormNumericField } from "@/src/shared/components/form/FormFields";
@@ -39,6 +41,9 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
     ];
 
   return (
+    // The whole card under one anchor: the tour has a single thing to say about everything on
+    // this page, and pointing at each field in turn would be a card per field.
+    <TourAnchor id={ANCHORS.propertyFormRecords}>
     <FormSectionCard title={t("property.leaseInfo")}>
       <View
         style={{
@@ -123,6 +128,7 @@ function LeaseInfoCardInner<TFieldValues extends FieldValues>({
         onDeleteExistingToggle={onDeleteExistingToggle}
       />
     </FormSectionCard>
+    </TourAnchor>
   );
 }
 

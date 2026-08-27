@@ -21,6 +21,8 @@ import { RenterSelectionSection } from './RenterSelectionSection';
 import { PaymentDetailsSection } from './PaymentDetailsSection';
 import { getContractYearMonths, getDefaultPeriodValue, getMonthsForPeriod } from './periodHelpers';
 import { useTour } from '@/src/features/onboarding/TourController';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
 
 type PropertyGroup = {
   property: Property;
@@ -250,6 +252,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
 
           <Divider style={styles.sectionDivider} />
 
+          <TourAnchor id={ANCHORS.revenuePeriodPicker}>
           <BulkRevenuePeriodFilter
             periodType={periodType}
             onPeriodTypeChange={handleChangePeriodType}
@@ -260,6 +263,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
             gridYear={gridYear}
             onGridYearChange={setGridYear}
           />
+          </TourAnchor>
 
           <PaymentDetailsSection
             control={dateForm.control}

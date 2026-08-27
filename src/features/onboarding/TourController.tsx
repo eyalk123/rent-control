@@ -83,6 +83,16 @@ export function TourControllerProvider({ children }: PropsWithChildren) {
   const declined = useRef(new Set<TourId>());
   const openingRef = useRef<TourId | null>(null);
 
+  // A skipped tour is remembered twice: in the persisted state, and here for the rest
+  // of the session. "Replay the tours" clears the first and could not reach the second,
+  // so a screen whose tour had been skipped stayed silent until the app restarted — the one case
+  // where reset visibly did nothing. Nothing-seen means either a reset or a brand-new
+  // account, and in both the right session memory is none.
+  const nothingSeen = Object.keys(tourState?.state.toursSeen ?? {}).length === 0;
+  useEffect(() => {
+    if (nothingSeen) declined.current.clear();
+  }, [nothingSeen]);
+
   // TOURS_ENABLED is the master switch (see flags.ts). It is checked here as well as in
   // the provider because this is the single place a tour can be opened from, so one false
   // here is a hard guarantee that nothing appears.
@@ -269,6 +279,25 @@ export function useTourController(): TourControllerValue | null {
  *
  *   useTour('transactions-list');
  */
+/**
+ * The step currently showing for `tourId`, or null when that tour is not running.
+ *
+ * The mirror of web's hook of the same name, and the way a screen *reacts* to a step without
+ * the registry growing side effects. The registry stays a description of what to say and
+ * where to point; the behaviour lives in the component that already owns the state — here,
+ * the two-page forms showing their second page for the steps that explain it, so the page is
+ * demonstrated rather than described.
+ *
+ * Whatever a screen does with this it must undo, and this returning null the moment the tour
+ * ends is what makes that free: derive from it rather than writing state, and the screen goes
+ * back to how the user left it with no cleanup to forget.
+ */
+export function useTourStep(tourId: TourId): string | null {
+  const controller = useTourController();
+  if (!controller?.active || controller.active.tour.id !== tourId) return null;
+  return controller.step?.id ?? null;
+}
+
 export function useTour(id: TourId, inputs: GateInputs = {}) {
   const controller = useTourController();
   const request = controller?.requestTour;

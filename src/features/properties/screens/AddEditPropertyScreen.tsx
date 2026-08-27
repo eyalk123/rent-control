@@ -22,6 +22,7 @@ import { Button } from "react-native-paper";
 import { FormScrollView } from "@/src/shared/components/form";
 import { ANCHORS } from "@/src/features/onboarding/anchors";
 import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
+import { useTourStep } from "@/src/features/onboarding/TourController";
 
 export function AddEditPropertyScreen() {
   const { t } = useTranslation();
@@ -83,6 +84,11 @@ export function AddEditPropertyScreen() {
 
   const { formState, control, trigger } = formMethods;
   const [step, setStep] = React.useState<"basic" | "lease">("basic");
+  // Derived, never written: `useTourStep` goes null the moment the tour ends and the form is
+  // back on whichever page the user was actually filling in, with nothing to restore. It also
+  // means the page-one validation that `onPressNext` runs is never triggered behind the tour.
+  const tourStep = useTourStep("property-form");
+  const shownStep = tourStep === "records" ? "lease" : step;
 
   React.useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e) => {
@@ -152,12 +158,12 @@ export function AddEditPropertyScreen() {
           <TourAnchor id={ANCHORS.propertyFormStepper}>
             <StepHeader
               title={isEdit ? t("property.updateProperty") : t("property.addProperty")}
-              currentStep={step === "basic" ? 1 : 2}
+              currentStep={shownStep === "basic" ? 1 : 2}
               totalSteps={2}
               onBack={handleHeaderBack}
             />
           </TourAnchor>
-          {step === "basic" && (
+          {shownStep === "basic" && (
             <>
               <PropertyScanConflicts
                 conflicts={conflicts}
@@ -175,7 +181,7 @@ export function AddEditPropertyScreen() {
               />
             </>
           )}
-          {step === "lease" && (
+          {shownStep === "lease" && (
             <LeaseInfoCard
               control={control}
               t={t}

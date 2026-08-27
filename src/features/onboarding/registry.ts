@@ -83,14 +83,24 @@ export const TOURS = {
     ],
   },
 
+  /**
+   * The form tours all open with an unanchored card, the way the tab tours do. It used to be
+   * that someone opening this form was told about the owner field without ever being told
+   * what the form was or that it had a second page.
+   *
+   * Only `records` needs revealing here: the owner field sits on page one on this platform,
+   * inside BasicInfoCard, where web has it on page two.
+   */
   'property-form': {
     id: 'property-form',
     route: '/properties/add',
     gate: 'always',
     kind: 'page',
     steps: [
+      { id: 'overview', anchor: null, placement: 'center' },
       { id: 'twoSteps', anchor: ANCHORS.propertyFormStepper, placement: 'bottom' },
       { id: 'owner', anchor: ANCHORS.propertyFormOwnerField, placement: 'bottom', seed: { id: 'property-owner', opens: null } },
+      { id: 'records', anchor: ANCHORS.propertyFormRecords, placement: 'top', revealsAnchor: true },
     ],
   },
 
@@ -109,15 +119,25 @@ export const TOURS = {
   },
 
   /** The densest screen in the product — the only page tour that uses its full budget. */
+  /**
+   * Covers the renter form as a whole rather than only its lease terms — the opening card is
+   * what page one gets, since a card pointing at a name field would be a step per field.
+   *
+   * Everything after the opener is on page two and marked `revealsAnchor`; the screen shows
+   * that page for them. The name stays `lease-form`: the lease is what the tour is mostly
+   * about, and renaming it would move every copy key for no gain.
+   */
   'lease-form': {
     id: 'lease-form',
     route: '/renters/add',
     gate: 'always',
     kind: 'page',
     steps: [
-      { id: 'term', anchor: ANCHORS.leaseTermBuilder, placement: 'bottom' },
-      { id: 'mode', anchor: ANCHORS.leaseRentChangeField, placement: 'bottom', seed: { id: 'cpi', opens: 'cpi-mode' } },
-      { id: 'baseYear', anchor: ANCHORS.leaseBaseRent, placement: 'bottom', seed: { id: 'custom-schedule', opens: 'custom-mode' } },
+      { id: 'overview', anchor: null, placement: 'center' },
+      { id: 'term', anchor: ANCHORS.leaseTermBuilder, placement: 'bottom', revealsAnchor: true },
+      { id: 'mode', anchor: ANCHORS.leaseRentChangeField, placement: 'bottom', seed: { id: 'cpi', opens: 'cpi-mode' }, revealsAnchor: true },
+      { id: 'baseYear', anchor: ANCHORS.leaseBaseRent, placement: 'bottom', seed: { id: 'custom-schedule', opens: 'custom-mode' }, revealsAnchor: true },
+      { id: 'payment', anchor: ANCHORS.renterFormPayment, placement: 'top', revealsAnchor: true },
     ],
   },
 
@@ -193,14 +213,22 @@ export const TOURS = {
     ],
   },
 
+  /**
+   * `page`, not `elaboration`, along with the two below it: a form the user opens and works
+   * through is a screen in every sense the ceiling cares about, and three steps was a budget
+   * written for something that answers one question. `arrivesFrom` is unaffected by `kind`,
+   * so the callback line from the `bulk-rent` seed still shows on the opening card.
+   */
   'revenue-form': {
     id: 'revenue-form',
     route: '/transactions/add',
     gate: 'always',
-    kind: 'elaboration',
+    kind: 'page',
     arrivesFrom: 'bulk-rent',
     steps: [
+      { id: 'overview', anchor: null, placement: 'center' },
       { id: 'scope', anchor: ANCHORS.revenuePropertyPicker, placement: 'bottom' },
+      { id: 'period', anchor: ANCHORS.revenuePeriodPicker, placement: 'top' },
       { id: 'perContract', anchor: ANCHORS.revenueAmountCell, placement: 'bottom' },
       { id: 'saving', anchor: null, placement: 'center' },
     ],
@@ -210,8 +238,9 @@ export const TOURS = {
     id: 'expense-form',
     route: '/transactions/add',
     gate: 'always',
-    kind: 'elaboration',
+    kind: 'page',
     steps: [
+      { id: 'overview', anchor: null, placement: 'center' },
       { id: 'required', anchor: ANCHORS.expenseCategoryField, placement: 'bottom' },
       { id: 'split', anchor: ANCHORS.expensePropertyPicker, placement: 'bottom', seed: { id: 'expense-split', opens: null } },
     ],
@@ -221,9 +250,10 @@ export const TOURS = {
     id: 'extend-lease',
     route: '/renters/extend/[id]',
     gate: 'always',
-    kind: 'elaboration',
+    kind: 'page',
     arrivesFrom: 'extend-lease',
     steps: [
+      { id: 'overview', anchor: null, placement: 'center' },
       { id: 'months', anchor: ANCHORS.extendYearsStepper, placement: 'bottom' },
       { id: 'optionLast', anchor: ANCHORS.extendPreview, placement: 'top' },
     ],

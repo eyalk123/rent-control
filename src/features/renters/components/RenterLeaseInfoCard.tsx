@@ -2,6 +2,8 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { type Control, type FieldValues, type UseFormSetValue, useWatch } from "react-hook-form";
 import { useTour } from "@/src/features/onboarding/TourController";
+import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
+import { ANCHORS } from "@/src/features/onboarding/anchors";
 import type { TFunction } from "i18next";
 import { spacing } from "@/src/core/theme";
 import { getPaymentMethodOptions } from "@/src/shared/constants/paymentMethods";
@@ -41,10 +43,13 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
     | string
     | undefined;
 
-  useTour("lease-form");
-  // Both elaborations are gated on the mode, so exactly one of these can ever open, and
-  // only once the user has actually chosen it. Selecting a mode changes `rentMode`, which
-  // re-runs the request — that is the whole trigger.
+  // `lease-form` is asked for by the screen, not here: it covers the whole renter form now
+  // and has to open on page one, before this card exists. The two elaborations below stay,
+  // because they can only be reached from a control this card owns.
+  //
+  // Both are gated on the mode, so exactly one of them can ever open, and only once the user
+  // has actually chosen it. Selecting a mode changes `rentMode`, which re-runs the request —
+  // that is the whole trigger.
   useTour("cpi-mode", { rentMode: escalationMode ?? null });
   useTour("custom-mode", { rentMode: escalationMode ?? null });
 
@@ -64,6 +69,9 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
         <LeaseTermBuilder control={control} t={t} setValue={setValue} />
       </View>
 
+      {/* Day, type and frequency as one group — the tour's point is about the three
+          together, and the day in particular is what "overdue" is counted from. */}
+      <TourAnchor id={ANCHORS.renterFormPayment}>
       <View style={styles.inputWrap}>
         <FormWheelDateField
           control={control}
@@ -96,6 +104,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           sorted={false}
         />
       </View>
+      </TourAnchor>
 
       <View style={styles.inputWrap}>
         <FormDropdownOptions

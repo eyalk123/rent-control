@@ -37,11 +37,21 @@ export const ANCHORS = {
   propertiesAddButton: 'properties.addButton',
   propertyFormStepper: 'propertyForm.stepper', // -> shared/components/ui Stepper
   propertyFormOwnerField: 'propertyForm.ownerField',
+  /** The whole of the form's second page — rooms, meters, contract files — under one key
+   *  rather than one per field: the tour has a single thing to say about all of it. Unmounted
+   *  while page one shows, so the step is `revealsAnchor` and the screen shows that page for
+   *  it. Note this sits on page two here and the owner field on page one, which is the other
+   *  way round from web. */
+  propertyFormRecords: 'propertyForm.records', // -> LeaseInfoCard.tsx
 
   // Renters
   rentersList: 'renters.list',
   rentersEndedFilter: 'renters.endedFilter', // the lease-status chips bar
   rentersAddButton: 'renters.addButton',     // via AppFab's `anchor` prop
+  /** Payment day, type and frequency as one group on the renter form's lease page. The
+   *  payment day is what 'overdue' is counted from, which nothing else says out loud. Also
+   *  `revealsAnchor` — see `propertyFormRecords`. */
+  renterFormPayment: 'renterForm.payment', // -> RenterLeaseInfoCard.tsx
   renterDetailTimeline: 'renterDetail.timeline', // -> RenterLeaseInfoDisplayCard
   renterDetailExtend: 'renterDetail.extendButton',
   renterDetailEndLease: 'renterDetail.endLeaseButton', // -> EndLeaseDialog trigger
@@ -69,8 +79,9 @@ export const ANCHORS = {
   transactionsSuppliersButton: 'transactions.suppliersButton', // -> SuppliersHeaderButton.tsx
   transactionsAddButton: 'transactions.addButton',
   revenuePropertyPicker: 'revenueForm.propertyPicker',
-  // RESERVED: the revenue tour uses its three steps on scope, per-contract and saving.
-  revenuePeriodPicker: 'revenueForm.periodPicker', // -> MonthGridPicker
+  /** One month / chosen months / a contract year. The `period` step points here — it was
+   *  reserved while the revenue tour had only three steps to spend. */
+  revenuePeriodPicker: 'revenueForm.periodPicker', // -> BulkRevenueFilters.tsx
   revenueAmountCell: 'revenueForm.amountCell', // "Per contract" / Override / Auto
   expenseCategoryField: 'expenseForm.categoryField', // -> CategoryMultiPickerField.tsx
   expensePropertyPicker: 'expenseForm.propertyPicker',
