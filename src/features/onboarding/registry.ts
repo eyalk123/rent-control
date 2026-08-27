@@ -16,6 +16,10 @@ export const TOURS = {
     gate: 'always',
     kind: 'orientation',
     steps: [
+      // The arrival, before the tab bar is pointed at. Shares its copy with web, where
+      // the renderer also gives an unanchored first step a larger card; here it draws
+      // like any other centred step for now.
+      { id: 'welcome', anchor: null, placement: 'center' },
       { id: 'home', anchor: ANCHORS.tabHome, placement: 'top' },
       { id: 'portfolio', anchor: ANCHORS.tabProperties, placement: 'top', seed: { id: 'scan-lease', opens: 'lease-scan' } },
       // Its own step, rather than a clause inside the properties one. The copy was always

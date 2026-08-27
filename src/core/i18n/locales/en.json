@@ -816,6 +816,10 @@
   "onboarding": {
     "tours": {
       "first-run": {
+        "welcome": {
+          "title": "Welcome to Rent Control",
+          "body": "Your properties, the people renting them, and every shekel between the two. Here is where everything lives — it takes a minute."
+        },
         "home": {
           "title": "Your dashboard",
           "body": "Money in, money out, and anything that needs you this month."
