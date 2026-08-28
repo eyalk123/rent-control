@@ -16,7 +16,6 @@ import { HomeReportsCard } from '@/src/features/home/components/HomeReportsCard'
 import { RecentTransactionsSection } from '@/src/features/home/components/RecentTransactionsSection';
 import { getTransactions } from '@/src/features/transactions/api/transactions';
 import type { Transaction } from '@/src/shared/types';
-import { useTour } from '@/src/features/onboarding/TourController';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
@@ -87,9 +86,9 @@ function SectionLabel({ label }: { label: string }) {
 }
 
 export function HomeScreen() {
-  // Gated on hasRenters: the second Home tour waits until the dashboard has data, which
-  // is also when Reports and notification settings start to mean something.
-  useTour('home');
+  // The `home` tour is requested by HomeTab, next to first-run and after it — see the note
+  // there. Asking from here made this component's effect win the race and pushed the welcome
+  // card to the back of the sweep.
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
