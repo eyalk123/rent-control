@@ -1,7 +1,8 @@
 import { View } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
 import { BottomTabBar } from '@react-navigation/bottom-tabs';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarProps, BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
+import { PlatformPressable } from '@react-navigation/elements';
 import { CommonActions } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
@@ -23,20 +24,22 @@ function TabBarLtr(props: BottomTabBarProps) {
   );
 }
 
+/**
+ * The tour anchor used to live here, on this 44x28 pill. It wraps the icon only — the
+ * label is drawn by BottomTabItem outside it — so the spotlight, which inflates the
+ * anchor rect by SPOTLIGHT_PAD, cut every tab label in half. It now lives on the whole
+ * tab button (see TourTabButton), which is icon and label together.
+ */
 function TabBarIcon({
   name,
   color,
   focused,
-  anchor,
 }: {
   name: IconName;
   color: string;
   focused: boolean;
-  /** Onboarding anchor key, so a tour can point at this tab. */
-  anchor?: string;
 }) {
   const theme = useTheme();
-  const anchorRef = useTourAnchor(anchor ?? '');
   const colors = theme.dark ? darkColors : lightColors;
   const pillBg = theme.dark
     ? 'rgba(62,111,168,0.18)'
@@ -44,8 +47,6 @@ function TabBarIcon({
 
   return (
     <View
-      ref={anchor ? anchorRef : undefined}
-      collapsable={false}
       style={{
         width: 44,
         height: 28,
@@ -57,6 +58,25 @@ function TabBarIcon({
     >
       <Icon name={name} size={ICON_MD} color={focused ? colors.primary : color} />
     </View>
+  );
+}
+
+/**
+ * The default `tabBarButton` with an onboarding anchor attached. PlatformPressable
+ * forwards its ref to the host view, so this adds no wrapper and no layout change —
+ * it just makes the measured rect the full tab item instead of the icon pill.
+ */
+function TourTabButton({ anchor, ...props }: BottomTabBarButtonProps & { anchor: string }) {
+  const anchorRef = useTourAnchor(anchor);
+  // PlatformPressable types its ref as Ref<View | LegacyRef<View>>, which does not line up
+  // with the registry's structural `Measurable`. The node it hands back is a host view and
+  // does have measureInWindow, so the narrowing is safe — it is the type that is awkward.
+  return (
+    <PlatformPressable
+      {...props}
+      ref={(node) => anchorRef(node as Parameters<typeof anchorRef>[0])}
+      collapsable={false}
+    />
   );
 }
 
@@ -118,8 +138,9 @@ export default function TabLayout() {
         options={{
           title: t('tabs.home'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="layout-dashboard" color={color} focused={focused} anchor={ANCHORS.tabHome} />
+            <TabBarIcon name="layout-dashboard" color={color} focused={focused} />
           ),
+          tabBarButton: (props) => <TourTabButton {...props} anchor={ANCHORS.tabHome} />,
         }}
       />
       <Tabs.Screen
@@ -127,8 +148,9 @@ export default function TabLayout() {
         options={{
           title: t('tabs.properties'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="building" color={color} focused={focused} anchor={ANCHORS.tabProperties} />
+            <TabBarIcon name="building" color={color} focused={focused} />
           ),
+          tabBarButton: (props) => <TourTabButton {...props} anchor={ANCHORS.tabProperties} />,
         }}
       />
       <Tabs.Screen
@@ -136,8 +158,9 @@ export default function TabLayout() {
         options={{
           title: t('tabs.renters'),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="users" color={color} focused={focused} anchor={ANCHORS.tabRenters} />
+            <TabBarIcon name="users" color={color} focused={focused} />
           ),
+          tabBarButton: (props) => <TourTabButton {...props} anchor={ANCHORS.tabRenters} />,
         }}
       />
       <Tabs.Screen
@@ -145,8 +168,9 @@ export default function TabLayout() {
         options={{
           title: t('tabs.transactions', { defaultValue: 'Transactions' }),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="wallet" color={color} focused={focused} anchor={ANCHORS.tabTransactions} />
+            <TabBarIcon name="wallet" color={color} focused={focused} />
           ),
+          tabBarButton: (props) => <TourTabButton {...props} anchor={ANCHORS.tabTransactions} />,
         }}
       />
       <Tabs.Screen
@@ -154,8 +178,9 @@ export default function TabLayout() {
         options={{
           title: t('tabs.chat', { defaultValue: 'Chat' }),
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name="message-square" color={color} focused={focused} anchor={ANCHORS.tabChat} />
+            <TabBarIcon name="message-square" color={color} focused={focused} />
           ),
+          tabBarButton: (props) => <TourTabButton {...props} anchor={ANCHORS.tabChat} />,
         }}
       />
     </Tabs>

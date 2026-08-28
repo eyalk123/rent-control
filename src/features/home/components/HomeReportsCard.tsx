@@ -61,7 +61,7 @@ export function HomeReportsCard() {
 
   if (loading) {
     return (
-      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
+      <View ref={anchorRef} collapsable={false} style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
         <View style={styles.topRow}>
           <SkeletonBlock opacity={shimmer} width={38} height={38} borderRadius={10} />
           <View style={[styles.body, { gap: 6 }]}>
@@ -99,7 +99,7 @@ export function HomeReportsCard() {
     : null;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
+    <View ref={anchorRef} collapsable={false} style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
       {/* Top row */}
       <View style={styles.topRow}>
         <View style={[styles.iconTile, { backgroundColor: iconBg }]}>

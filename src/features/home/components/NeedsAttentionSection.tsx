@@ -532,6 +532,13 @@ export function NeedsAttentionSection() {
     return (
       <>
         {header}
+        {/* Anchored here too, not only on the populated card below. The home tour's
+            `attention` step is required, and a required anchor that never mounts makes
+            openWhenAnchored time out and suppress the whole tour — silently. An account
+            with nothing to chase is exactly the empty state a brand-new user lands on,
+            so leaving it unanchored cost the entire Home sweep to the one person it was
+            written for. Web has always wrapped its whole section, empty state included. */}
+        <TourAnchor id={ANCHORS.homeNeedsAttention}>
         <View style={[styles.catchUpPill, { backgroundColor: pillBg }]}>
           <View style={styles.catchUpDot} />
           <Text style={styles.catchUpTitle}>{t('home.allCaughtUp')}</Text>
@@ -544,6 +551,7 @@ export function NeedsAttentionSection() {
             </Text>
           )}
         </View>
+        </TourAnchor>
       </>
     );
   }

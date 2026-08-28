@@ -102,7 +102,7 @@ export default function SignInScreen() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(getAuth(), email.trim(), password);
-      router.replace('/(tabs)/properties');
+      router.replace('/(tabs)/home');
     } catch (err: any) {
       setError(firebaseErrorMessage(err));
     } finally {
@@ -115,7 +115,7 @@ export default function SignInScreen() {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(getAuth(), email.trim(), password);
-      router.replace('/(tabs)/properties');
+      router.replace('/(tabs)/home');
     } catch (err: any) {
       setError(firebaseErrorMessage(err));
     } finally {
@@ -133,7 +133,7 @@ export default function SignInScreen() {
       const { idToken } = await GoogleSignin.getTokens();
       const googleCredential = GoogleAuthProvider.credential(idToken);
       await signInWithCredential(getAuth(), googleCredential);
-      router.replace('/(tabs)/properties');
+      router.replace('/(tabs)/home');
     } catch (err: any) {
       setError(firebaseErrorMessage(err));
     } finally {
@@ -212,7 +212,7 @@ export default function SignInScreen() {
                 />
                 {errors.email ? (
                   <Text variant="bodySmall" style={[styles.fieldError, { color: colors.error }]}>
-                    {errors.email.message}
+                    {t(errors.email.message!, { defaultValue: errors.email.message })}
                   </Text>
                 ) : null}
               </>
@@ -240,7 +240,7 @@ export default function SignInScreen() {
                 />
                 {errors.password ? (
                   <Text variant="bodySmall" style={[styles.fieldError, { color: colors.error }]}>
-                    {errors.password.message}
+                    {t(errors.password.message!, { defaultValue: errors.password.message })}
                   </Text>
                 ) : null}
               </>
