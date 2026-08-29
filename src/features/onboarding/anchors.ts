@@ -44,6 +44,21 @@ export const ANCHORS = {
    *  way round from web. */
   propertyFormRecords: 'propertyForm.records', // -> LeaseInfoCard.tsx
 
+  // Property detail — src/features/properties/screens/PropertyDetailScreen.tsx
+  /**
+   * No `propertyDetail.stats` here, and no `renterDetail.stats` below: web's detail pages
+   * open on a strip of KPI tiles and neither of these screens has one, so the step that
+   * points at it exists only in the web registry.
+   */
+  propertyDetailTabs: 'propertyDetail.tabs',
+  /**
+   * The panel below that bar. Info, Renters, Transactions and Documents all render into
+   * this one frame, and three steps in a row point at it while the tour drives the tab
+   * behind it — so the spotlight holds still and its contents change. That is deliberate,
+   * and not the same mistake as two steps sharing one button: see registry.ts.
+   */
+  propertyDetailPanel: 'propertyDetail.tabPanel',
+
   // Renters
   rentersList: 'renters.list',
   rentersEndedFilter: 'renters.endedFilter', // the lease-status chips bar
@@ -52,7 +67,12 @@ export const ANCHORS = {
    *  payment day is what 'overdue' is counted from, which nothing else says out loud. Also
    *  `revealsAnchor` — see `propertyFormRecords`. */
   renterFormPayment: 'renterForm.payment', // -> RenterLeaseInfoCard.tsx
+  renterDetailTabs: 'renterDetail.tabs', // -> RenterDetailScreen.tsx
+  /** The same held-still frame as `propertyDetailPanel` above. */
+  renterDetailPanel: 'renterDetail.tabPanel', // -> RenterDetailScreen.tsx
   renterDetailTimeline: 'renterDetail.timeline', // -> RenterLeaseInfoDisplayCard
+  /** Only on a live lease — an ended one has no Extend, a terminated one has neither, so
+   *  both steps are `optional` and drop themselves there. See registry.ts. */
   renterDetailExtend: 'renterDetail.extendButton',
   renterDetailEndLease: 'renterDetail.endLeaseButton', // -> EndLeaseDialog trigger
 

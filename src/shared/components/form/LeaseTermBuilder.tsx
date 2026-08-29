@@ -255,7 +255,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
         name={"optionTermMonths" as Path<TFieldValues>}
         render={({ field }) => (
           <Stepper
-            label={t("renter.extraMonths")}
+            label={t("renter.extraOptionMonths")}
             unitLabel={t("renter.monthsUnit")}
             min={0}
             max={11}

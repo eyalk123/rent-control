@@ -1,5 +1,7 @@
 import type { PropertyFormValues } from '@/src/features/properties/validation/propertyValidation';
 import type { RenterFormValues } from '@/src/features/renters/validation/renterValidation';
+import { PAYMENT_METHOD_VALUES } from '@/src/shared/constants/paymentMethods';
+import type { PaymentMethod } from '@/src/shared/types';
 import type { ExtractedRenter, FieldNote, LeaseExtraction, ProvenanceItem, ReviewItem } from './types';
 import { PROPERTY_SCAN_FIELDS } from './propertyFields';
 
@@ -36,6 +38,15 @@ const s = (v: string | number | null | undefined): string | undefined =>
 const INSURANCE_TYPES = new Set(['wire_transfer', 'bank_guarantee']);
 const insuranceType = (v: string | null): string | undefined =>
   v && INSURANCE_TYPES.has(v) ? v : undefined;
+
+// Payment methods the renter form's paymentType select accepts ('wire_transfer' is the legacy
+// alias the old web form stored for a bank transfer). Unlike normalizePaymentType this returns
+// undefined instead of falling back to 'cash' — for a prefill, a blank the user picks beats a
+// guess the scan review has no reason to flag.
+const paymentType = (v: string | null): string | undefined => {
+  const canonical = v === 'wire_transfer' ? 'bank_transfer' : v;
+  return canonical && PAYMENT_METHOD_VALUES.includes(canonical as PaymentMethod) ? canonical : undefined;
+};
 
 // `field` is the backend snake-case field name (used to look up its uncertainty note);
 // `key` is the RHF form field; `i18n` the label key shown in the review banner.
@@ -102,10 +113,11 @@ function mapRenter(r: ExtractedRenter, index: number, notes: Map<string, FieldNo
     { key: 'contractTermYears', i18n: 'renter.contractTermYears', field: 'contract_term_years', get: () => s(r.contract_term_years) },
     { key: 'contractTermMonths', i18n: 'renter.extraMonths', field: 'contract_term_months', get: () => s(r.contract_term_months) },
     { key: 'optionYears', i18n: 'renter.optionYears', field: 'option_years', get: () => s(r.option_years) },
-    { key: 'optionTermMonths', i18n: 'renter.extraMonths', field: 'option_term_months', get: () => s(r.option_term_months) },
+    { key: 'optionTermMonths', i18n: 'renter.extraOptionMonths', field: 'option_term_months', get: () => s(r.option_term_months) },
     { key: 'baseRent', i18n: 'renter.baseRent', field: 'base_rent', get: () => s(r.base_rent) },
     { key: 'escalationValue', i18n: 'renter.escalationValue', field: 'rent_escalation_value', get: () => s(r.rent_escalation_value) },
     { key: 'escalationMode', i18n: 'renter.escalationMode', field: 'rent_escalation_mode', get: () => r.rent_escalation_mode ?? undefined },
+    { key: 'paymentType', i18n: 'renter.paymentType', field: 'payment_type', get: () => paymentType(r.payment_type) },
     { key: 'paymentDate', i18n: 'renter.paymentDay', field: 'payment_day_of_month', get: () => paymentDate },
     { key: 'insuranceType', i18n: 'renter.insuranceType', field: 'insurance_type', get: () => insuranceType(r.insurance_type) },
     { key: 'insuranceAmount', i18n: 'renter.insuranceAmount', field: 'insurance_amount', get: () => s(r.insurance_amount) },

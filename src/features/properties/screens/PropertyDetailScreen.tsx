@@ -31,10 +31,14 @@ import {
 } from '@/src/features/transactions/components/detail/tabState';
 import { PropertyDocumentsTab } from '@/src/features/properties/components/PropertyDocumentsTab';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor, useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour, useTourStep } from '@/src/features/onboarding/TourController';
 
 type TabKey = 'info' | 'renters' | 'transactions' | 'documents';
 
 export function PropertyDetailScreen() {
+  useTour('property-detail');
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -48,6 +52,22 @@ export function PropertyDetailScreen() {
   // Owned here, not in the tab: the tabs render conditionally, so leaving Transactions
   // unmounts the panel and would otherwise discard the section and its filters.
   const [txTabState, setTxTabState] = useState<TransactionsTabState>(initialTransactionsTabState);
+  const panelAnchorRef = useTourAnchor(ANCHORS.propertyDetailPanel);
+  /**
+   * The tab the tour is talking about, or the user's own when no tour is running.
+   *
+   * Derived, never written: `useTourStep` goes null the moment the tour ends and the screen
+   * is back on whichever tab the user had chosen, with nothing to restore. Three steps point
+   * at the panel below and each shows a different tab inside it, the way the property form's
+   * tour shows page two without moving the user off page one.
+   */
+  const tourStep = useTourStep('property-detail');
+  const shownTab: TabKey =
+    tourStep === 'renters' ? 'renters'
+    : tourStep === 'payments' ? 'transactions'
+    : tourStep === 'documents' ? 'documents'
+    : tourStep === null ? activeTab
+    : 'info';
 
   useFocusEffect(
     useCallback(() => {
@@ -141,14 +161,17 @@ export function PropertyDetailScreen() {
           </View>
 
           {/* Tab bar */}
-          <View style={[styles.tabBar, { backgroundColor: colors.inputBackground }]}>
+          <TourAnchor
+            id={ANCHORS.propertyDetailTabs}
+            style={[styles.tabBar, { backgroundColor: colors.inputBackground }]}
+          >
             {([
               { value: 'info', label: t('property.tabs.info') },
               { value: 'renters', label: t('property.tabs.renters') },
               { value: 'transactions', label: t('property.tabs.transactions') },
               { value: 'documents', label: t('property.tabs.documents') },
             ] as const).map((tab) => {
-              const isActive = activeTab === tab.value;
+              const isActive = shownTab === tab.value;
               return (
                 <Pressable
                   key={tab.value}
@@ -170,21 +193,21 @@ export function PropertyDetailScreen() {
                 </Pressable>
               );
             })}
-          </View>
+          </TourAnchor>
         </View>
 
         {/* Tab content */}
-        <View style={styles.tabContent}>
-          {activeTab === 'info' && <PropertyInfoTab property={property} />}
-          {activeTab === 'renters' && <PropertyRentersTab property={property} />}
-          {activeTab === 'transactions' && (
+        <View ref={panelAnchorRef} collapsable={false} style={styles.tabContent}>
+          {shownTab === 'info' && <PropertyInfoTab property={property} />}
+          {shownTab === 'renters' && <PropertyRentersTab property={property} />}
+          {shownTab === 'transactions' && (
             <PropertyTransactionsTab
               property={property}
               state={txTabState}
               onStateChange={setTxTabState}
             />
           )}
-          {activeTab === 'documents' && <PropertyDocumentsTab property={property} />}
+          {shownTab === 'documents' && <PropertyDocumentsTab property={property} />}
         </View>
       </View>
     </ScreenContainer>

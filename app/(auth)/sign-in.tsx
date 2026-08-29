@@ -7,7 +7,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import { Text, TextInput, Button, useTheme, Divider } from 'react-native-paper';
+import { Text, TextInput, Button, useTheme, Divider, Checkbox } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import {
   getAuth,
@@ -50,6 +50,23 @@ function GoogleGlyph({ size = 20 }: { size?: number }) {
 
 type Step = 'login' | 'register';
 
+/**
+ * Split a translated sentence on `<name>` slots and interleave nodes for them.
+ *
+ * Word order around the two document names differs between English and Hebrew, so it has to
+ * come from the translation rather than from JSX. Angle brackets rather than `{{ }}` because
+ * i18next resolves its own placeholders inside `t()` and blanks any it has no value for.
+ *
+ * The web client carries the same helper in its `SignInPage`; the two are separate codebases
+ * and this is six lines, which is cheaper than a shared package for one sentence.
+ */
+function withLinks(sentence: string, nodes: Record<string, React.ReactNode>) {
+  return sentence.split(/(<\w+>)/g).map((part, i) => {
+    const key = part.match(/^<(\w+)>$/)?.[1];
+    return <React.Fragment key={i}>{key ? nodes[key] : part}</React.Fragment>;
+  });
+}
+
 export default function SignInScreen() {
   const router = useRouter();
   const theme = useTheme();
@@ -61,6 +78,9 @@ export default function SignInScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [resetSent, setResetSent] = useState(false);
+  // Deliberately not part of `loginSchema`: that schema is shared with the login step, where
+  // this control does not exist and a required field would make signing in impossible.
+  const [accepted, setAccepted] = useState(false);
 
   const { control, handleSubmit, getValues, formState: { errors } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -111,6 +131,10 @@ export default function SignInScreen() {
   });
 
   const register = handleSubmit(async ({ email, password }) => {
+    if (!accepted) {
+      setError(t('auth.acceptTermsRequired'));
+      return;
+    }
     setError('');
     setLoading(true);
     try {
@@ -247,6 +271,40 @@ export default function SignInScreen() {
             )}
           />
 
+          {/* Registration only. The documents live at `app/legal/*`, outside the settings
+              auth guard, precisely so a signed-out person can read what they are accepting. */}
+          {!isLogin ? (
+            <View style={styles.acceptRow}>
+              <Checkbox
+                status={accepted ? 'checked' : 'unchecked'}
+                onPress={() => { setAccepted((v) => !v); setError(''); }}
+              />
+              <Text
+                variant="bodySmall"
+                style={[styles.acceptText, { color: colors.onSurfaceVariant }]}
+              >
+                {withLinks(t('auth.acceptTerms'), {
+                  terms: (
+                    <Text
+                      style={{ color: colors.primary }}
+                      onPress={() => router.push('/legal/terms' as any)}
+                    >
+                      {t('legal.termsOfService')}
+                    </Text>
+                  ),
+                  privacy: (
+                    <Text
+                      style={{ color: colors.primary }}
+                      onPress={() => router.push('/legal/privacy' as any)}
+                    >
+                      {t('legal.privacyPolicy')}
+                    </Text>
+                  ),
+                })}
+              </Text>
+            </View>
+          ) : null}
+
           {error ? (
             <Text variant="bodySmall" style={[styles.error, { color: colors.error }]}>
               {error}
@@ -263,7 +321,7 @@ export default function SignInScreen() {
             mode="contained"
             onPress={isLogin ? signIn : register}
             loading={loading}
-            disabled={loading}
+            disabled={loading || (!isLogin && !accepted)}
             style={styles.submitBtn}
             contentStyle={styles.submitBtnContent}
           >
@@ -283,7 +341,7 @@ export default function SignInScreen() {
 
           <Button
             mode="text"
-            onPress={() => { setStep(isLogin ? 'register' : 'login'); setError(''); setResetSent(false); }}
+            onPress={() => { setStep(isLogin ? 'register' : 'login'); setError(''); setResetSent(false); setAccepted(false); }}
             disabled={loading}
             style={{ marginTop: 4 }}
           >
@@ -359,6 +417,16 @@ const styles = StyleSheet.create({
   },
   error: {
     marginTop: -4,
+  },
+  acceptRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: -4,
+  },
+  acceptText: {
+    flexShrink: 1,
+    lineHeight: 18,
   },
   submitBtn: {
     marginTop: 4,

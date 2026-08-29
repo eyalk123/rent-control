@@ -153,16 +153,17 @@ export function ScanSummaryScreen() {
       propertyMatchStatus: matchStatus,
     });
 
-    if (target === 'property') {
-      // The property is reviewed in its own form, which now always opens — in edit mode when the
-      // lease matched an existing property, create mode otherwise. It then chains into the renters.
-      router.replace(
-        (targetPropertyId != null
-          ? `/properties/edit/${targetPropertyId}?fromScan=1`
-          : '/properties/add?fromScan=1') as never,
-      );
+    // The property is reviewed in its own form before the renters, whichever target the scan
+    // started from — the lease describes the property too. Attached to an existing property it
+    // opens in edit mode with the lease overlaid (blank fields filled, differing ones raised as
+    // keep/replace conflicts); it then chains into the renter form(s).
+    if (targetPropertyId != null) {
+      router.replace(`/properties/edit/${targetPropertyId}?fromScan=1` as never);
+    } else if (target === 'property') {
+      router.replace('/properties/add?fromScan=1' as never);
     } else {
-      // Renter-target scan: go straight to the renter form on the chosen property.
+      // Renter-target scan with nothing to attach to: no property to review, so go straight to
+      // the renter form — it offers the property picker and the "create property" pivot.
       router.replace('/renters/add?fromScan=1' as never);
     }
   };

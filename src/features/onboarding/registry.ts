@@ -162,15 +162,67 @@ export const TOURS = {
     ],
   },
 
+  /**
+   * One tenancy, end to end. It used to be three steps that opened cold on a spotlight over
+   * the timeline — the only page tour in the product with no opening card — and said nothing
+   * about the two thirds of the screen that are not the lease itself.
+   *
+   * `payments` points at the tab panel and the screen shows the Transactions tab for it: the
+   * month grid is the least-discovered thing here, and a step that only *described* it would
+   * be describing something the user has never seen. Same demonstration the property form
+   * gives its second page — the screen derives the shown tab from the running step and never
+   * writes the user's own (see RenterDetailScreen).
+   *
+   * No `stats` step, which web has: this screen has no KPI strip to point at.
+   *
+   * `extend` and `end` are `optional` because the buttons are not on every tenancy: an
+   * expired lease has no End, a terminated one has neither. Required, they would hold the
+   * whole tour shut on those renters — the anchor wait needs every non-optional step present
+   * at once — so a portfolio of past tenants would never see this tour at all. Optional, the
+   * tour opens on any renter and the two lifecycle steps drop where their controls are absent.
+   */
   'renter-detail': {
     id: 'renter-detail',
     route: '/(tabs)/renters/[id]',
     gate: 'hasRenters',
     kind: 'page',
     steps: [
-      { id: 'timeline', anchor: ANCHORS.renterDetailTimeline, placement: 'bottom' },
-      { id: 'extend', anchor: ANCHORS.renterDetailExtend, placement: 'top', seed: { id: 'extend-lease', opens: 'extend-lease' } },
-      { id: 'end', anchor: ANCHORS.renterDetailEndLease, placement: 'top', seed: { id: 'end-lease', opens: null } },
+      { id: 'overview', anchor: null, placement: 'center' },
+      { id: 'tabs', anchor: ANCHORS.renterDetailTabs, placement: 'bottom' },
+      // `revealsAnchor` rather than plain: the timeline lives on the info tab, and it is
+      // this step arriving that shows that tab. Without it the tour would be shut for
+      // anyone who opened the page on another tab — a deep link from a notification, or a
+      // ?tab= the back button restored.
+      { id: 'timeline', anchor: ANCHORS.renterDetailTimeline, placement: 'bottom', revealsAnchor: true },
+      { id: 'payments', anchor: ANCHORS.renterDetailPanel, placement: 'top' },
+      { id: 'extend', anchor: ANCHORS.renterDetailExtend, placement: 'top', seed: { id: 'extend-lease', opens: 'extend-lease' }, optional: true },
+      { id: 'end', anchor: ANCHORS.renterDetailEndLease, placement: 'top', seed: { id: 'end-lease', opens: null }, optional: true },
+    ],
+  },
+
+  /**
+   * The property equivalent, and the screen the properties-list tour has always advertised
+   * — "open one for its lease, its tenant, and the money it has made" — while having nothing
+   * to say once you got there.
+   *
+   * Three steps in a row point at the same anchor, which everywhere else in this file is a
+   * bug: `forMonth` and `recording` once shared the add button and spotlighted it twice for
+   * unrelated reasons. This is the opposite arrangement. The anchor is the tab *panel*, the
+   * frame every tab renders into, and what changes between the steps is what is inside it —
+   * the tour drives the tab. Holding the spotlight still while the contents change is the
+   * point, not an accident of reuse.
+   */
+  'property-detail': {
+    id: 'property-detail',
+    route: '/(tabs)/properties/[id]',
+    gate: 'hasProperties',
+    kind: 'page',
+    steps: [
+      { id: 'overview', anchor: null, placement: 'center' },
+      { id: 'tabs', anchor: ANCHORS.propertyDetailTabs, placement: 'bottom' },
+      { id: 'renters', anchor: ANCHORS.propertyDetailPanel, placement: 'top' },
+      { id: 'payments', anchor: ANCHORS.propertyDetailPanel, placement: 'top' },
+      { id: 'documents', anchor: ANCHORS.propertyDetailPanel, placement: 'top' },
     ],
   },
 

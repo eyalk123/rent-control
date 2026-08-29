@@ -32,15 +32,16 @@ import {
   type TransactionsTabState,
 } from '@/src/features/transactions/components/detail/tabState';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
-import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
-import { useTour } from '@/src/features/onboarding/TourController';
+import { TourAnchor, useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTour, useTourStep } from '@/src/features/onboarding/TourController';
 
 type TabKey = 'info' | 'property' | 'transactions';
 
 export function RenterDetailScreen() {
-  // The Info tab is the default one, so the timeline anchor is mounted from the start;
-  // the extend/end buttons only exist on a live lease, and on an ended one the anchor
-  // wait simply times out and leaves the tour for the next renter.
+  // The Extend and End buttons exist only on a live lease, so their steps are `optional`
+  // in the registry and drop themselves on an ended or terminated one. They used to be
+  // required, which meant the anchor wait never resolved there — it has no timeout, only
+  // the `skipWhen` deadline does — and the tour simply never opened on those renters.
   useTour('renter-detail');
   const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
@@ -55,6 +56,18 @@ export function RenterDetailScreen() {
   // Owned here, not in the tab: the tabs render conditionally, so leaving Transactions
   // unmounts the panel and would otherwise discard the section and its filters.
   const [txTabState, setTxTabState] = useState<TransactionsTabState>(initialTransactionsTabState);
+  const panelAnchorRef = useTourAnchor(ANCHORS.renterDetailPanel);
+  /**
+   * The tab the tour is talking about, or the user's own when no tour is running.
+   *
+   * Derived, never written: `useTourStep` goes null the moment the tour ends and the screen
+   * is back on whichever tab the user had chosen, with nothing to restore. The `payments`
+   * step shows the Transactions tab so the month grid is something the user watches appear,
+   * and every other step shows Info, which is where the timeline it points at lives.
+   */
+  const tourStep = useTourStep('renter-detail');
+  const shownTab: TabKey =
+    tourStep === 'payments' ? 'transactions' : tourStep === null ? activeTab : 'info';
   const [endLeaseOpen, setEndLeaseOpen] = useState(false);
   const [lifecyclePending, setLifecyclePending] = useState(false);
 
@@ -144,6 +157,11 @@ export function RenterDetailScreen() {
 
   const ended = getRenterLifecycle(renter) === 'ended';
   const terminated = isTerminated(renter);
+  // A lease that simply ran its term is the canonical thing you renew, and the tenant
+  // routinely stays on while the paperwork catches up — so Extend survives expiry. A
+  // *terminated* lease is different: the owner has declared the tenancy over, so the
+  // honest move is Reopen first. Extending it would silently un-end it.
+  const canExtend = !terminated;
 
   return (
     <ScreenContainer edges={['left', 'right']}>
@@ -170,12 +188,12 @@ export function RenterDetailScreen() {
               onPress={handleEdit}
               accessibilityLabel={t('renter.editRenter')}
             />
-            {/* An ended lease has nothing left to extend; Edit stays, since a past
-                tenancy's record can still need correcting. */}
+            {/* Edit stays on an ended lease, since a past tenancy's record can still need
+                correcting - and so does Extend, unless the lease was terminated. */}
             {/* The absolute positioning moves to the anchor wrapper: a wrapper View around
                 an absolutely-positioned child would become its containing block and drag
                 the button back into the flow. */}
-            {!ended && (
+            {canExtend && (
               <TourAnchor id={ANCHORS.renterDetailExtend} style={styles.extendIcon}>
                 <IconButton
                   icon="calendar-plus"
@@ -251,13 +269,16 @@ export function RenterDetailScreen() {
           )}
 
           {/* Tab bar */}
-          <View style={[styles.tabBar, { backgroundColor: colors.inputBackground }]}>
+          <TourAnchor
+            id={ANCHORS.renterDetailTabs}
+            style={[styles.tabBar, { backgroundColor: colors.inputBackground }]}
+          >
             {([
               { value: 'info', label: t('renter.tabs.info') },
               { value: 'property', label: t('renter.tabs.property') },
               { value: 'transactions', label: t('renter.tabs.transactions') },
             ] as const).map((tab) => {
-              const isActive = activeTab === tab.value;
+              const isActive = shownTab === tab.value;
               return (
                 <Pressable
                   key={tab.value}
@@ -279,14 +300,14 @@ export function RenterDetailScreen() {
                 </Pressable>
               );
             })}
-          </View>
+          </TourAnchor>
         </View>
 
         {/* Tab content */}
-        <View style={styles.tabContent}>
-          {activeTab === 'info' && <RenterInfoTab renter={renter} />}
-          {activeTab === 'property' && <RenterPropertyTab renter={renter} />}
-          {activeTab === 'transactions' && (
+        <View ref={panelAnchorRef} collapsable={false} style={styles.tabContent}>
+          {shownTab === 'info' && <RenterInfoTab renter={renter} />}
+          {shownTab === 'property' && <RenterPropertyTab renter={renter} />}
+          {shownTab === 'transactions' && (
             <RenterTransactionsTab
               renter={renter}
               state={txTabState}

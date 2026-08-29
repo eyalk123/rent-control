@@ -24,7 +24,7 @@ import {
   materializeRuledYears,
   reconstructIntentFromLeaseYears,
 } from "@/src/shared/utils/leaseSchedule";
-import { getLeaseEndDate, periodMonths, type LeaseYear, type LeaseYearRuleMode, type LeaseYearType, type RentEscalationMode, type Renter } from "@/src/shared/types";
+import { getLeaseEndDate, getScheduleEndDate, periodMonths, type LeaseYear, type LeaseYearRuleMode, type LeaseYearType, type RentEscalationMode, type Renter } from "@/src/shared/types";
 import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
 import { formatDateFull } from "@/src/shared/utils/dates";
 import { ANCHORS } from "@/src/features/onboarding/anchors";
@@ -243,6 +243,23 @@ export function ExtendLeaseScreen() {
   );
   const yearDelta = allYears.length - (renter?.lease_years?.length ?? 0);
 
+  // Extending a lease that has already run out appends periods starting at the *old*
+  // schedule end, because lease periods are laid end to end from a single `lease_start` —
+  // the model has no way to express a break. That is right for the common case (the
+  // renewal was signed late and the tenant never left) and wrong for a genuine gap, so
+  // say plainly how many months are being back-dated and point at the alternative.
+  const scheduleEnd = renter ? getScheduleEndDate(renter) : null;
+  const backdatedMonths = React.useMemo(() => {
+    if (!scheduleEnd) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (scheduleEnd >= today) return 0;
+    return (
+      (today.getFullYear() - scheduleEnd.getFullYear()) * 12 +
+      (today.getMonth() - scheduleEnd.getMonth())
+    );
+  }, [scheduleEnd]);
+
   /** Typing an amount by hand means the stated rule no longer describes it — drop to manual. */
   const setAmount = (rows: Row[], index: number, amount: string): Row[] =>
     rows.map((r, i) => (i === index ? { amount, type: r.type } : r));
@@ -329,6 +346,20 @@ export function ExtendLeaseScreen() {
             onBack={() => router.back()}
           />
 
+          {backdatedMonths > 0 && scheduleEnd && (
+            <View style={[styles.warning, { flexDirection: rowDirection, borderColor: colors.outline, backgroundColor: colors.inputFilledBackground }]}>
+              <Icon name="alert-circle" size={ICON_SM} color={colors.warning} />
+              <View style={styles.backdatedText}>
+                <Text variant="labelLarge" style={{ color: colors.textPrimary }}>
+                  {t("renter.extendBackdatedTitle", { date: formatDateFull(scheduleEnd, language) })}
+                </Text>
+                <Text style={[styles.warningText, { color: colors.textSecondary }]}>
+                  {t("renter.extendBackdatedBody", { count: backdatedMonths })}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {/* Add years — the number inputs drive the schedule; no button */}
           <View style={[styles.card, { borderColor: colors.outline, backgroundColor: colors.surface }]}>
             <TourAnchor
@@ -362,7 +393,7 @@ export function ExtendLeaseScreen() {
                 onChange={setAddOptionCount}
               />
               <Stepper
-                label={t("renter.extraMonths")}
+                label={t("renter.extraOptionMonths")}
                 unitLabel={t("renter.monthsUnit")}
                 min={0}
                 max={11}
@@ -537,6 +568,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   warningText: { flex: 1, fontSize: 13 },
+  backdatedText: { flex: 1, gap: 2 },
   previewAnchor: { gap: spacing.sm },
   scheduleTitle: { fontWeight: "700", marginTop: spacing.md, marginBottom: spacing.xs },
   emptyText: { fontSize: 14, textAlign: "center", paddingVertical: spacing.md },
