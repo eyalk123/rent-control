@@ -529,8 +529,14 @@
     "dateRequired": "נדרש לציין תאריך תשלום.",
     "paymentMethodRequired": "נדרש לבחור אמצעי תשלום."
   },
+  "offline": {
+    "title": "אין חיבור לאינטרנט",
+    "body": "כדי להציג את הנתונים שלכם, Rent Control זקוק לחיבור לאינטרנט. בדקו את החיבור ונסו שוב."
+  },
   "error": {
     "title": "שגיאה",
+    "offline": "אין חיבור לאינטרנט.",
+    "timeout": "הבקשה ארכה זמן רב מדי. נסו שוב.",
     "extractionFailed": "לא הצלחנו לקרוא את המסמך. נסו קובץ אחר או מלאו את הטופס ידנית.",
     "savePropertyFailed": "שמירת הנכס נכשלה",
     "saveRenterFailed": "שמירת הדייר נכשלה",
@@ -823,6 +829,7 @@
     "errorWeakPassword": "הסיסמה חייבת להכיל לפחות 6 תווים.",
     "errorInvalidEmail": "כתובת אימייל לא תקינה.",
     "errorTooManyRequests": "יותר מדי ניסיונות. נסה שוב מאוחר יותר.",
+    "errorNetwork": "אין חיבור לאינטרנט. בדקו את החיבור ונסו שוב.",
     "errorGeneric": "משהו השתבש."
   },
   "onboarding": {

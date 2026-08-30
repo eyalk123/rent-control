@@ -8,7 +8,8 @@ import {
   PaginatedTransactionProvider,
   TransactionSummaryProvider,
 } from "@/src/context";
-import { AlertProvider } from "@/src/core/context";
+import { AlertProvider, NetworkProvider } from "@/src/core/context";
+import { OfflineGate } from "@/src/shared/components/ui";
 import { AuthProvider } from "@/src/core/auth/AuthContext";
 import { AgentChatProvider } from "@/src/features/agent/context/AgentChatContext";
 import { AnchorRegistryProvider } from "@/src/features/onboarding/AnchorRegistry";
@@ -38,6 +39,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as Sentry from "@sentry/react-native";
+import Constants from "expo-constants";
 
 // Keep the native splash up until icon fonts are loaded so Paper icons
 // (MaterialCommunityIcons glyphs) never render blank and "pop in" on first use.
@@ -45,8 +47,17 @@ SplashScreen.preventAutoHideAsync();
 
 const routingInstrumentation = Sentry.reactNavigationIntegration();
 
+// Without this every build reports into one undifferentiated bucket, so a crash from an
+// internal preview install is indistinguishable from one a real user hit. `APP_VARIANT`
+// is a build-time var (no EXPO_PUBLIC_ prefix, so it is not in the bundle) and is
+// surfaced through `extra` by app.config.js; it is unset in the production profile.
+const environment: string = __DEV__
+  ? "development"
+  : (Constants.expoConfig?.extra?.appVariant ?? "production");
+
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  environment,
   integrations: [routingInstrumentation],
   enabled: !__DEV__,
 });
@@ -60,6 +71,9 @@ function DirectionalContent() {
       {/* Sibling of the navigator, not a Modal: the tour overlay measures anchors in this
           window and must draw in the same coordinate space. */}
       <TourOverlay />
+      {/* Last, so it covers the tour too. Blocks the app while the device has no
+          connection, without unmounting the screen (or half-typed form) underneath. */}
+      <OfflineGate />
     </View>
   );
 }
@@ -143,7 +157,8 @@ export default Sentry.wrap(function RootLayout() {
   }
 
   return (
-    <AuthProvider>
+    <NetworkProvider>
+      <AuthProvider>
       <NotificationProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
@@ -153,6 +168,7 @@ export default Sentry.wrap(function RootLayout() {
           </SafeAreaProvider>
         </GestureHandlerRootView>
       </NotificationProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </NetworkProvider>
   );
 });

@@ -89,7 +89,12 @@ export function useNotificationSetup(isSignedIn: boolean) {
         if (cancelled) return;
         registeredTokenRef.current = token;
         await registerDeviceToken(token, devicePlatform(), i18n.language);
-        console.log(`${LOG} registered ${token} (locale="${i18n.language}")`);
+        // Dev-gated because Sentry turns console output into breadcrumbs: an ungated
+        // log puts the Expo push token — a persistent device id, and a capability to
+        // push to that device — into the breadcrumb trail of every later crash report.
+        if (__DEV__) {
+          console.log(`${LOG} registered ${token} (locale="${i18n.language}")`);
+        }
       } catch (err) {
         // Best-effort; never block app startup — but surface why it failed.
         console.warn(`${LOG} token fetch / registration failed:`, err);

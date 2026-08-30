@@ -37,6 +37,9 @@ module.exports = {
       },
     },
     extra: {
+      // Read at runtime by Sentry (app/_layout.tsx) as the `environment` tag. Unset in
+      // the production build profile, which is what 'production' below stands in for.
+      appVariant: process.env.APP_VARIANT || 'production',
       apiUrl: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000',
       firebaseWebClientId: process.env.EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID || '',
       supportsRTL: true,

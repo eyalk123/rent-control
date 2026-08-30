@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { getAuth, onAuthStateChanged, signOut, getIdToken, FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { setAuthTokenGetter } from '@/src/core/api/client';
+import * as Sentry from '@sentry/react-native';
 
 /**
  * Dev-only preview mode, for design work on a UI that normally sits behind the auth guard.
@@ -62,6 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return onAuthStateChanged(getAuth(), (u) => {
       setUser(u);
       setIsLoaded(true);
+      // Firebase UID only — deliberately no email or display name, matching the web app
+      // and the backend, so a crash is traceable to one account without carrying PII.
+      Sentry.setUser(u ? { id: u.uid } : null);
       setAuthTokenGetter(() => u ? getIdToken(u) : Promise.resolve(null));
     });
   }, []);

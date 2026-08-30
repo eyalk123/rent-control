@@ -81,6 +81,7 @@ import UserMinus from "lucide-react-native/icons/user-minus";
 import UserX from "lucide-react-native/icons/user-x";
 import Users from "lucide-react-native/icons/users";
 import Wallet from "lucide-react-native/icons/wallet";
+import WifiOff from "lucide-react-native/icons/wifi-off";
 import X from "lucide-react-native/icons/x";
 import Zap from "lucide-react-native/icons/zap";
 import React from "react";
@@ -155,6 +156,7 @@ const REGISTRY = {
   "user-x": UserX,
   users: Users,
   wallet: Wallet,
+  "wifi-off": WifiOff,
   x: X,
   zap: Zap,
 } satisfies Record<string, LucideIcon>;

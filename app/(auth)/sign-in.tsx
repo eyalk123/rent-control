@@ -96,6 +96,10 @@ export default function SignInScreen() {
     if (code === 'auth/weak-password') return t('auth.errorWeakPassword');
     if (code === 'auth/invalid-email') return t('auth.errorInvalidEmail');
     if (code === 'auth/too-many-requests') return t('auth.errorTooManyRequests');
+    // The offline gate normally catches this first, but it debounces by 3s and Firebase can
+    // also fail this way on a connection that is technically up. Without the mapping the raw
+    // English Firebase string ends up on screen, Hebrew UI included.
+    if (code === 'auth/network-request-failed') return t('auth.errorNetwork');
     return err?.message ?? t('auth.errorGeneric');
   }
 

@@ -528,8 +528,14 @@
     "dateRequired": "Date of payment is required.",
     "paymentMethodRequired": "Payment method is required."
   },
+  "offline": {
+    "title": "No internet connection",
+    "body": "Rent Control needs an internet connection to show your data. Check your connection and try again."
+  },
   "error": {
     "title": "Error",
+    "offline": "No internet connection.",
+    "timeout": "The request took too long. Please try again.",
     "extractionFailed": "Couldn't read the document. Try another file or fill the form manually.",
     "savePropertyFailed": "Failed to save property",
     "saveRenterFailed": "Failed to save renter",
@@ -819,6 +825,7 @@
     "errorWeakPassword": "Password must be at least 6 characters.",
     "errorInvalidEmail": "Invalid email address.",
     "errorTooManyRequests": "Too many attempts. Please try again later.",
+    "errorNetwork": "No internet connection. Check your connection and try again.",
     "errorGeneric": "Something went wrong."
   },
   "onboarding": {

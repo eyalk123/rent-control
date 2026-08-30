@@ -28,7 +28,11 @@ function reducer<T>(state: State<T>, action: Action<T>): State<T> {
   switch (action.type) {
     case 'loading': return { ...state, loading: true, error: null };
     case 'success': return { data: action.data, loading: false, error: null };
-    case 'error':   return { data: [], loading: false, error: action.message };
+    // Keep whatever we already had. A failed refresh — a tunnel, a lift, a dropped packet —
+    // used to blank the list the user was reading. Screens render the error instead of the
+    // list only when there is nothing to show (`error && items.length === 0`), so holding
+    // the data here is what makes that guard mean what it says.
+    case 'error':   return { ...state, loading: false, error: action.message };
   }
 }
 

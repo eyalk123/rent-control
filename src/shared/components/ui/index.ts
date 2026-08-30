@@ -1,5 +1,6 @@
 export { ScreenContainer } from './ScreenContainer';
 export { LoadingOverlay } from './LoadingOverlay';
+export { OfflineGate } from './OfflineGate';
 export { EmptyState } from './EmptyState';
 export { LtrSection } from './LtrSection';
 export { ContactActionsRow } from './ContactActionsRow';
