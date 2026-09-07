@@ -35,8 +35,10 @@ export function DeleteAccountScreen() {
       // 2. Delete Firebase Auth account
       await deleteFirebaseAccount();
 
-      // 3. Clear local storage
-      await AsyncStorage.multiRemove(['theme_mode', 'app_language']);
+      // 3. Clear local storage. onboarding.tourState.v1 is the account-scoped one: it
+      //    caches this owner's server tour record, so leaving it behind would hide the
+      //    onboarding tours from the next account signed in on this device.
+      await AsyncStorage.multiRemove(['theme_mode', 'app_language', 'onboarding.tourState.v1']);
 
       // 4. Show success and navigate (auth guard will redirect to sign-in)
       appAlert('', t('settings.deleteAccountSuccess'), [
