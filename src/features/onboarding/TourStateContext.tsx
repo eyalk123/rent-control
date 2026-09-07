@@ -31,7 +31,12 @@ import {
 } from './api/tourState';
 import type { SeedId, TourId } from './types';
 
-const CACHE_KEY = 'onboarding.tourState.v1';
+/**
+ * The one account-scoped key this app keeps on the device. Exported because two other
+ * paths have to clear it — sign-out (below) and account deletion — and three copies of
+ * the same string literal is how one of them ends up clearing nothing.
+ */
+export const TOUR_STATE_CACHE_KEY = 'onboarding.tourState.v1';
 
 interface TourStateValue {
   state: TourState;
@@ -48,7 +53,7 @@ interface TourStateValue {
 const TourStateContext = createContext<TourStateValue | null>(null);
 
 export function TourStateProvider({ children }: PropsWithChildren) {
-  const { isSignedIn } = useAppAuth();
+  const { isSignedIn, isLoaded } = useAppAuth();
   const [state, setState] = useState<TourState>(EMPTY_TOUR_STATE);
   const [ready, setReady] = useState(false);
   // Coalesces the burst of marks a finishing tour produces into one request.
@@ -64,7 +69,7 @@ export function TourStateProvider({ children }: PropsWithChildren) {
     let cancelled = false;
     (async () => {
       try {
-        const cached = await AsyncStorage.getItem(CACHE_KEY);
+        const cached = await AsyncStorage.getItem(TOUR_STATE_CACHE_KEY);
         if (cached && !cancelled) setState(JSON.parse(cached) as TourState);
       } catch {
         // A cache miss or a corrupt blob is not worth surfacing; the server is the truth.
@@ -74,6 +79,21 @@ export function TourStateProvider({ children }: PropsWithChildren) {
       cancelled = true;
     };
   }, []);
+
+  // Signing out drops the cache. It mirrors one account's server record, so leaving it on
+  // the device hands that record to whoever signs in next — the same reason account
+  // deletion clears this key. Done here rather than at the sign-out button so it also
+  // covers the sign-outs nobody presses: an expired session, a revoked token.
+  //
+  // Gated on `isLoaded` because Firebase reports "signed out" while it is still restoring
+  // the session, and clearing on that would wipe the cache of the user who is about to be
+  // restored. In-memory state is reset alongside it; `ready` already keeps tours shut
+  // until the next account's server copy lands, so this closes the stored half.
+  useEffect(() => {
+    if (!isLoaded || isSignedIn) return;
+    setState(EMPTY_TOUR_STATE);
+    AsyncStorage.removeItem(TOUR_STATE_CACHE_KEY).catch(() => {});
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     // With the master switch off, never ask the server for tour state: a build with tours
@@ -89,7 +109,7 @@ export function TourStateProvider({ children }: PropsWithChildren) {
         const server = await getTourState();
         if (cancelled) return;
         setState(server);
-        AsyncStorage.setItem(CACHE_KEY, JSON.stringify(server)).catch(() => {});
+        AsyncStorage.setItem(TOUR_STATE_CACHE_KEY, JSON.stringify(server)).catch(() => {});
       } catch {
         // Offline or a failing endpoint must not replay tours the user already dismissed,
         // so we stay on whatever the cache gave us and simply never open a new one.
@@ -112,7 +132,7 @@ export function TourStateProvider({ children }: PropsWithChildren) {
       .then((server) => {
         if (!server) return; // no server (preview/mock) — keep the optimistic state
         setState(server);
-        AsyncStorage.setItem(CACHE_KEY, JSON.stringify(server)).catch(() => {});
+        AsyncStorage.setItem(TOUR_STATE_CACHE_KEY, JSON.stringify(server)).catch(() => {});
       })
       .catch(() => {
         // Deliberately not rolled back: a lost write means the tour may appear once more
@@ -151,7 +171,7 @@ export function TourStateProvider({ children }: PropsWithChildren) {
       patch.seedsShown?.forEach((id) => {
         next.seedsShown[id] ??= now;
       });
-      AsyncStorage.setItem(CACHE_KEY, JSON.stringify(next)).catch(() => {});
+      AsyncStorage.setItem(TOUR_STATE_CACHE_KEY, JSON.stringify(next)).catch(() => {});
       return next;
     });
   }, []);

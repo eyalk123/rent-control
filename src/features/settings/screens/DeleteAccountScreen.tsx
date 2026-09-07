@@ -4,6 +4,7 @@ import { ActivityIndicator, Button, Text, TextInput, useTheme } from 'react-nati
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TOUR_STATE_CACHE_KEY } from '@/src/features/onboarding/TourStateContext';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { deleteMyAccount } from '@/src/features/settings/api/account';
 import { ScreenContainer } from '@/src/shared/components/ui';
@@ -35,10 +36,12 @@ export function DeleteAccountScreen() {
       // 2. Delete Firebase Auth account
       await deleteFirebaseAccount();
 
-      // 3. Clear local storage. onboarding.tourState.v1 is the account-scoped one: it
-      //    caches this owner's server tour record, so leaving it behind would hide the
-      //    onboarding tours from the next account signed in on this device.
-      await AsyncStorage.multiRemove(['theme_mode', 'app_language', 'onboarding.tourState.v1']);
+      // 3. Clear local storage — what belongs to the account, not what belongs to the
+      //    device. The tour cache is a copy of this owner's server record, so it goes.
+      //    Theme and language are this phone's settings and stay: they say nothing about
+      //    who was signed in, and clearing the language flipped the UI and its direction
+      //    out from under the success message below.
+      await AsyncStorage.removeItem(TOUR_STATE_CACHE_KEY);
 
       // 4. Show success and navigate (auth guard will redirect to sign-in)
       appAlert('', t('settings.deleteAccountSuccess'), [
