@@ -4,7 +4,12 @@
     "privacyPolicy": "מדיניות פרטיות",
     "termsOfService": "תנאי שימוש",
     "accessibility": "הצהרת נגישות",
-    "lastUpdated": "עודכן לאחרונה"
+    "lastUpdated": "עודכן לאחרונה",
+    "gateTitle": "עוד דבר אחד",
+    "gateDescription": "עדכנו את המסמכים שיש לאשר לפני השימוש ב-Rent Control. יש לעיין במסמכים ולאשר כדי להמשיך.",
+    "gateAccept": "אישור והמשך",
+    "gateDecline": "לא כעת — התנתקות",
+    "gateError": "לא הצלחנו לרשום את האישור. יש לנסות שוב."
   },
   "tabs": {
     "home": "בית",

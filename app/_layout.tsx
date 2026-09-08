@@ -14,6 +14,8 @@ import { AuthProvider } from "@/src/core/auth/AuthContext";
 import { AgentChatProvider } from "@/src/features/agent/context/AgentChatContext";
 import { AnchorRegistryProvider } from "@/src/features/onboarding/AnchorRegistry";
 import { TourStateProvider } from "@/src/features/onboarding/TourStateContext";
+import { LegalConsentProvider } from "@/src/features/legal/LegalConsentContext";
+import { LegalConsentGate } from "@/src/features/legal/components/LegalConsentGate";
 import { TourControllerProvider } from "@/src/features/onboarding/TourController";
 import { TourOverlay } from "@/src/features/onboarding/TourOverlay";
 import { NotificationProvider } from "@/src/features/notifications/context/NotificationContext";
@@ -71,6 +73,10 @@ function DirectionalContent() {
       {/* Sibling of the navigator, not a Modal: the tour overlay measures anchors in this
           window and must draw in the same coordinate space. */}
       <TourOverlay />
+      {/* Blocks the app until the current Terms and Privacy Policy have been accepted.
+          Above the tour, below the offline blocker — a device with no connection has a
+          more immediate problem, and accepting would fail anyway. */}
+      <LegalConsentGate />
       {/* Last, so it covers the tour too. Blocks the app while the device has no
           connection, without unmounting the screen (or half-typed form) underneath. */}
       <OfflineGate />
@@ -107,6 +113,7 @@ function AppContent() {
             <PaginatedTransactionProvider>
             <TransactionSummaryProvider>
               <LanguageProvider>
+                <LegalConsentProvider>
                 <AgentChatProvider>
                   <TourStateProvider>
                     <AnchorRegistryProvider>
@@ -116,6 +123,7 @@ function AppContent() {
                     </AnchorRegistryProvider>
                   </TourStateProvider>
                 </AgentChatProvider>
+                </LegalConsentProvider>
               </LanguageProvider>
             </TransactionSummaryProvider>
             </PaginatedTransactionProvider>

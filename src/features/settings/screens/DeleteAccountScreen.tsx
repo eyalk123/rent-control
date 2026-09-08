@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TOUR_STATE_CACHE_KEY } from '@/src/features/onboarding/TourStateContext';
+import { LEGAL_CONSENT_CACHE_KEY } from '@/src/features/legal/LegalConsentContext';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { deleteMyAccount } from '@/src/features/settings/api/account';
 import { ScreenContainer } from '@/src/shared/components/ui';
@@ -37,11 +38,13 @@ export function DeleteAccountScreen() {
       await deleteFirebaseAccount();
 
       // 3. Clear local storage — what belongs to the account, not what belongs to the
-      //    device. The tour cache is a copy of this owner's server record, so it goes.
+      //    device. The tour and consent caches are copies of this owner's server
+      //    records, so they go.
       //    Theme and language are this phone's settings and stay: they say nothing about
       //    who was signed in, and clearing the language flipped the UI and its direction
       //    out from under the success message below.
       await AsyncStorage.removeItem(TOUR_STATE_CACHE_KEY);
+      await AsyncStorage.removeItem(LEGAL_CONSENT_CACHE_KEY);
 
       // 4. Show success and navigate (auth guard will redirect to sign-in)
       appAlert('', t('settings.deleteAccountSuccess'), [

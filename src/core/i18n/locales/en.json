@@ -4,7 +4,12 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "accessibility": "Accessibility Statement",
-    "lastUpdated": "Last updated"
+    "lastUpdated": "Last updated",
+    "gateTitle": "One more thing",
+    "gateDescription": "We've updated what you need to agree to before using Rent Control. Please review the documents below and confirm to continue.",
+    "gateAccept": "Accept and continue",
+    "gateDecline": "Not now — sign out",
+    "gateError": "We couldn't record your acceptance. Please try again."
   },
   "tabs": {
     "home": "Home",

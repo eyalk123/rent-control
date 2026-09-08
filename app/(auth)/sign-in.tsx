@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Text, TextInput, Button, useTheme, Divider, Checkbox } from 'react-native-paper';
 import { useRouter } from 'expo-router';
+import { postLegalAcceptance } from '@/src/features/legal/api/legalAcceptance';
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -143,6 +144,11 @@ export default function SignInScreen() {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(getAuth(), email.trim(), password);
+      // Record what they just ticked, before navigating, so the consent gate does not
+      // greet them on the very next screen. Awaited so the request is in flight rather
+      // than abandoned by the redirect — but its failure is swallowed, because the gate
+      // is the safety net and a lost write is not a reason to fail a sign-up.
+      await postLegalAcceptance(['terms', 'privacy']).catch(() => {});
       router.replace('/(tabs)/home');
     } catch (err: any) {
       setError(firebaseErrorMessage(err));
