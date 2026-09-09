@@ -45,6 +45,9 @@
   },
   "submit": {
     "production": {
+      "android": {
+        "track": "internal"
+      },
       "ios": {
         "appleId": "eyalkdev@gmail.com",
         "appleTeamId": "WWWJURN6C2",
