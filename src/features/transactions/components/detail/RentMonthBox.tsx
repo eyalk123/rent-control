@@ -112,9 +112,19 @@ export function RentMonthBox({ cell, monthLabel, statusLabel, extraLabel, lateLa
       </Text>
       {s.glyph ? <Text style={[styles.glyph, { color: s.color }]}>{s.glyph}</Text> : null}
 
-      {/* Paid, but not for the amount the lease says — a shortfall or an overpayment. */}
+      {/* Paid, but not the amount that was being asked for at the time — a shortfall or an
+          overpayment, and something to chase. */}
       {cell.hasAmountMismatch ? (
         <View style={[styles.dot, { backgroundColor: colors.warning }]} />
+      ) : null}
+      {/* Paid exactly what was asked, and the lease has moved since. Deliberately *not* the
+          amber dot: nothing went wrong and nobody owes anything, so this is a note rather
+          than a warning. Still shown, because an owner who changed the base rent without
+          realising it re-priced three settled years has no other way to find out. A hollow
+          ring in the muted text colour reads as "look here" without reading as "something
+          is broken", and the two markers never coexist on one cell. */}
+      {cell.leaseChangedSince ? (
+        <View style={[styles.dot, styles.dotHollow, { borderColor: colors.textSecondary }]} />
       ) : null}
       {/* Paid after the due day. */}
       {cell.isLate ? <View style={[styles.lateTick, { backgroundColor: colors.warning }]} /> : null}
@@ -154,6 +164,11 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  // The neutral variant: an outline, not a fill, so it never competes with the amber dot.
+  dotHollow: {
+    borderWidth: 1,
+    opacity: 0.75,
   },
   lateTick: {
     position: 'absolute',

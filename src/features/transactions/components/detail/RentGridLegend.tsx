@@ -49,6 +49,15 @@ export function RentGridLegend() {
       </View>
 
       <View style={styles.item}>
+        <View style={[styles.dot, styles.dotHollow, { borderColor: colors.textSecondary }]} />
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
+          {t('transactions.rentGrid.legendLeaseChanged', {
+            defaultValue: 'Matched the lease when paid; the lease has changed since',
+          })}
+        </Text>
+      </View>
+
+      <View style={styles.item}>
         <View style={[styles.tick, { backgroundColor: colors.warning }]} />
         <Text style={[styles.label, { color: colors.textSecondary }]}>
           {t('transactions.rentGrid.legendLate', { defaultValue: 'Paid after the due day' })}
@@ -81,6 +90,11 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  // The neutral marker: an outline, not a fill, so it never competes with the amber dot.
+  dotHollow: {
+    borderWidth: 1,
+    opacity: 0.75,
   },
   tick: {
     width: 10,

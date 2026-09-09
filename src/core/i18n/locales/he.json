@@ -428,6 +428,11 @@
     "editRenter": "עריכת דייר",
     "createRenter": "יצירת דייר",
     "addRenter": "הוספת דייר",
+    "repricePast": {
+      "title": "השינוי משפיע גם על שנים שעברו",
+      "message": "שכר הדירה משתנה בשנת חוזה אחת שכבר החלה — {{detail}}. תשלומים שכבר נרשמו עבורה יסומנו כלא תואמים לחוזה.",
+      "message_plural": "שכר הדירה משתנה ב-{{count}} שנות חוזה שכבר החלו — {{detail}}. תשלומים שכבר נרשמו עבורן יסומנו כלא תואמים לחוזה."
+    },
     "updateRenter": "עדכון דייר",
     "call": "התקשרות",
     "sms": "הודעה",
@@ -588,8 +593,14 @@
       "noLease": "לא הוזנו תאריכי חוזה, ולכן אין מול מה לעקוב אחר תשלומים.",
       "noPropertyLinked": "הדייר אינו משויך לנכס, ולכן לא ניתן לרשום שכר דירה.",
       "expectedWas": "צפוי {{amount}}",
+      "leaseNowSays": "בחוזה כעת {{amount}}",
+      "paidWhatWasAsked": "שולם {{amount}}, בהתאם לחוזה שהיה באותה עת",
+      "leaseNowSays": "בחוזה כעת {{amount}}",
+      "paidWhatWasAsked": "שולם {{amount}}, בהתאם לחוזה שהיה באותה עת",
       "paidLate": "שולם באיחור",
       "legendMismatch": "הסכום שונה מהחוזה",
+      "legendLeaseChanged": "תאם לחוזה בזמן התשלום; החוזה שונה מאז",
+      "legendLeaseChanged": "תאם לחוזה בזמן התשלום; החוזה שונה מאז",
       "legendLate": "שולם אחרי מועד התשלום"
     },
     "recordPayment": {

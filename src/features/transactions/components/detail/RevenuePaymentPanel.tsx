@@ -208,12 +208,21 @@ export function RevenuePaymentPanel({
             monthLabel={monthLabelFor(cell.monthKey, locale)}
             statusLabel={t(`transactions.rentStatus.${cell.status}`, { defaultValue: cell.status })}
             extraLabel={
+              // A shortfall names what was actually being asked for, which after a lease
+              // edit is not what the lease says now. A month settled correctly that only
+              // disagrees with the *current* lease says so in those words instead — nobody
+              // owes anything, and "expected X" there would be an accusation.
               cell.hasAmountMismatch
                 ? t('transactions.rentGrid.expectedWas', {
-                    amount: formatMoney(cell.expected),
+                    amount: formatMoney(cell.quotedAtPayment ?? cell.expected),
                     defaultValue: 'expected {{amount}}',
                   })
-                : undefined
+                : cell.leaseChangedSince
+                  ? t('transactions.rentGrid.leaseNowSays', {
+                      amount: formatMoney(cell.expected),
+                      defaultValue: 'lease now says {{amount}}',
+                    })
+                  : undefined
             }
             lateLabel={t('transactions.rentGrid.paidLate', { defaultValue: 'paid late' })}
             onSelect={(c) => handleSelect(renter, c)}

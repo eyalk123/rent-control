@@ -14,7 +14,7 @@ import type {
   Transaction,
   PropertyRenterSummary,
 } from '@/src/shared/types';
-import { getLeaseEndDate } from '@/src/shared/types';
+import { getLeaseEndDate, getRentForMonth } from '@/src/shared/types';
 
 // Set to true to use in-memory mock data when no backend is available.
 // The dev web preview (EXPO_PUBLIC_DEV_WEB_PREVIEW=1, see src/core/auth/AuthContext.tsx)
@@ -234,6 +234,7 @@ const seedTransactions: Transaction[] = [
     date_of_payment: '2026-03-01',
     month_for: '2026-03-01',
     amount: 2200,
+    expected_amount: 2200,
     currency_code: 'ILS',
     category_id: null,
     supplier_id: null,
@@ -252,6 +253,7 @@ const seedTransactions: Transaction[] = [
     date_of_payment: '2026-03-15',
     month_for: '2026-03-01',
     amount: 1900,
+    expected_amount: 1900,
     currency_code: 'ILS',
     category_id: null,
     supplier_id: null,
@@ -270,6 +272,7 @@ const seedTransactions: Transaction[] = [
     date_of_payment: '2026-03-01',
     month_for: '2026-03-01',
     amount: 1650,
+    expected_amount: 1650,
     currency_code: 'ILS',
     category_id: null,
     supplier_id: null,
@@ -288,6 +291,7 @@ const seedTransactions: Transaction[] = [
     date_of_payment: '2026-03-05',
     month_for: null,
     amount: 350,
+    expected_amount: null,
     currency_code: 'ILS',
     category_id: 1,
     supplier_id: 1,
@@ -306,6 +310,7 @@ const seedTransactions: Transaction[] = [
     date_of_payment: '2026-03-10',
     month_for: null,
     amount: 120,
+    expected_amount: null,
     currency_code: 'ILS',
     category_id: 2,
     supplier_id: 2,
@@ -324,6 +329,7 @@ const seedTransactions: Transaction[] = [
     date_of_payment: '2026-03-10',
     month_for: null,
     amount: 75,
+    expected_amount: null,
     currency_code: 'ILS',
     category_id: 3,
     supplier_id: 3,
@@ -534,6 +540,16 @@ export const mockTransactionsApi = {
       );
     }
     return [...list];
+  },
+  /**
+   * Mirrors the server's `_expected_rent`: what the lease quoted for `monthFor`, to be
+   * frozen onto a revenue row. Null whenever there is nothing to quote, which the payment
+   * grid reads as "fall back to the live schedule".
+   */
+  expectedRent: (renterId: number | null | undefined, monthFor: string | null): number | null => {
+    if (renterId == null || !monthFor) return null;
+    const renter = mockRenters.find((r) => r.id === renterId);
+    return renter ? getRentForMonth(renter, monthFor.slice(0, 7)) || null : null;
   },
   addTransaction: (t: Transaction): void => {
     mockTransactions.push({ ...t, id: nextTransactionId++ });

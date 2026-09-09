@@ -16,7 +16,11 @@ import type {
   RenterCreate,
   RenterUpdate,
 } from "@/src/shared/types";
-import { reconstructIntentFromLeaseYears } from "@/src/shared/utils/leaseSchedule";
+import {
+  reconstructIntentFromLeaseYears,
+  repricedElapsedPeriods,
+} from "@/src/shared/utils/leaseSchedule";
+import { formatMoney } from "@/src/shared/utils/money";
 import { DEFAULT_PAYMENT_DATE } from "@/src/shared/constants/paymentDay";
 import {
   renterFormSchema,
@@ -85,7 +89,11 @@ export function useRenterForm({
   const isEdit = effId != null;
   const isDuplicateScan = routeId == null && existingRenterId != null;
   const { user } = useAppAuth();
-  const { appAlert } = useAlert();
+  const { appAlert, appConfirm } = useAlert();
+  // The schedule as it was last saved, kept so a submit can tell which already-started
+  // periods this edit would re-price. Never read for anything else — the form's own state
+  // is the source of truth for what is being saved.
+  const savedLeaseRef = React.useRef<{ years: LeaseYear[]; start: string | null } | null>(null);
   const { uploadFile } = useFirebaseUpload("renters", user?.uid ?? "");
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
   const [conflicts, setConflicts] = React.useState<RenterFieldConflict[]>([]);
@@ -162,6 +170,7 @@ export function useRenterForm({
     getRenterById(numericId)
       .then((renter) => {
         const lease_years = renter.lease_years ?? [];
+        savedLeaseRef.current = { years: lease_years, start: renter.lease_start ?? null };
         // Prefer the structured intent the backend persisted; otherwise infer it
         // from the materialized lease_years so the builder re-opens sensibly.
         // The stored intent records whole years only; the odd months live in the
@@ -415,6 +424,27 @@ export function useRenterForm({
 
     try {
       if (isEdit && effId != null) {
+        // Re-pricing periods that have already started is confirmed, never blocked: the
+        // schedule is the owner's statement of what the rent is, and correcting a past year
+        // is legitimate. Doing it *without being told* is not — nudging the base rent
+        // re-derives every year from the formula, settled ones included.
+        const repriced = repricedElapsedPeriods(
+          savedLeaseRef.current?.years,
+          lease_years,
+          leaseStartTrimmed || savedLeaseRef.current?.start,
+        );
+        if (repriced.length > 0) {
+          const ok = await appConfirm(
+            t("renter.repricePast.title"),
+            t("renter.repricePast.message", {
+              count: repriced.length,
+              detail: repriced
+                .map((p) => `${p.startYear}: ${formatMoney(p.before)} → ${formatMoney(p.after)}`)
+                .join(", "),
+            }),
+          );
+          if (!ok) return;
+        }
         await updateRenter(effId, baseUpdate);
       } else {
         const created = await createRenter(baseCreate);
