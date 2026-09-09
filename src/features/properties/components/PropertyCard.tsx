@@ -5,6 +5,7 @@ import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
+import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
@@ -21,8 +22,11 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
   const theme = useTheme();
   const isDark = theme.dark;
   const colors = isDark ? darkColors : lightColors;
+  // The server sends `hasRenters`; the fallback is for payloads that only carry the
+  // renter list. Either way a past tenant does not occupy the flat — they stay attached to
+  // the property as its history, which is why counting the list marked it occupied forever.
   const isOccupied =
-    property.hasRenters ?? (property.renters?.length ?? 0) > 0;
+    property.hasRenters ?? getCurrentRenters(property.renters).length > 0;
   const imageSource = getPropertyImageSource(property.image_url);
   const floorApartment = formatFloorApartment(property, t, false);
 

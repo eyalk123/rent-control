@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
+import { Button, Card, Text, useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { Property, Renter } from '@/src/shared/types';
@@ -28,10 +28,21 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
   const current = allRenters.filter((r) => getRenterLifecycle(r) !== 'ended');
   const previous = allRenters.filter((r) => getRenterLifecycle(r) === 'ended');
 
+  // The property is carried on the route so the form lands with it already selected — the
+  // one field the user would otherwise dig out of the picker. It pre-selects rather than
+  // locks, so a mis-tap is still fixable on the form.
+  const addRenter = () =>
+    router.push(`/renters/add?propertyId=${property.id}` as any);
+
   if (allRenters.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <EmptyState message={t('property.noRenters')} icon="user-x" />
+        <EmptyState
+          message={t('property.noRenters')}
+          icon="user-x"
+          actionLabel={t('property.addRenterNow')}
+          onAction={addRenter}
+        />
       </View>
     );
   }
@@ -110,6 +121,17 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
         </Text>
       )}
       {previous.map(renderRenter)}
+
+      {/* Under the list rather than floating over it: a property holds a handful of
+          tenants at most, so the button stays in reach without a FAB covering a card. */}
+      <Button
+        mode="outlined"
+        icon="plus"
+        onPress={addRenter}
+        style={styles.addButton}
+      >
+        {t('property.addRenterNow')}
+      </Button>
     </ScrollView>
   );
 }
@@ -160,5 +182,8 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 11,
+  },
+  addButton: {
+    marginTop: spacing.sm,
   },
 });

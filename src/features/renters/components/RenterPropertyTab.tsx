@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
+import { Button, Card, Text, useTheme } from 'react-native-paper';
 import { Icon, type IconName } from '@/src/shared/components/ui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { PropertyBrief, PropertyType, Renter } from '@/src/shared/types';
 import { EmptyState } from '@/src/shared/components/ui';
+import { PropertyPicker } from '@/src/features/properties/components/PropertyPicker';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
@@ -14,6 +15,9 @@ type ThemeColors = typeof lightColors | typeof darkColors;
 
 interface RenterPropertyTabProps {
   renter: Renter;
+  /** Attaches the renter to a property. Owned by the screen, which holds the renter state. */
+  onLinkProperty: (propertyId: number) => void;
+  linkPending?: boolean;
 }
 
 const TYPE_ICONS: Record<PropertyType, IconName> = {
@@ -92,16 +96,69 @@ function PropertyCard({
   );
 }
 
-export function RenterPropertyTab({ renter }: RenterPropertyTabProps) {
+export function RenterPropertyTab({
+  renter,
+  onLinkProperty,
+  linkPending,
+}: RenterPropertyTabProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
+  const [linking, setLinking] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   if (!renter.property) {
+    // Inline rather than a dialog: the picker opens its own overlay list, which a Paper
+    // Dialog would clip. Same shape as the web client's link card.
+    if (linking) {
+      return (
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Card style={styles.card} mode="outlined">
+            <Card.Content style={styles.linkContent}>
+              <Text variant="titleSmall">{t('renter.linkProperty')}</Text>
+              <PropertyPicker
+                value={selectedId}
+                onChange={setSelectedId}
+                label={t('renter.selectProperty')}
+              />
+              <View style={styles.linkActions}>
+                <Button
+                  onPress={() => {
+                    setLinking(false);
+                    setSelectedId(null);
+                  }}
+                  disabled={linkPending}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  mode="contained"
+                  loading={linkPending}
+                  // The picker keeps an "Unassigned" row, which is not a link target.
+                  disabled={selectedId == null || linkPending}
+                  onPress={() => selectedId != null && onLinkProperty(selectedId)}
+                >
+                  {t('renter.link')}
+                </Button>
+              </View>
+            </Card.Content>
+          </Card>
+        </ScrollView>
+      );
+    }
     return (
       <View style={styles.emptyContainer}>
-        <EmptyState message={t('renter.noProperty')} icon="home" />
+        <EmptyState
+          message={t('renter.noProperty')}
+          icon="home"
+          actionLabel={t('renter.linkProperty')}
+          onAction={() => setLinking(true)}
+        />
       </View>
     );
   }
@@ -139,6 +196,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
+  },
+  linkContent: {
+    padding: spacing.md,
+    gap: spacing.md,
+  },
+  linkActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
   },
   thumbnail: {
     width: 72,

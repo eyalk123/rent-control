@@ -10,6 +10,7 @@ import {
   getRenterById,
   terminateLease,
   undoTermination,
+  updateRenter,
 } from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Renter } from '@/src/shared/types';
@@ -70,6 +71,7 @@ export function RenterDetailScreen() {
     tourStep === 'payments' ? 'transactions' : tourStep === null ? activeTab : 'info';
   const [endLeaseOpen, setEndLeaseOpen] = useState(false);
   const [lifecyclePending, setLifecyclePending] = useState(false);
+  const [linkPending, setLinkPending] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -106,6 +108,20 @@ export function RenterDetailScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (renter) {
       router.push(`/renters/extend/${renter.id}` as any);
+    }
+  };
+
+  const handleLinkProperty = async (propertyId: number) => {
+    if (!renter) return;
+    setLinkPending(true);
+    try {
+      // The PATCH echoes the updated renter, so the screen refreshes from it rather than
+      // re-fetching — same arrangement as the lease handlers below.
+      setRenter(await updateRenter(renter.id, { property_id: propertyId }));
+    } catch (err) {
+      setError(getApiErrorMessage(err, t('error.saveFailed')));
+    } finally {
+      setLinkPending(false);
     }
   };
 
@@ -306,7 +322,13 @@ export function RenterDetailScreen() {
         {/* Tab content */}
         <View ref={panelAnchorRef} collapsable={false} style={styles.tabContent}>
           {shownTab === 'info' && <RenterInfoTab renter={renter} />}
-          {shownTab === 'property' && <RenterPropertyTab renter={renter} />}
+          {shownTab === 'property' && (
+            <RenterPropertyTab
+              renter={renter}
+              onLinkProperty={handleLinkProperty}
+              linkPending={linkPending}
+            />
+          )}
           {shownTab === 'transactions' && (
             <RenterTransactionsTab
               renter={renter}

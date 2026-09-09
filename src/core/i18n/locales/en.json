@@ -445,6 +445,9 @@
       "transactions": "Transactions"
     },
     "noProperty": "No property assigned",
+    "linkProperty": "Link Property",
+    "selectProperty": "Select property",
+    "link": "Link",
     "noTransactions": "No transactions for this renter",
     "status": {
       "active": "Active",
