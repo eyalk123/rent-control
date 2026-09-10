@@ -67,10 +67,20 @@ export const ANCHORS = {
    *  payment day is what 'overdue' is counted from, which nothing else says out loud. Also
    *  `revealsAnchor` — see `propertyFormRecords`. */
   renterFormPayment: 'renterForm.payment', // -> RenterLeaseInfoCard.tsx
+  /** The extra-contacts field at the foot of the renter form's *first* page — a guarantor,
+   *  a partner, whoever else is on the lease. The one field on that page a tour stops for:
+   *  it is a repeating sub-form rather than an input, and nothing on it says who it is for
+   *  or that it is optional. Page one is shown by default but not while a later step is
+   *  running, so this is `revealsAnchor` like the page-two steps below it. */
+  renterFormExtraContacts: 'renterForm.extraContacts', // -> RenterBasicInfoCard.tsx
   renterDetailTabs: 'renterDetail.tabs', // -> RenterDetailScreen.tsx
   /** The same held-still frame as `propertyDetailPanel` above. */
   renterDetailPanel: 'renterDetail.tabPanel', // -> RenterDetailScreen.tsx
   renterDetailTimeline: 'renterDetail.timeline', // -> RenterLeaseInfoDisplayCard
+  /** The pencil beside the avatar. Unlike Extend and End it is on every tenancy, ended or
+   *  terminated included — a past record can still need correcting — so its step needs no
+   *  `optional`. */
+  renterDetailEdit: 'renterDetail.editButton',
   /** Only on a live lease — an ended one has no Extend, a terminated one has neither, so
    *  both steps are `optional` and drop themselves there. See registry.ts. */
   renterDetailExtend: 'renterDetail.extendButton',
@@ -109,6 +119,14 @@ export const ANCHORS = {
   // Suppliers — app/(tabs)/transactions/suppliers/
   suppliersList: 'suppliers.list',
   suppliersCategories: 'suppliers.categories',
+  /** The add/edit form's name field — the opening step's target, and the only field on it
+   *  that is required along with the categories. */
+  supplierFormName: 'supplierForm.name', // -> SupplierForm.tsx
+  /** Bank, branch and account as one group. The one thing on this form that needs saying
+   *  out loud: filling it in pays nobody. It is a place to keep the number so it is to
+   *  hand when you make the transfer yourself. */
+  supplierFormBank: 'supplierForm.bankAccount', // -> SupplierForm.tsx
+  supplierFormCategories: 'supplierForm.categories', // -> SupplierForm.tsx
 
   // Notifications — app/notifications/
   notificationsEventList: 'notifications.eventList',
@@ -124,6 +142,9 @@ export const ANCHORS = {
   reportsExport: 'reports.exportButton',
 
   // Scan — app/properties/scan.tsx, app/renters/scan.tsx, app/scan/summary.tsx
+  /** The upload prompt *and* the camera/file buttons under it, as one block. The prompt is
+   *  the only thing on the screen that says what happens to the file, so a spotlight on the
+   *  buttons alone left the explanation outside the cutout. */
   scanPicker: 'scan.picker',
   // RESERVED: the summary lives on a route reached only after an extraction, so the
   // lease-scan tour (which opens on the picker) cannot point at it — see registry.ts.

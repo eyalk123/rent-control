@@ -10,6 +10,8 @@ import { FormTextField } from '@/src/shared/components/form/FormFields';
 import { CategoryMultiPickerField } from '@/src/shared/components/form';
 import BankAccountInput from '@/src/shared/components/form/BankAccountInput';
 import type { SupplierFormValues } from '@/src/features/suppliers/validation/supplierValidation';
+import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 
 type SupplierFormProps = {
@@ -52,11 +54,13 @@ export function SupplierForm({
           </Text>
         </TouchableOpacity>
       )}
-      <FormTextField
-        control={control}
-        name="name"
-        label={`${t('suppliers.name', { defaultValue: 'Name' })} *`}
-      />
+      <TourAnchor id={ANCHORS.supplierFormName}>
+        <FormTextField
+          control={control}
+          name="name"
+          label={`${t('suppliers.name', { defaultValue: 'Name' })} *`}
+        />
+      </TourAnchor>
       <FormTextField
         control={control}
         name="phone"
@@ -74,29 +78,33 @@ export function SupplierForm({
         name="notes"
         label={t('suppliers.notes', { defaultValue: 'Notes (optional)' })}
       />
-      <Controller
-        control={control}
-        name="bankAccount"
-        render={({ field: { value, onChange } }) => (
-          <BankAccountInput
-            value={value ?? { bank: '', branch: '', account: '' }}
-            onChange={onChange}
-            editable={!isSubmitting}
-            error={errors.bankAccount?.message as string | undefined}
-          />
-        )}
-      />
-      <Controller
-        control={control}
-        name="categoryIds"
-        render={({ field: { value, onChange } }) => (
-          <CategoryMultiPickerField
-            value={value}
-            onChange={onChange}
-            label={`${t('suppliers.categories', { defaultValue: 'Categories' })} *`}
-          />
-        )}
-      />
+      <TourAnchor id={ANCHORS.supplierFormBank}>
+        <Controller
+          control={control}
+          name="bankAccount"
+          render={({ field: { value, onChange } }) => (
+            <BankAccountInput
+              value={value ?? { bank: '', branch: '', account: '' }}
+              onChange={onChange}
+              editable={!isSubmitting}
+              error={errors.bankAccount?.message as string | undefined}
+            />
+          )}
+        />
+      </TourAnchor>
+      <TourAnchor id={ANCHORS.supplierFormCategories}>
+        <Controller
+          control={control}
+          name="categoryIds"
+          render={({ field: { value, onChange } }) => (
+            <CategoryMultiPickerField
+              value={value}
+              onChange={onChange}
+              label={`${t('suppliers.categories', { defaultValue: 'Categories' })} *`}
+            />
+          )}
+        />
+      </TourAnchor>
     </FormSectionCard>
   );
 }

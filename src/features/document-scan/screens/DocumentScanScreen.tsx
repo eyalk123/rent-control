@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, IconButton, Text, useTheme } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,6 +17,7 @@ import { mergeImagesToPdf } from '@/src/features/document-scan/mergeImagesToPdf'
 import { setScanHandoff } from '@/src/features/document-scan/handoff';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { TourScrollView } from '@/src/features/onboarding/TourScrollView';
 import { useTour } from '@/src/features/onboarding/TourController';
 
 /** Which "Add" flow this scan feeds. `property` creates a property (chaining to a renter);
@@ -175,18 +176,23 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
             </Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={styles.body}>
-            <Text variant="bodyMedium" style={[styles.prompt, { color: theme.colors.onSurfaceVariant }]}>
-              {t('documentScan.uploadPrompt')}
-            </Text>
+          <TourScrollView contentContainerStyle={styles.body}>
+            {/* The prompt is inside the anchor, not above it. It is the sentence that says
+                what this screen does with the file, and spotlighting only the two buttons
+                left it in the dark next to a card explaining them. */}
+            <TourAnchor id={ANCHORS.scanPicker} style={styles.pickerGroup}>
+              <Text variant="bodyMedium" style={[styles.prompt, { color: theme.colors.onSurfaceVariant }]}>
+                {t('documentScan.uploadPrompt')}
+              </Text>
 
-            <TourAnchor id={ANCHORS.scanPicker} style={styles.sourceRow}>
-              <Button mode="contained-tonal" icon="camera" onPress={handleCamera} style={styles.sourceButton} contentStyle={styles.sourceButtonContent}>
-                {t('documentScan.takePhoto')}
-              </Button>
-              <Button mode="contained-tonal" icon="file-upload-outline" onPress={handlePickFile} style={styles.sourceButton} contentStyle={styles.sourceButtonContent}>
-                {t('documentScan.chooseFile')}
-              </Button>
+              <View style={styles.sourceRow}>
+                <Button mode="contained-tonal" icon="camera" onPress={handleCamera} style={styles.sourceButton} contentStyle={styles.sourceButtonContent}>
+                  {t('documentScan.takePhoto')}
+                </Button>
+                <Button mode="contained-tonal" icon="file-upload-outline" onPress={handlePickFile} style={styles.sourceButton} contentStyle={styles.sourceButtonContent}>
+                  {t('documentScan.chooseFile')}
+                </Button>
+              </View>
             </TourAnchor>
 
             {pages.map((page, i) => (
@@ -213,7 +219,7 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
                 {t('documentScan.selectedPages', { count: pages.length })}
               </Text>
             )}
-          </ScrollView>
+          </TourScrollView>
         )}
       </View>
 
@@ -239,6 +245,9 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
   body: { gap: spacing.md, paddingBottom: spacing.md },
   prompt: { textAlign: 'center', paddingHorizontal: spacing.md },
+  // The prompt and the two buttons as one block, carrying the gap `body` used to give
+  // them when they were siblings.
+  pickerGroup: { gap: spacing.md },
   sourceRow: { flexDirection: 'row', gap: spacing.sm },
   sourceButton: { flex: 1, borderRadius: 12 },
   sourceButtonContent: { minHeight: 48 },

@@ -178,11 +178,15 @@ export function RuleEditorScreen() {
           <RuleEditorTourRequest />
           <FormInput control={control} name="label" label={t('notifications.ruleName')} placeholder={t('notifications.ruleNamePlaceholder')} />
 
-          {/* Offsets and their hint read as one control, so they share one anchor. */}
+          {/* The offsets field alone. The hint below it used to be inside the anchor, on the
+              grounds that the two read as one control — but the hint is a whole line of
+              small text, and including it grew the cutout enough to reach the rule-name
+              field above and make the step look like it was pointing at the wrong thing.
+              The step's own card says what the hint says. */}
           <TourAnchor id={ANCHORS.ruleOffsets}>
             <FormChipInput control={control} name="offsetsStr" label={offsetLabel} placeholder={t('notifications.offsetPlaceholder')} numeric sort />
-            <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('notifications.offsetHint')}</Text>
           </TourAnchor>
+          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('notifications.offsetHint')}</Text>
 
           <TourAnchor id={ANCHORS.ruleScope}>
             <ScopeSelector value={scope} onChange={setScope} />

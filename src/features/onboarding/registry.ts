@@ -58,9 +58,15 @@ export const TOURS = {
       { id: 'overview', anchor: null, placement: 'center' },
       { id: 'quickActions', anchor: ANCHORS.homeQuickActions, placement: 'bottom' },
       { id: 'attention', anchor: ANCHORS.homeNeedsAttention, placement: 'bottom', seed: { id: 'alert-actions', opens: null } },
+      // Immediately after `attention`, not four steps later. Manage notifications is the
+      // *header row of that same section* — it sits beside the "NEEDS ATTENTION" label,
+      // above the card — so leaving it until after Portfolio and Reports walked the user
+      // down the screen and then jumped them back up to a control they had already
+      // scrolled past. The two also describe one thing from two sides: the same three
+      // watches, seen here and configured there, which the copy now says out loud.
+      { id: 'notifications', anchor: ANCHORS.homeManageNotifications, placement: 'bottom', seed: { id: 'notifications', opens: 'notifications' } },
       { id: 'portfolio', anchor: ANCHORS.homePortfolio, placement: 'bottom' },
       { id: 'reports', anchor: ANCHORS.homeReportsCard, placement: 'top', seed: { id: 'reports', opens: 'reports' } },
-      { id: 'notifications', anchor: ANCHORS.homeManageNotifications, placement: 'top', seed: { id: 'notifications', opens: 'notifications' } },
       { id: 'recent', anchor: ANCHORS.homeRecent, placement: 'top' },
     ],
   },
@@ -134,9 +140,18 @@ export const TOURS = {
     kind: 'page',
     steps: [
       { id: 'overview', anchor: null, placement: 'center' },
+      // The one page-one field worth a stop of its own: a repeating sub-form where every
+      // other field is an input, and nothing on it says who a second contact is for.
+      { id: 'extraContacts', anchor: ANCHORS.renterFormExtraContacts, placement: 'top', revealsAnchor: true },
       { id: 'term', anchor: ANCHORS.leaseTermBuilder, placement: 'bottom', revealsAnchor: true },
-      { id: 'mode', anchor: ANCHORS.leaseRentChangeField, placement: 'bottom', seed: { id: 'cpi', opens: 'cpi-mode' }, revealsAnchor: true },
+      // `baseYear` before `mode`, which is the order they are in on the screen: the first
+      // year's rent sits directly under the term and the rent-change control below that.
+      // Reversed, the tour jumped down past the starting rent to explain how it changes,
+      // then came back up to say what it starts at. Each keeps the seed it carried — CPI
+      // belongs to the mode control, and a custom schedule is a rule per year, which is
+      // what the year-one card is already talking about.
       { id: 'baseYear', anchor: ANCHORS.leaseBaseRent, placement: 'bottom', seed: { id: 'custom-schedule', opens: 'custom-mode' }, revealsAnchor: true },
+      { id: 'mode', anchor: ANCHORS.leaseRentChangeField, placement: 'bottom', seed: { id: 'cpi', opens: 'cpi-mode' }, revealsAnchor: true },
       { id: 'payment', anchor: ANCHORS.renterFormPayment, placement: 'top', revealsAnchor: true },
     ],
   },
@@ -167,11 +182,12 @@ export const TOURS = {
    * the timeline — the only page tour in the product with no opening card — and said nothing
    * about the two thirds of the screen that are not the lease itself.
    *
-   * `payments` points at the tab panel and the screen shows the Transactions tab for it: the
-   * month grid is the least-discovered thing here, and a step that only *described* it would
-   * be describing something the user has never seen. Same demonstration the property form
-   * gives its second page — the screen derives the shown tab from the running step and never
-   * writes the user's own (see RenterDetailScreen).
+   * `payments` and `expenses` point at the tab panel and the screen shows the Transactions
+   * tab for them: the month grid is the least-discovered thing here, and a step that only
+   * *described* it would be describing something the user has never seen. Same demonstration
+   * the property form gives its second page — the screen derives the shown tab, and the
+   * revenue/expenses segment under it, from the running step and never writes the user's own
+   * (see RenterDetailScreen).
    *
    * No `stats` step, which web has: this screen has no KPI strip to point at.
    *
@@ -195,8 +211,17 @@ export const TOURS = {
       // ?tab= the back button restored.
       { id: 'timeline', anchor: ANCHORS.renterDetailTimeline, placement: 'bottom', revealsAnchor: true },
       { id: 'payments', anchor: ANCHORS.renterDetailPanel, placement: 'top' },
-      { id: 'extend', anchor: ANCHORS.renterDetailExtend, placement: 'top', seed: { id: 'extend-lease', opens: 'extend-lease' }, optional: true },
-      { id: 'end', anchor: ANCHORS.renterDetailEndLease, placement: 'top', seed: { id: 'end-lease', opens: null }, optional: true },
+      // The same anchor twice while the screen flips the segment behind it — the
+      // property-detail arrangement, for the same reason. Revenue and expenses are a
+      // segmented control here rather than two panels side by side, so a tour that stopped
+      // at `payments` showed the rent grid, said expenses were "beside it", and left the
+      // user having never seen the half it was describing.
+      { id: 'expenses', anchor: ANCHORS.renterDetailPanel, placement: 'top' },
+      // The three header controls, last, as one group: what you can *do* to a tenancy once
+      // you have read it. Edit is on every renter; the other two are not — see below.
+      { id: 'edit', anchor: ANCHORS.renterDetailEdit, placement: 'bottom' },
+      { id: 'extend', anchor: ANCHORS.renterDetailExtend, placement: 'bottom', seed: { id: 'extend-lease', opens: 'extend-lease' }, optional: true },
+      { id: 'end', anchor: ANCHORS.renterDetailEndLease, placement: 'bottom', seed: { id: 'end-lease', opens: null }, optional: true },
     ],
   },
 
@@ -329,6 +354,31 @@ export const TOURS = {
     steps: [
       { id: 'what', anchor: ANCHORS.suppliersList, placement: 'bottom' },
       { id: 'categories', anchor: ANCHORS.suppliersCategories, placement: 'bottom' },
+    ],
+  },
+
+  /**
+   * The add/edit supplier form. `page`, like the other forms, though it only spends three
+   * of the eight steps a page tour may have — the form is five fields and most of them
+   * explain themselves.
+   *
+   * It exists for the bank-account field. That is the one control in the product that
+   * looks like it sets up a payment and does not: nothing in Rent Control ever moves
+   * money, and a landlord who assumes otherwise finds out by a supplier not being paid.
+   * Everything else here is the frame that step needs in order not to arrive cold.
+   *
+   * No `arrivesFrom`: the suppliers list is reached from a seed, but this form is reached
+   * by pressing Add on that list, which is not a seed and needs no callback line.
+   */
+  'supplier-form': {
+    id: 'supplier-form',
+    route: '/transactions/suppliers/add',
+    gate: 'always',
+    kind: 'page',
+    steps: [
+      { id: 'overview', anchor: ANCHORS.supplierFormName, placement: 'bottom' },
+      { id: 'bank', anchor: ANCHORS.supplierFormBank, placement: 'top' },
+      { id: 'categories', anchor: ANCHORS.supplierFormCategories, placement: 'top' },
     ],
   },
 

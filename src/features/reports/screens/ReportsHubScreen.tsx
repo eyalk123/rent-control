@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Menu, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -24,6 +24,7 @@ import {
 } from '@/src/features/reports/api/reports';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { TourScrollView } from '@/src/features/onboarding/TourScrollView';
 import { useTour } from '@/src/features/onboarding/TourController';
 
 interface ReportCard {
@@ -254,7 +255,7 @@ export function ReportsHubScreen() {
         <View style={styles.backButton} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <TourScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <SectionLabel label={t('reports.generate')} />
         <TourAnchor id={ANCHORS.reportsCards} style={styles.cardList}>
           {cards.map((card) => <GenerateCard key={card.key} card={card} />)}
@@ -283,7 +284,7 @@ export function ReportsHubScreen() {
           </View>
         )}
         </TourAnchor>
-      </ScrollView>
+      </TourScrollView>
     </SafeAreaView>
   );
 }

@@ -24,6 +24,17 @@ import {
 import { FormScrollView } from "@/src/shared/components/form";
 import { Button, Text, useTheme } from "react-native-paper";
 
+/**
+ * The `lease-form` steps that belong to the form's *first* page.
+ *
+ * Listed rather than derived by excluding the opener: the tour now stops on the
+ * extra-contacts field, which is on page one, and "anything but the opener means page two"
+ * quietly sent that step to the wrong page. A named list also fails visibly — add a
+ * page-one step and forget this, and it shows page two the first time you run the tour —
+ * where the old rule failed silently in the other direction.
+ */
+const TOUR_PAGE_ONE_STEPS = ["overview", "extraContacts"];
+
 export function AddEditRenterScreen() {
   const { t } = useTranslation();
   const { appAlert } = useAlert();
@@ -122,7 +133,11 @@ export function AddEditRenterScreen() {
   useTour("lease-form");
   const tourStep = useTourStep("lease-form");
   // Derived, never written — see AddEditPropertyScreen for why that matters.
-  const shownStep = tourStep && tourStep !== "overview" ? "lease" : step;
+  const shownStep = !tourStep
+    ? step
+    : TOUR_PAGE_ONE_STEPS.includes(tourStep)
+      ? "basic"
+      : "lease";
   const { requestPermission, pickContact } = useContactPicker();
 
   const handlePickFromContacts = React.useCallback(async () => {

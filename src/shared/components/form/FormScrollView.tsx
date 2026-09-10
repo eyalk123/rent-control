@@ -2,6 +2,8 @@ import React from "react";
 import { type StyleProp, type ViewStyle } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { spacing } from "@/src/core/theme";
+import { TourScrollerProvider } from "@/src/features/onboarding/AnchorRegistry";
+import { useTourScrollHost } from "@/src/features/onboarding/TourScrollView";
 
 type FormScrollViewProps = {
   children: React.ReactNode;
@@ -14,6 +16,10 @@ type FormScrollViewProps = {
 /**
  * Shared scroll wrapper for form screens.
  * Wraps KeyboardAwareScrollView with common defaults.
+ *
+ * Also the scroll host for onboarding: every form tour points at fields further down the
+ * page than the fold, and registering here once covers all of them rather than each form
+ * remembering to opt in. See features/onboarding/TourScrollView.
  */
 export function FormScrollView({
   children,
@@ -22,8 +28,10 @@ export function FormScrollView({
   showsVerticalScrollIndicator = false,
   bounces = false,
 }: FormScrollViewProps) {
+  const { scroller, scrollProps } = useTourScrollHost();
   return (
     <KeyboardAwareScrollView
+      {...scrollProps}
       style={style}
       contentContainerStyle={contentContainerStyle}
       showsVerticalScrollIndicator={showsVerticalScrollIndicator}
@@ -32,7 +40,7 @@ export function FormScrollView({
       keyboardShouldPersistTaps="handled"
       extraScrollHeight={spacing.keyboardExtraScrollHeight}
     >
-      {children}
+      <TourScrollerProvider value={scroller}>{children}</TourScrollerProvider>
     </KeyboardAwareScrollView>
   );
 }

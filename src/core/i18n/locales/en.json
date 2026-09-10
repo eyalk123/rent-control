@@ -894,7 +894,7 @@
         },
         "attention": {
           "title": "Needs attention",
-          "body": "Rent that hasn't arrived, leases about to expire, and CPI changes — all in one place."
+          "body": "Rent that hasn't arrived, leases about to expire and CPI changes — the same three things your reminders watch, shown here the moment they happen. Each row can be acted on without leaving Home."
         },
         "portfolio": {
           "title": "Your numbers",
@@ -905,8 +905,8 @@
           "body": "Not in the tab bar — this card is the way in."
         },
         "notifications": {
-          "title": "Reminder settings",
-          "body": "Manage notifications sits here under Needs Attention — not behind the Settings gear."
+          "title": "The same three, on your terms",
+          "body": "This button, beside the Needs attention heading, is where those very alerts are set up: change when each one fires, or mute it. Not behind the Settings gear."
         },
         "recent": {
           "title": "Recent activity",
@@ -923,8 +923,8 @@
           "body": "Every unit you manage, and what is happening in each. Here is the screen."
         },
         "persistence": {
-          "title": "It remembers you",
-          "body": "Search, filters and sort stay exactly how you left them."
+          "title": "Your view stays put",
+          "body": "Search, filters and sort are still exactly as you left them the next time you open this screen — nothing resets behind your back."
         },
         "cards": {
           "title": "One card per unit",
@@ -980,9 +980,13 @@
           "title": "Adding a renter",
           "body": "Who they are, then the lease. The lease half is what the rent reminders, the overdue alerts and the reports are all computed from."
         },
+        "extraContacts": {
+          "title": "Anyone else on the lease",
+          "body": "A guarantor, a partner, a parent paying the rent — add them here with their own phone number, and they are part of the tenancy rather than a note somewhere. Optional, and you can come back to it later."
+        },
         "term": {
           "title": "The term",
-          "body": "Years and months — 'eighteen months' is as easy as 'two years'. The end date is calculated, never typed."
+          "body": "Years and months together, so a lease of 1 year and 6 months is entered as easily as one of 2 years. The end date follows from them — it is calculated, never typed."
         },
         "mode": {
           "title": "How the rent moves",
@@ -1022,7 +1026,7 @@
       "renter-detail": {
         "overview": {
           "title": "One tenancy, end to end",
-          "body": "Who the tenant is, what they agreed to pay, what they have actually paid, and the two controls that extend the lease or end it. Here is the screen."
+          "body": "Who the tenant is, what they agreed to pay, what they have actually paid, and the three controls that correct the record, extend the lease or end it. Here is the screen."
         },
         "stats": {
           "title": "This year, and the whole tenancy",
@@ -1037,8 +1041,16 @@
           "body": "Every period of the lease with the rent for it, in order, including the rises still ahead \u2014 so the year that is about to get more expensive is visible now rather than a surprise later. A CPI-linked year that has not started yet is marked as a projection, because its index has not been published."
         },
         "payments": {
-          "title": "Did the rent come in?",
-          "body": "Revenue is a month-by-month grid, one box per month, so a month nobody paid for is a hole you can see rather than a number you have to work out. Expenses sit beside it grouped by category, because that is a different question."
+          "title": "Over on Transactions: did the rent come in?",
+          "body": "We have moved you to the Transactions tab. Revenue is a month-by-month grid, one box per month, so a month nobody paid for is a hole you can see rather than a number you have to work out."
+        },
+        "expenses": {
+          "title": "And what this tenancy cost",
+          "body": "Expenses are the other half of the same tab \u2014 the switch above the grid. They are grouped by category rather than by month, because what you spent on a tenant is a different question from whether their rent arrived."
+        },
+        "edit": {
+          "title": "Fixing what is already there",
+          "body": "Edit reopens the renter's own form \u2014 a corrected phone number, a document you did not have at the time, a rent figure typed wrong. Use it to correct the record; use the buttons beside it to change what the lease actually says."
         },
         "extend": {
           "title": "Extending, not editing",
@@ -1173,6 +1185,20 @@
           "body": "They live here too, and they're what your expense reports group by."
         }
       },
+      "supplier-form": {
+        "overview": {
+          "title": "Saving a supplier",
+          "body": "A name and at least one category is all it needs \u2014 the plumber, the electrician, the management company. Save one here and it is offered on every expense from then on, instead of being retyped each time."
+        },
+        "bank": {
+          "title": "Their bank details, for your reference only",
+          "body": "Nothing here is ever paid, scheduled or sent. Rent Control does not move money at all. This is somewhere to keep the account number so it is in front of you when you make the transfer yourself, rather than in a message you have to go looking for."
+        },
+        "categories": {
+          "title": "What they get filed under",
+          "body": "At least one, and it is what your expense reports group by. When you record an expense the supplier list narrows to whoever matches the category you picked, so getting this right is what makes them easy to find later."
+        }
+      },
       "notifications": {
         "events": {
           "title": "Three things we watch",
@@ -1190,7 +1216,7 @@
       "notification-rules": {
         "offsets": {
           "title": "When",
-          "body": "Three days before, seven days after — whatever matches how you actually chase."
+          "body": "Three days before, seven days after — whatever matches how you actually chase. Type a number and press Enter to add each one; a rule can carry several."
         },
         "scope": {
           "title": "Who",
@@ -1223,8 +1249,8 @@
       },
       "lease-scan": {
         "pick": {
-          "title": "Give us the lease",
-          "body": "A PDF or a photo."
+          "title": "Start with the document",
+          "body": "Photograph the lease or pick a file you already have — an image, a PDF or a Word document. A lease that runs to several pages is several photos: take them one after another and they are read as one document. Then Extract, and we do the reading."
         },
         "review": {
           "title": "Nothing saves unread",

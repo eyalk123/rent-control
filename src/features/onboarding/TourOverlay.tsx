@@ -46,6 +46,7 @@ import {
   View,
 } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useAnchorRegistry, type AnchorRect } from './AnchorRegistry';
@@ -59,6 +60,22 @@ const CARD_GAP = 14;
 const CARD_MAX_WIDTH = 360;
 /** Minimum breathing room between the card and any screen edge. */
 const EDGE_MARGIN = 16;
+/**
+ * How long to leave an animated scroll before reading where the anchor landed. RN's
+ * smooth scroll has no completion callback, so this is a wait rather than a signal.
+ */
+const SCROLL_SETTLE_MS = 380;
+/**
+ * A second read, after everything has had a frame to settle.
+ *
+ * A rect is measured the moment a step opens, which on several screens is a moment too
+ * early: the reports hub had only just laid out its second card, so the spotlight was
+ * drawn short and clipped it, and the rule editor measured its offsets field before the
+ * name field above had finished, so the hole sat high enough to include it. Both looked
+ * like the wrong anchor and were the right anchor read too soon. Cheap enough to always
+ * do — a measure is one native call and the second one usually agrees with the first.
+ */
+const REMEASURE_MS = 300;
 
 export function TourOverlay() {
   const controller = useTourController();
@@ -71,10 +88,13 @@ export function TourOverlay() {
   // Where this overlay sits in window coordinates — the origin every measured anchor is
   // translated against. See the note at the top of the file.
   const hostRef = useRef<View | null>(null);
-  const [origin, setOrigin] = useState({ x: 0, y: 0 });
+  // Height as well as position: the card is clamped against the *host's* bottom, and on a
+  // device with gesture navigation that is not the bottom of the window.
+  const [origin, setOrigin] = useState({ x: 0, y: 0, height: 0 });
+  const insets = useSafeAreaInsets();
 
   const handleHostLayout = useCallback(() => {
-    hostRef.current?.measureInWindow?.((x, y) => setOrigin({ x, y }));
+    hostRef.current?.measureInWindow?.((x, y, _w, height) => setOrigin({ x, y, height }));
   }, []);
 
   // The card's own height, so it can be kept inside the viewport. A large anchor (a list
@@ -90,22 +110,53 @@ export function TourOverlay() {
   const step = controller?.step ?? null;
   const anchorKey = step?.anchor ?? null;
 
-  // Re-measure whenever the step changes. The rect is read once per step rather than
-  // tracked continuously: these anchors are chrome (tab bars, headers, form rows) that do
-  // not move while a modal card is covering the screen.
+  // Re-measure whenever the step changes. The rect is not tracked continuously: these
+  // anchors are chrome (tab bars, headers, form rows) that do not move while a modal card
+  // is covering the screen — but it is read twice, and after a scroll, because *when* it
+  // is read turns out to matter a great deal. See REMEASURE_MS.
   useEffect(() => {
     let cancelled = false;
     if (!anchorKey || !registry) {
       setRect(null);
       return;
     }
-    registry.measure(anchorKey).then((r) => {
+    let settle: ReturnType<typeof setTimeout> | undefined;
+
+    const read = async () => {
+      const r = await registry.measure(anchorKey);
       if (!cancelled) setRect(r);
-    });
+    };
+
+    void (async () => {
+      // Bring the anchor on screen first. A step pointing at a field below the fold used
+      // to open against whatever the user was scrolled to: the spotlight clamped itself to
+      // the screen edge and the card was placed against a rect nobody could see. Web has
+      // had this from the start via Element.scrollIntoView.
+      const { scrolled, rect: measured } = await registry.scrollIntoView(anchorKey, screenH);
+      if (cancelled) return;
+      if (!scrolled) {
+        // Already where it should be — draw immediately rather than blanking the spotlight
+        // for a settle we are not waiting on.
+        setRect(measured);
+      } else {
+        // Mid-scroll the old rect describes nothing. A brief full scrim is honest; holding
+        // the previous step's cutout while the screen moves under it is not.
+        setRect(null);
+        await new Promise<void>((resolve) => {
+          settle = setTimeout(() => resolve(), SCROLL_SETTLE_MS);
+        });
+        if (cancelled) return;
+        await read();
+      }
+      if (cancelled) return;
+      settle = setTimeout(() => void read(), REMEASURE_MS);
+    })();
+
     return () => {
       cancelled = true;
+      if (settle) clearTimeout(settle);
     };
-  }, [anchorKey, registry, active?.tour.id, active?.stepIndex]);
+  }, [anchorKey, registry, screenH, active?.tour.id, active?.stepIndex]);
 
   const handleNext = useCallback(() => controller?.next(), [controller]);
   const handleBack = useCallback(() => controller?.back(), [controller]);
@@ -153,15 +204,26 @@ export function TourOverlay() {
       }
     : null;
 
+  /**
+   * The band the card may occupy, in host-local coordinates.
+   *
+   * Both limits are expressed against the host rather than the window, and the safe-area
+   * inset is only applied to the extent the host does not already clear it: on a screen
+   * where the host starts below the status bar, `origin.y` has already paid that cost and
+   * subtracting it again would push the card needlessly far down. Without this, a card sent
+   * to the top edge for a full-screen anchor drew underneath the clock and the battery.
+   */
+  const minTop = Math.max(EDGE_MARGIN, insets.top + EDGE_MARGIN - origin.y);
+  const hostBottom = origin.height || screenH;
+  const maxBottom = Math.min(hostBottom, screenH - insets.bottom - origin.y) - EDGE_MARGIN;
+
   // Card placement is always expressed as a top offset so it can be clamped. The step's
-  // preferred side is honoured only when the card actually fits there; when neither side
-  // fits — a list anchor covering most of the screen — it centres over the anchor rather
-  // than hanging off an edge.
-  const fits = (top: number) => top >= EDGE_MARGIN && top + cardHeight <= screenH - EDGE_MARGIN;
+  // preferred side is honoured only when the card actually fits there.
+  const fits = (top: number) => top >= minTop && top + cardHeight <= maxBottom;
 
   let cardTop: number;
   if (!box) {
-    cardTop = (screenH - cardHeight) / 2;
+    cardTop = (minTop + maxBottom - cardHeight) / 2;
   } else {
     const below = box.y + box.height + CARD_GAP;
     const above = box.y - CARD_GAP - cardHeight;
@@ -169,12 +231,19 @@ export function TourOverlay() {
     const fallback = step.placement === 'top' ? below : above;
     if (fits(preferred)) cardTop = preferred;
     else if (fits(fallback)) cardTop = fallback;
-    else cardTop = (screenH - cardHeight) / 2;
+    else {
+      // Neither side fits — a list anchor covering most of the screen. Centring on the
+      // anchor was the old answer and it is the worst one available: it puts the card
+      // squarely over the thing the card is describing. Go to whichever edge has more
+      // room instead, so what is covered is the far end of the anchor rather than its
+      // middle, and the spotlight still reads as a spotlight.
+      const roomAbove = box.y - CARD_GAP;
+      const roomBelow = screenH - (box.y + box.height) - CARD_GAP;
+      cardTop = roomBelow >= roomAbove ? maxBottom - cardHeight : minTop;
+    }
   }
-  // Final guard: never let the card leave the viewport, whatever the anchor did.
-  const cardPosition = {
-    top: Math.max(EDGE_MARGIN, Math.min(cardTop, screenH - cardHeight - EDGE_MARGIN)),
-  };
+  // Final guard: never let the card leave the band, whatever the anchor did.
+  const cardPosition = { top: Math.max(minTop, Math.min(cardTop, maxBottom - cardHeight)) };
 
   return (
     <View

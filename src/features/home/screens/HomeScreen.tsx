@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -18,6 +18,7 @@ import { getTransactions } from '@/src/features/transactions/api/transactions';
 import type { Transaction } from '@/src/shared/types';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { TourScrollView } from '@/src/features/onboarding/TourScrollView';
 
 function getGreetingKey(): 'home.greetingMorning' | 'home.greetingAfternoon' | 'home.greetingEvening' {
   const hour = new Date().getHours();
@@ -122,7 +123,9 @@ export function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]} edges={['top']}>
-      <ScrollView
+      {/* TourScrollView, not ScrollView: the home sweep walks this screen top to bottom and
+          the last two blocks are below the fold on a phone. */}
+      <TourScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -172,7 +175,7 @@ export function HomeScreen() {
           <RecentTransactionsSection items={recentTransactions} />
         )}
         </TourAnchor>
-      </ScrollView>
+      </TourScrollView>
     </SafeAreaView>
   );
 }

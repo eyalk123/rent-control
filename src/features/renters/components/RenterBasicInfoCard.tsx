@@ -12,6 +12,8 @@ import {
 } from "@/src/shared/components/form/FormFields";
 import { PropertyPicker } from "@/src/features/properties/components/PropertyPicker";
 import { Icon } from "@/src/shared/components/ui";
+import { ANCHORS } from "@/src/features/onboarding/anchors";
+import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 import { Text, useTheme } from "react-native-paper";
 
 type RenterBasicInfoCardProps<TFieldValues extends FieldValues> = {
@@ -102,12 +104,14 @@ function RenterBasicInfoCardInner<TFieldValues extends FieldValues>({
         ownerId={ownerId}
         accept="image"
       />
-      <FormExtraContactsField
-        control={control}
-        name={"extraContacts" as any}
-        t={t}
-        onPickContact={onPickExtraContact ?? (() => Promise.resolve(null))}
-      />
+      <TourAnchor id={ANCHORS.renterFormExtraContacts}>
+        <FormExtraContactsField
+          control={control}
+          name={"extraContacts" as any}
+          t={t}
+          onPickContact={onPickExtraContact ?? (() => Promise.resolve(null))}
+        />
+      </TourAnchor>
     </FormSectionCard>
   );
 }

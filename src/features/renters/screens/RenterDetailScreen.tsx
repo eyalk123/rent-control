@@ -38,6 +38,9 @@ import { useTour, useTourStep } from '@/src/features/onboarding/TourController';
 
 type TabKey = 'info' | 'property' | 'transactions';
 
+/** The `renter-detail` steps that are about the Transactions tab rather than the lease. */
+const TOUR_TX_STEPS = ['payments', 'expenses'];
+
 export function RenterDetailScreen() {
   // The Extend and End buttons exist only on a live lease, so their steps are `optional`
   // in the registry and drop themselves on an ended or terminated one. They used to be
@@ -63,12 +66,25 @@ export function RenterDetailScreen() {
    *
    * Derived, never written: `useTourStep` goes null the moment the tour ends and the screen
    * is back on whichever tab the user had chosen, with nothing to restore. The `payments`
-   * step shows the Transactions tab so the month grid is something the user watches appear,
-   * and every other step shows Info, which is where the timeline it points at lives.
+   * and `expenses` steps show the Transactions tab so the month grid is something the user
+   * watches appear, and every other step shows Info, which is where the timeline it points
+   * at lives.
    */
   const tourStep = useTourStep('renter-detail');
   const shownTab: TabKey =
-    tourStep === 'payments' ? 'transactions' : tourStep === null ? activeTab : 'info';
+    tourStep === null ? activeTab : TOUR_TX_STEPS.includes(tourStep) ? 'transactions' : 'info';
+  /**
+   * Revenue and expenses are a segmented control on this screen, not two panels side by
+   * side, so a tour that only lands on the tab shows revenue and never mentions that the
+   * other half exists. Driven the same way as the tab above it, and derived the same way:
+   * the moment the tour ends this is null again and the user's own choice is back.
+   */
+  const shownTxState: TransactionsTabState =
+    tourStep === 'expenses'
+      ? { ...txTabState, section: 'expenses' }
+      : tourStep === 'payments'
+        ? { ...txTabState, section: 'revenue' }
+        : txTabState;
   const [endLeaseOpen, setEndLeaseOpen] = useState(false);
   const [lifecyclePending, setLifecyclePending] = useState(false);
   const [linkPending, setLinkPending] = useState(false);
@@ -196,14 +212,18 @@ export function RenterDetailScreen() {
               backgroundColor={colors.primary}
               textColor="#FFF"
             />
-            <IconButton
-              icon="pencil"
-              iconColor="#FFF"
-              size={20}
-              style={[styles.editIcon, { backgroundColor: colors.primary }]}
-              onPress={handleEdit}
-              accessibilityLabel={t('renter.editRenter')}
-            />
+            {/* Absolutely positioned, so the positioning moves to the anchor wrapper for
+                the same reason Extend and End below do — see the note there. */}
+            <TourAnchor id={ANCHORS.renterDetailEdit} style={styles.editIcon}>
+              <IconButton
+                icon="pencil"
+                iconColor="#FFF"
+                size={20}
+                style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                onPress={handleEdit}
+                accessibilityLabel={t('renter.editRenter')}
+              />
+            </TourAnchor>
             {/* Edit stays on an ended lease, since a past tenancy's record can still need
                 correcting - and so does Extend, unless the lease was terminated. */}
             {/* The absolute positioning moves to the anchor wrapper: a wrapper View around
@@ -332,7 +352,7 @@ export function RenterDetailScreen() {
           {shownTab === 'transactions' && (
             <RenterTransactionsTab
               renter={renter}
-              state={txTabState}
+              state={shownTxState}
               onStateChange={setTxTabState}
             />
           )}
@@ -384,7 +404,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: spacing.sm,
     left: spacing.sm,
-    margin: 0,
   },
   extendIcon: {
     position: 'absolute',

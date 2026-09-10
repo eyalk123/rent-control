@@ -12,6 +12,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { FormScrollView } from "@/src/shared/components/form";
+import { useTour } from "@/src/features/onboarding/TourController";
 import { Button, Text, useTheme } from "react-native-paper";
 
 export function AddEditSupplierScreen() {
@@ -34,6 +35,10 @@ export function AddEditSupplierScreen() {
   });
 
   const { formState, control, setValue } = formMethods;
+  // Asked for on both add and edit: it is the same form either way, and the bank-account
+  // step is worth saying to whoever gets here first. The controller waits for the anchors,
+  // so on an edit it simply opens once the fetched supplier has rendered.
+  useTour("supplier-form");
   const { requestPermission, pickContact } = useContactPicker();
 
   const handlePickFromContacts = React.useCallback(async () => {
