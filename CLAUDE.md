@@ -10,6 +10,10 @@ Mobile-first property management app (iOS/Android/web). English + Hebrew (RTL).
 - Env vars: Copy `.env.example` to `.env` (`EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID`).
 - Mock API: `USE_MOCK_API` (`src/core/api/mock.ts`) is derived from `EXPO_PUBLIC_DEV_WEB_PREVIEW=1`, the dev-only preview flag that also stubs Firebase auth (`src/core/auth/AuthContext.tsx`) so the app gets past the auth guard with no backend and no real account. Guarded by `__DEV__`, so it cannot reach a release build. Works on the emulator as well as `npm run web`.
 
+**Releasing to Google Play:** see `docs/RELEASING.md` — the build/submit procedure and its traps
+(run `eas` from this folder or it offers to create a bogus project, submit to the `internal` track,
+release notes must be added by hand because `eas submit` cannot set them).
+
 **RUN IT ON THE EMULATOR — this is not optional for UI work.**
 
 An Android emulator is set up and working. `./scripts/emulator.sh preview` boots it, starts Metro
