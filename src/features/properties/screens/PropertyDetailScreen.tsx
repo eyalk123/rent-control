@@ -31,6 +31,7 @@ import {
 } from '@/src/features/transactions/components/detail/tabState';
 import { PropertyDocumentsTab } from '@/src/features/properties/components/PropertyDocumentsTab';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
+import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor, useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour, useTourStep } from '@/src/features/onboarding/TourController';
@@ -124,35 +125,50 @@ export function PropertyDetailScreen() {
       <View style={styles.container}>
         {/* Header: image + address + edit */}
         <View>
-          <View style={[styles.imageWrapper, { width }]}>
-            {imageSource ? (
+          {/* With a photo this is a hero. Without one it used to stay 200px tall and hold a
+              grey glyph floating in empty space, which read as a broken image.
+              It now shows a type medallion in the same slot the renter screen gives the
+              avatar, so both detail screens open on an identity mark rather than a void. The
+              edit button sits where the renter's does, and keeps its filled circle only over
+              a photo, where a plain glyph would be illegible. */}
+          {imageSource ? (
+            <View style={[styles.imageWrapper, { width }]}>
               <Image
                 source={imageSource}
                 style={[styles.image, { width }]}
                 resizeMode="cover"
               />
-            ) : (
-              <View
-                style={[
-                  styles.imagePlaceholder,
-                  { width, backgroundColor: colors.inputBackground },
-                ]}
-              >
+              <IconButton
+                icon={() => <Icon name="pencil" size={22} color={colors.onPrimary} />}
+                size={22}
+                style={[styles.editIcon, { backgroundColor: colors.primary }]}
+                onPress={handleEdit}
+                accessibilityLabel={t('property.editProperty')}
+              />
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.medallionSection,
+                { width, backgroundColor: colors.inputBackground },
+              ]}
+            >
+              <View style={[styles.medallion, { backgroundColor: colors.primary }]}>
                 <Icon
-                  name="home"
-                  size={48}
-                  color={colors.placeholder}
+                  name={getPropertyTypeIcon(property.type)}
+                  size={36}
+                  color={colors.onPrimary}
                 />
               </View>
-            )}
-            <IconButton
-              icon={() => <Icon name="pencil" size={20} color={colors.onPrimary} />}
-              size={20}
-              style={[styles.editIcon, { backgroundColor: colors.primary }]}
-              onPress={handleEdit}
-              accessibilityLabel={t('property.editProperty')}
-            />
-          </View>
+              <IconButton
+                icon={() => <Icon name="pencil" size={22} color={colors.textPrimary} />}
+                size={22}
+                style={styles.editIcon}
+                onPress={handleEdit}
+                accessibilityLabel={t('property.editProperty')}
+              />
+            </View>
+          )}
 
           <View style={styles.addressRow}>
             <Text variant="titleLarge" style={[styles.addressText, { color: colors.textPrimary }]}>
@@ -225,8 +241,19 @@ const styles = StyleSheet.create({
   image: {
     height: 200,
   },
-  imagePlaceholder: {
-    height: 200,
+  // No photo: the medallion slot. Mirrors the renter screen's avatar section - centred mark,
+  // actions absolutely positioned around it - so the two detail screens share a silhouette.
+  medallionSection: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+    position: 'relative',
+  },
+  medallion: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },

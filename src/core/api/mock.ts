@@ -181,6 +181,68 @@ const seedRenters: Renter[] = [
     property: null,
     contact_id: null,
   },
+  // Preview fixtures for the two ended-lease treatments.
+  //
+  // `getRenterLifecycle` reports 'ended' either because the schedule ran out or because the
+  // lease was terminated early, and the detail header renders those differently: a plain
+  // expiry is a status chip, a termination gets the banner with its date, reason and Reopen
+  // action. Sarah Johnson (id 1) and Robert Thompson (id 6) already cover plain expiry, so
+  // these two cover termination and a long lease history.
+  {
+    id: 7,
+    property_id: 2,
+    first_name: 'Daniel',
+    last_name: 'Okafor',
+    phone: '512-555-0107',
+    email: 'daniel.okafor@email.com',
+    // Eight periods, so the capped lease list actually overflows and its scroll indicator
+    // and half-cut row can be seen.
+    lease_years: [
+      { amount: 19800, type: 'contract' },
+      { amount: 19800, type: 'option' },
+      { amount: 20600, type: 'option' },
+      { amount: 21400, type: 'contract' },
+      { amount: 21400, type: 'option' },
+      { amount: 22300, type: 'option' },
+      { amount: 23100, type: 'contract' },
+      { amount: 23900, type: 'option' },
+    ],
+    lease_start: '2018-04-01',
+    number_of_payments: 12,
+    payment_type: 'monthly',
+    payment_day_of_month: 5,
+    terminated_on: '2026-02-28',
+    termination_reason: 'Moved abroad, gave two months notice',
+    insurance_type: 'bank_guarantee',
+    insurance_amount: 4200,
+    property: null,
+    contact_id: null,
+  },
+  {
+    id: 8,
+    property_id: 3,
+    first_name: 'Noa',
+    last_name: 'Shalev',
+    phone: '512-555-0108',
+    email: 'noa.shalev@email.com',
+    // Live lease with a long history: the same overflow case, without the ended states.
+    lease_years: [
+      { amount: 24000, type: 'contract' },
+      { amount: 24000, type: 'option' },
+      { amount: 25200, type: 'option' },
+      { amount: 26100, type: 'contract' },
+      { amount: 27000, type: 'option' },
+      { amount: 27900, type: 'option' },
+    ],
+    lease_start: '2022-09-01',
+    number_of_payments: 12,
+    payment_type: 'monthly',
+    payment_day_of_month: 1,
+    insurance_type: 'tenant',
+    insurance_amount: 900,
+    property: null,
+    contact_id: null,
+  },
 ];
 
 const seedExpenseCategories: ExpenseCategory[] = [

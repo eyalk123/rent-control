@@ -15,6 +15,7 @@ export { StepHeader } from './StepHeader';
 export { Stepper } from './Stepper';
 export { SegmentedControl, type Segment } from './SegmentedControl';
 export { StatBox } from './StatBox';
-export { IconDetailRow } from './IconDetailRow';
+export { DetailSection, SectionLabel } from './DetailSection';
+export { DetailRow } from './DetailRow';
 export { DocumentsCard, type DocumentItem } from './DocumentsCard';
 export { SkeletonBlock } from './SkeletonBlock';

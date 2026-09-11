@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useAlert } from '@/src/core/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { DocumentsCard, Icon } from '@/src/shared/components/ui';
+import { DocumentsCard, Icon, SectionLabel } from '@/src/shared/components/ui';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 import type { PendingFile, Property, PropertyFile } from '@/src/shared/types';
 import {
@@ -101,12 +101,8 @@ export function PropertyDocumentsTab({ property }: PropertyDocumentsTabProps) {
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <DocumentsCard documents={documents} />
 
+      <SectionLabel title={t('customFiles.sectionTitle')} />
       <Card style={styles.card} mode="outlined">
-        <View style={[styles.sectionHeader, { backgroundColor: colors.sectionAccent }]}>
-          <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
-            {t('customFiles.sectionTitle')}
-          </Text>
-        </View>
         <Card.Content style={styles.cardContent}>
           {loadingFiles ? (
             <ActivityIndicator size="small" style={styles.loader} />

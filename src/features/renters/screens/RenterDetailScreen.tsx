@@ -218,9 +218,9 @@ export function RenterDetailScreen() {
             <TourAnchor id={ANCHORS.renterDetailEdit} style={styles.editIcon}>
               <IconButton
                 icon="pencil"
-                iconColor="#FFF"
-                size={20}
-                style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                iconColor={colors.textPrimary}
+                size={22}
+                style={styles.iconButtonReset}
                 onPress={handleEdit}
                 accessibilityLabel={t('renter.editRenter')}
               />
@@ -230,13 +230,20 @@ export function RenterDetailScreen() {
             {/* The absolute positioning moves to the anchor wrapper: a wrapper View around
                 an absolutely-positioned child would become its containing block and drag
                 the button back into the flow. */}
+            {/* Extend normally sits inboard of the overflow, but the overflow is only
+                rendered while the lease is live. On an ended lease it kept the 44px offset
+                and left exactly one button of empty space at the edge, so it takes the
+                edge position itself when there is no overflow beside it. */}
             {canExtend && (
-              <TourAnchor id={ANCHORS.renterDetailExtend} style={styles.extendIcon}>
+              <TourAnchor
+                id={ANCHORS.renterDetailExtend}
+                style={ended ? styles.extendIconAlone : styles.extendIcon}
+              >
                 <IconButton
                   icon="calendar-plus"
-                  iconColor="#FFF"
-                  size={20}
-                  style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                  iconColor={colors.textPrimary}
+                  size={22}
+                  style={styles.iconButtonReset}
                   onPress={handleExtend}
                   accessibilityLabel={t('renter.extendLease')}
                 />
@@ -264,9 +271,9 @@ export function RenterDetailScreen() {
                     <TourAnchor id={ANCHORS.renterDetailMore}>
                       <IconButton
                         icon="dots-vertical"
-                        iconColor="#FFF"
-                        size={20}
-                        style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                        iconColor={colors.textPrimary}
+                        size={22}
+                        style={styles.iconButtonReset}
                         onPress={() => setMoreOpen(true)}
                         accessibilityLabel={t('common.moreActions')}
                       />
@@ -301,7 +308,28 @@ export function RenterDetailScreen() {
             </Text>
           </View>
 
-          {ended && (
+          {/* Two treatments, split by whether there is anything to act on.
+              A plainly expired lease is metadata, so it reads as a chip that continues the
+              centred name block above it. A *terminated* one carries a date, often a reason
+              and always a Reopen action, which earns the full banner. Using the banner for
+              both left the expired case as a full-width bordered box with one short
+              left-aligned line and a large empty right half. */}
+          {ended && !terminated && (
+            <View style={styles.statusChipRow}>
+              <View
+                style={[
+                  styles.statusChip,
+                  { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
+                ]}
+              >
+                <Text variant="labelMedium" style={{ color: colors.textSecondary }}>
+                  {t('renter.endedLeaseShort')}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {ended && terminated && (
             <View
               style={[
                 styles.endedBanner,
@@ -310,7 +338,7 @@ export function RenterDetailScreen() {
             >
               <View style={styles.endedBannerText}>
                 <Text variant="labelLarge" style={{ color: colors.textPrimary }}>
-                  {terminated && renter.terminated_on
+                  {renter.terminated_on
                     ? t('renter.terminatedLease', {
                         date: formatDateFull(new Date(renter.terminated_on), language),
                       })
@@ -322,16 +350,14 @@ export function RenterDetailScreen() {
                   </Text>
                 )}
               </View>
-              {terminated && (
-                <Button
-                  mode="outlined"
-                  compact
-                  disabled={lifecyclePending}
-                  onPress={handleReopenLease}
-                >
-                  {t('renter.reopenLease')}
-                </Button>
-              )}
+              <Button
+                mode="outlined"
+                compact
+                disabled={lifecyclePending}
+                onPress={handleReopenLease}
+              >
+                {t('renter.reopenLease')}
+              </Button>
             </View>
           )}
 
@@ -416,6 +442,18 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  statusChipRow: {
+    alignItems: 'center',
+    marginTop: spacing.xs,
+  },
+  // Shrinks to its text rather than stretching, so there is no empty half to explain.
+  statusChip: {
+    alignSelf: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 999,
+  },
   // The overflow terminates the row at the physical edge and Extend sits inboard of it,
   // which is where a `dots-vertical` is looked for. Physical (not logical) positioning,
   // so the header controls keep the same arrangement under RTL.
@@ -442,7 +480,18 @@ const styles = StyleSheet.create({
     bottom: spacing.sm,
     right: spacing.sm + 44,
   },
+  // Same slot the overflow would have occupied, used when the overflow is absent.
+  extendIconAlone: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    right: spacing.sm,
+  },
   // IconButton ships its own margin; the anchor wrapper now owns the placement.
+  //
+  // No filled circle: edit, extend and the overflow used to be three navy discs, which with
+  // the avatar put four of them in the top third of the screen and gave routine header
+  // actions more weight than anything in the content below. They are plain glyphs on the
+  // header surface now, which is what native header actions look like.
   iconButtonReset: {
     margin: 0,
   },

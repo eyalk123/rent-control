@@ -58,7 +58,13 @@ function ContactActionCircle({
   }
 
   return (
-    <TouchableOpacity style={styles.actionCircleWrapper} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.actionCircleWrapper}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
       <View style={[styles.actionCircle, { backgroundColor, width: size, height: size, borderRadius: size / 2 }]}>
         <Icon name={icon} size={iconSize} color={iconColor} />
       </View>
@@ -91,6 +97,17 @@ export function ContactActionsRow({
 
   const gap = variant === 'compact' ? spacing.sm : spacing.xl;
 
+  // One treatment for all three. They were a teal circle, a hardcoded WhatsApp green and a
+  // mustard one - three sibling actions in three hues, none of which meant anything, and the
+  // green was the only hardcoded brand colour in the app. The glyph already says which action
+  // it is, so the circle is a single neutral tint drawn from the brand navy.
+  //
+  // The glyph is `textPrimary`, not `primary`: against the 12% tint over the dark surface,
+  // `primary` measures 2.97:1, just under the 3:1 floor for a non-text control. `textPrimary`
+  // clears it in both modes (light 10:1, dark 12:1).
+  const circleBg = colors.primary + '1F';
+  const circleFg = colors.textPrimary;
+
   return (
     <View
       style={[
@@ -103,8 +120,8 @@ export function ContactActionsRow({
         <ContactActionCircle
           icon="phone"
           label={t('contact.call')}
-          backgroundColor={colors.revBg}
-          iconColor={colors.revFg}
+          backgroundColor={circleBg}
+          iconColor={circleFg}
           onPress={() => Linking.openURL(`tel:${phoneTrim}`)}
           variant={variant}
         />
@@ -113,8 +130,8 @@ export function ContactActionsRow({
         <ContactActionCircle
           icon="message-circle"
           label={t('contact.whatsapp')}
-          backgroundColor="rgba(37,211,102,0.16)"
-          iconColor="#128C7E"
+          backgroundColor={circleBg}
+          iconColor={circleFg}
           // No prefilled text here: this is "open the chat", the counterpart of the call
           // button. The templated messages belong to the alert rows, which have something
           // specific to say.
@@ -126,8 +143,8 @@ export function ContactActionsRow({
         <ContactActionCircle
           icon="mail"
           label={t('contact.email')}
-          backgroundColor="rgba(212,162,76,0.18)"
-          iconColor={colors.accent}
+          backgroundColor={circleBg}
+          iconColor={circleFg}
           onPress={() => Linking.openURL(`mailto:${emailTrim}`)}
           variant={variant}
         />
