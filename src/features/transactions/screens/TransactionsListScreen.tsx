@@ -26,7 +26,7 @@ import { TransactionRow } from '@/src/features/transactions/components/list/Tran
 import { useTransactionFilters } from '@/src/features/transactions/hooks/useTransactionFilters';
 import { useTransactionSelectMode } from '@/src/features/transactions/hooks/useTransactionSelectMode';
 import { SelectionHeader } from '@/src/features/transactions/components/list/SelectionHeader';
-import { TransactionsListHeader } from '@/src/features/transactions/components/list/TransactionsListHeader';
+import { TransactionsListHeader, TITLE_ROW_HEIGHT_FALLBACK } from '@/src/features/transactions/components/list/TransactionsListHeader';
 import { TransactionSectionHeader } from '@/src/features/transactions/components/list/TransactionSectionHeader';
 import { TransactionListFABs } from '@/src/features/transactions/components/list/TransactionListFABs';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
@@ -69,7 +69,8 @@ export function TransactionsListScreen() {
     refresh,
   } = usePaginatedTransactionContext();
 
-  const { sixMonthBuckets, heroBucket, summaryLoading, refresh: refreshSummary } = useTransactionSummaryContext();
+  const { sixMonthBuckets, heroBucket, summaryLoading, summaryError, refresh: refreshSummary } =
+    useTransactionSummaryContext();
 
   const filters = useTransactionFilters();
 
@@ -80,6 +81,8 @@ export function TransactionsListScreen() {
   });
 
   const [refreshing, setRefreshing] = useState(false);
+  // Measured from the list header; the floating Suppliers button sits below it.
+  const [titleRowHeight, setTitleRowHeight] = useState(TITLE_ROW_HEIGHT_FALLBACK);
   const [selectedKey, setSelectedKey] = useState(filters.currentKey);
 
   const selectedBucket =
@@ -181,6 +184,11 @@ export function TransactionsListScreen() {
             selectedKey={selectedKey}
             onSelectMonth={handleSelectMonth}
             summaryLoading={summaryLoading}
+            summaryError={summaryError}
+            onRetrySummary={refreshSummary}
+            onTitleRowLayout={(h) =>
+              setTitleRowHeight((prev) => (Math.abs(prev - h) < 0.5 ? prev : h))
+            }
           />
         }
         renderSectionHeader={({ section }) => (
@@ -248,7 +256,12 @@ export function TransactionsListScreen() {
       />
 
       {!selectMode.isSelectMode && (
-        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
+        <SuppliersHeaderButton
+          colors={colors}
+          onPress={handleSuppliersPress}
+          label={t('suppliers.title')}
+          titleRowHeight={titleRowHeight}
+        />
       )}
 
       <TransactionFilterSheets

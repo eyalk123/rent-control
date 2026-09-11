@@ -9,6 +9,7 @@ import type {
   PropertyRenterSummary,
   PaymentMethod,
 } from '@/src/shared/types';
+import { bucketByMonth, lastNMonths } from '@/src/features/transactions/utils/aggregate';
 
 export interface TransactionUpdateRevenue {
   property_id?: number;
@@ -77,7 +78,20 @@ export async function getTransactions(
 
 export async function getTransactionsSummary(): Promise<TransactionSummaryResponse> {
   if (USE_MOCK_API) {
-    return { six_month_buckets: [] };
+    // Was a hardcoded `[]`, which left the chart blank on every preview build - the one
+    // build UI work is done against. Aggregate the mock transactions the same way the
+    // backend does (trailing six months, zero-padded) so the preview matches production.
+    const all = await mockTransactionsApi.getTransactions({});
+    return {
+      six_month_buckets: lastNMonths(bucketByMonth(all), 6).map((b) => ({
+        key: b.key,
+        year: Number(b.key.slice(0, 4)),
+        month: Number(b.key.slice(5, 7)),
+        revenue: b.revenue,
+        expenses: b.expenses,
+        profit: b.profit,
+      })),
+    };
   }
   const response = await apiClient.get<TransactionSummaryResponse>('/transactions/summary');
   return response.data;

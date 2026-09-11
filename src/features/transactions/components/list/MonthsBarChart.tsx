@@ -10,9 +10,10 @@
 import React from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, lightColors, spacing, MAX_TIGHT_FONT_SCALE } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
 import {
   monthLabel,
@@ -34,12 +35,16 @@ interface MonthsBarChartProps {
   selectedKey: string;
   onSelectMonth?: (key: string) => void;
   loading?: boolean;
+  /** Message from a failed summary load. Shown in place of the bars. */
+  error?: string | null;
+  onRetry?: () => void;
 }
 
-export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, selectedKey, onSelectMonth, loading = false }: MonthsBarChartProps) {
+export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, selectedKey, onSelectMonth, loading = false, error = null, onRetry }: MonthsBarChartProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { language } = useLanguageContext();
+  const { t } = useTranslation();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
 
   const shimmer = React.useRef(new Animated.Value(0.35)).current;
@@ -71,6 +76,23 @@ export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, sele
           ))}
         </View>
       </Animated.View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.messageBox]}>
+        <Text style={[styles.message, { color: colors.textSecondary }]} numberOfLines={2}>
+          {t(error, { defaultValue: error })}
+        </Text>
+        {onRetry ? (
+          <Pressable onPress={onRetry} accessibilityRole="button" hitSlop={8}>
+            <Text style={[styles.retry, { color: colors.primary }]}>
+              {t('common.tryAgain')}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
     );
   }
 
@@ -135,6 +157,7 @@ export const MonthsBarChart = React.memo(function MonthsBarChart({ buckets, sele
                 />
               </View>
               <Text
+                maxFontSizeMultiplier={MAX_TIGHT_FONT_SCALE}
                 style={[
                   styles.label,
                   {
@@ -187,6 +210,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 6,
     fontVariant: ['tabular-nums'],
+  },
+  messageBox: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+  },
+  message: {
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  retry: {
+    fontSize: 13,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   ghostLabel: {
     height: 8,

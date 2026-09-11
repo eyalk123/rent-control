@@ -1,4 +1,5 @@
 import React from 'react';
+import { getApiErrorMessage } from '@/src/core/api/client';
 import { getTransactionsSummary } from '@/src/features/transactions/api/transactions';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { type MonthBucket, currentMonthKey } from '@/src/features/transactions/utils/aggregate';
@@ -7,6 +8,8 @@ interface TransactionSummaryContextValue {
   sixMonthBuckets: MonthBucket[];
   heroBucket: MonthBucket;
   summaryLoading: boolean;
+  /** Set when the summary request failed, so the chart can say so instead of going blank. */
+  summaryError: string | null;
   refresh: () => Promise<void>;
 }
 
@@ -17,9 +20,11 @@ export function TransactionSummaryProvider({ children }: { children: React.React
 
   const [sixMonthBuckets, setSixMonthBuckets] = React.useState<MonthBucket[]>([]);
   const [summaryLoading, setSummaryLoading] = React.useState(true);
+  const [summaryError, setSummaryError] = React.useState<string | null>(null);
 
   const load = React.useCallback(async () => {
     setSummaryLoading(true);
+    setSummaryError(null);
     try {
       const response = await getTransactionsSummary();
       setSixMonthBuckets(
@@ -33,8 +38,11 @@ export function TransactionSummaryProvider({ children }: { children: React.React
           transactions: [],
         }))
       );
-    } catch {
-      // silent — chart shows empty state
+    } catch (err) {
+      // Was swallowed entirely, with the chart left blank and nothing to say why - which is
+      // indistinguishable from "this month has no transactions". Keep the chart area, but
+      // let it report the failure and offer a retry.
+      setSummaryError(getApiErrorMessage(err, 'error.loadSummaryFailed'));
     } finally {
       setSummaryLoading(false);
     }
@@ -58,8 +66,8 @@ export function TransactionSummaryProvider({ children }: { children: React.React
   }, [sixMonthBuckets]);
 
   const value = React.useMemo<TransactionSummaryContextValue>(
-    () => ({ sixMonthBuckets, heroBucket, summaryLoading, refresh: load }),
-    [sixMonthBuckets, heroBucket, summaryLoading, load]
+    () => ({ sixMonthBuckets, heroBucket, summaryLoading, summaryError, refresh: load }),
+    [sixMonthBuckets, heroBucket, summaryLoading, summaryError, load]
   );
 
   return (
