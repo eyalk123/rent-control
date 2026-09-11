@@ -142,7 +142,14 @@ export function usePropertyForm({
       return;
     }
     setIsFetching(true);
-    Promise.all([getPropertyById(numericId), getPropertyFiles(numericId)])
+    Promise.all([
+      getPropertyById(numericId),
+      // The file list is secondary, and it used to be an equal leg of this Promise.all: one
+      // failing request for `/files` rejected the whole thing, `.then` never ran, `reset()`
+      // never seeded, and the edit form opened completely blank on a property that had loaded
+      // perfectly well. Swallow it and carry on with no files.
+      getPropertyFiles(numericId).catch(() => [] as PropertyFile[]),
+    ])
       .then(([prop, files]) => {
         const existingReset = propertyToFormValues(prop);
         // Scan attaching to this property: overlay the lease — fill blank fields silently and
@@ -163,6 +170,9 @@ export function usePropertyForm({
         setExistingFiles(files);
         setDeletedFileIds([]);
       })
+      // Without this the property's own failure surfaced as an unhandled rejection and a
+      // red error overlay, on top of the blank form.
+      .catch(() => setConflicts([]))
       .finally(() => setIsFetching(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- re-fetch on id; prefill is stable per scan
   }, [id, isEdit, reset]);

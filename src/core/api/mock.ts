@@ -13,6 +13,7 @@ import type {
   ExpenseCategoryCreate,
   Transaction,
   PropertyRenterSummary,
+  PropertyFile,
 } from '@/src/shared/types';
 import { getLeaseEndDate, getRentForMonth } from '@/src/shared/types';
 
@@ -26,6 +27,10 @@ function toPropertyBrief(p: Property): PropertyBrief {
 }
 
 const seedProperties: Property[] = [
+  // Deliberately complete: every optional column on `Property` carries a value, so there is
+  // one property in the preview data that shows what a fully filled record looks like on the
+  // detail screen, in the edit form and in a report. Leave it filled - the other four cover
+  // the sparse cases.
   {
     id: 1,
     owner_id: 1,
@@ -38,12 +43,19 @@ const seedProperties: Property[] = [
     number_of_rooms: 5,
     parking_numbers: ['A-12', 'B-34'],
     electricity_meter_number: 'EM-001',
-    electricity_account_number: null,
+    electricity_account_number: 'EA-55120',
     water_meter_number: 'WM-001',
-    water_account_number: null,
+    water_account_number: 'WA-88431',
     property_tax: 4500,
     house_committee: 200,
     property_owner: 'Jane Cooper',
+    inventory_notes: 'Fridge, oven and dishwasher stay with the flat. Two AC units (living room, main bedroom), both serviced Mar 2026. Blinds in every room.',
+    basic_contract_url: 'https://example.com/files/123-main-st-lease.pdf',
+    land_registry_url: 'https://example.com/files/123-main-st-tabu.pdf',
+    floor: 3,
+    apartment: '12',
+    block: '6418',
+    plot: '77',
     renters: null,
   },
   {
@@ -408,6 +420,23 @@ let mockRenters: Renter[] = [...seedRenters];
 let mockExpenseCategories: ExpenseCategory[] = [...seedExpenseCategories];
 let mockSuppliers: Supplier[] = [...seedSuppliers];
 let mockTransactions: Transaction[] = [...seedTransactions];
+let mockPropertyFiles: PropertyFile[] = [
+  {
+    id: 1,
+    property_id: 1,
+    url: 'https://example.com/files/123-main-st-inventory.pdf',
+    label: 'Inventory list',
+    created_at: '2026-03-01T09:00:00Z',
+  },
+  {
+    id: 2,
+    property_id: 1,
+    url: 'https://example.com/files/123-main-st-insurance.pdf',
+    label: 'Building insurance',
+    created_at: '2026-03-04T09:00:00Z',
+  },
+];
+let nextPropertyFileId = 3;
 let nextPropertyId = 6;
 let nextRenterId = 7;
 let nextCategoryId = 6;
@@ -468,6 +497,35 @@ export const mockPropertiesApi = {
     mockProperties = mockProperties.filter((x) => x.id !== id);
     mockRenters = mockRenters.map((r) =>
       r.property_id === id ? { ...r, property_id: null, property: null } : r
+    );
+  },
+};
+
+/**
+ * Property files had no mock at all, so in preview every `/properties/:id/files` call went to
+ * the real API and 401'd - which is what blanked the edit form, because its fetch had the file
+ * list as an equal leg of a `Promise.all`.
+ */
+export const mockPropertyFilesApi = {
+  getPropertyFiles: async (propertyId: number): Promise<PropertyFile[]> =>
+    mockPropertyFiles.filter((f) => f.property_id === propertyId),
+  bulkCreatePropertyFiles: async (
+    propertyId: number,
+    files: { url: string; label: string }[],
+  ): Promise<PropertyFile[]> => {
+    const created = files.map((f) => ({
+      id: nextPropertyFileId++,
+      property_id: propertyId,
+      url: f.url,
+      label: f.label,
+      created_at: new Date().toISOString(),
+    }));
+    mockPropertyFiles = [...created, ...mockPropertyFiles];
+    return created;
+  },
+  deletePropertyFile: async (propertyId: number, fileId: number): Promise<void> => {
+    mockPropertyFiles = mockPropertyFiles.filter(
+      (f) => !(f.property_id === propertyId && f.id === fileId),
     );
   },
 };

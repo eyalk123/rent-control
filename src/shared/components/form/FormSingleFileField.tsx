@@ -151,10 +151,14 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
         </View>
       ) : url ? (
         <Chip
+          // Outlined for the same reason as the property Documents tab: a filled chip is
+          // mustard here, and a file is content rather than the brand accent.
+          mode="outlined"
           icon="file-document"
           onPress={handleOpen}
           onClose={handleClear}
           style={styles.chip}
+          textStyle={{ color: colors.textPrimary }}
           ellipsizeMode="middle"
         >
           {filename}

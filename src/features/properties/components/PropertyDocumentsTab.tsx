@@ -174,10 +174,17 @@ export function PropertyDocumentsTab({ property, onPropertyChange }: PropertyDoc
                   </View>
                 ) : url ? (
                   <Chip
+                    // Outlined, like the parking-number chips in the property form. A filled
+                    // chip takes MD3's secondaryContainer, which in this palette is mustard -
+                    // and an attached file is content, not the one brand accent.
+                    mode="outlined"
                     icon="file-document"
                     onPress={() => Linking.openURL(url)}
                     onClose={() => setTypedDoc(field, null)}
                     style={styles.typedChip}
+                    // An outlined chip labels itself with onSurfaceVariant (Lc 71 here). The
+                    // filename is the content of this row, so give it the body colour.
+                    textStyle={{ color: colors.textPrimary }}
                     ellipsizeMode="middle"
                   >
                     {fileNameFromUrl(url)}
