@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button, Dialog, Portal, Text, TextInput, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { formatDateFull } from '@/src/shared/utils/dates';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { getLeaseEndDate, type Renter } from '@/src/shared/types';
 
@@ -29,7 +30,7 @@ function toISODate(d: Date): string {
  * term by hand — the destructive path this exists to replace.
  */
 export function EndLeaseDialog({ visible, renter, loading, onConfirm, onDismiss }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
@@ -77,11 +78,8 @@ export function EndLeaseDialog({ visible, renter, loading, onConfirm, onDismiss 
               ]}
             >
               <Text style={{ color: colors.textPrimary }}>
-                {date.toLocaleDateString(undefined, {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
+                {/* was toLocaleDateString(undefined, ...) - the device locale, not the app's */}
+                {formatDateFull(date, language)}
               </Text>
             </Pressable>
           </View>

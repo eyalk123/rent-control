@@ -92,9 +92,12 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
       <View style={styles.statsRow}>
         {/* No Type tile: the header medallion already carries the property type, and two
             tiles give Surface area and Number of rooms room for their labels. */}
+        {/* The column is named sq_ft, but the entry form asks for "Size (m²)" / מ"ר - the
+            name is a legacy misnomer and the unit is metric. The detail screen was showing
+            a bare number, which is not a size. */}
         <StatBox
           icon="ruler"
-          value={property.sq_ft.toLocaleString()}
+          value={`${property.sq_ft.toLocaleString()} ${t('property.areaUnit')}`}
           label={t('property.surfaceArea')}
           backgroundColor={colors.inputBackground}
           iconColor={colors.secondary}

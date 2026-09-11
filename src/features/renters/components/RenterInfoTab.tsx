@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getCurrentMonthlyRent, type Renter } from '@/src/shared/types';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
+import { formatDateFull } from '@/src/shared/utils/dates';
 import { getPaymentMethodLabel } from '@/src/shared/constants/paymentMethods';
 import {
   ContactActionsRow,
@@ -21,7 +22,7 @@ interface RenterInfoTabProps {
 }
 
 export function RenterInfoTab({ renter }: RenterInfoTabProps) {
-  const { t } = useTranslation();
+  const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
@@ -36,12 +37,6 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
   };
 
   const paymentTypeLabel = (paymentType: string) => getPaymentMethodLabel(paymentType, t);
-
-  const formatDate = (dateStr: string) => {
-    const parts = dateStr.split('-');
-    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    return dateStr;
-  };
 
   const hasInsurance =
     (renter.insurance_type != null && renter.insurance_type !== '') ||
@@ -72,7 +67,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
         />
         <StatBox
           icon="calendar"
-          value={renter.lease_start ? formatDate(renter.lease_start) : '—'}
+          value={renter.lease_start ? formatDateFull(new Date(renter.lease_start), language) : '—'}
           label={t('renter.dateOfStart')}
           backgroundColor={colors.inputBackground}
           iconColor={colors.secondary}

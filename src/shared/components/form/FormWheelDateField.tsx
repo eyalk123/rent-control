@@ -5,6 +5,7 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import WheelPicker from '@quidone/react-native-wheel-picker';
 import { Button, Text, useTheme } from 'react-native-paper';
 import { useLanguageContext } from '@/src/context';
+import { formatDateFull } from '@/src/shared/utils/dates';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { useDismissFieldReview, useFieldReview } from './FieldReviewContext';
@@ -82,7 +83,9 @@ function displayFull(value: string, locale: string): string {
   const p = parseFull(value);
   if (!p) return '';
   const d = new Date(p.year, p.month - 1, p.day);
-  return d.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
+  // formatDateFull, not toLocaleDateString: en-US renders this option set as "Sep 11, 2026",
+  // which disagrees with the "11 Sep 2026" every other full date in the app uses.
+  return formatDateFull(d, locale);
 }
 
 function displayMonthYear(value: string, locale: string): string {

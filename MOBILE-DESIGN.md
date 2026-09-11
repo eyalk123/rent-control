@@ -46,8 +46,10 @@ How to use it:
   gray you brought with you.
 - `lightColors` / `darkColors` are wired into MD3 via `src/core/theme/theme.ts` and consumed through
   Paper's `useTheme()`, or directly where a token has no MD3 equivalent.
-- Dark mode is not an afterthought here. It is a deep warm navy (not black), with cream-toned text
-  rather than pure white. Check both modes before calling a screen done.
+- Dark mode is not an afterthought here. It is a **navy-cast charcoal** — not black, and no longer
+  a navy — with a faintly warm off-white for text rather than pure white. The surfaces still carry
+  the brand hue (216°), at ~22% saturation: enough to read as ours, low enough that the accents
+  have somewhere to stand. Check both modes before calling a screen done.
 
 **Conventions worth knowing:**
 
@@ -609,3 +611,105 @@ no longer paints over its own eyebrow.
 the tab bar (native-owned — no prop to set), and the amounts. The remaining work is the sweep this
 pass deliberately did not do: the other ~19 explicit `lineHeight` literals, the other 59 fixed
 heights, and the other ~65 `numberOfLines={1}`. Treat ~1.5 as the supported ceiling today.
+
+### 2026-09-11 — Dark mode: the navy pulled back to a charcoal
+
+Prompted by the observation that the web app's dark mode looks more current than this one's. It
+does, and the web palette was still the wrong thing to copy — `#121212` plus stock Tailwind accents
+is the house style of every generated dashboard, and adopting it would have deleted the only
+distinctive thing the app has. Three specific mechanisms were at fault instead, all fixed by
+values in `colors.ts`; no component was restructured.
+
+**1. The dark was not dark, it was blue.** Measured on a real Transactions screenshot at font
+scale 1.0: **98.7% of pixels chromatic, 94.9% inside a single 15° blue bucket, 1.3% neutral.** The
+surfaces sat at **50% saturation**. For scale, the most heavily tinted dark theme anyone ships is
+GitHub's canvas at 27.8% — at almost exactly the same hue (216°). iOS is 3.4%, Linear 11.1%, Slack
+11.9%, Material/Vercel/Notion 0%. So a blue-cast dark was never the problem; being ~1.8× past the
+ceiling was. Saturation pulled to ~22%, hue and lightness kept.
+
+**2. The accent had nowhere to stand.** Dark `primary` `#3E6FA8` sat **2.4° of hue from its own
+card** at **2.79:1** — under the 3:1 WCAG 1.4.11 asks of a control, and far under the 4.5:1 it owed
+as text at **70 of its 90 call sites**, which are foreground uses. The root cause is that the
+palette applied a *light*-theme convention to dark mode: a mid-dark primary with white text. MD3's
+dark convention is the inverse — a light primary with dark `onPrimary`. Adopted: `primary`
+`#65ACE2` (5.90:1 on the card, APCA Lc 50, up from Lc 22), `onPrimary` `#111D2C` (6.92:1).
+
+**3. The money colours were too weak, and they are the content.** `revFg`/`expFg` measured
+**APCA Lc 41 and Lc 39** — roughly the floor for *large* text, at a 15px size — on a screen whose
+whole job is the sign of a number. Now Lc 64 and Lc 61.
+
+Also: the cream `#F1ECDF` was 39% saturation at hue 43° sitting on a 215° ground, near-
+complementary, which is what made it read faintly sepia. Cooled to 11%, keeping the warmth as a
+signature.
+
+**Three things the change exposed rather than caused**, each fixed here:
+
+- `error` is now a light tone, so `onError` could no longer be white — that pairing measured
+  **1.98:1**. It is dark ink now (8.60:1). `theme.ts` also hardcoded `primaryContainer` and
+  `errorContainer` as rgba literals of the *old* values; both now track the new ones.
+- The Suppliers button drew mustard on `primary`. That measured **1.90:1 even before this change**
+  and 1.11:1 after. It takes `onPrimary` in dark now, and **keeps the mustard in light**, where it
+  measures a passing 4.97:1 — fix what is broken, not what merely changed.
+- `QuickActionsSection` hardcodes its icon tint as `rgba(194,149,67,0.15)`. Over the old saturated
+  navy the blue dominated and it read as a cool blue-grey (hue 212°, sat 16.2%); over a neutral
+  ground the mustard and the blue cancelled to a dead grey (**hue 60°, sat 2.7%**). Raised to 0.28,
+  which restores exactly the previous 16.2% chroma, now warm. `plNeutralBg` `#3A3A3A` had the same
+  problem — a 0%-saturation grey reads brown against a blue-cast page — and took the family cast.
+
+**Verified.** Every pair re-measured: 15 contrast checks and 6 APCA readings, zero failures,
+nothing regressed (elevation 1.19→1.22, `textSecondary` 6.18→6.28, `inputBorder` 3.04→3.08).
+`tsc` at the 16-error pre-existing baseline. **Light mode is untouched** — pixel diff of the
+Transactions screen before vs after differs in 700 of 2,592,000 pixels (0.027%), all of it the
+status-bar clock plus ~2px of antialiasing jitter on the FAB glyph; sampled colours identical.
+
+**Still hardcoded, deliberately left:** four `rgba(241,236,223,…)` literals at alpha 0.06–0.10
+(`HomeReportsCard` dividers, `FilterSegmentedControl` track) that bypass the tokens. At those
+alphas the shift is under half a step of R — imperceptible — and routing them through tokens would
+alter light mode too.
+
+### 2026-09-11 — Full-app visual audit: three bugs fixed, three claims withdrawn
+
+Walked 17 screens across dark, light and Hebrew/RTL after the palette change. Fixed:
+
+**1. The mustard tint was hardcoded in seven files at four different alphas, and none of them
+survived the desaturation.** Mustard is 49% saturation; it was rendering at **sat 2.7%** on the
+chat starter tiles (`#3A3A37`, hue 60 — a dead grey), **6.7%** on the "Scan a lease" button and
+**18%** on the Settings theme segment. Root cause is the same one found on `QuickActionsSection`:
+those alphas were tuned against a 50%-saturated navy that did most of the chroma work.
+
+Fixed structurally rather than site by site — `accentBg` and `primaryBg` are tokens now, and the
+five call sites read them. `secondaryContainer` (which fills every `contained-tonal` button and
+the selected `SegmentedButton`) became a **solid `#544526` instead of an rgba**, because as an
+alpha it composited against whatever surface happened to be behind it and landed on a different
+colour in the dialog than in Settings. Measured after: tiles sat 2.7% → **16.2%**, button 6.7% →
+**37.7%**. `NeedsAttentionSection` was also still holding `rgba(62,111,168,…)` — the *old* dark
+primary, stale since the palette change.
+
+**2. `cpiMinAmount` and `cpiMinPercent` both read "Minimum change"** in both locales — one is ₪,
+one is %. Now "Minimum amount" / "Minimum percent" (סכום מזערי / אחוז מזערי).
+
+**3. Three signed amounts had no bidi guard, so in Hebrew the sign moved to the far end** —
+`+2,200₪` rendered as `2,200₪+`. `TransactionRow` and `TransactionDetailScreen` already wrap the
+string in `U+202A…U+202C`; `RecentTransactionsSection`, `TransactionSectionHeader` and
+`TransactionsHero` did not. All five are wrapped and balanced now. On a screen whose content is
+the sign of a number this is a correctness bug, not a layout one.
+
+**Three things reported as bugs that turned out not to be, recorded so they are not "fixed" later:**
+
+- The renter lease list clipping mid-row is **deliberate** and documented in
+  `RenterLeaseInfoDisplayCard`: a list that stops flush on a row boundary reads as complete, so
+  the cap slices the fifth row on purpose.
+- A renter showing **"Active" with "Lease ends: 1 Sep 2026"** is not a stale badge. The badge
+  reads `getEffectiveScheduleEnd` (which includes option years, running to 27-28) while the label
+  reads `getEffectiveLeaseEnd`. Both are right; they answer different questions. Whether the card
+  should show the term end or the schedule end is a product decision, not a rendering fix.
+- Light mode's `plNeutralBg` reads heavy, but the positive and negative P&L tiles are solid
+  colour blocks too — the neutral one is consistent with its siblings, not an outlier.
+
+**Verified.** `tsc` at the 16-error baseline, eslint clean, both locale files parse. Light mode
+re-diffed after the change: 566 of 2,592,000 px differ (0.022%), all of it the status-bar clock;
+the quick-action tile samples byte-identical.
+
+**Found but not fixed:** the FAB overlaps the amount column of the last visible transaction row,
+in both LTR and RTL. Scrolling clears it, but the list wants bottom padding.
+

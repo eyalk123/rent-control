@@ -15,6 +15,7 @@ import Trash2 from 'lucide-react-native/icons/trash-2';
 
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
+import { formatDateFull } from '@/src/shared/utils/dates';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import {
   deleteReportExport,
@@ -88,7 +89,7 @@ function HistoryRow({
 }) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
-  const { t } = useTranslation();
+  const { t, i18n: { language } } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
 
@@ -96,9 +97,8 @@ function HistoryRow({
     ? t('reports.incomeExpense')
     : t('reports.expenseLog');
 
-  const date = new Date(item.created_at).toLocaleDateString(undefined, {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
+  // was toLocaleDateString(undefined, ...) - the device locale, not the app's
+  const date = formatDateFull(new Date(item.created_at), language);
 
   return (
     <View style={[styles.historyRow, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>

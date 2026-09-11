@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { IconButton, Text, useTheme } from 'react-native-paper';
+import { useLanguageContext } from '@/src/context';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -41,6 +42,7 @@ type ActiveSheet = 'name' | 'category' | null;
 export function SuppliersListScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
+  const { isRtl } = useLanguageContext();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { appAlert } = useAlert();
@@ -231,9 +233,20 @@ export function SuppliersListScreen() {
     <ScreenContainer>
       <LoadingOverlay visible={loading} />
       <View style={styles.header}>
-        <Text variant="headlineLarge" style={styles.heroTitle}>
-          {t('suppliers.title', { defaultValue: 'Suppliers' })}
-        </Text>
+        {/* This screen is pushed from the Transactions tab, and until now the only way out
+            was the system back gesture - it was the one screen in the app with no visible
+            back control. Same row shape Settings uses for a pushed screen with a big title. */}
+        <View style={styles.titleRow}>
+          <IconButton
+            icon={isRtl ? 'chevron-right' : 'chevron-left'}
+            accessibilityLabel={t('common.back', { defaultValue: 'Back' })}
+            onPress={() => router.back()}
+            style={styles.backButton}
+          />
+          <Text variant="headlineLarge" style={styles.heroTitle}>
+            {t('suppliers.title', { defaultValue: 'Suppliers' })}
+          </Text>
+        </View>
         {/* Categories are reachable from here, which is what the tour's second step
             points at — they are also what expense reports group by. */}
         <TourAnchor id={ANCHORS.suppliersCategories}>
@@ -369,10 +382,19 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    margin: 0,
+    marginLeft: -spacing.sm,
+  },
   heroTitle: {
     fontWeight: '700',
     marginBottom: spacing.sm,
     fontSize: 28,
+    flexShrink: 1,
   },
   list: {
     paddingHorizontal: spacing.lg,

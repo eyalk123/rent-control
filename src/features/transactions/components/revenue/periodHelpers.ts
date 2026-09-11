@@ -1,4 +1,5 @@
 import type { TimePeriodType } from '@/src/features/transactions/screens/types';
+import { formatDateFull } from '@/src/shared/utils/dates';
 
 export function getDefaultPeriodValue(type: Exclude<TimePeriodType, 'custom'>): string {
   const now = new Date();
@@ -103,9 +104,5 @@ export function getContractYearMonths(startYear: number, leaseStart: string): st
 export function formatDateDisplay(value: string, locale: string): string {
   const parts = value.split('-').map(Number);
   if (parts.length < 3 || parts.some(Number.isNaN)) return value;
-  return new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString(locale, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+  return formatDateFull(new Date(parts[0], parts[1] - 1, parts[2]), locale);
 }

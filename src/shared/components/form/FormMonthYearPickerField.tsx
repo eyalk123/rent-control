@@ -8,6 +8,7 @@ import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { FormField } from './FormField';
 import { useFieldSurface } from './fieldSurface';
+import { useTranslation } from 'react-i18next';
 
 type FormMonthYearPickerFieldProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -35,11 +36,13 @@ function formatToYYYYMM01(date: Date): string {
   return `${y}-${m}-01`;
 }
 
-/** Display as "March 2026". */
-function formatMonthYearDisplay(value: string): string {
+/** Display as "March 2026" in the app's language. */
+// The locale was `undefined`, which is the DEVICE locale - so this read English on an
+// English phone even with the app set to Hebrew.
+function formatMonthYearDisplay(value: string, locale: string): string {
   const d = parseMonthYear(value);
   if (!d) return '';
-  return d.toLocaleDateString(undefined, {
+  return d.toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
   });
@@ -54,6 +57,7 @@ export function FormMonthYearPickerField<TFieldValues extends FieldValues>({
 }: FormMonthYearPickerFieldProps<TFieldValues>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const { i18n: { language } } = useTranslation();
   const surface = useFieldSurface();
   const errorSurface = useFieldSurface({ error: true });
   const [showPicker, setShowPicker] = useState(false);
@@ -68,7 +72,7 @@ export function FormMonthYearPickerField<TFieldValues extends FieldValues>({
       }) => {
         const valueStr = (value as string) ?? '';
         const date = parseMonthYear(valueStr) ?? new Date();
-        const displayText = valueStr ? formatMonthYearDisplay(valueStr) : '';
+        const displayText = valueStr ? formatMonthYearDisplay(valueStr, language) : '';
 
         const handleChange = (_event: unknown, selectedDate?: Date) => {
           if (Platform.OS === 'android') {
