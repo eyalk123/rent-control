@@ -1,12 +1,12 @@
 import React from 'react';
 import { Linking, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { ActivityIndicator, Button, Card, Text, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Button, Card, Chip, Text, useTheme } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTranslation } from 'react-i18next';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useAlert } from '@/src/core/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { DocumentsCard, Icon, SectionLabel } from '@/src/shared/components/ui';
+import { Icon, SectionLabel } from '@/src/shared/components/ui';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 import type { PendingFile, Property, PropertyFile } from '@/src/shared/types';
 import {
@@ -14,12 +14,30 @@ import {
   deletePropertyFile,
   getPropertyFiles,
 } from '@/src/features/properties/api/propertyFilesApi';
+import { updateProperty } from '@/src/features/properties/api/properties';
+import { fileNameFromUrl } from '@/src/shared/utils/fileName';
+
+/**
+ * The two documents the property record has a dedicated column for. They used to appear
+ * here only once they had a URL - `DocumentsCard` renders nothing for an empty list - so a
+ * property with neither showed only the generic custom-files uploader, and the sole way to
+ * attach a lease was to open the edit form. The slots are always rendered now, in the same
+ * shape `FormSingleFileField` gives them there: a chip once set, an upload button until then.
+ */
+const TYPED_DOCS = [
+  { field: 'basic_contract_url', labelKey: 'documents.basicContract' },
+  { field: 'land_registry_url', labelKey: 'documents.landRegistry' },
+] as const;
+
+type TypedDocField = (typeof TYPED_DOCS)[number]['field'];
 
 interface PropertyDocumentsTabProps {
   property: Property;
+  /** Lets the detail screen hold the updated record after a typed document is set or cleared. */
+  onPropertyChange?: (property: Property) => void;
 }
 
-export function PropertyDocumentsTab({ property }: PropertyDocumentsTabProps) {
+export function PropertyDocumentsTab({ property, onPropertyChange }: PropertyDocumentsTabProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -32,6 +50,8 @@ export function PropertyDocumentsTab({ property }: PropertyDocumentsTabProps) {
   const [pending, setPending] = React.useState<PendingFile | null>(null);
   const [picking, setPicking] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+  // Which typed slot is mid-flight, so only that row shows a spinner.
+  const [busyDoc, setBusyDoc] = React.useState<TypedDocField | null>(null);
 
   React.useEffect(() => {
     getPropertyFiles(property.id)
@@ -40,14 +60,50 @@ export function PropertyDocumentsTab({ property }: PropertyDocumentsTabProps) {
       .finally(() => setLoadingFiles(false));
   }, [property.id]);
 
-  const documents = [
-    property.basic_contract_url
-      ? { label: t('documents.basicContract'), url: property.basic_contract_url, icon: 'file-text' as const }
-      : null,
-    property.land_registry_url
-      ? { label: t('documents.landRegistry'), url: property.land_registry_url, icon: 'bank' as const }
-      : null,
-  ].filter(Boolean) as { label: string; url: string; icon: 'file-text' | 'bank' }[];
+  const setTypedDoc = async (field: TypedDocField, url: string | null) => {
+    setBusyDoc(field);
+    try {
+      const updated = await updateProperty(property.id, { [field]: url });
+      onPropertyChange?.(updated);
+    } catch {
+      appAlert(t('error.title'), t('documents.uploadFailed'));
+    } finally {
+      setBusyDoc(null);
+    }
+  };
+
+  const handlePickTypedDoc = async (field: TypedDocField) => {
+    let asset;
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets?.[0]) return;
+      asset = result.assets[0];
+    } catch {
+      appAlert(t('error.title'), t('documents.uploadFailed'));
+      return;
+    }
+    setBusyDoc(field);
+    try {
+      const url = await uploadFile(
+        asset.uri,
+        asset.name,
+        asset.mimeType ?? 'application/octet-stream',
+      );
+      const updated = await updateProperty(property.id, { [field]: url });
+      onPropertyChange?.(updated);
+    } catch {
+      appAlert(t('error.title'), t('documents.uploadFailed'));
+    } finally {
+      setBusyDoc(null);
+    }
+  };
 
   const handlePickFile = async () => {
     setPicking(true);
@@ -99,7 +155,50 @@ export function PropertyDocumentsTab({ property }: PropertyDocumentsTabProps) {
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <DocumentsCard documents={documents} />
+      <SectionLabel title={t('documents.title')} />
+      <Card style={styles.card} mode="outlined">
+        <Card.Content style={styles.cardContent}>
+          {TYPED_DOCS.map(({ field, labelKey }) => {
+            const url = property[field] ?? null;
+            return (
+              <View key={field} style={styles.typedDoc}>
+                <Text variant="bodySmall" style={{ color: colors.fieldLabel }}>
+                  {t(labelKey)}
+                </Text>
+                {busyDoc === field ? (
+                  <View style={styles.loadingRow}>
+                    <ActivityIndicator size="small" />
+                    <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
+                      {t('documents.uploading')}
+                    </Text>
+                  </View>
+                ) : url ? (
+                  <Chip
+                    icon="file-document"
+                    onPress={() => Linking.openURL(url)}
+                    onClose={() => setTypedDoc(field, null)}
+                    style={styles.typedChip}
+                    ellipsizeMode="middle"
+                  >
+                    {fileNameFromUrl(url)}
+                  </Chip>
+                ) : (
+                  <Button
+                    mode="outlined"
+                    icon="file-upload"
+                    onPress={() => handlePickTypedDoc(field)}
+                    compact
+                    style={styles.addButton}
+                  >
+                    {t('documents.upload')}
+                  </Button>
+                )}
+              </View>
+            );
+          })}
+        </Card.Content>
+      </Card>
+
 
       <SectionLabel title={t('customFiles.sectionTitle')} />
       <Card style={styles.card} mode="outlined">
@@ -265,8 +364,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   loadingRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
     paddingVertical: spacing.sm,
+  },
+  typedDoc: {
+    gap: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  typedChip: {
+    alignSelf: 'flex-start',
   },
   addButton: {
     alignSelf: 'flex-start',

@@ -223,7 +223,9 @@ export function PropertyDetailScreen() {
               onStateChange={setTxTabState}
             />
           )}
-          {shownTab === 'documents' && <PropertyDocumentsTab property={property} />}
+          {shownTab === 'documents' && (
+            <PropertyDocumentsTab property={property} onPropertyChange={setProperty} />
+          )}
         </View>
       </View>
     </ScreenContainer>
