@@ -465,13 +465,14 @@
   "empty": {
     "noProperties": "No properties yet. Tap + to add one.",
     "noRenters": "No renters yet. Tap + to add one.",
-    "noSearchResults": "No renters match your search.",
-    "noPropertySearchResults": "No properties match your search.",
-    "noSupplierSearchResults": "No suppliers match your search.",
+    "noSearchResults": "No renters match these filters.",
+    "noPropertySearchResults": "No properties match these filters.",
+    "noSupplierSearchResults": "No suppliers match these filters.",
     "noTransactions": "No transactions yet. Tap + to add one.",
     "noTransactionSearchResults": "No transactions match your search.",
     "noRevenueThisPeriod": "No revenue in this period.",
-    "noExpenseThisPeriod": "No expenses in this period."
+    "noExpenseThisPeriod": "No expenses in this period.",
+    "clearFilters": "Clear filters"
   },
   "search": {
     "placeholder": "Search renters, property, owner...",
@@ -492,7 +493,11 @@
     "category": "Category",
     "supplier": "Supplier",
     "name": "Name",
-    "clear": "Clear filter"
+    "type": "Type",
+    "clear": "Clear filter",
+    "searchIn": "Search {{name}}...",
+    "clearAll": "Clear all",
+    "clearOne": "Clear {{name}} filter"
   },
   "common": {
     "back": "Back",

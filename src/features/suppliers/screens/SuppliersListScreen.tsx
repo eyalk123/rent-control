@@ -18,11 +18,10 @@ import {
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
-  FilterChipsBar,
+  FilterBar,
   FilterChip,
   FilterBottomSheet,
   FilterOption,
-  ActiveFilterPills,
 } from '@/src/shared/components/ui';
 import { useSuppliersList } from '@/src/features/suppliers/hooks/useSuppliersList';
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
@@ -121,6 +120,13 @@ export function SuppliersListScreen() {
     ],
     [t, nameOptions, categoryOptions, nameFilter, categoryFilter],
   );
+
+  const hasActiveFilters = filterChips.some((c) => c.selectedLabel !== null);
+
+  const clearAllFilters = useCallback(() => {
+    setNameFilter(null);
+    setCategoryFilter(null);
+  }, []);
 
   const handleSupplierPress = (supplier: Supplier) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -231,16 +237,20 @@ export function SuppliersListScreen() {
         {/* Categories are reachable from here, which is what the tour's second step
             points at — they are also what expense reports group by. */}
         <TourAnchor id={ANCHORS.suppliersCategories}>
-          <FilterChipsBar chips={filterChips} stretch />
+          <FilterBar chips={filterChips} />
         </TourAnchor>
-        <ActiveFilterPills chips={filterChips} />
       </View>
       <TourAnchor id={ANCHORS.suppliersList} style={styles.listAnchor}>
       <FlatList
         data={filteredSuppliers}
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={
-          <EmptyState message={t('empty.noSupplierSearchResults')} icon="search" />
+          <EmptyState
+            message={t('empty.noSupplierSearchResults')}
+            icon="search"
+            actionLabel={hasActiveFilters ? t('empty.clearFilters') : undefined}
+            onAction={hasActiveFilters ? clearAllFilters : undefined}
+          />
         }
         renderItem={({ item }) => {
           const hasContact =

@@ -13,11 +13,12 @@ import {
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
-  FilterChipsBar,
+  FilterBar,
   FilterChip,
   FilterBottomSheet,
   FilterOption,
-  ActiveFilterPills,
+  FilterSegmentedControl,
+  FilterSegment,
 } from '@/src/shared/components/ui';
 import { RenterCard } from '@/src/features/renters/components/RenterCard';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
@@ -29,7 +30,7 @@ import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour } from '@/src/features/onboarding/TourController';
 
-type ActiveSheet = 'property' | 'renter' | 'owner' | 'lifecycle' | null;
+type ActiveSheet = 'property' | 'renter' | 'owner' | null;
 
 /** Which slice of the lifecycle the list is showing. Current is the default: past
  * tenants stay in the database forever, but they shouldn't crowd out the live ones. */
@@ -132,29 +133,20 @@ export function RentersListScreen() {
     return list;
   }, [renters, lifecycleFilter, propertyFilter, renterFilter, ownerFilter, ownerByPropertyId]);
 
-  const lifecycleOptions = useMemo(
+  // Three fixed options, so all three stay on screen. As a chip this filter was invisible:
+  // 'Current' is the default, so the list silently hid every past tenant behind a control
+  // that looked exactly like the ones nobody had touched.
+  const lifecycleSegments = useMemo<FilterSegment<LifecycleFilter>[]>(
     () => [
-      { id: 'current', label: t('renter.filterCurrent') },
-      { id: 'ended', label: t('renter.filterEnded') },
-      { id: 'all', label: t('renter.filterAllLeases') },
+      { value: 'current', label: t('renter.filterCurrent') },
+      { value: 'ended', label: t('renter.filterEnded') },
+      { value: 'all', label: t('renter.filterAllLeases') },
     ],
     [t],
   );
 
   const filterChips = useMemo<FilterChip[]>(
     () => [
-      {
-        key: 'lifecycle',
-        label: t('renter.filterLease'),
-        // Only shown as an active pill when it differs from the default, so the common
-        // case doesn't carry a pill that says "the usual".
-        selectedLabel:
-          lifecycleFilter === 'current'
-            ? null
-            : (lifecycleOptions.find((o) => o.id === lifecycleFilter)?.label ?? null),
-        onPress: () => setActiveSheet('lifecycle'),
-        onClear: () => setLifecycleFilter('current'),
-      },
       {
         key: 'property',
         label: t('filters.property', { defaultValue: 'Property' }),
@@ -177,8 +169,16 @@ export function RentersListScreen() {
         onClear: () => setOwnerFilter(null),
       },
     ],
-    [t, propertyOptions, renterOptions, lifecycleOptions, propertyFilter, renterFilter, ownerFilter, lifecycleFilter],
+    [t, propertyOptions, renterOptions, propertyFilter, renterFilter, ownerFilter],
   );
+
+  const hasActiveFilters = filterChips.some((c) => c.selectedLabel !== null);
+
+  const clearAllFilters = useCallback(() => {
+    setPropertyFilter(null);
+    setRenterFilter(null);
+    setOwnerFilter(null);
+  }, []);
 
   const allSelected =
     filteredRenters.length > 0 && filteredRenters.every((r) => selectedIds.has(r.id));
@@ -334,18 +334,29 @@ export function RentersListScreen() {
           </View>
         )}
         {/* The lease filter is the seed target: 'Ended' is where a departed tenant's
-            history lives, which is not guessable from the chip alone. */}
-        <TourAnchor id={ANCHORS.rentersEndedFilter}>
-          <FilterChipsBar chips={filterChips} stretch />
-        </TourAnchor>
-        <ActiveFilterPills chips={filterChips} />
+            history lives. */}
+        <FilterBar chips={filterChips}>
+          <TourAnchor id={ANCHORS.rentersEndedFilter}>
+            <FilterSegmentedControl
+              segments={lifecycleSegments}
+              value={lifecycleFilter}
+              onChange={setLifecycleFilter}
+              accessibilityLabel={t('renter.filterLease')}
+            />
+          </TourAnchor>
+        </FilterBar>
       </View>
       <TourAnchor id={ANCHORS.rentersList} style={LIST_ANCHOR}>
       <FlatList
         data={filteredRenters}
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={
-          <EmptyState message={t('empty.noSearchResults')} icon="search" />
+          <EmptyState
+            message={t('empty.noSearchResults')}
+            icon="search"
+            actionLabel={hasActiveFilters ? t('empty.clearFilters') : undefined}
+            onAction={hasActiveFilters ? clearAllFilters : undefined}
+          />
         }
         renderItem={({ item }) => (
           <RenterCard
@@ -393,14 +404,6 @@ export function RentersListScreen() {
         onManual={() => { setAddChooserOpen(false); handleAddPress(); }}
         onScan={() => { setAddChooserOpen(false); handleScanPress(); }}
         onDismiss={() => setAddChooserOpen(false)}
-      />
-      <FilterBottomSheet
-        visible={activeSheet === 'lifecycle'}
-        onDismiss={() => setActiveSheet(null)}
-        title={t('renter.filterLease')}
-        options={lifecycleOptions}
-        selectedId={lifecycleFilter}
-        onSelect={(id) => setLifecycleFilter((id as LifecycleFilter | null) ?? 'current')}
       />
       <FilterBottomSheet
         visible={activeSheet === 'property'}

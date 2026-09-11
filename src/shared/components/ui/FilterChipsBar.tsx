@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
-import React, { useImperativeHandle, useRef } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 
@@ -13,136 +14,157 @@ export interface FilterChip {
   onClear: () => void;
 }
 
-export interface FilterChipsBarHandle {
-  scrollToStart: () => void;
-}
-
 interface FilterChipsBarProps {
   chips: FilterChip[];
-  stretch?: boolean;
-  ref?: React.Ref<FilterChipsBarHandle>;
 }
 
-// React 19: ref is a plain prop — no forwardRef needed
-export const FilterChipsBar = React.memo(function FilterChipsBar({ chips, stretch, ref }: FilterChipsBarProps) {
+/** Two or more active filters and it stops being obvious what is narrowing the list. */
+const CLEAR_ALL_THRESHOLD = 2;
+
+/**
+ * The filter chips, wrapping onto as many rows as they need.
+ *
+ * Deliberately not a horizontal scroller. A chip carries its value once it is set, so it grows
+ * from a short field name to a whole address and shoves everything after it - which left the
+ * last chip cut mid-word against the card edge, and on Transactions left the Supplier filter
+ * permanently off screen. Wrapping means nothing is ever cut and nothing can scroll out of
+ * reach; the cost is a taller card, which is visible and predictable.
+ */
+export const FilterChipsBar = React.memo(function FilterChipsBar({ chips }: FilterChipsBarProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const colors = theme.dark ? darkColors : lightColors;
-  const scrollRef = useRef<ScrollView>(null);
 
-  useImperativeHandle(ref, () => ({
-    scrollToStart: () => {
-      if (!stretch) scrollRef.current?.scrollTo({ x: 0, animated: false });
-    },
-  }), [stretch]);
+  const activeChips = chips.filter((c) => c.selectedLabel !== null);
 
-  const chipElements = chips.map((chip) => {
-    const active = chip.selectedLabel !== null;
-    return (
-      <Pressable
-        key={chip.key}
-        onPress={() => {
-          Haptics.selectionAsync();
-          chip.onPress();
-        }}
-        style={({ pressed }) => [
-          styles.chip,
-          stretch && styles.chipStretch,
-          {
-            backgroundColor: active ? colors.primary : 'transparent',
-            borderColor: active ? colors.primary : colors.outline,
-            opacity: pressed ? 0.8 : 1,
-          },
-        ]}
-      >
-        <Text
-          style={[
-            styles.chipLabel,
-            stretch && styles.chipLabelStretch,
-            { color: active ? colors.onPrimary : colors.textSecondary },
-          ]}
-          numberOfLines={1}
-        >
-          {chip.label}
-        </Text>
-        {active ? (
-          <Pressable
-            onPress={(e) => {
-              e.stopPropagation();
-              Haptics.selectionAsync();
-              chip.onClear();
-            }}
-            hitSlop={8}
-            style={styles.iconBtn}
-          >
-            <Icon name="x" size={12} color={colors.onPrimary} />
-          </Pressable>
-        ) : (
-          <View style={styles.iconBtn}>
-            <Icon name="chevron-down" size={12} color={colors.textSecondary} />
-          </View>
-        )}
-      </Pressable>
-    );
-  });
-
-  if (stretch) {
-    return <View style={styles.stretchRow}>{chipElements}</View>;
-  }
+  // An active chip is tinted rather than filled: it carries a whole address or name, and a
+  // solid navy band that wide outweighs everything else on the screen.
+  //
+  // The label and outline are textPrimary, not primary. Dark-mode primary (#3E6FA8) over this
+  // tint measures 2.64:1 for the label and 2.78:1 for the outline - under the 4.5:1 text floor
+  // and the 3:1 floor for a control. textPrimary gives 12.1:1 light and 11.6:1 dark, and the
+  // tint keeps the navy without depending on it to be legible.
+  const activeBg = colors.primary + '14';
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.content}
-      style={styles.scroll}
-    >
-      {chipElements}
-    </ScrollView>
+    <View style={styles.wrap}>
+      {chips.map((chip) => {
+        const active = chip.selectedLabel !== null;
+        return (
+          <Pressable
+            key={chip.key}
+            onPress={() => {
+              Haptics.selectionAsync();
+              chip.onPress();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={active ? `${chip.label}: ${chip.selectedLabel}` : chip.label}
+            style={({ pressed }) => [
+              styles.chip,
+              {
+                backgroundColor: active ? activeBg : 'transparent',
+                borderColor: active ? colors.textPrimary : colors.outline,
+                borderWidth: active ? 1.5 : 1,
+                opacity: pressed ? 0.8 : 1,
+              },
+            ]}
+          >
+            {/* The value, not the field name: a chip reading "Property" cannot tell you which
+                property, which is what the separate pill row used to be there to say. */}
+            <Text
+              style={[
+                styles.chipLabel,
+                active && styles.chipLabelActive,
+                { color: active ? colors.textPrimary : colors.textSecondary },
+              ]}
+              numberOfLines={1}
+            >
+              {active ? chip.selectedLabel : chip.label}
+            </Text>
+            {active ? (
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation();
+                  Haptics.selectionAsync();
+                  chip.onClear();
+                }}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('filters.clearOne', { name: chip.label })}
+                style={styles.iconBtn}
+              >
+                <Icon name="x" size={13} color={colors.textPrimary} />
+              </Pressable>
+            ) : (
+              <View style={styles.iconBtn}>
+                <Icon name="chevron-down" size={13} color={colors.textSecondary} />
+              </View>
+            )}
+          </Pressable>
+        );
+      })}
+      {activeChips.length >= CLEAR_ALL_THRESHOLD ? (
+        <Pressable
+          onPress={() => {
+            Haptics.selectionAsync();
+            activeChips.forEach((c) => c.onClear());
+          }}
+          accessibilityRole="button"
+          hitSlop={6}
+          style={({ pressed }) => [styles.clearAll, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Text style={[styles.clearAllLabel, { color: colors.textSecondary }]}>
+            {t('filters.clearAll')}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 });
 
 const styles = StyleSheet.create({
-  scroll: {
-    flexGrow: 0,
-  },
-  content: {
-    gap: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  stretchRow: {
+  wrap: {
     flexDirection: 'row',
-    gap: 6,
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.sm,
     paddingVertical: spacing.xs,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    paddingLeft: 10,
-    paddingRight: 8,
+    minHeight: 36,
+    paddingVertical: 7,
+    paddingStart: 12,
+    paddingEnd: 9,
     borderRadius: 999,
-    borderWidth: 1,
-    gap: 4,
-    maxWidth: 140,
-  },
-  chipStretch: {
-    flex: 1,
-    maxWidth: undefined,
-    paddingVertical: 10,
-    borderWidth: 1.5,
+    gap: 5,
+    // A value longer than the card still truncates rather than forcing a horizontal overflow.
+    maxWidth: '100%',
   },
   chipLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     flexShrink: 1,
   },
-  chipLabelStretch: {
-    fontSize: 14,
+  chipLabelActive: {
     fontWeight: '700',
   },
   iconBtn: {
     padding: 1,
+  },
+  clearAll: {
+    minHeight: 36,
+    justifyContent: 'center',
+    // Auto margin takes the free space left on whatever row it lands on, so it sits at the far
+    // end rather than butting up against the last chip.
+    marginStart: 'auto',
+    paddingHorizontal: spacing.xs,
+  },
+  clearAllLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });

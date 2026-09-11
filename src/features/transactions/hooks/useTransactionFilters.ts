@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePropertyContext, useLanguageContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
@@ -7,10 +7,7 @@ import {
   currentMonthKey,
   monthYearLabel,
 } from '@/src/features/transactions/utils/aggregate';
-import type {
-  FilterChip,
-  FilterChipsBarHandle,
-} from '@/src/features/transactions/components/list/FilterChipsBar';
+import type { FilterChip } from '@/src/features/transactions/components/list/FilterChipsBar';
 import type { FilterOption } from '@/src/features/transactions/components/list/FilterBottomSheet';
 import type { TransactionTypeFilter } from '@/src/features/transactions/components/list/TypeFilterChips';
 
@@ -30,8 +27,6 @@ export function useTransactionFilters() {
   const [supplierFilter, setSupplierFilter] = useState<number | null>(null);
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
-
-  const filterChipsRef = useRef<FilterChipsBarHandle>(null);
 
   const propertyOptions = useMemo<FilterOption[]>(() => {
     const seen = new Map<number, string>();
@@ -174,7 +169,6 @@ export function useTransactionFilters() {
     setActiveSheet,
     typeFilter,
     setTypeFilter,
-    filterChipsRef,
     propertyOptions,
     renterOptions,
     ownerOptions,
