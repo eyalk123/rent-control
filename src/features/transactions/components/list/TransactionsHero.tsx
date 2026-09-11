@@ -88,7 +88,7 @@ export const TransactionsHero = React.memo(function TransactionsHero({ bucket, l
         maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
         style={[styles.bigNumber, { color: numberColor, lineHeight: bigLineHeight }]}
       >
-        {`${sign}${amount}`}
+        {`‪${sign}${amount}‬`}
       </Text>
       <View style={styles.statsRow}>
         <View style={styles.stat}>

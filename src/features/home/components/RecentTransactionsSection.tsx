@@ -52,7 +52,7 @@ export function RecentTransactionsSection({ items }: RecentTransactionsSectionPr
               </View>
               <View style={styles.right}>
                 <Text style={[styles.amount, { color: amountColor }]}>
-                  {`${sign}${formatMoney(item.amount)}`}
+                  {`‪${sign}${formatMoney(item.amount)}‬`}
                 </Text>
                 <Text style={[styles.date, { color: colors.textSecondary }]}>
                   {formatPaymentDate(item.date_of_payment, i18n.language)}

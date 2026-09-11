@@ -22,7 +22,7 @@ export function ExpiringLeasesCard({ items }: ExpiringLeasesCardProps) {
   const colors = theme.dark ? darkColors : lightColors;
 
   const badgeColor = colors.warning;
-  const badgeBg = theme.dark ? 'rgba(194,149,67,0.18)' : 'rgba(212,162,76,0.15)';
+  const badgeBg = colors.accentBg;
 
   return (
     <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>

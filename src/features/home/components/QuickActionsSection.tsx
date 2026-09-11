@@ -22,7 +22,10 @@ export function QuickActionsSection() {
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
 
-  const accentBg = theme.dark ? 'rgba(194,149,67,0.15)' : 'rgba(212,162,76,0.12)';
+  // 0.28, not 0.15: this tint sits over the card, and once the dark surfaces lost their
+  // heavy navy saturation the mustard and the ground cancelled to a flat grey (hue 60,
+  // sat 2.7%). 0.28 restores the warm cast at the same chroma the blue ground used to give.
+  const accentBg = theme.dark ? 'rgba(194,149,67,0.28)' : 'rgba(212,162,76,0.12)';
 
   // Fixed LTR order regardless of language: property, renter, transaction, supplier
   const actions: ActionButton[] = [

@@ -453,8 +453,9 @@ export function NeedsAttentionSection() {
   const previewItems = allItems.slice(0, PREVIEW_LIMIT);
   const hasMore = allItems.length > PREVIEW_LIMIT;
 
-  const amberBg = theme.dark ? 'rgba(194,149,67,0.18)' : 'rgba(212,162,76,0.15)';
-  const primaryBg = theme.dark ? 'rgba(62,111,168,0.18)' : 'rgba(30,58,95,0.10)';
+  const amberBg = colors.accentBg;
+  // primaryBg was rgba(62,111,168,...) - the *old* dark primary, stale since the palette change.
+  const primaryBg = colors.primaryBg;
   const neutralBg = theme.dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
   // WhatsApp's own green, so the action is recognisable at a glance.
   const waBg = theme.dark ? 'rgba(37,211,102,0.20)' : 'rgba(37,211,102,0.16)';

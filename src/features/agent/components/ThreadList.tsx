@@ -104,7 +104,7 @@ export function ThreadList() {
     return <EmptyState message={t('agent.historyEmpty')} icon="message-square" />;
   }
 
-  const activeBg = theme.dark ? 'rgba(194,149,67,0.15)' : 'rgba(212,162,76,0.12)';
+  const activeBg = colors.accentBg;
 
   return (
     <ScrollView

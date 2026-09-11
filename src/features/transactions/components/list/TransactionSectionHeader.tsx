@@ -26,7 +26,7 @@ export function TransactionSectionHeader({ title, profit, anchorId }: Transactio
         {title}
       </Text>
       <Text style={[styles.sectionProfit, { color }]}>
-        {`${sign}${formatMoney(Math.abs(profit))}`}
+        {`‪${sign}${formatMoney(Math.abs(profit))}‬`}
       </Text>
     </View>
   );

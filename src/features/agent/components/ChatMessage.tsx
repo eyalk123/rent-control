@@ -69,7 +69,7 @@ export const ChatMessage = React.memo(function ChatMessage({
   const assistantBg = theme.dark ? darkColors.surfaceElevated : lightColors.surface;
   const bg = isUser ? c.primary : errorOnly ? c.errorContainer : assistantBg;
   const fg = isUser ? c.onPrimary : errorOnly ? c.onErrorContainer : c.onSurface;
-  const accentBg = theme.dark ? 'rgba(194,149,67,0.15)' : 'rgba(212,162,76,0.12)';
+  const accentBg = colors.accentBg;
 
   return (
     // Assistant/error bubbles stretch so wide Markdown tables keep their scroll width.

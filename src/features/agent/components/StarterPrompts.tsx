@@ -28,7 +28,7 @@ export function StarterPrompts() {
   const { isRtl } = useLanguageContext();
   const rtlLabelStyle = useRtlLabelStyle();
   const { send } = useAgentChat();
-  const accentBg = theme.dark ? 'rgba(194,149,67,0.15)' : 'rgba(212,162,76,0.12)';
+  const accentBg = colors.accentBg;
 
   return (
     <ScrollView
