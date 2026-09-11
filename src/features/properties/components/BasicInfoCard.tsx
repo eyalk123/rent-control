@@ -3,6 +3,8 @@ import type { Control, FieldValues } from "react-hook-form";
 import { HelperText } from "react-native-paper";
 import {
   FormSectionCard,
+  FormRow,
+  FormSubheading,
   FormTextField,
   FormNumericField,
   FormDropdownOptions,
@@ -43,7 +45,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   const rtlPlaceholder = useRtlPlaceholder();
   const { properties } = usePropertyContext();
   const translateTypeLabel = (type: PropertyType) => {
-    const key = type.split('_').map((w, i) => i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w.charAt(0).toUpperCase() + w.slice(1)).join('');
+    const key = type.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('');
     return t(`property.type${key}`);
   };
 
@@ -69,72 +71,78 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
     [translateTypeLabel, t],
   );
 
-  const addressFields = [
-    { name: "address", labelKey: "property.address", required: true as const },
-  ] as const;
-
-  const cityField = { name: "city", labelKey: "property.city", required: true as const };
-
-  const numericFields = [
-    {
-      name: "zipCode",
-      labelKey: "property.zipCode",
-      keyboardType: "numeric" as const,
-    },
-    {
-      name: "sqFt",
-      labelKey: "property.sqFt",
-      keyboardType: "numeric" as const,
-    },
-  ];
-
+  // Order follows how someone describes a property out loud - street, then town, then which
+  // unit - rather than the column order of the table behind it. It used to run address,
+  // floor, apartment, city, block, plot, owner, zip, type, size, with City fourth and Zip
+  // four fields away from it.
   return (
     <FormSectionCard
       title={t("property.basicInfo")}
       subtitle={t("property.basicInfoSubtitle")}
     >
-      {addressFields.map((f) => (
-        <FormTextField
-          key={f.name}
-          control={control}
-          name={f.name as any}
-          label={t(f.labelKey)}
-          required={f.required}
-        />
-      ))}
+      <FormTextField
+        control={control}
+        name={"address" as any}
+        label={t("property.address")}
+        required
+      />
       {addressEvidence ? (
         <HelperText type="info" visible>
           {t("documentScan.addressEvidence", { snippet: addressEvidence })}
         </HelperText>
       ) : null}
-      <FormNumericField
+      <FormRow>
+        <FormTextField
+          control={control}
+          name={"city" as any}
+          label={t("property.city")}
+          required
+        />
+        <FormNumericField
+          control={control}
+          name={"zipCode" as any}
+          label={t("property.zipCode")}
+          keyboardType="numeric"
+        />
+      </FormRow>
+      <FormRow>
+        <FormNumericField
+          control={control}
+          name={"floor" as any}
+          label={t("property.floor")}
+          keyboardType="numeric"
+        />
+        <FormTextField
+          control={control}
+          name={"apartment" as any}
+          label={t("property.apartment")}
+        />
+      </FormRow>
+
+      <FormSubheading title={t("property.landRegistry")} />
+      <FormRow>
+        <FormNumericField
+          control={control}
+          name={"block" as any}
+          label={t("property.block")}
+          keyboardType="numeric"
+        />
+        <FormNumericField
+          control={control}
+          name={"plot" as any}
+          label={t("property.plot")}
+          keyboardType="numeric"
+        />
+      </FormRow>
+
+      <FormSubheading title={t("property.details")} />
+      <FormDropdownOptions
         control={control}
-        name={"floor" as any}
-        label={t("property.floor")}
-        keyboardType="numeric"
-      />
-      <FormTextField
-        control={control}
-        name={"apartment" as any}
-        label={t("property.apartment")}
-      />
-      <FormTextField
-        control={control}
-        name={cityField.name as any}
-        label={t(cityField.labelKey)}
-        required={cityField.required}
-      />
-      <FormNumericField
-        control={control}
-        name={"block" as any}
-        label={t("property.block")}
-        keyboardType="numeric"
-      />
-      <FormNumericField
-        control={control}
-        name={"plot" as any}
-        label={t("property.plot")}
-        keyboardType="numeric"
+        name={"type" as any}
+        label={t("property.type")}
+        options={propertyTypeOptions}
+        placeholder={rtlPlaceholder(t("property.typePlaceholder"))}
+        required
       />
       <TourAnchor id={ANCHORS.propertyFormOwnerField}>
         <FormCreatableDropdown
@@ -150,29 +158,10 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
       </TourAnchor>
       <FormNumericField
         control={control}
-        name={"zipCode" as any}
-        label={t("property.zipCode")}
+        name={"sqFt" as any}
+        label={t("property.sqFt")}
         keyboardType="numeric"
       />
-      <FormDropdownOptions
-        control={control}
-        name={"type" as any}
-        label={t("property.type")}
-        options={propertyTypeOptions}
-        placeholder={rtlPlaceholder(t("property.typePlaceholder"))}
-        required
-      />
-      {numericFields
-        .filter((f) => f.name !== "zipCode")
-        .map((f) => (
-          <FormNumericField
-            key={f.name}
-            control={control}
-            name={f.name as any}
-            label={t(f.labelKey)}
-            keyboardType={f.keyboardType}
-          />
-        ))}
       <PropertyHouseImageField
         imageUrl={imageUri}
         onChangeImageUrl={setImageUri}

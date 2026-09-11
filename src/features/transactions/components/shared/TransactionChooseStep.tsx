@@ -20,10 +20,8 @@ export function TransactionChooseStep({
 
   return (
     <View style={styles.chooseContainer}>
-      <Text variant="headlineMedium" style={styles.chooseTitle}>
-        {t('transactions.addTransaction', { defaultValue: 'Add transaction' })}
-      </Text>
-      <Text style={styles.chooseSubtitle}>
+      {/* No title here: FormHeader carries it, like every other add/edit form. */}
+      <Text style={[styles.chooseSubtitle, { color: colors.textSecondary }]}>
         {t('transactions.chooseType', { defaultValue: 'What kind of transaction do you want to add?' })}
       </Text>
       <View style={styles.chooseButtonRow}>
@@ -68,17 +66,20 @@ export function TransactionChooseStep({
 
 const styles = StyleSheet.create({
   chooseContainer: {
+    // Centred on purpose. This is the one screen in the add/edit stack that is not a form -
+    // nothing to fill in, nothing to scroll - so the form rule of top-aligning content does
+    // not apply, and two primary targets pinned under the header would sit in the hardest
+    // part of a tall screen to reach one-handed.
+    // 0.8, not 1: centring in the full remaining height pushes the pair below the optical
+    // centre now that the header takes space off the top.
     flex: 0.8,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  chooseTitle: {
-    fontWeight: '700',
-    fontSize: 24,
-    marginBottom: spacing.sm,
-  },
   chooseSubtitle: {
+    fontSize: 15,
     marginBottom: spacing.lg,
+    textAlign: 'center',
   },
   chooseButtonRow: {
     flexDirection: 'row',

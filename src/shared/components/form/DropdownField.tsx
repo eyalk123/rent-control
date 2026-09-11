@@ -9,18 +9,12 @@ import {
 import { Text, useTheme } from "react-native-paper";
 import { Dropdown } from "react-native-element-dropdown";
 import { useTranslation } from "react-i18next";
-import {
-  useLanguageContext,
-  useRtlInputStyle,
-  useRtlLabelStyle,
-} from "@/src/core/context";
-import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import { useLanguageContext, useRtlInputStyle } from "@/src/core/context";
+import { darkColors, lightColors } from "@/src/core/theme";
 import { sortOptions } from "@/src/shared/utils/sortOptions";
-import {
-  FieldReviewNotice,
-  useDismissFieldReview,
-  useFieldReview,
-} from "./FieldReviewContext";
+import { useDismissFieldReview } from "./FieldReviewContext";
+import { FormField } from "./FormField";
+import { useFieldSurface } from "./fieldSurface";
 
 export type DropdownItem<T extends string | number | null = string> = {
   label: string;
@@ -65,15 +59,13 @@ export function DropdownField<T extends string | number | null>({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
-  const rtlLabelStyle = useRtlLabelStyle();
   const { isRtl, language } = useLanguageContext();
   const items = useMemo(
     () => (sorted ? sortOptions(data, language) : data),
     [data, sorted, language],
   );
-  const review = useFieldReview(reviewName);
   const dismissReview = useDismissFieldReview();
-  const flagged = !!review && !error;
+  const surface = useFieldSurface({ error: !!error, disabled });
 
   const renderItem = useCallback(
     (item: DropdownItem<T>) => (
@@ -97,30 +89,25 @@ export function DropdownField<T extends string | number | null>({
   );
 
   return (
-    <View style={[styles.inputWrap, inputStyle]}>
-      {label ? (
-        <View style={styles.labelRow}>
-          <Text
-            variant="bodyMedium"
-            style={[
-              styles.label,
-              rtlLabelStyle,
-              { color: error ? colors.error : colors.textPrimary },
-            ]}
-            numberOfLines={1}
-          >
-            {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
-          </Text>
-        </View>
-      ) : null}
-
+    <FormField
+      label={label}
+      required={required}
+      error={error}
+      reviewName={reviewName}
+      style={inputStyle}
+    >
       <View style={{ direction: "ltr" }}>
       <Dropdown
         data={items}
         labelField="label"
         valueField="value"
         value={value}
-        placeholder={placeholder ?? t("common.selectItem")}
+        placeholder={
+          placeholder ??
+          (label
+            ? t("common.selectNamed", { name: label })
+            : t("common.selectItem"))
+        }
         disable={disabled}
         autoScroll={false}
         mode="default"
@@ -153,16 +140,7 @@ export function DropdownField<T extends string | number | null>({
           },
         ]}
         itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
-        style={[
-          styles.dropdown,
-          {
-            backgroundColor: disabled
-              ? colors.inputFilledBackground
-              : colors.inputFilledBackground,
-            borderColor: error ? colors.error : colors.outline,
-            opacity: disabled ? 0.6 : 1,
-          },
-        ]}
+        style={surface}
         containerStyle={[
           styles.dropdownContainer,
           {
@@ -177,51 +155,15 @@ export function DropdownField<T extends string | number | null>({
         renderItem={renderItem}
       />
       </View>
-
-      {error?.message ? (
-        <Text
-          variant="bodySmall"
-          style={[styles.errorText, { color: colors.error }]}
-        >
-          {t(error.message, { defaultValue: error.message })}
-        </Text>
-      ) : null}
-      {flagged ? <FieldReviewNotice source={review!.source} /> : null}
-    </View>
+    </FormField>
   );
 }
 
 const styles = StyleSheet.create({
-  inputWrap: {
-    marginBottom: spacing.md,
-  },
-  labelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 4,
-  },
-  label: {
-    fontWeight: "500",
-    flexShrink: 1,
-  },
-  asterisk: {
-    color: "#B85450",
-    fontWeight: "500",
-  },
-  errorText: {
-    marginTop: 4,
-  },
-  dropdown: {
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 48,
-  },
   dropdownContainer: {
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: 12,
+    overflow: "hidden",
   },
   placeholder: {
     fontSize: 16,

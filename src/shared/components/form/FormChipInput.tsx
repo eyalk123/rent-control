@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Chip, TextInput, Text, useTheme } from 'react-native-paper';
+import { Chip, TextInput, useTheme } from 'react-native-paper';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { useRtlInputStyle, useLanguageContext, useRtlLabelStyle } from '@/src/context';
+import { useRtlInputStyle, useLanguageContext } from '@/src/context';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
+import { FormField } from './FormField';
 
 type FormChipInputProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -14,6 +15,7 @@ type FormChipInputProps<TFieldValues extends FieldValues> = {
   numeric?: boolean;
   /** Keep chips sorted ascending (numerically when `numeric`, else lexically). */
   sort?: boolean;
+  required?: boolean;
 };
 
 function FormChipInputInner<TFieldValues extends FieldValues>({
@@ -23,12 +25,12 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
   placeholder,
   numeric,
   sort,
+  required,
 }: FormChipInputProps<TFieldValues>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
   const { isRtl } = useLanguageContext();
-  const rtlLabelStyle = useRtlLabelStyle();
 
   const parseChips = React.useCallback((value: unknown): string[] => {
     if (typeof value !== 'string') return [];
@@ -112,14 +114,7 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
         const chips = parseChips(value);
 
         return (
-          <View style={styles.inputWrap}>
-            <Text
-              variant="bodyMedium"
-              style={[styles.label, rtlLabelStyle]}
-              numberOfLines={1}
-            >
-              {label}
-            </Text>
+          <FormField label={label} required={required} error={error}>
             <TextInput
               value={inputValue}
               onChangeText={(text) => handleChangeText(text, value, onChange)}
@@ -158,15 +153,7 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
                 </Chip>
               ))}
             </View>
-            {error ? (
-              <Text
-                variant="bodySmall"
-                style={[styles.errorText, { color: colors.error }]}
-              >
-                {error.message}
-              </Text>
-            ) : null}
-          </View>
+          </FormField>
         );
       }}
     />
@@ -176,12 +163,6 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
 export const FormChipInput = React.memo(FormChipInputInner) as typeof FormChipInputInner;
 
 const styles = StyleSheet.create({
-  inputWrap: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    marginBottom: 4,
-  },
   chipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -191,7 +172,7 @@ const styles = StyleSheet.create({
     marginEnd: spacing.xs,
     marginBottom: spacing.xs,
     paddingHorizontal: 2,
-    height: 38,
+    minHeight: 38,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -202,10 +183,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   inputOutline: {
-    borderRadius: 4,
-  },
-  errorText: {
-    marginTop: 2,
-    marginBottom: spacing.xs,
+    borderRadius: 12,
   },
 });

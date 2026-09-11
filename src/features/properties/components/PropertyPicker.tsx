@@ -9,6 +9,7 @@ interface PropertyPickerProps {
   value: number | null;
   onChange: (id: number | null) => void;
   label?: string;
+  required?: boolean;
   inputStyle?: StyleProp<ViewStyle>;
   error?: { message?: string };
 }
@@ -17,6 +18,7 @@ export function PropertyPicker({
   value,
   onChange,
   label,
+  required,
   inputStyle,
   error,
 }: PropertyPickerProps) {
@@ -36,6 +38,7 @@ export function PropertyPicker({
 
   return (
     <DropdownField
+      required={required}
       data={data}
       value={value}
       onChange={onChange}

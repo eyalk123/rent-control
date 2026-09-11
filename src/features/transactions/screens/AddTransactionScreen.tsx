@@ -1,22 +1,17 @@
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { Button, useTheme } from 'react-native-paper';
+import { Button } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
-import { Icon, ScreenContainer } from '@/src/shared/components/ui';
-import { useLanguageContext } from '@/src/context';
+import { FormHeader, ScreenContainer } from '@/src/shared/components/ui';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { spacing } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import {
   createExpenseTransaction,
@@ -41,9 +36,6 @@ import { ExpenseForm } from '@/src/features/transactions/components/expense/Expe
 export function AddTransactionScreen() {
   const { t } = useTranslation();
   const { appAlert } = useAlert();
-  const theme = useTheme();
-  const colors = theme.dark ? darkColors : lightColors;
-  const { isRtl } = useLanguageContext();
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -179,6 +171,42 @@ export function AddTransactionScreen() {
     router.back();
   };
 
+  /**
+   * Save with nothing filled in used to do nothing visible: the errors rendered off screen
+   * and the view stayed put. Focusing the first invalid field scrolls it in, because the
+   * form sits in a KeyboardAwareScrollView. Fields in declaration order, so "first" means
+   * first on the page rather than whichever key the resolver happened to report first.
+   */
+  const focusFirstInvalid = React.useCallback(
+    (order: readonly string[], errors: Record<string, unknown>, setFocus: (n: never) => void) => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      const firstBad = order.find((f) => errors[f]);
+      if (firstBad) {
+        try {
+          setFocus(firstBad as never);
+        } catch {
+          // Not every control is focusable (dropdowns, pickers); the haptic still fires.
+        }
+      }
+    },
+    [],
+  );
+
+  const EXPENSE_FIELD_ORDER = [
+    'propertyIds',
+    'amount',
+    'dateOfPayment',
+    'paymentMethod',
+    'categoryIds',
+  ] as const;
+
+  const REVENUE_FIELD_ORDER = [
+    'propertyId',
+    'amount',
+    'monthFor',
+    'dateOfPayment',
+  ] as const;
+
   const submitExpense = expenseForm.handleSubmit(async (values) => {
     setSubmitting(true);
     try {
@@ -225,7 +253,13 @@ export function AddTransactionScreen() {
     } finally {
       setSubmitting(false);
     }
-  });
+  }, () =>
+    focusFirstInvalid(
+      EXPENSE_FIELD_ORDER,
+      expenseForm.formState.errors,
+      expenseForm.setFocus as (n: never) => void,
+    ),
+  );
 
   const submitRevenue = revenueForm.handleSubmit(async (values) => {
     if (!isEdit || !id) return;
@@ -252,7 +286,20 @@ export function AddTransactionScreen() {
     } finally {
       setSubmitting(false);
     }
-  });
+  }, () =>
+    focusFirstInvalid(
+      REVENUE_FIELD_ORDER,
+      revenueForm.formState.errors,
+      revenueForm.setFocus as (n: never) => void,
+    ),
+  );
+
+  const headerTitle =
+    mode === 'expense'
+      ? t('transactions.expenseTitle', { defaultValue: 'Expense' })
+      : mode === 'revenue'
+        ? t('transactions.revenueTitle', { defaultValue: 'Revenue' })
+        : t('transactions.addTransaction', { defaultValue: 'Add transaction' });
 
   const saveLabel = isEdit
     ? t('transactions.updateTransaction', { defaultValue: 'Update Transaction' })
@@ -263,25 +310,11 @@ export function AddTransactionScreen() {
   return (
     <ScreenContainer>
       <View style={styles.wrapper}>
-        <View
-          style={[
-            styles.header,
-            { flexDirection: isRtl ? 'row-reverse' : 'row' },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={handleBack}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityLabel={t('common.back')}
-            accessibilityRole="button"
-          >
-            <Icon
-              name={isRtl ? 'chevron-right' : 'chevron-left'}
-              size={24}
-              color={colors.textSecondary}
-            />
-          </TouchableOpacity>
-          <View style={styles.headerSpacer} />
+        {/* The same header the property and renter forms wear. This screen used to show a
+            lone back chevron with its title buried in the first card, and the chooser had no
+            header at all. */}
+        <View style={styles.headerWrap}>
+          <FormHeader title={headerTitle} onBack={handleBack} />
         </View>
 
         {!isEdit && mode === 'choose' && (
@@ -369,13 +402,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.formPaddingHorizontal,
     paddingTop: spacing.sm,
   },
-  header: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  headerWrap: {
     marginBottom: spacing.sm,
-  },
-  headerSpacer: {
-    width: 28,
   },
   fixedButtonBar: {
     paddingTop: spacing.sm,

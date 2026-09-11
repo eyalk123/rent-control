@@ -5,7 +5,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Icon, ScreenContainer, StepHeader } from '@/src/shared/components/ui';
+import { Icon, ScreenContainer, FormHeader } from '@/src/shared/components/ui';
 import { useAlert } from '@/src/core/context';
 import { usePropertyContext } from '@/src/context';
 import { spacing } from '@/src/core/theme';
@@ -167,7 +167,7 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
   return (
     <ScreenContainer>
       <View style={styles.content}>
-        <StepHeader title={t('documentScan.title')} currentStep={1} totalSteps={1} onBack={() => router.back()} />
+        <FormHeader title={t('documentScan.title')} onBack={() => router.back()} />
         {busy ? (
           <View style={styles.center}>
             <ActivityIndicator animating size="large" color={theme.colors.primary} />

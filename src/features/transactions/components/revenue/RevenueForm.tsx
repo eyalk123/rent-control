@@ -13,7 +13,7 @@ import {
 } from '@/src/shared/components/form';
 
 import type { RevenueFormValues } from '@/src/features/transactions/screens/types';
-import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
+import { PaymentMethodField } from '@/src/shared/components/form';
 
 type RevenueFormProps = {
   control: Control<RevenueFormValues>;
@@ -49,6 +49,7 @@ export function RevenueForm({
                 autoFillRevenueForProperty(id);
               }}
               label={t('transactions.property', { defaultValue: 'Property' })}
+              required
             />
           )}
         />
@@ -69,11 +70,13 @@ export function RevenueForm({
           control={control}
           name="amount"
           label={t('transactions.amount', { defaultValue: 'Amount' })}
+          required
         />
         <FormWheelDateField
           control={control}
           name="monthFor"
           label={t('transactions.monthForLabel', { defaultValue: 'Month' })}
+          required
           placeholder={t('transactions.monthForPlaceholder', { defaultValue: 'Month, Year' })}
           mode="monthYear"
         />
@@ -81,19 +84,20 @@ export function RevenueForm({
           control={control}
           name="dateOfPayment"
           label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
+          required
           mode="full"
         />
         <Controller
           control={control}
           name="paymentMethod"
           render={({ field: { value, onChange } }) => (
-            <PaymentMethodRadios value={value} onChange={onChange} />
+            <PaymentMethodField value={value} onChange={onChange} />
           )}
         />
         <FormTextField
           control={control}
           name="notes"
-          label={t('transactions.notes', { defaultValue: 'Notes (optional)' })}
+          label={t('transactions.notes', { defaultValue: 'Notes' })}
         />
       </FormSectionCard>
     </FormScrollView>

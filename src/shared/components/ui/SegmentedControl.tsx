@@ -1,7 +1,7 @@
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { Text, useTheme } from "react-native-paper";
-import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import { darkColors, lightColors, spacing, MAX_CHROME_FONT_SCALE } from "@/src/core/theme";
 import { useLanguageContext, useRtlLabelStyle } from "@/src/core/context";
 
 export type Segment<T extends string> = {
@@ -20,6 +20,8 @@ type SegmentedControlProps<T extends string> = {
    * short segment sets keep their tidy even columns.
    */
   fitContent?: boolean;
+  /** Override the default bottom margin when the control is already inside a FormField. */
+  style?: StyleProp<ViewStyle>;
 };
 
 function SegmentedControlInner<T extends string>({
@@ -28,6 +30,7 @@ function SegmentedControlInner<T extends string>({
   onChange,
   label,
   fitContent = false,
+  style,
 }: SegmentedControlProps<T>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -35,11 +38,11 @@ function SegmentedControlInner<T extends string>({
   const rtlLabelStyle = useRtlLabelStyle();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       {label ? (
         <Text
           variant="bodyMedium"
-          style={[styles.label, rtlLabelStyle, { color: colors.textPrimary }]}
+          style={[styles.label, rtlLabelStyle, { color: colors.fieldLabel }]}
         >
           {label}
         </Text>
@@ -50,8 +53,12 @@ function SegmentedControlInner<T extends string>({
           styles.track,
           {
             flexDirection: isRtl ? "row-reverse" : "row",
-            backgroundColor: colors.inputFilledBackground,
-            borderColor: colors.outline,
+            // Unfilled, like every other field. The track used to be inputFilledBackground,
+            // which put the inactive labels on a surface where textSecondary measured
+            // 4.36:1 - under the 4.5:1 text floor. On the card behind it they read 4.83:1,
+            // and the control stops being the only filled box on an otherwise outlined form.
+            backgroundColor: "transparent",
+            borderColor: colors.inputBorder,
           },
         ]}
       >
@@ -70,6 +77,7 @@ function SegmentedControlInner<T extends string>({
               accessibilityState={{ selected: active }}
             >
               <Text
+                maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
                 numberOfLines={1}
                 style={[
                   styles.segmentText,
@@ -95,8 +103,10 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: spacing.md,
   },
+  // Matches form/FormField: one label treatment across every control on a form card.
   label: {
-    marginBottom: 6,
+    marginBottom: 5,
+    fontSize: 14,
     fontWeight: "500",
   },
   track: {

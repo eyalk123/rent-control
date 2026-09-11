@@ -7,7 +7,7 @@ import * as Haptics from "expo-haptics";
 import {
   LoadingOverlay,
   ScreenContainer,
-  StepHeader,
+  FormHeader,
   Stepper,
   Icon,
 } from "@/src/shared/components/ui";
@@ -321,7 +321,7 @@ export function ExtendLeaseScreen() {
 
   // forceRTL is set but the app never reloads, so native layout isn't actually mirrored:
   // a plain "row" stays visually LTR and an explicit textAlign: "right" gets flipped left by
-  // the RTL flag. So we derive direction from `isRtl` (like StepHeader/Stepper) and let text
+  // the RTL flag. So we derive direction from `isRtl` (like FormHeader/Stepper) and let text
   // fall back to the default "auto" alignment, which aligns Hebrew to the right correctly.
   const rowDirection = isRtl ? ("row-reverse" as const) : ("row" as const);
 
@@ -338,7 +338,7 @@ export function ExtendLeaseScreen() {
       <View style={styles.wrapper}>
         <FormScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
           <ExtendLeaseTourRequest />
-          <StepHeader
+          <FormHeader
             title={t("renter.extendLeaseTitle")}
             subtitle={renter ? `${renter.first_name} ${renter.last_name}` : undefined}
             currentStep={1}

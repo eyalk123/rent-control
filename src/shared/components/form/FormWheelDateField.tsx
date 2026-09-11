@@ -2,19 +2,14 @@ import React, { useMemo, useState } from 'react';
 import type { Control, FieldValues, Path } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { useTranslation } from 'react-i18next';
 import WheelPicker from '@quidone/react-native-wheel-picker';
 import { Button, Text, useTheme } from 'react-native-paper';
-import {
-  useLanguageContext,
-  useRtlLabelStyle,
-} from '@/src/context';
+import { useLanguageContext } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import {
-  FieldReviewNotice,
-  useDismissFieldReview,
-  useFieldReview,
-} from './FieldReviewContext';
+import { Icon } from '@/src/shared/components/ui/Icon';
+import { useDismissFieldReview, useFieldReview } from './FieldReviewContext';
+import { FormField } from './FormField';
+import { useFieldSurface } from './fieldSurface';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -30,6 +25,7 @@ type FormWheelDateFieldProps<TFieldValues extends FieldValues> = {
   mode?: WheelDateMode;
   minYear?: number;
   maxYear?: number;
+  required?: boolean;
 };
 
 type WheelItem = { value: number; label: string };
@@ -152,12 +148,13 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
   mode = 'full',
   minYear,
   maxYear,
+  required,
 }: FormWheelDateFieldProps<TFieldValues>) {
   const theme = useTheme();
-  const { t } = useTranslation();
   const colors = theme.dark ? darkColors : lightColors;
-  const rtlLabelStyle = useRtlLabelStyle();
   const { language, isRtl } = useLanguageContext();
+  const surface = useFieldSurface();
+  const errorSurface = useFieldSurface({ error: true });
   const locale = toBcp47(language);
   const review = useFieldReview(name);
   const dismissReview = useDismissFieldReview();
@@ -189,7 +186,6 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
       name={name}
       render={({ field: { value, onChange }, fieldState: { error } }) => {
         const valueStr = (value as string) ?? '';
-        const flagged = !!review && !error;
 
         const displayText =
           mode === 'full'
@@ -199,40 +195,26 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
               : displayDay(valueStr);
 
         return (
-          <View style={styles.inputWrap}>
-            <View style={styles.labelRow}>
-              <Text
-                variant="bodyMedium"
-                style={[
-                  styles.label,
-                  rtlLabelStyle,
-                  { color: error ? colors.error : colors.textPrimary },
-                ]}
-                numberOfLines={1}
-              >
-                {label}
-              </Text>
-            </View>
+          <FormField label={label} required={required} error={error} reviewName={name}>
             <Pressable
               onPress={() => setShowPicker(true)}
-              style={[
-                styles.touchable,
-                {
-                  backgroundColor: colors.inputFilledBackground,
-                  borderColor: error ? colors.error : colors.outline,
-                },
-              ]}
+              accessibilityRole="button"
+              accessibilityLabel={`${label}: ${displayText || defaultPlaceholder}`}
+              style={[error ? errorSurface : surface, styles.row]}
             >
               <Text
                 variant="bodyLarge"
                 style={[
                   styles.valueText,
-                  { color: displayText ? colors.textPrimary : colors.textSecondary },
+                  { color: displayText ? colors.textPrimary : colors.placeholder },
                 ]}
                 numberOfLines={1}
               >
                 {displayText || defaultPlaceholder}
               </Text>
+              {/* Without this the control was a filled box with text in it and nothing to
+                  say it opened a picker - identical to a text field. */}
+              <Icon name="calendar" size={18} color={colors.textSecondary} />
             </Pressable>
 
             {showPicker && (
@@ -253,18 +235,7 @@ export function FormWheelDateField<TFieldValues extends FieldValues>({
               />
             )}
 
-            {error ? (
-              <Text
-                variant="bodySmall"
-                style={[styles.errorText, { color: colors.error }]}
-              >
-                {/* Zod messages are i18n keys (e.g. "validation.paymentDayInvalid"); fall
-                    back to the raw string so a non-key message still renders. */}
-                {t(error.message ?? '', { defaultValue: error.message ?? '' })}
-              </Text>
-            ) : null}
-            {flagged ? <FieldReviewNotice source={review!.source} /> : null}
-          </View>
+          </FormField>
         );
       }}
     />
@@ -417,32 +388,14 @@ function WheelDateModal({
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
-  inputWrap: {
-    marginBottom: spacing.md,
-  },
-  labelRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
-  label: {
-    fontWeight: '500',
-    flexShrink: 1,
-  },
-  touchable: {
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 40,
-    justifyContent: 'center',
+    gap: spacing.sm,
   },
   valueText: {
     fontSize: 16,
-  },
-  errorText: {
-    marginTop: 4,
+    flex: 1,
   },
   modalOverlay: {
     flex: 1,

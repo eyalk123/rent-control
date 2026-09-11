@@ -1,4 +1,4 @@
-import { LoadingOverlay, ScreenContainer, StepHeader } from "@/src/shared/components/ui";
+import { LoadingOverlay, ScreenContainer, FormHeader } from "@/src/shared/components/ui";
 import { usePropertyContext } from "@/src/context";
 import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm";
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
@@ -82,7 +82,7 @@ export function AddEditPropertyScreen() {
     },
   });
 
-  const { formState, control, trigger } = formMethods;
+  const { formState, control, trigger, setFocus } = formMethods;
   const [step, setStep] = React.useState<"basic" | "lease">("basic");
   // Derived, never written: `useTourStep` goes null the moment the tour ends and the form is
   // back on whichever page the user was actually filling in, with nothing to restore. It also
@@ -121,14 +121,20 @@ export function AddEditPropertyScreen() {
     router.back();
   };
 
+  const PAGE_ONE_REQUIRED = ["address", "city", "type"] as const;
+
   const onPressNext = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const isValid = await trigger([
-      "address",
-      "city",
-      "type",
-    ]);
-    if (!isValid) return;
+    const isValid = await trigger([...PAGE_ONE_REQUIRED]);
+    if (!isValid) {
+      // Tapping Next from the bottom of the form used to do nothing you could see: the errors
+      // appeared off screen and the view stayed put. Focusing the first bad field scrolls it
+      // into view, because the whole form sits in a KeyboardAwareScrollView.
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      const firstBad = PAGE_ONE_REQUIRED.find((f) => formState.errors[f]);
+      if (firstBad) setFocus(firstBad);
+      return;
+    }
     setStep("lease");
   };
 
@@ -153,10 +159,10 @@ export function AddEditPropertyScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <FieldReviewProvider items={scan?.propertyReview}>
-          {/* Anchored here rather than inside StepHeader: the header is shared with the
+          {/* Anchored here rather than inside FormHeader: the header is shared with the
               renter form, and an anchor key must belong to exactly one screen. */}
           <TourAnchor id={ANCHORS.propertyFormStepper}>
-            <StepHeader
+            <FormHeader
               title={isEdit ? t("property.updateProperty") : t("property.addProperty")}
               currentStep={shownStep === "basic" ? 1 : 2}
               totalSteps={2}

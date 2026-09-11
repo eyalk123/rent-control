@@ -1,11 +1,9 @@
-import {
-  useLanguageContext,
-  useRtlInputStyle,
-  useRtlLabelStyle,
-} from "@/src/core/context";
+import { useLanguageContext, useRtlInputStyle } from "@/src/core/context";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
 import { Icon } from "@/src/shared/components/ui";
 import { sortLabels } from "@/src/shared/utils/sortOptions";
+import { FormField } from "./FormField";
+import { useFieldSurface } from "./fieldSurface";
 import React, { useMemo, useState } from "react";
 import {
   Controller,
@@ -44,6 +42,7 @@ type FormCreatableDropdownProps<TFieldValues extends FieldValues> = {
   createLabel: string;
   createModalTitle: string;
   createModalPlaceholder?: string;
+  required?: boolean;
 };
 
 export function FormCreatableDropdown<TFieldValues extends FieldValues>({
@@ -55,13 +54,15 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
   createLabel,
   createModalTitle,
   createModalPlaceholder,
+  required,
 }: FormCreatableDropdownProps<TFieldValues>) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
   const { isRtl, language } = useLanguageContext();
-  const rtlLabelStyle = useRtlLabelStyle();
+  const surface = useFieldSurface();
+  const errorSurface = useFieldSurface({ error: true });
   const sortedOptions = useMemo(() => sortLabels(options, language), [options, language]);
 
   const [menuVisible, setMenuVisible] = useState(false);
@@ -89,19 +90,7 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
         };
 
         return (
-          <View style={styles.inputWrap}>
-            <Text
-              variant="bodyMedium"
-              style={[
-                styles.label,
-                rtlLabelStyle,
-                { color: error ? colors.error : colors.textPrimary },
-              ]}
-              numberOfLines={1}
-            >
-              {label}
-            </Text>
-
+          <FormField label={label} required={required} error={error} reviewName={name}>
             <View style={{ direction: "ltr" }}>
               <Menu
                 visible={menuVisible}
@@ -110,13 +99,7 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
                   <Pressable
                     onPress={() => setMenuVisible(true)}
                     onLayout={(e) => setAnchorWidth(e.nativeEvent.layout.width)}
-                    style={[
-                      styles.dropdown,
-                      {
-                        backgroundColor: colors.inputFilledBackground,
-                        borderColor: error ? colors.error : colors.outline,
-                      },
-                    ]}
+                    style={[error ? errorSurface : surface, styles.dropdownRow]}
                   >
                     <Text
                       style={[
@@ -222,14 +205,7 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
               </Menu>
             </View>
 
-            {error ? (
-              <Text
-                variant="bodySmall"
-                style={[styles.errorText, { color: colors.error }]}
-              >
-                {error.message}
-              </Text>
-            ) : null}
+
 
             <Portal>
               <KeyboardAvoidingView
@@ -303,7 +279,7 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
                 </Dialog>
               </KeyboardAvoidingView>
             </Portal>
-          </View>
+          </FormField>
         );
       }}
     />
@@ -311,19 +287,7 @@ export function FormCreatableDropdown<TFieldValues extends FieldValues>({
 }
 
 const styles = StyleSheet.create({
-  inputWrap: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    marginBottom: 4,
-    fontWeight: "500",
-  },
-  dropdown: {
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 48,
+  dropdownRow: {
     flexDirection: "row",
     alignItems: "center",
   },
@@ -338,7 +302,7 @@ const styles = StyleSheet.create({
   },
   menuContent: {
     paddingVertical: 0,
-    borderRadius: 4,
+    borderRadius: 12,
     overflow: "hidden",
   },
   menuScroll: {
@@ -363,9 +327,6 @@ const styles = StyleSheet.create({
   },
   createIconRtl: {
     marginLeft: 6,
-  },
-  errorText: {
-    marginTop: 4,
   },
   keyboardAvoidingView: {
     flex: 1,

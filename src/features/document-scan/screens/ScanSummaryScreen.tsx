@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Checkbox, SegmentedButtons, Text, TextInput, useTheme } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Icon, ScreenContainer, StepHeader } from '@/src/shared/components/ui';
+import { Icon, ScreenContainer, FormHeader } from '@/src/shared/components/ui';
 import { DropdownField } from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
@@ -172,7 +172,7 @@ export function ScanSummaryScreen() {
     <ScreenContainer>
       <View style={styles.wrapper}>
         <ScrollView contentContainerStyle={styles.body}>
-          <StepHeader
+          <FormHeader
             title={t('documentScan.summaryTitle')}
             currentStep={1}
             totalSteps={1}

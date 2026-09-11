@@ -12,7 +12,7 @@ export { FilterChipsBar, type FilterChip } from './FilterChipsBar';
 export { FilterBar } from './FilterBar';
 export { FilterSegmentedControl, type FilterSegment } from './FilterSegmentedControl';
 export { FilterBottomSheet, type FilterOption } from './FilterBottomSheet';
-export { StepHeader } from './StepHeader';
+export { FormHeader } from './FormHeader';
 export { Stepper } from './Stepper';
 export { SegmentedControl, type Segment } from './SegmentedControl';
 export { StatBox } from './StatBox';

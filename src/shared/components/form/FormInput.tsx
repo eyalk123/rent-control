@@ -1,10 +1,8 @@
 import {
   useLanguageContext,
   useRtlInputStyle,
-  useRtlLabelStyle,
 } from "@/src/core/context";
-import { useTranslation } from "react-i18next";
-import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import { darkColors, lightColors } from "@/src/core/theme";
 import React from "react";
 import {
   Controller,
@@ -18,12 +16,10 @@ import {
   View,
   TextInput as RNTextInput,
 } from "react-native";
-import { Text, useTheme } from "react-native-paper";
-import {
-  FieldReviewNotice,
-  useDismissFieldReview,
-  useFieldReview,
-} from "./FieldReviewContext";
+import { useTheme } from "react-native-paper";
+import { FormField } from "./FormField";
+import { useFieldFocusShadow, useFieldSurface } from "./fieldSurface";
+import { useDismissFieldReview, useFieldReview } from "./FieldReviewContext";
 
 type FormInputProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -43,15 +39,12 @@ function FormInputInner<TFieldValues extends FieldValues>({
   placeholder,
   keyboardType,
   multiline,
-  dense = true,
   required,
 }: FormInputProps<TFieldValues>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
   const { isRtl } = useLanguageContext();
-  const rtlLabelStyle = useRtlLabelStyle();
-  const { t } = useTranslation();
   const inputRef = React.useRef<RNTextInput>(null);
   const [isFocused, setIsFocused] = React.useState(false);
   const review = useFieldReview(name);
@@ -62,86 +55,99 @@ function FormInputInner<TFieldValues extends FieldValues>({
       control={control}
       name={name}
       render={({
-        field: { value, onChange, onBlur },
+        field: { value, onChange, onBlur, ref: rhfRef },
         fieldState: { error },
       }) => {
-        // Don't double-decorate when the field is in an error state.
-        const flagged = !!review && !error;
         const handleChange = (text: string) => {
           onChange(text);
           if (review) dismissReview?.(name);
         };
         return (
-        <View style={styles.inputWrap}>
-          <View style={styles.labelRow}>
-            <Text
-              variant="bodyMedium"
-              style={[styles.label, rtlLabelStyle, { color: error ? colors.error : colors.textPrimary }]}
-              numberOfLines={1}
-            >
-              {label}{required ? <Text style={styles.asterisk}> *</Text> : null}
-            </Text>
-          </View>
-
-          <View>
-            <RNTextInput
-              ref={inputRef}
-              value={value as string}
-              onChangeText={handleChange}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => {
-                setIsFocused(false);
-                onBlur();
-              }}
-              keyboardType={keyboardType}
-              multiline={multiline}
-              placeholder={placeholder}
-              placeholderTextColor={colors.textSecondary}
-              textAlign={isRtl ? "right" : "left"}
-              // Disable OS autofill / keyboard strong-password + contact suggestions on all
-              // property/renter/transaction fields (values must not leak between forms).
-              autoComplete="off"
-              autoCorrect={false}
-              importantForAutofill="no"
-              textContentType="none"
-              style={[
-                styles.nativeInput,
-                {
-                  backgroundColor: isFocused
-                    ? colors.inputBackground
-                    : colors.inputFilledBackground,
-                  borderColor: isFocused
-                    ? colors.primary
-                    : error
-                    ? colors.error
-                    : colors.outline,
-                  borderWidth: isFocused ? 2 : 1,
-                  color: colors.textPrimary,
-                },
-                isFocused && styles.focusShadow,
-                rtlInputStyle,
-              ]}
-            />
-            {!isFocused && (
-              <Pressable
-                style={StyleSheet.absoluteFill}
-                onPress={() => inputRef.current?.focus()}
+          <FormField label={label} required={required} error={error} reviewName={name}>
+            <View>
+              <FieldBox
+                inputRef={inputRef}
+                rhfRef={rhfRef}
+                value={value as string}
+                onChangeText={handleChange}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                  setIsFocused(false);
+                  onBlur();
+                }}
+                focused={isFocused}
+                hasError={!!error}
+                keyboardType={keyboardType}
+                multiline={multiline}
+                placeholder={placeholder}
+                placeholderColor={colors.placeholder}
+                textColor={colors.textPrimary}
+                isRtl={isRtl}
+                rtlInputStyle={rtlInputStyle}
               />
-            )}
-          </View>
-
-          {error ? (
-            <Text
-              variant="bodySmall"
-              style={[styles.errorText, { color: colors.error }]}
-            >
-              {t(error.message!, { defaultValue: error.message })}
-            </Text>
-          ) : null}
-          {flagged ? <FieldReviewNotice source={review!.source} /> : null}
-        </View>
+              {!isFocused && (
+                <Pressable
+                  style={StyleSheet.absoluteFill}
+                  onPress={() => inputRef.current?.focus()}
+                />
+              )}
+            </View>
+          </FormField>
         );
       }}
+    />
+  );
+}
+
+/** Split out so the surface hooks are not called inside a render prop. */
+function FieldBox({
+  inputRef,
+  rhfRef,
+  focused,
+  hasError,
+  placeholderColor,
+  textColor,
+  isRtl,
+  rtlInputStyle,
+  ...rest
+}: {
+  inputRef: React.RefObject<RNTextInput | null>;
+  /** RHF's own ref, so `setFocus(name)` can reach this input. */
+  rhfRef: (instance: unknown) => void;
+  focused: boolean;
+  hasError: boolean;
+  placeholderColor: string;
+  textColor: string;
+  isRtl: boolean;
+  rtlInputStyle: object;
+} & React.ComponentProps<typeof RNTextInput>) {
+  const surface = useFieldSurface({ focused, error: hasError });
+  const focusShadow = useFieldFocusShadow();
+
+  return (
+    <RNTextInput
+      ref={(el) => {
+        inputRef.current = el;
+        rhfRef?.(el);
+      }}
+      textAlignVertical={rest.multiline ? "top" : "center"}
+      placeholderTextColor={placeholderColor}
+      textAlign={isRtl ? "right" : "left"}
+      // Disable OS autofill / keyboard strong-password + contact suggestions on all
+      // property/renter/transaction fields (values must not leak between forms).
+      autoComplete="off"
+      autoCorrect={false}
+      importantForAutofill="no"
+      textContentType="none"
+      {...rest}
+      style={[
+        surface,
+        styles.text,
+        { color: textColor },
+        rest.multiline && styles.multiline,
+        focused && focusShadow,
+        rtlInputStyle,
+      ]}
     />
   );
 }
@@ -149,38 +155,11 @@ function FormInputInner<TFieldValues extends FieldValues>({
 export const FormInput = React.memo(FormInputInner) as typeof FormInputInner;
 
 const styles = StyleSheet.create({
-  inputWrap: {
-    marginBottom: spacing.md,
-  },
-  labelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 4,
-  },
-  label: {
-    fontWeight: "500",
-    flexShrink: 1,
-  },
-  asterisk: {
-    color: "#B85450",
-    fontWeight: "500",
-  },
-  nativeInput: {
-    borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+  text: {
     fontSize: 16,
-    minHeight: 48,
   },
-  focusShadow: {
-    shadowColor: "rgba(30,58,95,1)",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  errorText: {
-    marginTop: 4,
+  multiline: {
+    minHeight: 96,
+    justifyContent: "flex-start",
   },
 });

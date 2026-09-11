@@ -9,6 +9,7 @@ interface RenterPickerProps {
   value: number | null;
   onChange: (id: number | null) => void;
   label?: string;
+  required?: boolean;
   inputStyle?: StyleProp<ViewStyle>;
   allowNone?: boolean;
   disabled?: boolean;
@@ -20,6 +21,7 @@ export function RenterPicker({
   value,
   onChange,
   label,
+  required,
   inputStyle,
   allowNone = true,
   disabled = false,
@@ -43,6 +45,7 @@ export function RenterPicker({
 
   return (
     <DropdownField
+      required={required}
       data={data}
       value={value}
       onChange={onChange}

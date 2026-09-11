@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import type { Control, FieldValues, Path } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
-import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button, Text, useTheme } from 'react-native-paper';
-import { useRtlLabelStyle } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { Icon } from '@/src/shared/components/ui/Icon';
+import { FormField } from './FormField';
+import { useFieldSurface } from './fieldSurface';
 
 type FormMonthYearPickerFieldProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
   name: Path<TFieldValues>;
   label: string;
   placeholder?: string;
+  required?: boolean;
 };
 
 /** Parse YYYY-MM-DD or YYYY-MM to Date (first of month). */
@@ -47,10 +50,12 @@ export function FormMonthYearPickerField<TFieldValues extends FieldValues>({
   name,
   label,
   placeholder = 'Month, Year',
+  required,
 }: FormMonthYearPickerFieldProps<TFieldValues>) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
-  const rtlLabelStyle = useRtlLabelStyle();
+  const surface = useFieldSurface();
+  const errorSurface = useFieldSurface({ error: true });
   const [showPicker, setShowPicker] = useState(false);
 
   return (
@@ -75,38 +80,24 @@ export function FormMonthYearPickerField<TFieldValues extends FieldValues>({
         };
 
         return (
-          <View style={styles.inputWrap}>
-            <Text
-              variant="bodyMedium"
-              style={[
-                styles.label,
-                rtlLabelStyle,
-                { color: error ? colors.error : colors.textPrimary },
-              ]}
-              numberOfLines={1}
-            >
-              {label}
-            </Text>
+          <FormField label={label} required={required} error={error}>
             <Pressable
               onPress={() => setShowPicker(true)}
-              style={[
-                styles.touchable,
-                {
-                  backgroundColor: colors.inputFilledBackground,
-                  borderColor: error ? colors.error : colors.outline,
-                },
-              ]}
+              accessibilityRole="button"
+              accessibilityLabel={`${label}: ${displayText || placeholder}`}
+              style={[error ? errorSurface : surface, styles.row]}
             >
               <Text
                 variant="bodyLarge"
                 style={[
                   styles.valueText,
-                  { color: displayText ? colors.textPrimary : colors.textSecondary },
+                  { color: displayText ? colors.textPrimary : colors.placeholder },
                 ]}
                 numberOfLines={1}
               >
                 {displayText || placeholder}
               </Text>
+              <Icon name="calendar" size={18} color={colors.textSecondary} />
             </Pressable>
             {showPicker && (
               Platform.OS === 'android' ? (
@@ -140,15 +131,7 @@ export function FormMonthYearPickerField<TFieldValues extends FieldValues>({
                 </Modal>
               )
             )}
-            {error ? (
-              <Text
-                variant="bodySmall"
-                style={[styles.errorText, { color: colors.error }]}
-              >
-                {error.message}
-              </Text>
-            ) : null}
-          </View>
+          </FormField>
         );
       }}
     />
@@ -156,26 +139,14 @@ export function FormMonthYearPickerField<TFieldValues extends FieldValues>({
 }
 
 const styles = StyleSheet.create({
-  inputWrap: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    marginBottom: 4,
-    fontWeight: '500',
-  },
-  touchable: {
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 40,
-    justifyContent: 'center',
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   valueText: {
     fontSize: 16,
-  },
-  errorText: {
-    marginTop: 4,
+    flex: 1,
   },
   modalOverlay: {
     flex: 1,

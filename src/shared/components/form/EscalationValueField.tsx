@@ -34,7 +34,7 @@ function EscalationValueFieldInner({ mode, value, onChangeText, onBlur, label }:
         {label ?? t("renter.yearlyIncrease")}
       </Text>
       <View
-        style={[styles.affixInput, { borderColor: colors.outline, backgroundColor: colors.inputFilledBackground }]}
+        style={[styles.affixInput, { borderColor: colors.inputBorder, backgroundColor: 'transparent' }]}
       >
         {mode === "fixed" ? <Text style={[styles.affix, { color: colors.textSecondary }]}>₪</Text> : null}
         <RNTextInput

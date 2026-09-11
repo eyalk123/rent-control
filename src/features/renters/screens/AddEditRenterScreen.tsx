@@ -1,4 +1,4 @@
-import { LoadingOverlay, ScreenContainer, StepHeader } from "@/src/shared/components/ui";
+import { LoadingOverlay, ScreenContainer, FormHeader } from "@/src/shared/components/ui";
 import { useRenterContext, usePropertyContext } from "@/src/context";
 import { useWatch } from "react-hook-form";
 import { useRenterForm } from "@/src/features/renters/hooks/useRenterForm";
@@ -234,7 +234,7 @@ export function AddEditRenterScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <FieldReviewProvider items={current?.review}>
-          <StepHeader
+          <FormHeader
             title={isEdit ? t("renter.updateRenter") : t("renter.addRenter")}
             currentStep={shownStep === "basic" ? 1 : 2}
             totalSteps={2}

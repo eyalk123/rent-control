@@ -32,7 +32,7 @@ function LeaseYearAmountFieldInner({ value, onChangeText, onBlur, placeholder = 
       placeholderTextColor={colors.textSecondary}
       style={[
         styles.input,
-        { borderColor: colors.outline, backgroundColor: colors.inputFilledBackground, color: colors.textPrimary },
+        { borderColor: colors.inputBorder, backgroundColor: 'transparent', color: colors.textPrimary },
         rtlInputStyle,
       ]}
     />

@@ -45,7 +45,7 @@ function useDropdownTheme() {
   return {
     style: [
       styles.dropdown,
-      { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
+      { backgroundColor: 'transparent', borderColor: colors.inputBorder },
     ],
     containerStyle: [
       styles.dropdownContainer,
@@ -228,15 +228,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   dropdown: {
-    borderWidth: 1,
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    minHeight: 44,
+    minHeight: 48,
   },
   dropdownContainer: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   dropdownText: {
     fontSize: 15,

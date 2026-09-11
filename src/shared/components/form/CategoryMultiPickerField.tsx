@@ -1,8 +1,4 @@
-import {
-  useLanguageContext,
-  useRtlInputStyle,
-  useRtlLabelStyle,
-} from '@/src/core/context';
+import { useLanguageContext, useRtlInputStyle } from '@/src/core/context';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui';
@@ -10,6 +6,8 @@ import { createExpenseCategory } from '@/src/features/transactions/api/transacti
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
 import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
 import { sortOptions } from '@/src/shared/utils/sortOptions';
+import { FormField } from './FormField';
+import { useFieldSurface } from './fieldSurface';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -40,6 +38,7 @@ interface CategoryMultiPickerFieldProps {
   label?: string;
   error?: { message?: string };
   inputStyle?: StyleProp<ViewStyle>;
+  required?: boolean;
 }
 
 export function CategoryMultiPickerField({
@@ -48,13 +47,14 @@ export function CategoryMultiPickerField({
   label,
   error,
   inputStyle,
+  required,
 }: CategoryMultiPickerFieldProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
-  const rtlLabelStyle = useRtlLabelStyle();
   const { isRtl, language } = useLanguageContext();
+  const surface = useFieldSurface({ error: !!error });
 
   const { categories, loading, refreshCategories } = useExpenseCategories();
 
@@ -195,28 +195,20 @@ export function CategoryMultiPickerField({
   );
 
   return (
-    <View style={[styles.inputWrap, inputStyle]}>
-      {label ? (
-        <Text
-          variant="bodyMedium"
-          style={[
-            styles.label,
-            rtlLabelStyle,
-            { color: error ? colors.error : colors.textPrimary },
-          ]}
-          numberOfLines={1}
-        >
-          {label}
-        </Text>
-      ) : null}
-
+    <FormField label={label} required={required} error={error} style={inputStyle}>
       <View style={{ direction: 'ltr' }}>
         <MultiSelect
           data={availableData}
           labelField="label"
           valueField="value"
           value={[]}
-          placeholder={loading ? t('common.loading', { defaultValue: 'Loading…' }) : t('common.selectItem')}
+          placeholder={
+            loading
+              ? t('common.loading', { defaultValue: 'Loading…' })
+              : label
+                ? t('common.selectNamed', { name: label })
+                : t('common.selectItem')
+          }
           renderRightIcon={isRtl ? () => null : undefined}
           renderLeftIcon={
             isRtl
@@ -246,13 +238,7 @@ export function CategoryMultiPickerField({
             },
           ]}
           itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
-          style={[
-            styles.dropdown,
-            {
-              backgroundColor: colors.inputFilledBackground,
-              borderColor: error ? colors.error : colors.outline,
-            },
-          ]}
+          style={surface}
           containerStyle={[
             styles.dropdownContainer,
             {
@@ -287,12 +273,6 @@ export function CategoryMultiPickerField({
             </Chip>
           ))}
         </ScrollView>
-      ) : null}
-
-      {error?.message ? (
-        <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>
-          {t(error.message, { defaultValue: error.message })}
-        </Text>
       ) : null}
 
       <Portal>
@@ -367,7 +347,7 @@ export function CategoryMultiPickerField({
           </Dialog>
         </KeyboardAvoidingView>
       </Portal>
-    </View>
+    </FormField>
   );
 }
 
@@ -376,26 +356,13 @@ const CHIP_GAP = 6;
 const MAX_CHIP_ROWS = 3;
 
 const styles = StyleSheet.create({
-  inputWrap: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    marginBottom: 4,
-    fontWeight: '500',
-  },
   errorText: {
     marginTop: 4,
   },
-  dropdown: {
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 48,
-  },
   dropdownContainer: {
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   placeholder: {
     fontSize: 16,
@@ -427,7 +394,7 @@ const styles = StyleSheet.create({
     gap: CHIP_GAP,
   },
   chip: {
-    borderRadius: 20,
+    borderRadius: 999,
   },
   keyboardAvoidingView: {
     flex: 1,

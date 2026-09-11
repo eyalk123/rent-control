@@ -40,7 +40,7 @@ function StepperInner({
       {label ? (
         <Text
           variant="bodyMedium"
-          style={[styles.label, rtlLabelStyle, { color: colors.textPrimary }]}
+          style={[styles.label, rtlLabelStyle, { color: colors.fieldLabel }]}
         >
           {label}
         </Text>
@@ -55,8 +55,8 @@ function StepperInner({
             styles.control,
             {
               flexDirection: rowDirection,
-              borderColor: colors.outline,
-              backgroundColor: colors.inputFilledBackground,
+              borderColor: colors.inputBorder,
+              backgroundColor: "transparent",
             },
           ]}
         >
@@ -136,8 +136,10 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: spacing.md,
   },
+  // Matches form/FormField: one label treatment across every control on a form card.
   label: {
-    marginBottom: 6,
+    marginBottom: 5,
+    fontSize: 14,
     fontWeight: "500",
   },
   row: {
@@ -184,7 +186,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     minWidth: 36,
-    height: 36,
+    minHeight: 36,
     paddingHorizontal: spacing.sm,
     borderRadius: 18,
     borderWidth: 1,

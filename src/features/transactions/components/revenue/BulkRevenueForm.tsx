@@ -227,7 +227,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   return (
     <View style={styles.container}>
       <FormScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <FormSectionCard title={t('transactions.revenueTitle', { defaultValue: 'Revenue' })}>
+        <FormSectionCard title={t('transactions.details', { defaultValue: 'Details' })}>
           <BulkRevenueOwnerFilter
             ownerOptions={ownerOptions}
             ownerFilter={ownerFilter}

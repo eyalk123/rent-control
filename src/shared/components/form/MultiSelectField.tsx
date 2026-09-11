@@ -10,14 +10,12 @@ import {
 import { Chip, Text, useTheme } from "react-native-paper";
 import { MultiSelect } from "react-native-element-dropdown";
 import { useTranslation } from "react-i18next";
-import {
-  useLanguageContext,
-  useRtlInputStyle,
-  useRtlLabelStyle,
-} from "@/src/core/context";
-import { darkColors, lightColors, spacing } from "@/src/core/theme";
+import { useLanguageContext, useRtlInputStyle } from "@/src/core/context";
+import { darkColors, lightColors } from "@/src/core/theme";
 import { sortOptions } from "@/src/shared/utils/sortOptions";
 import type { DropdownItem } from "./DropdownField";
+import { FormField } from "./FormField";
+import { useFieldSurface } from "./fieldSurface";
 
 const SELECT_ALL_VALUE = "__select_all__";
 
@@ -30,6 +28,7 @@ interface MultiSelectFieldProps<T extends string | number> {
   error?: { message?: string };
   disabled?: boolean;
   inputStyle?: StyleProp<ViewStyle>;
+  required?: boolean;
 }
 
 export function MultiSelectField<T extends string | number>({
@@ -41,13 +40,14 @@ export function MultiSelectField<T extends string | number>({
   error,
   disabled = false,
   inputStyle,
+  required,
 }: MultiSelectFieldProps<T>) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
-  const rtlLabelStyle = useRtlLabelStyle();
   const { isRtl, language } = useLanguageContext();
+  const surface = useFieldSurface({ error: !!error, disabled });
 
   const stringValue = useMemo(() => value.map((v) => String(v)), [value]);
 
@@ -112,28 +112,19 @@ export function MultiSelectField<T extends string | number>({
   );
 
   return (
-    <View style={[styles.inputWrap, inputStyle]}>
-      {label ? (
-        <Text
-          variant="bodyMedium"
-          style={[
-            styles.label,
-            rtlLabelStyle,
-            { color: error ? colors.error : colors.textPrimary },
-          ]}
-          numberOfLines={1}
-        >
-          {label}
-        </Text>
-      ) : null}
-
+    <FormField label={label} required={required} error={error} style={inputStyle}>
       <View style={{ direction: "ltr" }}>
         <MultiSelect
           data={availableData}
           labelField="label"
           valueField="value"
           value={[]}
-          placeholder={placeholder ?? t("common.selectItem")}
+          placeholder={
+            placeholder ??
+            (label
+              ? t("common.selectNamed", { name: label })
+              : t("common.selectItem"))
+          }
           disable={disabled}
           renderRightIcon={isRtl ? () => null : undefined}
           renderLeftIcon={
@@ -164,16 +155,7 @@ export function MultiSelectField<T extends string | number>({
             },
           ]}
           itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
-          style={[
-            styles.dropdown,
-            {
-              backgroundColor: disabled
-                ? colors.inputBackground
-                : colors.inputFilledBackground,
-              borderColor: error ? colors.error : colors.outline,
-              opacity: disabled ? 0.6 : 1,
-            },
-          ]}
+          style={surface}
           containerStyle={[
             styles.dropdownContainer,
             {
@@ -211,15 +193,7 @@ export function MultiSelectField<T extends string | number>({
         </ScrollView>
       ) : null}
 
-      {error?.message ? (
-        <Text
-          variant="bodySmall"
-          style={[styles.errorText, { color: colors.error }]}
-        >
-          {error.message}
-        </Text>
-      ) : null}
-    </View>
+    </FormField>
   );
 }
 
@@ -228,26 +202,10 @@ const CHIP_GAP = 6;
 const MAX_CHIP_ROWS = 3;
 
 const styles = StyleSheet.create({
-  inputWrap: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    marginBottom: 4,
-    fontWeight: "500",
-  },
-  errorText: {
-    marginTop: 4,
-  },
-  dropdown: {
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 48,
-  },
   dropdownContainer: {
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: 12,
+    overflow: "hidden",
   },
   placeholder: {
     fontSize: 16,
@@ -272,6 +230,6 @@ const styles = StyleSheet.create({
     gap: CHIP_GAP,
   },
   chip: {
-    borderRadius: 20,
+    borderRadius: 999,
   },
 });

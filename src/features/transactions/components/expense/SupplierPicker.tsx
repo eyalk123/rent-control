@@ -9,6 +9,7 @@ interface SupplierPickerProps {
   value: number | null;
   onChange: (id: number | null) => void;
   label?: string;
+  required?: boolean;
   inputStyle?: StyleProp<ViewStyle>;
   allowNone?: boolean;
 }
@@ -18,6 +19,7 @@ export function SupplierPicker({
   value,
   onChange,
   label,
+  required,
   inputStyle,
   allowNone = true,
 }: SupplierPickerProps) {
@@ -42,6 +44,7 @@ export function SupplierPicker({
 
   return (
     <DropdownField
+      required={required}
       data={data}
       value={value}
       onChange={onChange}

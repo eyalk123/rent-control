@@ -25,12 +25,25 @@ export const lightColors = {
   // Text
   textPrimary: "#1A2D4A",
   textSecondary: "#6B7280",
-  placeholder: "#A8AFBA",
+  // The label on a form field. Not textSecondary: at label size that measures APCA Lc 74
+  // against a card, where 14px/500 wants ~94, and in an empty dropdown the label is doing
+  // real work. Lc 91.5 / 9.33:1 here, still a clear step below textPrimary (Lc 100) so the
+  // value stays the darkest thing in the field.
+  fieldLabel: "#3A4760",
+  // A placeholder sits below the label on purpose - Lc 80 against the label's 91 and the
+  // value's 100. The old #A8AFBA measured 2.21:1 on white and Lc 44.
+  placeholder: "#5A6372",
 
   // Inputs
   inputBackground: "#FFFFFF",
   inputFilledBackground: "#F6F3EC", // lighter, slightly cooler — distinct from card bg
-  inputBorder: "rgba(26,45,74,0.18)",
+  // The resting outline of a field. WCAG 1.4.11 asks 3:1 for the boundary of a control, and
+  // an unfilled field has nothing else to mark its edge: 3.07:1 on a card, 3.02:1 on cream.
+  // The old 0.18 measured 1.33:1 and the fields read as smudges.
+  inputBorder: "rgba(26,45,74,0.51)",
+  // Focus. Navy at full strength is 11.5:1 on a card and 3.75:1 against the resting outline,
+  // so the ring reads as a state change and not just a darker line.
+  inputBorderFocus: "#1E3A5F",
 
   // Lines / shadows
   outline: "rgba(26,45,74,0.10)",
@@ -87,12 +100,21 @@ export const darkColors = {
   textPrimary: "#F1ECDF",
   textSecondary: "rgba(241,236,223,0.66)",
   textDisabled: "rgba(241,236,223,0.38)",
-  placeholder: "rgba(241,236,223,0.45)",
+  // Reverse polarity caps what is reachable here: even full cream is only Lc 92, so the
+  // label sits near the top of the range at 0.90 (Lc 80) rather than mid-way. At the old
+  // 0.66 a field label measured Lc 52 - the worst legibility regression in either theme.
+  fieldLabel: "rgba(241,236,223,0.90)",
+  placeholder: "rgba(241,236,223,0.70)",
 
   // Inputs
   inputBackground: "#172A44",
   inputFilledBackground: "#1F3556",
-  inputBorder: "rgba(241,236,223,0.20)",
+  // 3.04:1 on a card, 3.17:1 on the page. The old 0.20 measured 2.06:1 — and nothing used
+  // this token anyway; the fields were drawing themselves with `outline` at 1.63:1.
+  inputBorder: "rgba(241,236,223,0.38)",
+  // Not `primary`: #3E6FA8 on the dark card is 2.79:1, under the 3:1 a focus ring owes. This
+  // is 5.30:1 and clearly brighter than the resting grey outline.
+  inputBorderFocus: "#6BA0DC",
 
   // Lines
   outline: "rgba(241,236,223,0.12)",

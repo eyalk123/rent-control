@@ -19,7 +19,7 @@ import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
 import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
 import type { PaymentMethod } from '@/src/shared/types';
-import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
+import { PaymentMethodField } from '@/src/shared/components/form';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour } from '@/src/features/onboarding/TourController';
@@ -67,9 +67,7 @@ export function ExpenseForm({
       style={styles.scrollView}
       contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
     >
-      <FormSectionCard
-        title={t('transactions.expenseTitle', { defaultValue: 'Expense' })}
-      >
+      <FormSectionCard title={t('transactions.details', { defaultValue: 'Details' })}>
         {/* Multi-select, and the expense tour seeds why: several properties split one
             bill evenly between them. */}
         <TourAnchor id={ANCHORS.expensePropertyPicker}>
@@ -83,6 +81,7 @@ export function ExpenseForm({
                 onChange={onChange}
                 label={t('transactions.property', { defaultValue: 'Property' })}
                 error={errors?.propertyIds}
+                required
               />
             )}
           />
@@ -95,7 +94,7 @@ export function ExpenseForm({
               propertyId={renterPropertyId}
               value={renterDisabled ? null : value}
               onChange={onChange}
-              label={t('transactions.renterOptional', { defaultValue: 'Renter (optional)' })}
+              label={t('transactions.renter', { defaultValue: 'Renter' })}
               allowNone
               disabled={renterDisabled}
             />
@@ -105,18 +104,25 @@ export function ExpenseForm({
           control={control}
           name="amount"
           label={t('transactions.amount', { defaultValue: 'Amount' })}
+          required
         />
         <FormWheelDateField
           control={control}
           name="dateOfPayment"
           label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
           mode="full"
+          required
         />
         <Controller
           control={control}
           name="paymentMethod"
           render={({ field: { value, onChange } }) => (
-            <PaymentMethodRadios value={value as PaymentMethod | ''} onChange={onChange} />
+            <PaymentMethodField
+              value={value as PaymentMethod | ''}
+              onChange={onChange}
+              error={errors?.paymentMethod}
+              required
+            />
           )}
         />
         <TourAnchor id={ANCHORS.expenseCategoryField}>
@@ -132,6 +138,7 @@ export function ExpenseForm({
                 }}
                 label={t('transactions.category', { defaultValue: 'Category' })}
                 error={errors?.categoryIds}
+                required
               />
             )}
           />
@@ -152,7 +159,7 @@ export function ExpenseForm({
         <FormTextField
           control={control}
           name="notes"
-          label={t('transactions.notes', { defaultValue: 'Notes (optional)' })}
+          label={t('transactions.notes', { defaultValue: 'Notes' })}
         />
         <FormSingleFileField
           control={control}

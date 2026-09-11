@@ -13,7 +13,7 @@ import { Controller, type Control, type UseFormSetValue, type FieldErrors } from
 import { useTranslation } from 'react-i18next';
 import { usePropertyContext } from '@/src/context';
 import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
-import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
+import { PaymentMethodField } from '@/src/shared/components/form';
 import type { RevenueFormValues } from '@/src/features/transactions/screens/types';
 import type { PaymentMethod } from '@/src/shared/types';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
@@ -49,7 +49,7 @@ export function SingleRevenueForm({
       style={styles.scrollView}
       contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
     >
-      <FormSectionCard title={t('transactions.revenueTitle', { defaultValue: 'Revenue' })}>
+      <FormSectionCard title={t('transactions.details', { defaultValue: 'Details' })}>
         <Controller
           control={control}
           name="propertyId"
@@ -60,6 +60,7 @@ export function SingleRevenueForm({
               onChange={onChange}
               label={t('transactions.property', { defaultValue: 'Property' })}
               error={errors?.propertyId}
+              required
             />
           )}
         />
@@ -71,7 +72,7 @@ export function SingleRevenueForm({
               propertyId={propertyId}
               value={value}
               onChange={onChange}
-              label={t('transactions.renterOptional', { defaultValue: 'Renter (optional)' })}
+              label={t('transactions.renter', { defaultValue: 'Renter' })}
               allowNone
             />
           )}
@@ -80,30 +81,33 @@ export function SingleRevenueForm({
           control={control}
           name="amount"
           label={t('transactions.amount', { defaultValue: 'Amount' })}
+          required
         />
         <FormMonthYearPickerField
           control={control}
           name="monthFor"
           label={t('transactions.monthForLabel', { defaultValue: 'Month' })}
+          required
           placeholder={t('transactions.monthForPlaceholder', { defaultValue: 'Month, Year' })}
         />
         <FormWheelDateField
           control={control}
           name="dateOfPayment"
           label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
+          required
           mode="full"
         />
         <Controller
           control={control}
           name="paymentMethod"
           render={({ field: { value, onChange } }) => (
-            <PaymentMethodRadios value={value as PaymentMethod | ''} onChange={onChange} />
+            <PaymentMethodField value={value as PaymentMethod | ''} onChange={onChange} />
           )}
         />
         <FormTextField
           control={control}
           name="notes"
-          label={t('transactions.notes', { defaultValue: 'Notes (optional)' })}
+          label={t('transactions.notes', { defaultValue: 'Notes' })}
         />
       </FormSectionCard>
     </FormScrollView>

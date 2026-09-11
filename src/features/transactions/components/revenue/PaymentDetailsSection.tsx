@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Control } from 'react-hook-form';
 import { darkColors, lightColors } from '@/src/core/theme';
 import { FormWheelDateField } from '@/src/shared/components/form';
-import { PaymentMethodRadios } from '@/src/features/transactions/components/shared/PaymentMethodRadios';
+import { PaymentMethodField } from '@/src/shared/components/form';
 import type { PaymentMethod } from '@/src/shared/types';
 
 interface PaymentDetailsSectionProps {
@@ -36,7 +36,7 @@ export function PaymentDetailsSection({
         label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
         mode="full"
       />
-      <PaymentMethodRadios
+      <PaymentMethodField
         value={paymentMethod}
         onChange={onPaymentMethodChange}
       />

@@ -101,10 +101,11 @@ export default function BankAccountInput({
   const borderColor = error
     ? colors.error
     : isFocused
-    ? colors.primary
-    : colors.outline;
-  const borderWidth = isFocused ? 2 : 1;
-  const backgroundColor = isFocused ? colors.inputBackground : colors.inputFilledBackground;
+    ? colors.inputBorderFocus
+    : colors.inputBorder;
+  // Constant: growing the border on focus shifts every digit in the field sideways by a pixel.
+  const borderWidth = 1.5;
+  const backgroundColor = 'transparent';
 
   const handleFocus = () => {
     focusCount.current += 1;
@@ -280,14 +281,14 @@ const styles = StyleSheet.create({
   } as object,
   container: {
     flexDirection: 'row',
-    borderRadius: 4,
+    borderRadius: 12,
     overflow: 'hidden',
     minHeight: 48,
   },
   focusShadow: {
-    shadowColor: 'rgba(30,58,95,1)',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
+    shadowColor: lightColors.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.16,
     shadowRadius: 4,
     elevation: 2,
   },
