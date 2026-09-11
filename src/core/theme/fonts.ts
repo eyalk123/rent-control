@@ -49,3 +49,29 @@ const config = Object.fromEntries(
 );
 
 export const appFonts = configureFonts({ config });
+
+/**
+ * The same config with every variant's `lineHeight` multiplied by the system font scale.
+ *
+ * MD3 pins a fixed `lineHeight` on each variant, and React Native scales `fontSize` by the
+ * user's font-size setting but leaves `lineHeight` alone - it is a plain number. So at a large
+ * setting the glyphs grow inside a line box that does not, and every `<Text variant=...>` in
+ * the app clips horizontally through the middle of its own letters. That is what was cutting
+ * the onboarding card's body copy in half.
+ *
+ * At scale 1 this returns identical values, so normal rendering is untouched.
+ */
+export function scaleFontsLineHeight(fonts: typeof appFonts, fontScale: number): typeof appFonts {
+  if (fontScale === 1) return fonts;
+  return Object.fromEntries(
+    Object.entries(fonts).map(([variant, style]) => {
+      const s = style as { lineHeight?: number };
+      return [
+        variant,
+        typeof s.lineHeight === 'number'
+          ? { ...s, lineHeight: s.lineHeight * fontScale }
+          : style,
+      ];
+    }),
+  ) as typeof appFonts;
+}

@@ -6,10 +6,11 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { MD3Theme } from 'react-native-paper';
 import { lightTheme, darkTheme } from '@/src/core/theme';
+import { appFonts, scaleFontsLineHeight } from '@/src/core/theme/fonts';
 
 const THEME_STORAGE_KEY = 'theme_mode';
 
@@ -28,7 +29,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
   const [loaded, setLoaded] = useState(false);
 
-  const resolvedTheme =
+  const { fontScale } = useWindowDimensions();
+
+  const base =
     themeMode === 'system'
       ? systemColorScheme === 'dark'
         ? darkTheme
@@ -36,6 +39,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       : themeMode === 'dark'
         ? darkTheme
         : lightTheme;
+
+  // MD3 pins a fixed lineHeight per variant and React Native does not scale it, so large text
+  // clips inside its own line box. Rebuilt here rather than at module scope so a change to the
+  // system setting re-renders. Identical to `base` at scale 1.
+  const resolvedTheme = useMemo(
+    () => (fontScale === 1 ? base : { ...base, fonts: scaleFontsLineHeight(appFonts, fontScale) }),
+    [base, fontScale],
+  );
 
   const setThemeMode = useCallback(async (mode: ThemeMode) => {
     setThemeModeState(mode);
