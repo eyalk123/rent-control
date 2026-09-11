@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { DevProfiler } from '@/src/shared/components/dev/DevProfiler';
 import { spacing } from '@/src/core/theme';
@@ -8,9 +8,9 @@ import { useRtlLabelStyle } from '@/src/context';
 import type { MonthBucket } from '@/src/features/transactions/utils/aggregate';
 import { TransactionsHero } from './TransactionsHero';
 import { MonthsBarChart } from './MonthsBarChart';
-import { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
+import { type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
 import { TypeFilterChips, type TransactionTypeFilter } from './TypeFilterChips';
-import { ActiveFilterPills } from '@/src/shared/components/ui/ActiveFilterPills';
+import { FilterBar } from '@/src/shared/components/ui/FilterBar';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 
 interface TransactionsListHeaderProps {
@@ -36,7 +36,6 @@ export function TransactionsListHeader({
   onSelectMonth,
   summaryLoading,
 }: TransactionsListHeaderProps) {
-  const theme = useTheme();
   const { t } = useTranslation();
   const rtlLabelStyle = useRtlLabelStyle();
 
@@ -54,15 +53,11 @@ export function TransactionsListHeader({
       <DevProfiler id="MonthsBarChart">
         <MonthsBarChart buckets={sixMonthBuckets} selectedKey={selectedKey} onSelectMonth={onSelectMonth} loading={summaryLoading} />
       </DevProfiler>
-      <View style={[styles.filterCard, { backgroundColor: theme.colors.surface }]}>
-        <DevProfiler id="FilterChipsBar">
-          <FilterChipsBar ref={filterChipsRef} chips={filterChips} />
-        </DevProfiler>
-        <ActiveFilterPills chips={filterChips} />
+      <FilterBar chips={filterChips} chipsRef={filterChipsRef} style={styles.filterCard}>
         <DevProfiler id="TypeFilterChips">
           <TypeFilterChips value={typeFilter} onChange={onTypeFilterChange} />
         </DevProfiler>
-      </View>
+      </FilterBar>
     </View>
   );
 }
@@ -83,13 +78,5 @@ const styles = StyleSheet.create({
   filterCard: {
     marginTop: spacing.md,
     marginBottom: spacing.xs,
-    borderRadius: 16,
-    padding: spacing.sm,
-    gap: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
   },
 });

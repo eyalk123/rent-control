@@ -466,13 +466,14 @@
   "empty": {
     "noProperties": "אין נכסים עדיין. לחץ + להוספה.",
     "noRenters": "אין דיירים עדיין. לחץ + להוספה.",
-    "noSearchResults": "לא נמצאו דיירים התואמים לחיפוש.",
-    "noPropertySearchResults": "לא נמצאו נכסים התואמים לחיפוש.",
-    "noSupplierSearchResults": "לא נמצאו ספקים התואמים לחיפוש.",
+    "noSearchResults": "אין דיירים התואמים לסינון זה.",
+    "noPropertySearchResults": "אין נכסים התואמים לסינון זה.",
+    "noSupplierSearchResults": "אין ספקים התואמים לסינון זה.",
     "noTransactions": "אין תנועות עדיין. לחץ + להוספה.",
     "noTransactionSearchResults": "לא נמצאו תנועות התואמות לחיפוש.",
     "noRevenueThisPeriod": "אין הכנסות בתקופה זו.",
-    "noExpenseThisPeriod": "אין הוצאות בתקופה זו."
+    "noExpenseThisPeriod": "אין הוצאות בתקופה זו.",
+    "clearFilters": "נקה סינון"
   },
   "search": {
     "placeholder": "חיפוש דיירים, נכס, בעלים...",
@@ -493,7 +494,11 @@
     "category": "קטגוריה",
     "supplier": "ספק",
     "name": "שם",
-    "clear": "נקה סינון"
+    "type": "סוג",
+    "clear": "נקה סינון",
+    "searchIn": "חיפוש {{name}}...",
+    "clearAll": "נקה הכל",
+    "clearOne": "נקה סינון {{name}}"
   },
   "common": {
     "back": "חזרה",

@@ -24,6 +24,9 @@ export interface FilterOption {
   pinned?: boolean;
 }
 
+/** Below this many options the list is faster to read than to search. */
+const SEARCH_THRESHOLD = 8;
+
 interface FilterBottomSheetProps {
   visible: boolean;
   onDismiss: () => void;
@@ -82,7 +85,11 @@ export function FilterBottomSheet({
 
   const sorted = useMemo(() => sortOptions(options, language), [options, language]);
 
-  const filtered = search.trim()
+  // A search field over four rows is furniture. It earns its place once the list is long
+  // enough that scanning it stops being instant.
+  const showSearch = sorted.length >= SEARCH_THRESHOLD;
+
+  const filtered = showSearch && search.trim()
     ? sorted.filter((o) =>
         o.label.toLowerCase().includes(search.toLowerCase().trim()),
       )
@@ -138,11 +145,12 @@ export function FilterBottomSheet({
             </Pressable>
           </View>
 
+          {showSearch ? (
           <View style={styles.searchWrapper}>
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder={t('search.placeholder', { defaultValue: 'Search...' })}
+              placeholder={t('filters.searchIn', { name: title })}
               mode="outlined"
               dense
               left={
@@ -159,6 +167,7 @@ export function FilterBottomSheet({
               autoCorrect={false}
             />
           </View>
+          ) : null}
 
           <FlatList
             data={filtered}

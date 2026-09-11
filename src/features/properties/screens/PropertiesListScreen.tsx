@@ -18,11 +18,10 @@ import {
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
-  FilterChipsBar,
+  FilterBar,
   FilterChip,
   FilterBottomSheet,
   FilterOption,
-  ActiveFilterPills,
 } from '@/src/shared/components/ui';
 import { PropertyCard } from '@/src/features/properties/components/PropertyCard';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
@@ -130,6 +129,14 @@ export function PropertiesListScreen() {
     ],
     [t, propertyOptions, renterOptions, propertyFilter, renterFilter, ownerFilter],
   );
+
+  const hasActiveFilters = filterChips.some((c) => c.selectedLabel !== null);
+
+  const clearAllFilters = useCallback(() => {
+    setPropertyFilter(null);
+    setRenterFilter(null);
+    setOwnerFilter(null);
+  }, []);
 
   const allSelected =
     filteredProperties.length > 0 && filteredProperties.every((p) => selectedIds.has(p.id));
@@ -284,9 +291,8 @@ export function PropertiesListScreen() {
           </View>
         )}
         <TourAnchor id={ANCHORS.propertiesFilters}>
-          <FilterChipsBar chips={filterChips} stretch />
+          <FilterBar chips={filterChips} />
         </TourAnchor>
-        <ActiveFilterPills chips={filterChips} />
       </View>
       <TourAnchor id={ANCHORS.propertiesList} style={LIST_ANCHOR}>
       <FlatList
@@ -313,7 +319,12 @@ export function PropertiesListScreen() {
           />
         }
         ListEmptyComponent={
-          <EmptyState message={t('empty.noPropertySearchResults')} icon="search" />
+          <EmptyState
+            message={t('empty.noPropertySearchResults')}
+            icon="search"
+            actionLabel={hasActiveFilters ? t('empty.clearFilters') : undefined}
+            onAction={hasActiveFilters ? clearAllFilters : undefined}
+          />
         }
       />
       </TourAnchor>
