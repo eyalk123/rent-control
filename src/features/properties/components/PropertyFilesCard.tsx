@@ -3,7 +3,7 @@ import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { Icon } from '@/src/shared/components/ui';
+import { Icon, SectionLabel } from '@/src/shared/components/ui';
 import { getPropertyFiles } from '@/src/features/properties/api/propertyFilesApi';
 import type { PropertyFile } from '@/src/shared/types';
 
@@ -26,13 +26,10 @@ export function PropertyFilesCard({ propertyId }: PropertyFilesCardProps) {
   if (files.length === 0) return null;
 
   return (
-    <Card style={styles.card} mode="outlined">
-      <View style={[styles.sectionHeader, { backgroundColor: colors.sectionAccent }]}>
-        <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
-          {t('customFiles.sectionTitle')}
-        </Text>
-      </View>
-      <Card.Content style={styles.cardContent}>
+    <>
+      <SectionLabel title={t('customFiles.sectionTitle')} />
+      <Card style={styles.card} mode="outlined">
+        <Card.Content style={styles.cardContent}>
         {files.map((file) => (
           <TouchableOpacity
             key={file.id}
@@ -50,7 +47,8 @@ export function PropertyFilesCard({ propertyId }: PropertyFilesCardProps) {
           </TouchableOpacity>
         ))}
       </Card.Content>
-    </Card>
+      </Card>
+    </>
   );
 }
 

@@ -37,7 +37,14 @@ export function StatBox({
       <Text variant={valueVariant} style={[styles.statValue, { color: textColor }]}>
         {value}
       </Text>
-      <Text variant="labelSmall" style={{ color: secondaryColor }} numberOfLines={1}>
+      {/* Two lines, not one: three equal columns cannot hold "Number of payments" on a
+          single line at this size, and Hebrew runs longer still. Wrapping keeps the columns
+          equal and needs no shortened copy. */}
+      <Text
+        variant="labelSmall"
+        style={[styles.statLabel, { color: secondaryColor }]}
+        numberOfLines={2}
+      >
         {label}
       </Text>
     </View>
@@ -55,5 +62,10 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontWeight: '700',
+  },
+  statLabel: {
+    textAlign: 'center',
+    // Tightened so a wrapped label does not add a full line of leading to the tile.
+    lineHeight: 14,
   },
 });

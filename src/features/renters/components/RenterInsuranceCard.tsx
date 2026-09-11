@@ -1,8 +1,7 @@
-import { StyleSheet, View } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { IconDetailRow } from '@/src/shared/components/ui/IconDetailRow';
+import { useTheme } from 'react-native-paper';
+import { darkColors, lightColors } from '@/src/core/theme';
+import { DetailRow, DetailSection } from '@/src/shared/components/ui';
 import { formatMoney } from '@/src/shared/utils/money';
 import type { Renter } from '@/src/shared/types';
 
@@ -17,51 +16,22 @@ export function RenterInsuranceCard({ renter, insuranceTypeLabel }: RenterInsura
   const colors = theme.dark ? darkColors : lightColors;
 
   return (
-    <Card style={styles.card} mode="outlined">
-      <View style={[styles.sectionHeader, { backgroundColor: colors.sectionAccent }]}>
-        <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
-          {t('renter.insuranceType')}
-        </Text>
-      </View>
-      <Card.Content style={styles.cardContent}>
-        {renter.insurance_type != null && renter.insurance_type !== '' && (
-          <IconDetailRow
-            icon="shield-check"
-            label={t('renter.insuranceType')}
-            value={insuranceTypeLabel(renter.insurance_type)}
-            iconColor={colors.sectionAccent}
-            secondaryColor={colors.textSecondary}
-          />
-        )}
-        {renter.insurance_amount != null && (
-          <IconDetailRow
-            icon="lock"
-            label={t('renter.insuranceAmount')}
-            value={formatMoney(renter.insurance_amount)}
-            iconColor={colors.sectionAccent}
-            secondaryColor={colors.textSecondary}
-          />
-        )}
-      </Card.Content>
-    </Card>
+    <DetailSection title={t('renter.insuranceType')}>
+      {renter.insurance_type != null && renter.insurance_type !== '' && (
+        <DetailRow
+          // Kept: the shield says "this is cover", which the label alone does not.
+          icon="shield-check"
+          iconColor={colors.textSecondary}
+          label={t('renter.insuranceType')}
+          value={insuranceTypeLabel(renter.insurance_type)}
+        />
+      )}
+      {renter.insurance_amount != null && (
+        <DetailRow
+          label={t('renter.insuranceAmount')}
+          value={formatMoney(renter.insurance_amount)}
+        />
+      )}
+    </DetailSection>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: spacing.md,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  sectionHeader: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  sectionHeaderText: {
-    fontWeight: '600',
-  },
-  cardContent: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-  },
-});

@@ -1,9 +1,9 @@
+import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { Icon } from '@/src/shared/components/ui';
-import { IconDetailRow } from '@/src/shared/components/ui/IconDetailRow';
+import { DetailRow, DetailSection } from '@/src/shared/components/ui';
 import { formatMoney } from '@/src/shared/utils/money';
 import { getLeaseYearLabel, isCurrentLeaseYear } from '@/src/shared/utils/leaseYear';
 import { DEFAULT_PAYMENT_DAY_NUM } from '@/src/shared/constants/paymentDay';
@@ -19,139 +19,129 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
+  const hasLeaseYears = renter.lease_years && renter.lease_years.length > 0;
+
   return (
-    <Card style={styles.card} mode="outlined">
-      <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
-        <Text variant="titleSmall" style={[styles.sectionHeaderText, { color: colors.onPrimary }]}>
-          {t('renter.leaseInfo')}
-        </Text>
-      </View>
-      <Card.Content style={styles.cardContent}>
-        {renter.lease_years && renter.lease_years.length > 0 && (
-          <ScrollView
-            style={styles.leaseYearsScroll}
-            nestedScrollEnabled
-            showsVerticalScrollIndicator={false}
-          >
-            {[...renter.lease_years].reverse().map((year, reversedIdx) => {
-              const idx = renter.lease_years.length - 1 - reversedIdx;
-              const isCurrent = isCurrentLeaseYear(renter.lease_start, renter.lease_years, idx);
-              return (
+    <DetailSection title={t('renter.leaseInfo')}>
+      {hasLeaseYears && (
+        <ScrollView
+          style={styles.leaseYearsScroll}
+          nestedScrollEnabled
+          // Indicator deliberately on. It was switched off, which left a capped list with no
+          // affordance at all: a lease with many periods looked complete at four rows.
+          showsVerticalScrollIndicator
+          persistentScrollbar
+        >
+          {[...renter.lease_years].reverse().map((year, reversedIdx) => {
+            const idx = renter.lease_years.length - 1 - reversedIdx;
+            const isCurrent = isCurrentLeaseYear(renter.lease_start, renter.lease_years, idx);
+            return (
+              <View key={idx}>
+                {reversedIdx > 0 && (
+                  <View style={[styles.separator, { backgroundColor: colors.outline }]} />
+                )}
                 <View
-                  key={idx}
                   style={[
                     styles.leaseYearRow,
-                    isCurrent && {
-                      backgroundColor: colors.primary + '4D',
-                      borderRadius: 6,
-                      paddingHorizontal: spacing.xs,
-                    },
+                    // The active period is marked by weight and a faint tint rather than by
+                    // a 30%-opacity fill with amber text. That fill read as "disabled", and
+                    // the amber was a hardcoded hex that failed contrast on white.
+                    isCurrent && { backgroundColor: colors.primary + '0F' },
                   ]}
                 >
-                  <View style={styles.leaseYearLabelRow}>
-                    <Icon name="file-text" size={20} color={colors.primary} />
-                    <View style={styles.leaseYearLabelWrap}>
-                      <Text
-                        variant="bodyMedium"
-                        style={{
-                          color: isCurrent ? '#C17F00' : colors.textSecondary,
-                          fontWeight: isCurrent ? '700' : '400',
-                        }}
-                      >
-                        {getLeaseYearLabel(renter.lease_start, renter.lease_years, idx, language)}
-                      </Text>
-                      <Text
-                        variant="bodyMedium"
-                        style={[styles.leaseYearValue, { color: colors.textPrimary }]}
-                      >
-                        {`${formatMoney(year.amount)} (${
-                          year.type === 'contract'
-                            ? t('renter.leaseYearTypeContract')
-                            : t('renter.leaseYearTypeOption')
-                        })`}
-                      </Text>
-                    </View>
-                  </View>
+                  <Text
+                    variant="bodyMedium"
+                    style={[
+                      styles.leaseYearLabel,
+                      {
+                        color: isCurrent ? colors.textPrimary : colors.textSecondary,
+                        fontWeight: isCurrent ? '700' : '400',
+                      },
+                    ]}
+                  >
+                    {getLeaseYearLabel(renter.lease_start, renter.lease_years, idx, language)}
+                  </Text>
+                  <Text
+                    variant="bodyMedium"
+                    style={[
+                      styles.leaseYearValue,
+                      {
+                        color: colors.textPrimary,
+                        fontWeight: isCurrent ? '700' : '600',
+                      },
+                    ]}
+                  >
+                    {`${formatMoney(year.amount)} (${
+                      year.type === 'contract'
+                        ? t('renter.leaseYearTypeContract')
+                        : t('renter.leaseYearTypeOption')
+                    })`}
+                  </Text>
                 </View>
-              );
-            })}
-          </ScrollView>
-        )}
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
 
-        {/* A renter saved before the form pre-filled this still has no stored day, but the
-            overdue engine already chases them on the 1st — so show that rather than hiding the
-            row, which left the behaviour unexplained. */}
-        <IconDetailRow
-          icon="calendar-clock"
-          label={t('renter.dateOfPayment')}
-          value={
-            renter.payment_day_of_month != null
-              ? String(renter.payment_day_of_month)
-              : t('renter.dateOfPaymentDefault', { day: DEFAULT_PAYMENT_DAY_NUM })
-          }
-          iconColor={colors.primary}
-          secondaryColor={colors.textSecondary}
+      {/* A renter saved before the form pre-filled this still has no stored day, but the
+          overdue engine already chases them on the 1st — so show that rather than hiding the
+          row, which left the behaviour unexplained. */}
+      <DetailRow
+        label={t('renter.dateOfPayment')}
+        value={
+          renter.payment_day_of_month != null
+            ? String(renter.payment_day_of_month)
+            : t('renter.dateOfPaymentDefault', { day: DEFAULT_PAYMENT_DAY_NUM })
+        }
+      />
+      {renter.payment_type != null && renter.payment_type !== '' && (
+        <DetailRow
+          label={t('renter.paymentType')}
+          value={paymentTypeLabel(renter.payment_type)}
         />
-        {renter.payment_type != null && renter.payment_type !== '' && (
-          <IconDetailRow
-            icon="arrow-right-left"
-            label={t('renter.paymentType')}
-            value={paymentTypeLabel(renter.payment_type)}
-            iconColor={colors.primary}
-            secondaryColor={colors.textSecondary}
-          />
-        )}
-        {renter.number_of_payments != null && (
-          <IconDetailRow
-            icon="hash"
-            label={t('renter.numberOfPayments')}
-            value={String(renter.number_of_payments)}
-            iconColor={colors.primary}
-            secondaryColor={colors.textSecondary}
-          />
-        )}
-      </Card.Content>
-    </Card>
+      )}
+      {renter.number_of_payments != null && (
+        <DetailRow
+          label={t('renter.numberOfPayments')}
+          value={String(renter.number_of_payments)}
+        />
+      )}
+    </DetailSection>
   );
 }
 
+/**
+ * Row height, and how many rows the list is capped at.
+ *
+ * The half row is the point: a list that stops flush on a row boundary reads as a complete
+ * list, so the cap deliberately slices the fifth row through the middle. Derived from the
+ * row height rather than hardcoded, so the clip stays mid-row if the row metrics change.
+ */
+const LEASE_ROW_HEIGHT = 48;
+const LEASE_ROWS_VISIBLE = 4.5;
+
 const styles = StyleSheet.create({
-  card: {
-    marginBottom: spacing.md,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  sectionHeader: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  sectionHeaderText: {
-    fontWeight: '600',
-  },
-  cardContent: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-  },
   leaseYearsScroll: {
-    maxHeight: 220,
+    maxHeight: LEASE_ROW_HEIGHT * LEASE_ROWS_VISIBLE,
   },
   leaseYearRow: {
-    paddingVertical: spacing.xs,
-  },
-  leaseYearLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  leaseYearLabelWrap: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    minHeight: 48,
+  },
+  leaseYearLabel: {
+    flexShrink: 1,
   },
   leaseYearValue: {
-    fontWeight: '600',
-    textAlign: 'right',
-    flexShrink: 0,
+    flexShrink: 1,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    marginStart: spacing.lg,
   },
 });
