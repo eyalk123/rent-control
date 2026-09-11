@@ -48,7 +48,13 @@ import {
 import { Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import {
+  darkColors,
+  lightColors,
+  spacing,
+  MAX_CHROME_FONT_SCALE,
+  useIsLargeText,
+} from '@/src/core/theme';
 import { useAnchorRegistry, type AnchorRect } from './AnchorRegistry';
 import { useTourController } from './TourController';
 import { callbackKey, seedKey, tourStepKey } from './types';
@@ -84,6 +90,7 @@ export function TourOverlay() {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { width: screenW, height: screenH } = useWindowDimensions();
+  const isLargeText = useIsLargeText();
   const [rect, setRect] = useState<AnchorRect | null>(null);
   // Where this overlay sits in window coordinates — the origin every measured anchor is
   // translated against. See the note at the top of the file.
@@ -361,20 +368,32 @@ export function TourOverlay() {
             </View>
           ) : null}
 
-          <View style={styles.footer}>
-            <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+          <View style={[styles.footer, isLargeText && styles.footerStacked]}>
+            <Text
+              variant="labelSmall"
+              maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
+              style={{ color: colors.textSecondary }}
+            >
               {t('onboarding.ui.stepOf', { current, total })}
             </Text>
             <View style={styles.actions}>
               {!controller?.isFirst ? (
                 <Pressable onPress={handleBack} hitSlop={8} style={styles.textBtn}>
-                  <Text variant="labelLarge" style={{ color: colors.textSecondary }}>
+                  <Text
+                    variant="labelLarge"
+                    maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
+                    style={{ color: colors.textSecondary }}
+                  >
                     {t('onboarding.ui.back')}
                   </Text>
                 </Pressable>
               ) : (
                 <Pressable onPress={handleSkip} hitSlop={8} style={styles.textBtn}>
-                  <Text variant="labelLarge" style={{ color: colors.textSecondary }}>
+                  <Text
+                    variant="labelLarge"
+                    maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
+                    style={{ color: colors.textSecondary }}
+                  >
                     {t('onboarding.ui.skip')}
                   </Text>
                 </Pressable>
@@ -384,7 +403,11 @@ export function TourOverlay() {
                 hitSlop={8}
                 style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
               >
-                <Text variant="labelLarge" style={{ color: colors.accentFg, fontWeight: '700' }}>
+                <Text
+                  variant="labelLarge"
+                  maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
+                  style={{ color: colors.accentFg, fontWeight: '700' }}
+                >
                   {controller?.isLast ? t('onboarding.ui.done') : t('onboarding.ui.next')}
                 </Text>
               </Pressable>
@@ -433,6 +456,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  // Past the reflow threshold the counter and the actions stop fitting on one line, and the
+  // row answers by truncating every child rather than giving anything up. Stack instead.
+  footerStacked: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   actions: {
     flexDirection: 'row',

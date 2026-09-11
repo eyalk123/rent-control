@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
-import { darkColors, lightColors } from '@/src/core/theme';
+import { darkColors, lightColors, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 
 export interface FilterSegment<T extends string> {
   value: T;
@@ -75,6 +75,7 @@ function FilterSegmentedControlInner<T extends string>({
             ]}
           >
             <Text
+              maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
               numberOfLines={1}
               style={[
                 styles.label,

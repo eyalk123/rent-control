@@ -15,7 +15,13 @@ import {
 } from 'react-native';
 import { Checkbox, Text, useTheme } from 'react-native-paper';
 
-import { darkColors, ICON_XS, lightColors, spacing } from '@/src/core/theme';
+import {
+  darkColors,
+  ICON_XS,
+  lightColors,
+  spacing,
+  useIsLargeText,
+} from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui';
 import { formatMoney } from '@/src/shared/utils/money';
 import type { Transaction } from '@/src/shared/types';
@@ -43,6 +49,7 @@ export const TransactionRow = React.memo(function TransactionRow({
 }: TransactionRowProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const isLargeText = useIsLargeText();
   const isRtl = I18nManager.isRTL;
 
   const subtitle = React.useMemo(() => (
@@ -105,14 +112,14 @@ export const TransactionRow = React.memo(function TransactionRow({
         <View style={styles.center}>
           <Text
             style={[styles.title, { color: colors.textPrimary }]}
-            numberOfLines={1}
+            numberOfLines={isLargeText ? 2 : 1}
           >
             {transaction.property_name}
           </Text>
           {subtitle ? (
             <Text
               style={[styles.subtitle, { color: colors.textSecondary }]}
-              numberOfLines={1}
+              numberOfLines={isLargeText ? 2 : 1}
             >
               {subtitle}
             </Text>
@@ -167,6 +174,11 @@ const styles = StyleSheet.create({
   },
   trailing: {
     alignItems: 'flex-end',
+    // In any row one side yields and one is protected, and it must never be the number.
+    // Without this the amount column shrank in step with the address and clipped: `+2,200`
+    // rendered as `+2.20`, which is not a layout bug, it is a wrong figure. The address has
+    // `flex: 1, minWidth: 0` and truncates instead.
+    flexShrink: 0,
   },
   amount: {
     fontSize: 15,

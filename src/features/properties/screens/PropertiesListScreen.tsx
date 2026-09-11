@@ -26,7 +26,7 @@ import {
 import { PropertyCard } from '@/src/features/properties/components/PropertyCard';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { deleteProperty } from '@/src/features/properties/api/properties';
-import { spacing } from '@/src/core/theme';
+import { spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
@@ -284,7 +284,12 @@ export function PropertiesListScreen() {
           </View>
         ) : (
           <View style={styles.titleRow}>
-            <Text variant="headlineLarge" style={[styles.screenTitle, rtlLabelStyle]}>
+            <Text
+          variant="headlineLarge"
+          maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
+          numberOfLines={2}
+          style={[styles.screenTitle, rtlLabelStyle]}
+        >
               {t('screens.properties')}
             </Text>
             <SettingsGearButton />

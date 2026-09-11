@@ -108,12 +108,37 @@ screens should prefer **28 / 18 / 16 / 15 / 13 / 12 / 11** and leave 17, 14 and 
 
 ### Dynamic Type
 
-Currently unbounded everywhere — `maxFontSizeMultiplier` appears zero times. At large accessibility
-sizes, dense rows will grow past their containers.
+**Cap the chrome, let the content scale.** A property address, a renter's name, a note — anything
+the user typed — scales without limit, because that is the text someone turned the setting up to
+read. The furniture around it does not: a tab label, a segment, a chip, a screen title and a month
+axis all live in boxes the layout sizes, and past a point they stop being more readable and start
+being clipped. `src/core/theme/typeScale.ts` holds the policy:
 
-When adding new chrome (buttons, custom headers, badges), set `maxFontSizeMultiplier` around
-**1.3-1.5** and leave body text unbounded. Native-owned text (tab labels, native stack headers)
-exposes no such prop; that scaling is verified on the emulator, not in code.
+| Token | Value | For |
+|---|---|---|
+| `MAX_CHROME_FONT_SCALE` | 1.4 | Labels inside a box the layout controls |
+| `MAX_TIGHT_FONT_SCALE` | 1.2 | A fixed tile or axis with no room at all |
+| `REFLOW_FONT_SCALE` | 1.4 | Above this, side-by-side layouts stack |
+
+`useIsLargeText()` gates layout changes; Apple draws the same line with
+`UIContentSizeCategory.isAccessibilityCategory`. Native-owned text (tab labels, native stack
+headers) exposes no such prop and is verified on the emulator, not in code.
+
+**Three failure mechanisms, in order of damage:**
+
+1. **A pinned `lineHeight` clips its own glyphs.** React Native scales `fontSize` and not
+   `lineHeight` — it is a plain number. MD3 pins one on *every* variant, so every
+   `<Text variant=…>` in the app clipped horizontally through the middle of its letters. The theme
+   now scales them (`scaleFontsLineHeight`, applied in `ThemeContext`); for a literal in a
+   StyleSheet use `useScaledLineHeight(base)`. **Never write `fontSize` and `lineHeight` as two
+   literals in the same style.**
+2. **Truncation, not overflow.** 69 `numberOfLines={1}` in the app. Decide per row which side
+   yields: the label truncates, the number never does — give the number's column `flexShrink: 0`.
+   A currency value clipped from `+2,200₪` to `+2.20` is a wrong figure, not a layout bug.
+3. **A fixed `height` on anything containing text.** Use `minHeight`.
+
+**Verify before and after.** A change here must be pixel-identical at scale 1.0 — screenshot the
+same screens before and after and diff them, excluding the status bar, because the clock moves.
 
 ### Android
 
@@ -130,15 +155,19 @@ asymmetric padding above and below.
 |---|---|---|
 | `999` | Pills — fully round | `pill`, `chip`, `badge`, `newTag`, `yearChip` |
 | `16` | Dialogs, heroes, large surfaces | `dialog`, `surface`, `hero`, `bubble`, `filterCard` |
-| `12` | **Cards and buttons — the default** | `card`, `button`, `row`, `splitBox` (28 style names) |
+| `12` | **Cards, buttons and form fields — the default** | `card`, `button`, `row`, `splitBox`, every input and dropdown |
 | `8` | Inner elements inside a card | `iconWrap`, `countBadge`, `mark`, `code_block` (27 names) |
-| `4` | Tiny: skeletons, dropdowns, input outlines | `skeletonEyebrow`, `dropdown`, `inputOutline` |
+| `4` | Tiny: skeletons and hairline decorations | `skeletonEyebrow` |
 
 **Use `4 / 8 / 12 / 16 / 999`.** Anything else in the codebase (2, 3, 6, 9, 10, 14, 18, 20) is drift
 from before this was written down. Do not add to it. `10` in particular appears 20 times and should
 have been `12`; leave existing uses alone but do not copy them.
 
 **Shape lock:** one scale, applied by role. No radius-20 input next to a radius-12 card.
+
+**Form fields are `12`, not `4`.** They were `4` until 2026-09-11, which put a near-square box
+inside a radius-16 card and was the single most dated shape in the app. `fieldSurface.ts` owns the
+value; do not set a radius on an input by hand.
 
 ---
 
@@ -426,3 +455,157 @@ empty state for that case is not written yet.
 
 *Last updated 2026-09-11. When something here stops matching the code, fix this file in the same
 change.*
+
+### 2026-09-11 — Forms redrawn: one field primitive, outlined boxes
+
+The forms read as a database rather than a task: every field the same height, the same weight, the
+same 12px gap, in roughly schema order. Step one of the property form was eleven identical beige
+rectangles.
+
+**Fields are outlined, not filled.** The old field was `inputFilledBackground` with a `colors.outline`
+border — 1.11:1 fill and 1.33:1 border against the card, so neither one actually drew the edge and a
+blank form read as a stack of grey slabs. The fill is gone and `inputBorder` carries the boundary
+alone at the 3:1 WCAG 1.4.11 asks of a control: `rgba(26,45,74,0.51)` light (3.07:1 on a card, 3.02:1
+on cream), `rgba(241,236,223,0.38)` dark (3.04:1 / 3.17:1). The old dark `inputBorder` token existed
+at 2.06:1 and nothing used it — the fields were drawing themselves with `outline` at 1.63:1.
+
+**Focus is a colour, not a width.** It ran `borderWidth` 1 → 2, which shifted every character in the
+field by a pixel, and its shadow was a hardcoded navy invisible on the dark palette. The width is a
+constant 1.5 and `inputBorderFocus` carries the state: `primary` light (11.5:1), `#6BA0DC` dark —
+*not* `primary`, which is 2.79:1 on the dark card and fails the 3:1 a focus ring owes.
+
+**`placeholder` was 2.21:1 light and 3.67:1 dark**, both under the 4.5:1 placeholder text owes. Now
+`#6B7280` (4.83:1) and `rgba(241,236,223,0.55)` (4.77:1). Light placeholder equals `textSecondary` on
+purpose; a real value still reads darker because it uses `textPrimary`.
+
+**`FormField` + `fieldSurface` are the only way to draw a field.** Eleven components each declared
+their own `errorText` and three their own `labelRow`, which is why the conventions had drifted:
+the property form marked required fields with an asterisk while the transaction forms marked
+optional ones in the label string. **Mark what is required. Never suffix a label with "(optional)".**
+Field labels are `textSecondary`, not `textPrimary` — on a filled form the value is what you read.
+
+**`FormRow` pairs short fields and `FormSubheading` groups a run of them.** Floor, Apartment, Block
+and Plot hold two or three characters each and had a full-width box apiece. Per §6 the grouping tool
+inside a card is a hairline and whitespace, not another card.
+
+**`StepHeader` hardcoded `#1A2D4A`**, so on dark the filled segment was 1.25:1 against the page and
+the empty one 1.02:1 — the progress bar was not there at all. Both come from the palette now
+(3.33:1 and 3.17:1 dark).
+
+**`SegmentedControl`'s track is unfilled** for the same reason as the fields, and because inactive
+labels on `inputFilledBackground` measured 4.36:1. On the card they read 4.83:1.
+
+`PaymentMethodRadios` — a 2×2 radio grid with no label — became `PaymentMethodField`. It rendered
+`value || 'cash'`, drawing Cash as chosen when the form held nothing; on the revenue form, whose
+default is `''` and whose schema permits `''`, you could save a transaction with no payment method
+after seeing Cash selected throughout.
+
+English said "Square Feet" for the same stored number Hebrew called `מ"ר`. The app is Israeli —
+block and plot are the Tabu registry fields — so English now says `Size (m²)`.
+
+Verified on the emulator across the property and transaction forms in light, dark and Hebrew RTL.
+All 30 colour pairings introduced here clear their WCAG floor.
+
+**One header for every form.** `StepHeader` became `FormHeader` and the step strip is now the
+optional part. The transaction forms had a bare back chevron with their title buried in the first
+card; the chooser had no header at all; document-scan rendered a one-of-one strip, a full bar that
+says nothing. All four wear the same header, and the first card on a transaction form is titled
+"Details" rather than repeating the screen name.
+
+**The transaction chooser stays vertically centred.** It was moved to the top in the same pass, on
+the reasoning that centred content in an empty screen reads unfinished — but the unfinished feeling
+came from having no header, and the header fixed it. The chooser is the one screen in the add/edit
+stack that is not a form: nothing to fill in, nothing to scroll. Pinning two primary targets under
+the header puts them in the hardest part of a tall phone to reach one-handed. Form layout rules do
+not automatically apply to a screen that is not a form.
+
+**Nothing fails silently any more.** `handleSubmit`'s `onInvalid` focuses the first invalid field in
+page order, which scrolls it into view. That immediately exposed a second bug: the transaction
+schemas passed no message to `.min(1)`, so Zod's own English reached the user — *"String must
+contain at least 1 character(s)"*. The keys (`validation.amountRequired` and friends) already
+existed and were already translated; they were simply never wired up.
+
+### 2026-09-11 — Field labels darkened after the redraw
+
+The label change above went too far. It moved labels to `textSecondary` **and** shrank them 14px →
+13px in one step, and only the colour change was needed.
+
+WCAG ratios cannot see this — they ignore size and weight, and 4.83:1 passes AA either way. APCA,
+which models both, put the light label at **Lc 74 where 14px/500 wants ~94**, and the dark label at
+**Lc 52**, down from Lc 92 before the change. Dark was much the worse because `textSecondary` there
+is 0.66 alpha.
+
+`fieldLabel` is a new token for this one role: `#3A4760` light (Lc 91.5) and
+`rgba(241,236,223,0.90)` dark (Lc 79.6 — reverse polarity caps the reachable range at 92, so the
+label sits near the top of it rather than mid-way). Labels are 14px again.
+
+**Weight was left at 500 deliberately.** Measured against the APCA font table, bolding 500 → 600
+relaxes the requirement by ~6 Lc; darkening bought 18. Weight is the expensive lever here — a bold
+label competes with the value it labels, which is the hierarchy the redraw was protecting. The ramp
+that matters is value > label > placeholder: Lc 100 / 91 / 80 light, 92 / 80 / 57 dark.
+
+Error text moved off `bodySmall` (12px) to 13px/500, and `FormSubheading` from 11px to 12px/700 —
+uppercase at 11px was the least legible thing on a form card.
+
+### 2026-09-11 — Two regressions on the Transactions tab
+
+**An absolute overlay must measure what it sits below, not assume it.** `SuppliersHeaderButton`
+sat at a fixed `top: 72` in raw screen coordinates while the title row it was meant to clear starts
+at the safe-area inset. On a 44dp inset the row runs 44-100dp, so the button landed 28dp inside it
+and covered the settings gear — a device-dependent bug, since the inset is what varies between
+phones.
+
+Two quantities move that button and both were guessed. The inset now comes from
+`useSafeAreaInsets()`. The row height is now **measured**: `TransactionsListHeader` reports it
+through `onTitleRowLayout` and the screen passes it down, with `TITLE_ROW_HEIGHT_FALLBACK` used only
+for the first frame and for the empty/error states, which render no title row.
+
+A constant would in fact have survived here — the row is pinned by a 40dp `IconButton`, which is an
+icon and does not scale with Dynamic Type, so the row measures 56dp at both 1.0x and 1.3x. That is
+luck, not design: a larger title, a bigger gear, or a line box that did scale would have broken it
+again. Verified at font scale 1.0 and 1.3: gear 59.8-99.8dp, button 115.8-184.0dp, clear by 16dp in
+both.
+
+**Rule:** an absolutely positioned overlay may not encode another component's height as a literal.
+Take the inset from the hook and the height from `onLayout`.
+
+**A silent catch is not an empty state.** `TransactionSummaryContext` swallowed every summary
+failure with `catch { /* silent — chart shows empty state */ }`, which made a broken request
+indistinguishable from a month with no transactions — the chart just went blank with nothing to say
+why. It now carries `summaryError`, and `MonthsBarChart` renders the message with a retry in place
+of the bars.
+
+**The mock returned a hardcoded `[]` for the summary**, so the chart was blank on every preview
+build — the build UI work is actually done against. It now aggregates the mock transactions through
+the same `bucketByMonth` / `lastNMonths` helpers the app uses, matching the backend's zero-padded
+trailing six months.
+
+**Still open:** `src/core/api/mock.ts` seeds every transaction at a hardcoded `2026-03-*`, so the
+trailing-six-month window is empty whenever the system date is more than six months past March 2026
+— the chart renders its axis correctly but every bar is zero. Seed dates should be relative to
+today.
+
+**Also found while testing this:** at font scale 1.3 the Transactions tab clips badly — the screen
+title, every filter chip label ("Prop…", "Ren…", "Ow…"), the type segments, the month labels
+("A", "Ma", "Ju") and, worst, the amounts (`+2,200₪` renders as `+2.20`). Money truncated to look
+like a smaller number is a correctness problem, not a cosmetic one. Not addressed here.
+
+### 2026-09-11 — Dynamic Type, first pass
+
+Applied the policy above. `maxFontSizeMultiplier` went from 1 call site to ~15 (chips, both
+segmented controls, screen titles, form header, month axis, suppliers tile, tour footer, hero
+number); the theme's variant line heights now scale; five fixed `height`s on text containers became
+`minHeight`; `TransactionRow`'s amount column got `flexShrink: 0`; the tour footer and the
+transaction row reflow past 1.4.
+
+**Verified pixel-identical at scale 1.0** — Home and Transactions, before vs after, differ only in
+the status-bar clock (bbox confined to y 70-82; identical below).
+
+At 1.5-2.0 the tour card is fixed outright (it was the worst: body clipped mid-sentence, `Skip` as
+`Ski`, `Next` as `Ne`), screen titles, row text and the month axis all survive, and the hero number
+no longer paints over its own eyebrow.
+
+**Not finished at 2.0.** Still clipping: the hero eyebrow, filter chip labels, the section headers,
+the tab bar (native-owned — no prop to set), and the amounts. The remaining work is the sweep this
+pass deliberately did not do: the other ~19 explicit `lineHeight` literals, the other 59 fixed
+heights, and the other ~65 `numberOfLines={1}`. Treat ~1.5 as the supported ceiling today.

@@ -10,7 +10,14 @@ import { Animated, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 
-import { darkColors, ICON_XS, lightColors, spacing } from '@/src/core/theme';
+import {
+  darkColors,
+  ICON_XS,
+  lightColors,
+  spacing,
+  MAX_CHROME_FONT_SCALE,
+  useScaledLineHeight,
+} from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
 import { formatMoney } from '@/src/shared/utils/money';
 import { Icon } from '@/src/shared/components/ui';
@@ -30,6 +37,7 @@ export const TransactionsHero = React.memo(function TransactionsHero({ bucket, l
   const colors = theme.dark ? darkColors : lightColors;
   const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
+  const bigLineHeight = useScaledLineHeight(48);
 
   const shimmer = React.useRef(new Animated.Value(0.35)).current;
   React.useEffect(() => {
@@ -76,7 +84,10 @@ export const TransactionsHero = React.memo(function TransactionsHero({ bucket, l
       <Text style={[styles.eyebrow, { color: colors.textSecondary }]}>
         {eyebrow}
       </Text>
-      <Text style={[styles.bigNumber, { color: numberColor }]}>
+      <Text
+        maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
+        style={[styles.bigNumber, { color: numberColor, lineHeight: bigLineHeight }]}
+      >
         {`${sign}${amount}`}
       </Text>
       <View style={styles.statsRow}>
@@ -114,7 +125,7 @@ const styles = StyleSheet.create({
   },
   bigNumber: {
     fontSize: 44,
-    lineHeight: 48,
+    // lineHeight is set inline from the font scale; a literal here would clip the glyphs.
     fontWeight: '700',
     letterSpacing: -1.5,
     marginTop: spacing.xs,

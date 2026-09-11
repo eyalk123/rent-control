@@ -3,7 +3,7 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, lightColors, spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 
 export interface FilterChip {
@@ -72,6 +72,7 @@ export const FilterChipsBar = React.memo(function FilterChipsBar({ chips }: Filt
             {/* The value, not the field name: a chip reading "Property" cannot tell you which
                 property, which is what the separate pill row used to be there to say. */}
             <Text
+              maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
               style={[
                 styles.chipLabel,
                 active && styles.chipLabelActive,
@@ -113,7 +114,10 @@ export const FilterChipsBar = React.memo(function FilterChipsBar({ chips }: Filt
           hitSlop={6}
           style={({ pressed }) => [styles.clearAll, { opacity: pressed ? 0.6 : 1 }]}
         >
-          <Text style={[styles.clearAllLabel, { color: colors.textSecondary }]}>
+          <Text
+            maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
+            style={[styles.clearAllLabel, { color: colors.textSecondary }]}
+          >
             {t('filters.clearAll')}
           </Text>
         </Pressable>
