@@ -3,18 +3,24 @@ import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { EmptyState, LoadingOverlay, SegmentedControl } from '@/src/shared/components/ui';
-import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
 import { RevenuePaymentPanel } from '@/src/features/transactions/components/detail/RevenuePaymentPanel';
 import { ExpensePanel } from '@/src/features/transactions/components/detail/ExpensePanel';
 import type { TransactionsTabState } from '@/src/features/transactions/components/detail/tabState';
 import { spacing } from '@/src/core/theme';
-import type { Property } from '@/src/shared/types';
+import type { Property, Transaction } from '@/src/shared/types';
 
 interface PropertyTransactionsTabProps {
   property: Property;
   /** Held by the screen, which outlives this tab — see `detail/tabState.ts`. */
   state: TransactionsTabState;
   onStateChange: (state: TransactionsTabState) => void;
+  /** Fetched once by the screen and shared with the Info tab's KPI tiles. */
+  transactions: Transaction[];
+  loading: boolean;
+  error: string | null;
+  retryLoad: () => void;
+  /** Re-fetches the shared list, so recording a payment also updates the Info tab's tiles. */
+  refreshTransactions: () => void;
 }
 
 /**
@@ -26,13 +32,18 @@ interface PropertyTransactionsTabProps {
  * That matrix keeps its year selector: unlike the renter screen, stacking every year would
  * multiply by the number of renters.
  */
-export function PropertyTransactionsTab({ property, state, onStateChange }: PropertyTransactionsTabProps) {
+export function PropertyTransactionsTab({
+  property,
+  state,
+  onStateChange,
+  transactions,
+  loading,
+  error,
+  retryLoad,
+  refreshTransactions,
+}: PropertyTransactionsTabProps) {
   const { t } = useTranslation();
   const patch = (next: Partial<TransactionsTabState>) => onStateChange({ ...state, ...next });
-
-  const { transactions, loading, error, refreshTransactions, retryLoad } = useTransactionsList({
-    propertyId: property.id,
-  });
 
   if (loading && transactions.length === 0) {
     return (

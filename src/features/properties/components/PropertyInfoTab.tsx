@@ -2,13 +2,18 @@ import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import type { Property } from '@/src/shared/types';
+import { getCurrentMonthlyRent, type Property, type Transaction } from '@/src/shared/types';
+import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
+import { effectiveDate } from '@/src/features/transactions/utils/aggregate';
 import { lightColors, darkColors, spacing, ICON_SM } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
 import { Icon, StatBox, DetailRow, DetailSection, type IconName } from '@/src/shared/components/ui';
 
 interface PropertyInfoTabProps {
   property: Property;
+  /** Held by the screen so the Info and Transactions tabs share one fetch. */
+  transactions: Transaction[];
+  transactionsLoading: boolean;
 }
 
 function ExpandableNotesRow({
@@ -48,56 +53,77 @@ function ExpandableNotesRow({
   );
 }
 
-export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
+export function PropertyInfoTab({ property, transactions, transactionsLoading }: PropertyInfoTabProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
   /**
-   * The tiles are the at-a-glance numbers: the first four of these that carry a value.
+   * The tiles are the money, not the measurements.
    *
-   * Floor and apartment used to take the first row, but the screen title is built by
-   * `formatPropertyAddress`, which appends ", Floor 3, Apartment 12" from the same two
-   * fields using the same i18n keys - so those tiles repeated, word for word, the line
-   * directly above them. Zip code used to appear here as a fallback when rooms were
-   * missing; it is not a number anyone glances at, and it reads better in Basic
-   * Information, where it now always sits.
+   * They used to be attributes of the building - floor, apartment, size, rooms - and two of
+   * those repeated the screen title verbatim, because `formatPropertyAddress` builds it from
+   * the same fields with the same i18n keys. The web app puts a KPI strip here instead, and
+   * it is right: what an owner wants at a glance is what the place earns and costs, not how
+   * many rooms it has. Size and rooms moved down to Basic Information, where they read as
+   * the reference data they are.
    *
-   * What replaced them is the money: property tax and house committee are the recurring
-   * costs of holding the place, which is the kind of figure this app exists to surface.
+   * Totals cover the current calendar year and bucket by `effectiveDate` - the month the
+   * rent is *for* on a revenue, the payment date on an expense - which is the same window
+   * and the same rule the web strip uses, so the two apps quote the same number.
    */
-  const tiles: { key: string; icon: IconName; value: string; label: string }[] = [
-    property.sq_ft > 0 && {
-      key: 'sqFt',
-      icon: 'ruler' as IconName,
-      // The column is named sq_ft, but the entry form asks for "Size (m²)" / מ"ר - the
-      // name is a legacy misnomer and the unit is metric.
-      value: `${property.sq_ft.toLocaleString()} ${t('property.areaUnit')}`,
-      label: t('property.surfaceArea'),
-    },
-    property.number_of_rooms != null && {
-      key: 'rooms',
-      icon: 'door-open' as IconName,
-      value: String(property.number_of_rooms),
-      label: t('property.numberOfRooms'),
-    },
-    property.property_tax != null && {
-      key: 'propertyTax',
-      icon: 'receipt' as IconName,
-      value: formatMoney(property.property_tax),
-      label: t('property.propertyTax'),
-    },
-    property.house_committee != null && {
-      key: 'houseCommittee',
-      icon: 'building' as IconName,
-      value: formatMoney(property.house_committee),
-      label: t('property.houseCommittee'),
-    },
-  ].filter(Boolean).slice(0, 4) as { key: string; icon: IconName; value: string; label: string }[];
+  const currentYear = String(new Date().getFullYear());
+  const { revTotal, expTotal } = React.useMemo(() => {
+    let rev = 0;
+    let exp = 0;
+    for (const tx of transactions) {
+      if (effectiveDate(tx).slice(0, 4) !== currentYear) continue;
+      if (tx.type === 'revenue') rev += tx.amount;
+      else exp += tx.amount;
+    }
+    return { revTotal: rev, expTotal: exp };
+  }, [transactions, currentYear]);
 
-  // Anything promoted to a tile is dropped from the rows below. The file already did this
-  // for zip code; it just was not applied to anything else.
-  const inTiles = new Set(tiles.map((tile) => tile.key));
+  const monthlyRent = React.useMemo(() => {
+    const current = getCurrentRenters(property.renters);
+    if (!current.length) return null;
+    return current.reduce((sum, r) => sum + getCurrentMonthlyRent(r), 0);
+  }, [property.renters]);
+
+  // An em dash while the fetch is in flight: StatBox has no loading state, and a flash of
+  // 0 reads as "this property earned nothing", which is a different claim from "not yet known".
+  const money = (n: number) => (transactionsLoading ? '—' : formatMoney(n));
+  const net = revTotal - expTotal;
+
+  const tiles: { key: string; icon: IconName; value: string; label: string; color?: string }[] = [
+    {
+      key: 'monthlyRent',
+      icon: 'wallet' as IconName,
+      value: monthlyRent != null ? formatMoney(monthlyRent) : '—',
+      label: t('renter.monthlyRent'),
+    },
+    {
+      key: 'net',
+      icon: 'trending-up' as IconName,
+      value: money(net),
+      label: t('property.net', { year: currentYear }),
+      color: transactionsLoading ? undefined : net >= 0 ? colors.revFg : colors.expFg,
+    },
+    {
+      key: 'revenue',
+      icon: 'arrow-up-right' as IconName,
+      value: money(revTotal),
+      label: t('property.totalRevenue', { year: currentYear }),
+      color: transactionsLoading ? undefined : colors.revFg,
+    },
+    {
+      key: 'expenses',
+      icon: 'arrow-down-right' as IconName,
+      value: money(expTotal),
+      label: t('property.totalExpenses', { year: currentYear }),
+      color: transactionsLoading ? undefined : colors.expFg,
+    },
+  ];
 
   const tileRows = tiles.reduce<(typeof tiles)[]>((rows, tile, i) => {
     if (i % 2 === 0) rows.push([tile]);
@@ -118,8 +144,8 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
               backgroundColor={colors.inputBackground}
               // One colour across the set: these four tiles are peers, and the old mix of
               // primary / secondary / sectionAccent read as arbitrary rather than meaningful.
-              iconColor={colors.primary}
-              textColor={colors.textPrimary}
+              iconColor={tile.color ?? colors.primary}
+              textColor={tile.color ?? colors.textPrimary}
               secondaryColor={colors.textSecondary}
               valueVariant="titleMedium"
             />
@@ -128,6 +154,16 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
       ))}
 
       <DetailSection title={t('property.basicInfo')}>
+        <DetailRow
+          label={t('property.surfaceArea')}
+          value={`${property.sq_ft.toLocaleString()} ${t('property.areaUnit')}`}
+        />
+        {property.number_of_rooms != null && (
+          <DetailRow
+            label={t('property.numberOfRooms')}
+            value={String(property.number_of_rooms)}
+          />
+        )}
         <DetailRow label={t('property.zipCode')} value={property.zip_code} />
         {property.property_owner != null && property.property_owner !== '' && (
           <DetailRow label={t('property.propertyOwner')} value={property.property_owner} />
@@ -147,13 +183,13 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
             value={property.parking_numbers.join(', ')}
           />
         )}
-        {property.property_tax != null && !inTiles.has('propertyTax') && (
+        {property.property_tax != null && (
           <DetailRow
             label={t('property.propertyTax')}
             value={formatMoney(property.property_tax)}
           />
         )}
-        {property.house_committee != null && !inTiles.has('houseCommittee') && (
+        {property.house_committee != null && (
           <DetailRow
             label={t('property.houseCommittee')}
             value={formatMoney(property.house_committee)}

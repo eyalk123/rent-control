@@ -30,6 +30,7 @@ import {
   type TransactionsTabState,
 } from '@/src/features/transactions/components/detail/tabState';
 import { PropertyDocumentsTab } from '@/src/features/properties/components/PropertyDocumentsTab';
+import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
@@ -53,6 +54,12 @@ export function PropertyDetailScreen() {
   // Owned here, not in the tab: the tabs render conditionally, so leaving Transactions
   // unmounts the panel and would otherwise discard the section and its filters.
   const [txTabState, setTxTabState] = useState<TransactionsTabState>(initialTransactionsTabState);
+  // One fetch for two tabs. Info needs it for the KPI tiles and Transactions for the matrix,
+  // and `useTransactionsList` holds local state with no cache - calling it in both would
+  // fetch the same rows twice.
+  const propertyTransactions = useTransactionsList({
+    propertyId: Number.isNaN(Number(id)) ? undefined : Number(id),
+  });
   const panelAnchorRef = useTourAnchor(ANCHORS.propertyDetailPanel);
   /**
    * The tab the tour is talking about, or the user's own when no tour is running.
@@ -214,13 +221,24 @@ export function PropertyDetailScreen() {
 
         {/* Tab content */}
         <View ref={panelAnchorRef} collapsable={false} style={styles.tabContent}>
-          {shownTab === 'info' && <PropertyInfoTab property={property} />}
+          {shownTab === 'info' && (
+            <PropertyInfoTab
+              property={property}
+              transactions={propertyTransactions.transactions}
+              transactionsLoading={propertyTransactions.loading}
+            />
+          )}
           {shownTab === 'renters' && <PropertyRentersTab property={property} />}
           {shownTab === 'transactions' && (
             <PropertyTransactionsTab
               property={property}
               state={txTabState}
               onStateChange={setTxTabState}
+              transactions={propertyTransactions.transactions}
+              loading={propertyTransactions.loading}
+              error={propertyTransactions.error}
+              retryLoad={propertyTransactions.retryLoad}
+              refreshTransactions={propertyTransactions.refreshTransactions}
             />
           )}
           {shownTab === 'documents' && (

@@ -763,3 +763,29 @@ four peer tiles, which read as arbitrary rather than meaningful.
 A sparse property now shows fewer tiles rather than padded ones: a record carrying only a size
 gets one full-width tile instead of two, the second of which was a postcode.
 
+### 2026-09-12 — Property detail tiles became the money, matching the web KPI strip
+
+The tiles were attributes of the building. The web app puts a KPI strip in the same place -
+renter, monthly rent, net, revenue, expenses, all for the current calendar year - and it is the
+better use of the space: what an owner wants at a glance is what a property earns and costs.
+
+Mobile takes four of web's five. Web's first stat is a composite showing renter names beside the
+rent, which is too much for a tile in a two-column grid, and mobile already has a whole Renters
+tab. So: **monthly rent, net, total revenue, total expenses**, the last three scoped to the
+current year and bucketed by `effectiveDate` - the month rent is *for* on a revenue, the payment
+date on an expense - which is the same window and the same rule web uses, so both apps quote the
+same number. Copy is shared with web verbatim, Hebrew included.
+
+Size and rooms moved down to Basic Information, where they read as the reference data they are.
+
+`useTransactionsList` was lifted from `PropertyTransactionsTab` into `PropertyDetailScreen`. It
+holds local state with no cache, so Info and Transactions calling it separately would fetch the
+same rows twice; the side benefit is that recording a payment now refreshes the tiles too.
+
+**A mock bug this surfaced.** Every seeded `lease_years[].amount` was an annual figure, but the
+field is monthly - `property.leaseYearAmount` is literally "Monthly rent", and `getRentForMonth`
+returns the amount undivided. Nobody noticed because monthly rent and annual revenue had never
+appeared on the same screen before; the tiles put "23,500 monthly" next to "4,100 for the year".
+Dividing by 12 lands exactly on the seeded transaction amounts (19,800/12 = 1,650 = Emily Davis's
+rent payments), which confirms the intent. All eight leases converted, rounded to the nearest 25.
+
