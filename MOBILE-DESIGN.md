@@ -738,3 +738,28 @@ and is not made here.
 Verified: Noa Shalev moves from Current to Ended; Lisa Martinez, who has no lease dates at all,
 stays Active, which is the documented behaviour for a half-entered record.
 
+### 2026-09-12 — Property detail: the stat tiles became an actual priority list
+
+The tiles were not a "top four filled values" list, though they read like one. They were two
+hardcoded rows: floor and apartment when either existed, then surface area beside either number
+of rooms or - when rooms were missing - zip code.
+
+Two problems. **Floor and apartment repeated the title word for word**: the screen title comes
+from `formatPropertyAddress`, which appends ", Floor 3, Apartment 12" from the same two fields
+using the same i18n keys, so the tiles restated the line directly above them. And **zip code as a
+fallback tile was filler** - nobody glances at a postcode; it is a lookup value.
+
+The tiles are now the first four of an ordered list that carry a value: **surface area, number of
+rooms, property tax, house committee**. The money replaced the duplication, because the recurring
+cost of holding a property is the kind of figure this app exists to surface.
+
+Anything promoted to a tile is dropped from the rows beneath it. The file already did exactly this
+for zip code - the row was guarded by `hasRooms`, so it appeared only when zip was *not* in a tile
+- it simply was never applied to anything else. Zip code now always sits in Basic Information.
+
+The four icons also took one colour. They had been primary, secondary and sectionAccent across
+four peer tiles, which read as arbitrary rather than meaningful.
+
+A sparse property now shows fewer tiles rather than padded ones: a record carrying only a size
+gets one full-width tile instead of two, the second of which was a postcode.
+

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
 import { lightColors, darkColors, spacing, ICON_SM } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
-import { Icon, StatBox, DetailRow, DetailSection } from '@/src/shared/components/ui';
+import { Icon, StatBox, DetailRow, DetailSection, type IconName } from '@/src/shared/components/ui';
 
 interface PropertyInfoTabProps {
   property: Property;
@@ -53,74 +53,82 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const hasRooms = property.number_of_rooms != null;
+  /**
+   * The tiles are the at-a-glance numbers: the first four of these that carry a value.
+   *
+   * Floor and apartment used to take the first row, but the screen title is built by
+   * `formatPropertyAddress`, which appends ", Floor 3, Apartment 12" from the same two
+   * fields using the same i18n keys - so those tiles repeated, word for word, the line
+   * directly above them. Zip code used to appear here as a fallback when rooms were
+   * missing; it is not a number anyone glances at, and it reads better in Basic
+   * Information, where it now always sits.
+   *
+   * What replaced them is the money: property tax and house committee are the recurring
+   * costs of holding the place, which is the kind of figure this app exists to surface.
+   */
+  const tiles: { key: string; icon: IconName; value: string; label: string }[] = [
+    property.sq_ft > 0 && {
+      key: 'sqFt',
+      icon: 'ruler' as IconName,
+      // The column is named sq_ft, but the entry form asks for "Size (m²)" / מ"ר - the
+      // name is a legacy misnomer and the unit is metric.
+      value: `${property.sq_ft.toLocaleString()} ${t('property.areaUnit')}`,
+      label: t('property.surfaceArea'),
+    },
+    property.number_of_rooms != null && {
+      key: 'rooms',
+      icon: 'door-open' as IconName,
+      value: String(property.number_of_rooms),
+      label: t('property.numberOfRooms'),
+    },
+    property.property_tax != null && {
+      key: 'propertyTax',
+      icon: 'receipt' as IconName,
+      value: formatMoney(property.property_tax),
+      label: t('property.propertyTax'),
+    },
+    property.house_committee != null && {
+      key: 'houseCommittee',
+      icon: 'building' as IconName,
+      value: formatMoney(property.house_committee),
+      label: t('property.houseCommittee'),
+    },
+  ].filter(Boolean).slice(0, 4) as { key: string; icon: IconName; value: string; label: string }[];
 
-  const hasFloorOrApartment =
-    property.floor != null ||
-    (property.apartment != null && property.apartment !== '');
+  // Anything promoted to a tile is dropped from the rows below. The file already did this
+  // for zip code; it just was not applied to anything else.
+  const inTiles = new Set(tiles.map((tile) => tile.key));
+
+  const tileRows = tiles.reduce<(typeof tiles)[]>((rows, tile, i) => {
+    if (i % 2 === 0) rows.push([tile]);
+    else rows[rows.length - 1].push(tile);
+    return rows;
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {hasFloorOrApartment && (
-        <View style={styles.statsRow}>
-          {property.floor != null && (
+      {tileRows.map((row, i) => (
+        <View key={i} style={styles.statsRow}>
+          {row.map((tile) => (
             <StatBox
-              icon="layers"
-              value={String(property.floor)}
-              label={t('property.floor')}
+              key={tile.key}
+              icon={tile.icon}
+              value={tile.value}
+              label={tile.label}
               backgroundColor={colors.inputBackground}
+              // One colour across the set: these four tiles are peers, and the old mix of
+              // primary / secondary / sectionAccent read as arbitrary rather than meaningful.
               iconColor={colors.primary}
               textColor={colors.textPrimary}
               secondaryColor={colors.textSecondary}
               valueVariant="titleMedium"
             />
-          )}
-          {property.apartment != null && property.apartment !== '' && (
-            <StatBox
-              icon="hash"
-              value={property.apartment}
-              label={t('property.apartment')}
-              backgroundColor={colors.inputBackground}
-              iconColor={colors.primary}
-              textColor={colors.textPrimary}
-              secondaryColor={colors.textSecondary}
-              valueVariant="titleMedium"
-            />
-          )}
+          ))}
         </View>
-      )}
-      <View style={styles.statsRow}>
-        {/* No Type tile: the header medallion already carries the property type, and two
-            tiles give Surface area and Number of rooms room for their labels. */}
-        {/* The column is named sq_ft, but the entry form asks for "Size (m²)" / מ"ר - the
-            name is a legacy misnomer and the unit is metric. The detail screen was showing
-            a bare number, which is not a size. */}
-        <StatBox
-          icon="ruler"
-          value={`${property.sq_ft.toLocaleString()} ${t('property.areaUnit')}`}
-          label={t('property.surfaceArea')}
-          backgroundColor={colors.inputBackground}
-          iconColor={colors.secondary}
-          textColor={colors.textPrimary}
-          secondaryColor={colors.textSecondary}
-          valueVariant="titleMedium"
-        />
-        <StatBox
-          icon={hasRooms ? 'door-open' : 'map-pin'}
-          value={hasRooms ? String(property.number_of_rooms) : property.zip_code}
-          label={hasRooms ? t('property.numberOfRooms') : t('property.zipCode')}
-          backgroundColor={colors.inputBackground}
-          iconColor={colors.sectionAccent}
-          textColor={colors.textPrimary}
-          secondaryColor={colors.textSecondary}
-          valueVariant="titleMedium"
-        />
-      </View>
+      ))}
 
       <DetailSection title={t('property.basicInfo')}>
-        {hasRooms && (
-          <DetailRow label={t('property.zipCode')} value={property.zip_code} />
-        )}
+        <DetailRow label={t('property.zipCode')} value={property.zip_code} />
         {property.property_owner != null && property.property_owner !== '' && (
           <DetailRow label={t('property.propertyOwner')} value={property.property_owner} />
         )}
@@ -139,13 +147,13 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
             value={property.parking_numbers.join(', ')}
           />
         )}
-        {property.property_tax != null && (
+        {property.property_tax != null && !inTiles.has('propertyTax') && (
           <DetailRow
             label={t('property.propertyTax')}
             value={formatMoney(property.property_tax)}
           />
         )}
-        {property.house_committee != null && (
+        {property.house_committee != null && !inTiles.has('houseCommittee') && (
           <DetailRow
             label={t('property.houseCommittee')}
             value={formatMoney(property.house_committee)}
