@@ -29,6 +29,11 @@ export function SuppliersHeaderButton({
   // The row height: measured, not assumed. A constant survived a 1.3x font scale only
   // because the row happens to be pinned by a 40dp icon that does not scale - luck, not
   // design. A larger title, a bigger gear or a taller line box would have broken it again.
+  // Mustard reads on the light navy primary (4.97:1) but not on the dark one: it measured
+  // 1.90:1 against the old #3E6FA8 and 1.11:1 against the lighter #65ACE2 that replaced it.
+  // So keep the accent where it works and fall back to onPrimary (6.92:1) where it does not.
+  const isDark = colors === darkColors;
+  const fg = isDark ? colors.onPrimary : colors.accent;
   const insets = useSafeAreaInsets();
   // The seed on the Transactions tour points here — this button is the one thing a new
   // user cannot identify without pressing it.
@@ -64,10 +69,10 @@ export function SuppliersHeaderButton({
             { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
           ]}
         >
-          <Icon name="store" size={ICON_LG} color={colors.accent} />
+          <Icon name="store" size={ICON_LG} color={fg} />
           <Text
             maxFontSizeMultiplier={MAX_TIGHT_FONT_SCALE}
-            style={[styles.label, { color: colors.accent }]}
+            style={[styles.label, { color: fg }]}
           >
             {label}
           </Text>

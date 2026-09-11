@@ -55,11 +55,14 @@ export const darkTheme: MD3Theme = {
     ...MD3DarkTheme.colors,
     primary: darkColors.primary,
     onPrimary: darkColors.onPrimary,
-    primaryContainer: "rgba(62,111,168,0.20)",
+    primaryContainer: "rgba(101,172,226,0.20)",
     onPrimaryContainer: darkColors.textPrimary,
     secondary: darkColors.secondary,
     onSecondary: darkColors.accentFg,
-    secondaryContainer: "rgba(194,149,67,0.22)",
+    // Solid, not rgba: this is the fill of `contained-tonal` buttons and the selected
+    // SegmentedButton, and as an alpha it composited against whatever surface was behind
+    // it - the "Scan a lease" button landed at sat 6.7%, the Settings segment at 18%.
+    secondaryContainer: "#544526",
     onSecondaryContainer: darkColors.textPrimary,
     background: darkColors.background,
     onBackground: darkColors.textPrimary,
@@ -70,8 +73,9 @@ export const darkTheme: MD3Theme = {
     outline: darkColors.outline,
     outlineVariant: darkColors.outlineSubtle,
     error: darkColors.error,
-    onError: "#FFFFFF",
-    errorContainer: "rgba(216,117,89,0.20)",
+    // error is a light tone in dark mode, so its ink is dark: 8.60:1 (white was 1.98:1)
+    onError: "#111D2C",
+    errorContainer: "rgba(244,165,144,0.20)",
     onErrorContainer: darkColors.error,
     elevation: {
       level0: "transparent",

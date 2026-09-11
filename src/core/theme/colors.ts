@@ -54,6 +54,11 @@ export const lightColors = {
   warning: "#D4A24C",
   error: "#9A3412",
 
+  // A mustard wash behind an icon, badge or active row. A token because it was hardcoded
+  // as rgba() at four different alphas across seven files.
+  accentBg: "rgba(212,162,76,0.14)",
+  primaryBg: "rgba(30,58,95,0.10)",
+
   // Section accent (legacy)
   sectionAccent: "#D4A24C",
 
@@ -83,71 +88,86 @@ export const lightColors = {
 
 export const darkColors = {
   // Brand
-  primary: "#3E6FA8", // lighter navy for dark surfaces
-  onPrimary: "#FFFFFF",
-  secondary: "#C29543", // slightly muted mustard
+  // MD3's dark convention is a *light* primary with a *dark* onPrimary. This palette had the
+  // light-theme convention (mid-dark primary + white text) applied to dark mode instead, which
+  // is why #3E6FA8 sat 2.4deg from the hue of its own card at 2.79:1 - invisible as an accent,
+  // and under the 4.5:1 it owes as text at 70 of its 90 call sites. Now 5.90:1, APCA Lc 50.
+  primary: "#65ACE2",
+  onPrimary: "#111D2C", // 6.92:1 on primary
+  secondary: "#C29543", // mustard, unchanged - 5.29:1 on the new card
   accent: "#C29543",
   accentFg: "#1A2D4A", // dark text on mustard for AA contrast
 
-  // Surfaces — deep warm navy instead of pure black
-  background: "#0F1B2D",
-  surface: "#172A44",
-  cardBackground: "#172A44",
-  surfaceElevated: "#1F3556",
-  surfaceOverlay: "rgba(241,236,223,0.06)",
+  // Surfaces - a navy-cast charcoal, not a navy.
+  // These were 50% saturation. That is ~2x the most heavily tinted dark theme anyone ships
+  // (GitHub's canvas is 21.4% at the same 216deg hue), and it left 94.9% of the Transactions
+  // screen's pixels inside a single 15deg blue bucket with only 1.3% neutral. Same hue, same
+  // brand; saturation pulled back to ~22%.
+  background: "#141921",
+  surface: "#222A35",
+  cardBackground: "#222A35",
+  surfaceElevated: "#2F3846",
+  surfaceOverlay: "rgba(239,238,235,0.06)",
 
-  // Text — warm cream tone instead of cold white
-  textPrimary: "#F1ECDF",
-  textSecondary: "rgba(241,236,223,0.66)",
-  textDisabled: "rgba(241,236,223,0.38)",
-  // Reverse polarity caps what is reachable here: even full cream is only Lc 92, so the
-  // label sits near the top of the range at 0.90 (Lc 80) rather than mid-way. At the old
-  // 0.66 a field label measured Lc 52 - the worst legibility regression in either theme.
-  fieldLabel: "rgba(241,236,223,0.90)",
-  placeholder: "rgba(241,236,223,0.70)",
+  // Text - off-white holding a warm cast, rather than cream.
+  // #F1ECDF was 39% saturation at hue 43 sitting on a 215deg ground: near-complementary, which
+  // is what made it read faintly sepia. 11% keeps the warmth as a signature without the yellow.
+  textPrimary: "#EFEEEB",
+  textSecondary: "rgba(239,238,235,0.66)", // 6.28:1
+  textDisabled: "rgba(239,238,235,0.38)",
+  // Reverse polarity caps what is reachable here, so the label sits near the top of the range
+  // at 0.90 rather than mid-way. At the old 0.66 a field label measured Lc 52.
+  fieldLabel: "rgba(239,238,235,0.90)", // 10.35:1
+  placeholder: "rgba(239,238,235,0.70)", // 6.88:1
 
   // Inputs
-  inputBackground: "#172A44",
-  inputFilledBackground: "#1F3556",
-  // 3.04:1 on a card, 3.17:1 on the page. The old 0.20 measured 2.06:1 — and nothing used
-  // this token anyway; the fields were drawing themselves with `outline` at 1.63:1.
-  inputBorder: "rgba(241,236,223,0.38)",
-  // Not `primary`: #3E6FA8 on the dark card is 2.79:1, under the 3:1 a focus ring owes. This
-  // is 5.30:1 and clearly brighter than the resting grey outline.
-  inputBorderFocus: "#6BA0DC",
+  inputBackground: "#222A35",
+  inputFilledBackground: "#2F3846",
+  inputBorder: "rgba(239,238,235,0.38)", // 3.08:1 - WCAG 1.4.11 for a control boundary
+  inputBorderFocus: "#86BEEA", // 7.28:1, and a clear step lighter than primary
 
   // Lines
-  outline: "rgba(241,236,223,0.12)",
-  outlineSubtle: "rgba(241,236,223,0.08)",
-  subtleOutline: "rgba(241,236,223,0.06)",
+  outline: "rgba(239,238,235,0.12)",
+  outlineSubtle: "rgba(239,238,235,0.08)",
+  subtleOutline: "rgba(239,238,235,0.06)",
 
-  // Semantic states
-  success: "#34A39A",
-  warning: "#E2B26A",
-  error: "#D87559",
+  // Semantic states - kept in step with revFg/expFg below
+  success: "#56D2B9",
+  warning: "#E8BD73", // 8.24:1
+  error: "#F4A590",
+
+  // 0.28, not the 0.15/0.18 these sites hardcoded. That alpha was tuned against a 50%%-
+  // saturated navy, where the blue ground did most of the work; over the charcoal the
+  // mustard and the ground cancel to a flat grey (measured hue 60, sat 2.7%%). 0.28
+  // reproduces the 16.2%% chroma the old pairing gave, warm this time.
+  accentBg: "rgba(194,149,67,0.28)",
+  primaryBg: "rgba(101,172,226,0.18)",
 
   // Section accent
   sectionAccent: "#C29543",
 
-  // Revenue / expense — lighter variants for dark navy surfaces
-  revBg: "rgba(52,163,154,0.18)",
-  revFg: "#34A39A",
-  expBg: "rgba(216,117,89,0.18)",
-  expFg: "#D87559",
+  // Revenue / expense.
+  // On a screen whose whole job is the sign of a number, this colour carries the meaning, and
+  // it measured APCA Lc 41 / 39 - roughly the floor for large text, at a 15px size. Now Lc 64
+  // and Lc 61, at 7.80:1 and 7.33:1 on the card.
+  revBg: "rgba(86,210,185,0.18)",
+  revFg: "#56D2B9",
+  expBg: "rgba(244,165,144,0.18)",
+  expFg: "#F4A590",
 
   // Aliases
-  chooseRevenueBg: "rgba(52,163,154,0.18)",
-  chooseRevenueIcon: "#34A39A",
-  chooseExpenseBg: "rgba(216,117,89,0.18)",
-  chooseExpenseIcon: "#D87559",
+  chooseRevenueBg: "rgba(86,210,185,0.18)",
+  chooseRevenueIcon: "#56D2B9",
+  chooseExpenseBg: "rgba(244,165,144,0.18)",
+  chooseExpenseIcon: "#F4A590",
 
-  // P&L card backgrounds
+  // P&L card backgrounds - solid tiles that carry their own light text, independent of surface
   plPositiveBg: "#1F7A60",
   plNegativeBg: "#7A3020",
-  plNeutralBg: "#3A3A3A",
+  plNeutralBg: "#353C46", // was #3A3A3A - a 0% grey reads brown against a blue-cast page
 
-  // Avatar initials
-  avatarBackground: "#2A3950",
-  avatarBorder: "#41506A",
-  avatarText: "#FAF7F0",
+  // Avatar initials - desaturated in step with the surfaces
+  avatarBackground: "#354050",
+  avatarBorder: "#4F5E72",
+  avatarText: "#EFEEEB",
 } as const;
