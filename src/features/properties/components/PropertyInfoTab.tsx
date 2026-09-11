@@ -1,22 +1,15 @@
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
-import { Icon, type IconName } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
-import type { Property, PropertyType } from '@/src/shared/types';
+import type { Property } from '@/src/shared/types';
 import { lightColors, darkColors, spacing, ICON_SM } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
-import { StatBox, DetailRow, DetailSection } from '@/src/shared/components/ui';
+import { Icon, StatBox, DetailRow, DetailSection } from '@/src/shared/components/ui';
 
 interface PropertyInfoTabProps {
   property: Property;
 }
-
-const TYPE_ICONS: Partial<Record<PropertyType, IconName>> = {
-  apartment: 'building',
-  house: 'home',
-  commercial: 'store',
-};
 
 function ExpandableNotesRow({
   label,
@@ -60,9 +53,6 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const translateType = (type: string) =>
-    t(`property.type${type.charAt(0).toUpperCase() + type.slice(1)}`);
-
   const hasRooms = property.number_of_rooms != null;
 
   const hasFloorOrApartment =
@@ -100,16 +90,8 @@ export function PropertyInfoTab({ property }: PropertyInfoTabProps) {
         </View>
       )}
       <View style={styles.statsRow}>
-        <StatBox
-          icon={TYPE_ICONS[property.type] ?? 'home'}
-          value={translateType(property.type)}
-          label={t('property.typeLabel')}
-          backgroundColor={colors.inputBackground}
-          iconColor={colors.primary}
-          textColor={colors.textPrimary}
-          secondaryColor={colors.textSecondary}
-          valueVariant="titleMedium"
-        />
+        {/* No Type tile: the header medallion already carries the property type, and two
+            tiles give Surface area and Number of rooms room for their labels. */}
         <StatBox
           icon="ruler"
           value={property.sq_ft.toLocaleString()}

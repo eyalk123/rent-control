@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Button, Card, Text, useTheme } from 'react-native-paper';
-import { Icon, type IconName } from '@/src/shared/components/ui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import type { PropertyBrief, PropertyType, Renter } from '@/src/shared/types';
-import { EmptyState } from '@/src/shared/components/ui';
+import type { PropertyBrief, Renter } from '@/src/shared/types';
+import { Icon, EmptyState } from '@/src/shared/components/ui';
 import { PropertyPicker } from '@/src/features/properties/components/PropertyPicker';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
+import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
 type ThemeColors = typeof lightColors | typeof darkColors;
@@ -19,12 +19,6 @@ interface RenterPropertyTabProps {
   onLinkProperty: (propertyId: number) => void;
   linkPending?: boolean;
 }
-
-const TYPE_ICONS: Record<PropertyType, IconName> = {
-  apartment: 'building',
-  house: 'home',
-  commercial: 'store',
-};
 
 function PropertyCard({
   property,
@@ -51,7 +45,7 @@ function PropertyCard({
           ) : (
             <View style={[styles.thumbnailPlaceholder, { backgroundColor: colors.inputBackground }]}>
               <Icon
-                name={TYPE_ICONS[property.type] ?? 'home'}
+                name={getPropertyTypeIcon(property.type)}
                 size={24}
                 color={colors.primary}
               />

@@ -399,6 +399,29 @@ preview mode.
 dark surface, `primary` measures **2.97:1** — under the 3:1 floor for a non-text control.
 `textPrimary` gives 10.4:1 light and 13.1:1 dark.
 
+### 2026-09-11 — Property header gets a type medallion
+
+Collapsing the empty photo slot (above) removed the anchor without replacing it, leaving a lone
+edit button in a blank row. A property with no photo now shows an 80pt medallion holding its type
+glyph, in the same slot the renter screen gives the avatar, so both detail screens open on an
+identity mark. Solid `primary` with an `onPrimary` glyph, matching `RenterAvatar` — 11.5:1 light,
+5.2:1 dark. With a photo the hero is unchanged.
+
+The `Type` stat tile was dropped as a duplicate of the medallion, leaving Surface area and Rooms in
+two wider tiles.
+
+`PROPERTY_TYPE_ICONS` (`features/properties/constants/propertyTypeIcons.ts`) is now the single map.
+It existed twice before — in `PropertyInfoTab` and `RenterPropertyTab` — both typed
+`Record<PropertyType, IconName>` while covering three of the five types, so both were type errors
+falling through to an `?? 'home'` fallback. Fixing them took the repo from 18 type errors to 16.
+`Icon`'s names are a closed union by design, so `garden_apartment` and `housing_unit` reuse existing
+glyphs (`home` and `building`) rather than widening it.
+
+**Sparse properties still look empty below the tiles.** `DetailSection` correctly renders nothing
+when it has no rows, where the old cards showed a titled bar over an empty body. That is an
+improvement, but a property with only an address and a size now has a lot of blank space. A proper
+empty state for that case is not written yet.
+
 ---
 
 *Last updated 2026-09-11. When something here stops matching the code, fix this file in the same

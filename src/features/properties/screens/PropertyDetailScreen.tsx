@@ -31,6 +31,7 @@ import {
 } from '@/src/features/transactions/components/detail/tabState';
 import { PropertyDocumentsTab } from '@/src/features/properties/components/PropertyDocumentsTab';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
+import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor, useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour, useTourStep } from '@/src/features/onboarding/TourController';
@@ -125,34 +126,49 @@ export function PropertyDetailScreen() {
         {/* Header: image + address + edit */}
         <View>
           {/* With a photo this is a hero. Without one it used to stay 200px tall and hold a
-              grey house glyph and a floating button, which read as a broken image on a screen
-              that already names the property directly below. No photo now collapses it to a
-              slim action bar, reclaiming ~144px of the first screen. */}
-          <View style={[imageSource ? styles.imageWrapper : styles.headerBar, { width }]}>
-            {imageSource && (
+              grey glyph floating in empty space, which read as a broken image.
+              It now shows a type medallion in the same slot the renter screen gives the
+              avatar, so both detail screens open on an identity mark rather than a void. The
+              edit button sits where the renter's does, and keeps its filled circle only over
+              a photo, where a plain glyph would be illegible. */}
+          {imageSource ? (
+            <View style={[styles.imageWrapper, { width }]}>
               <Image
                 source={imageSource}
                 style={[styles.image, { width }]}
                 resizeMode="cover"
               />
-            )}
-            <IconButton
-              icon={() => (
-                <Icon
-                  name="pencil"
-                  size={22}
-                  color={imageSource ? colors.onPrimary : colors.textPrimary}
-                />
-              )}
-              size={22}
+              <IconButton
+                icon={() => <Icon name="pencil" size={22} color={colors.onPrimary} />}
+                size={22}
+                style={[styles.editIcon, { backgroundColor: colors.primary }]}
+                onPress={handleEdit}
+                accessibilityLabel={t('property.editProperty')}
+              />
+            </View>
+          ) : (
+            <View
               style={[
-                imageSource ? styles.editIcon : styles.editIconBar,
-                imageSource ? { backgroundColor: colors.primary } : null,
+                styles.medallionSection,
+                { width, backgroundColor: colors.inputBackground },
               ]}
-              onPress={handleEdit}
-              accessibilityLabel={t('property.editProperty')}
-            />
-          </View>
+            >
+              <View style={[styles.medallion, { backgroundColor: colors.primary }]}>
+                <Icon
+                  name={getPropertyTypeIcon(property.type)}
+                  size={36}
+                  color={colors.onPrimary}
+                />
+              </View>
+              <IconButton
+                icon={() => <Icon name="pencil" size={22} color={colors.textPrimary} />}
+                size={22}
+                style={styles.editIcon}
+                onPress={handleEdit}
+                accessibilityLabel={t('property.editProperty')}
+              />
+            </View>
+          )}
 
           <View style={styles.addressRow}>
             <Text variant="titleLarge" style={[styles.addressText, { color: colors.textPrimary }]}>
@@ -225,21 +241,26 @@ const styles = StyleSheet.create({
   image: {
     height: 200,
   },
-  // No photo: just enough height for the edit control, which sits in the flow rather than
-  // floating over a placeholder.
-  headerBar: {
+  // No photo: the medallion slot. Mirrors the renter screen's avatar section - centred mark,
+  // actions absolutely positioned around it - so the two detail screens share a silhouette.
+  medallionSection: {
     alignSelf: 'stretch',
+    alignItems: 'center',
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+    position: 'relative',
+  },
+  medallion: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
-    paddingHorizontal: spacing.xs,
+    alignItems: 'center',
   },
   editIcon: {
     position: 'absolute',
     bottom: spacing.sm,
     left: spacing.sm,
-    margin: 0,
-  },
-  editIconBar: {
-    alignSelf: 'flex-start',
     margin: 0,
   },
   addressRow: {
