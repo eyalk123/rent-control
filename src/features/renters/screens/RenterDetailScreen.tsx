@@ -218,9 +218,9 @@ export function RenterDetailScreen() {
             <TourAnchor id={ANCHORS.renterDetailEdit} style={styles.editIcon}>
               <IconButton
                 icon="pencil"
-                iconColor="#FFF"
-                size={20}
-                style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                iconColor={colors.textPrimary}
+                size={22}
+                style={styles.iconButtonReset}
                 onPress={handleEdit}
                 accessibilityLabel={t('renter.editRenter')}
               />
@@ -241,9 +241,9 @@ export function RenterDetailScreen() {
               >
                 <IconButton
                   icon="calendar-plus"
-                  iconColor="#FFF"
-                  size={20}
-                  style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                  iconColor={colors.textPrimary}
+                  size={22}
+                  style={styles.iconButtonReset}
                   onPress={handleExtend}
                   accessibilityLabel={t('renter.extendLease')}
                 />
@@ -271,9 +271,9 @@ export function RenterDetailScreen() {
                     <TourAnchor id={ANCHORS.renterDetailMore}>
                       <IconButton
                         icon="dots-vertical"
-                        iconColor="#FFF"
-                        size={20}
-                        style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                        iconColor={colors.textPrimary}
+                        size={22}
+                        style={styles.iconButtonReset}
                         onPress={() => setMoreOpen(true)}
                         accessibilityLabel={t('common.moreActions')}
                       />
@@ -487,6 +487,11 @@ const styles = StyleSheet.create({
     right: spacing.sm,
   },
   // IconButton ships its own margin; the anchor wrapper now owns the placement.
+  //
+  // No filled circle: edit, extend and the overflow used to be three navy discs, which with
+  // the avatar put four of them in the top third of the screen and gave routine header
+  // actions more weight than anything in the content below. They are plain glyphs on the
+  // header surface now, which is what native header actions look like.
   iconButtonReset: {
     margin: 0,
   },

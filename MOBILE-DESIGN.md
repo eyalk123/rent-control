@@ -386,6 +386,19 @@ Mock fixtures `Daniel Okafor` (id 7, terminated, 8 lease periods) and `Noa Shale
 periods) exist in `src/core/api/mock.ts` to exercise the ended states and the list overflow in
 preview mode.
 
+### 2026-09-11 — Chrome quietened on the detail headers
+
+| Change | Why |
+|---|---|
+| Contact actions share one circle treatment | Call was teal, WhatsApp a hardcoded `rgba(37,211,102,0.16)` brand green, Email mustard. Three sibling actions in three hues that meant nothing, and the only hardcoded brand colour in the app. Now one navy tint at 12% with a `textPrimary` glyph. |
+| Renter header buttons lose their fills | Edit, Extend and the overflow were filled navy discs which, with the avatar, put four of them in the top third. They are plain glyphs now; the avatar is the only filled circle. |
+| Property header collapses without a photo | The 200px slot held a grey house glyph and a floating button when empty, reading as a broken image on a screen that names the property directly below. With a photo it is still a hero, and the edit button keeps its fill there because a plain glyph over a photo is illegible. |
+| `IconDetailRow` deleted | Last callers went with the grouped-list change. |
+
+**Contrast note:** the contact glyph is `textPrimary`, not `primary`. Against the 12% tint over the
+dark surface, `primary` measures **2.97:1** — under the 3:1 floor for a non-text control.
+`textPrimary` gives 10.4:1 light and 13.1:1 dark.
+
 ---
 
 *Last updated 2026-09-11. When something here stops matching the code, fix this file in the same

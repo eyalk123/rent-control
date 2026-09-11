@@ -124,31 +124,31 @@ export function PropertyDetailScreen() {
       <View style={styles.container}>
         {/* Header: image + address + edit */}
         <View>
-          <View style={[styles.imageWrapper, { width }]}>
-            {imageSource ? (
+          {/* With a photo this is a hero. Without one it used to stay 200px tall and hold a
+              grey house glyph and a floating button, which read as a broken image on a screen
+              that already names the property directly below. No photo now collapses it to a
+              slim action bar, reclaiming ~144px of the first screen. */}
+          <View style={[imageSource ? styles.imageWrapper : styles.headerBar, { width }]}>
+            {imageSource && (
               <Image
                 source={imageSource}
                 style={[styles.image, { width }]}
                 resizeMode="cover"
               />
-            ) : (
-              <View
-                style={[
-                  styles.imagePlaceholder,
-                  { width, backgroundColor: colors.inputBackground },
-                ]}
-              >
-                <Icon
-                  name="home"
-                  size={48}
-                  color={colors.placeholder}
-                />
-              </View>
             )}
             <IconButton
-              icon={() => <Icon name="pencil" size={20} color={colors.onPrimary} />}
-              size={20}
-              style={[styles.editIcon, { backgroundColor: colors.primary }]}
+              icon={() => (
+                <Icon
+                  name="pencil"
+                  size={22}
+                  color={imageSource ? colors.onPrimary : colors.textPrimary}
+                />
+              )}
+              size={22}
+              style={[
+                imageSource ? styles.editIcon : styles.editIconBar,
+                imageSource ? { backgroundColor: colors.primary } : null,
+              ]}
               onPress={handleEdit}
               accessibilityLabel={t('property.editProperty')}
             />
@@ -225,15 +225,21 @@ const styles = StyleSheet.create({
   image: {
     height: 200,
   },
-  imagePlaceholder: {
-    height: 200,
+  // No photo: just enough height for the edit control, which sits in the flow rather than
+  // floating over a placeholder.
+  headerBar: {
+    alignSelf: 'stretch',
     justifyContent: 'center',
-    alignItems: 'center',
+    paddingHorizontal: spacing.xs,
   },
   editIcon: {
     position: 'absolute',
     bottom: spacing.sm,
     left: spacing.sm,
+    margin: 0,
+  },
+  editIconBar: {
+    alignSelf: 'flex-start',
     margin: 0,
   },
   addressRow: {
