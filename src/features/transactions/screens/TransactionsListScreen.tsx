@@ -58,7 +58,7 @@ export function TransactionsListScreen() {
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { language, isRtl } = useLanguageContext();
+  const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
 
   const {
@@ -89,21 +89,15 @@ export function TransactionsListScreen() {
     setSelectedKey(key);
   }, []);
 
-  const { filterChipsRef } = filters;
   const { exitSelectMode } = selectMode;
 
   useFocusEffect(
     React.useCallback(() => {
-      filterChipsRef.current?.scrollToStart();
       return () => {
         exitSelectMode();
       };
-    }, [filterChipsRef, exitSelectMode])
+    }, [exitSelectMode])
   );
-
-  React.useEffect(() => {
-    filterChipsRef.current?.scrollToStart();
-  }, [language, filterChipsRef]);
 
   const handleAddPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -179,7 +173,6 @@ export function TransactionsListScreen() {
         stickySectionHeadersEnabled
         ListHeaderComponent={
           <TransactionsListHeader
-            filterChipsRef={filters.filterChipsRef}
             filterChips={filters.filterChips}
             typeFilter={filters.typeFilter}
             onTypeFilterChange={filters.setTypeFilter}

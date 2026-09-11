@@ -1,4 +1,3 @@
-import type { RefObject } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -8,13 +7,12 @@ import { useRtlLabelStyle } from '@/src/context';
 import type { MonthBucket } from '@/src/features/transactions/utils/aggregate';
 import { TransactionsHero } from './TransactionsHero';
 import { MonthsBarChart } from './MonthsBarChart';
-import { type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
+import { type FilterChip } from './FilterChipsBar';
 import { TypeFilterChips, type TransactionTypeFilter } from './TypeFilterChips';
 import { FilterBar } from '@/src/shared/components/ui/FilterBar';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 
 interface TransactionsListHeaderProps {
-  filterChipsRef: RefObject<FilterChipsBarHandle | null>;
   filterChips: FilterChip[];
   typeFilter: TransactionTypeFilter;
   onTypeFilterChange: (value: TransactionTypeFilter) => void;
@@ -26,7 +24,6 @@ interface TransactionsListHeaderProps {
 }
 
 export function TransactionsListHeader({
-  filterChipsRef,
   filterChips,
   typeFilter,
   onTypeFilterChange,
@@ -53,7 +50,7 @@ export function TransactionsListHeader({
       <DevProfiler id="MonthsBarChart">
         <MonthsBarChart buckets={sixMonthBuckets} selectedKey={selectedKey} onSelectMonth={onSelectMonth} loading={summaryLoading} />
       </DevProfiler>
-      <FilterBar chips={filterChips} chipsRef={filterChipsRef} style={styles.filterCard}>
+      <FilterBar chips={filterChips} style={styles.filterCard}>
         <DevProfiler id="TypeFilterChips">
           <TypeFilterChips value={typeFilter} onChange={onTypeFilterChange} />
         </DevProfiler>

@@ -8,7 +8,7 @@ export type { ContactActionsRowProps } from './ContactActionsRow';
 export { Icon, type IconName } from './Icon';
 export { AppFab } from './AppFab';
 export { AddOptionsDialog } from './AddOptionsDialog';
-export { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
+export { FilterChipsBar, type FilterChip } from './FilterChipsBar';
 export { FilterBar } from './FilterBar';
 export { FilterSegmentedControl, type FilterSegment } from './FilterSegmentedControl';
 export { FilterBottomSheet, type FilterOption } from './FilterBottomSheet';

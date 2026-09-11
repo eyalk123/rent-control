@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { spacing } from '@/src/core/theme';
-import { FilterChipsBar, type FilterChip, type FilterChipsBarHandle } from './FilterChipsBar';
+import { FilterChipsBar, type FilterChip } from './FilterChipsBar';
 
 interface FilterBarProps {
   chips: FilterChip[];
@@ -12,7 +12,6 @@ interface FilterBarProps {
    * three options should show all three rather than hide them behind a sheet.
    */
   children?: React.ReactNode;
-  chipsRef?: React.Ref<FilterChipsBarHandle>;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -23,12 +22,12 @@ interface FilterBarProps {
  * is what separates the controls from the rows they act on - loose chips floating over the
  * page background read as part of the list.
  */
-export function FilterBar({ chips, children, chipsRef, style }: FilterBarProps) {
+export function FilterBar({ chips, children, style }: FilterBarProps) {
   const theme = useTheme();
 
   return (
     <View style={[styles.card, { backgroundColor: theme.colors.surface }, style]}>
-      <FilterChipsBar ref={chipsRef} chips={chips} />
+      <FilterChipsBar chips={chips} />
       {children}
     </View>
   );
