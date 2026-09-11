@@ -1,4 +1,4 @@
-import { getLeaseEndDate, getScheduleEndDate, type Renter } from '@/src/shared/types';
+import { getLeaseEndDate, type Renter } from '@/src/shared/types';
 
 /**
  * Where a renter sits in the lease lifecycle — is this tenancy running at all.
@@ -26,29 +26,25 @@ function withTermination(renter: Renter, scheduled: Date | null): Date | null {
 }
 
 /**
- * The end date to *show*: the binding term (`getLeaseEndDate`), pulled in by an early
- * termination. That is the date the landlord actually has to decide something, which is
- * what the apps display and what the lease-expiring reminders count down to.
+ * The end date to show, *and* the date that decides whether the lease is still running:
+ * the binding term (`getLeaseEndDate`), pulled in by an early termination.
  *
- * Not the date that decides whether the lease is still running — see
- * {@link getEffectiveScheduleEnd}.
+ * The binding term is the contract block — option years are excluded, because an option
+ * is a right the tenant holds, not a commitment either side has made. An option that was
+ * actually taken up is recorded by flipping that year's `type` from `option` to
+ * `contract` (what the Extend-lease screen's per-year toggle does), so an exercised
+ * option lands inside the contract block and counts here. An unexercised one does not,
+ * and the tenancy reads as ended once the contract block runs out.
+ *
+ * This deliberately no longer matches the backend, whose `effective_lease_end()` coalesces
+ * `terminated_on` with a stored `lease_end` that is `schedule_end` — options included, as
+ * though every option were always exercised. That treats a tenant who never renewed as
+ * still in place for the length of options they never took. The backend's own
+ * `contract_end()` docstring already states the rule this follows: "An option year is not
+ * yet exercised."
  */
 export function getEffectiveLeaseEnd(renter: Renter): Date | null {
   return withTermination(renter, getLeaseEndDate(renter));
-}
-
-/**
- * The date the tenancy actually stops: the whole signed schedule, options included,
- * pulled in by an early termination.
- *
- * Options count because an option year is still a year the tenant may be living there and
- * owing rent. Mirrors `effective_lease_end()` in the backend's renter repository —
- * `coalesce(terminated_on, lease_end)`, where the stored `lease_end` is `schedule_end`,
- * not `contract_end` — so the badge and the reminders agree. It read the contract end before, which
- * filed a tenant in an exercised option year as a past tenant of a vacant flat.
- */
-function getEffectiveScheduleEnd(renter: Renter): Date | null {
-  return withTermination(renter, getScheduleEndDate(renter));
 }
 
 export function isTerminated(renter: Renter): boolean {
@@ -63,7 +59,7 @@ export function getRenterLifecycle(renter: Renter, today: Date = startOfToday())
   // owed.)
   if (isTerminated(renter)) return 'ended';
 
-  const end = getEffectiveScheduleEnd(renter);
+  const end = getEffectiveLeaseEnd(renter);
   if (end && end < today) return 'ended';
 
   if (renter.lease_start) {

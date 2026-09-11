@@ -713,3 +713,28 @@ the quick-action tile samples byte-identical.
 **Found but not fixed:** the FAB overlaps the amount column of the last visible transaction row,
 in both LTR and RTL. Scrolling clears it, but the list wants bottom padding.
 
+### 2026-09-11 — An unexercised option no longer keeps a tenancy alive
+
+Settles the question left open by the audit. `getRenterLifecycle` keyed off
+`getEffectiveScheduleEnd` — the whole signed schedule, options included — so a renter whose
+contract block ran out months ago still read **Active** for the length of options they never took
+up. Noa Shalev's contract ended 1 Sep 2026 and she sat in the Current list on 11 Sep.
+
+An option is a right the tenant holds, not a commitment either side has made. Exercising one is
+already representable: the Extend-lease screen's per-year toggle flips that year's `type` from
+`option` to `contract`, which moves it inside the contract block. So `getLeaseEndDate` already
+distinguishes the two cases correctly, and the lifecycle now keys off it.
+
+**This deliberately diverges from the backend.** `effective_lease_end()` in the renter repository
+coalesces `terminated_on` with a stored `lease_end` that is `schedule_end`, and every server-side
+"is this renter active" window keys off that — so the API still treats unexercised options as
+occupancy. The client is self-consistent because all four places that care compute the lifecycle
+locally (the Current/Ended filter, the card badge, the property tenants tab, the detail screen).
+Server-side reminders and any server-scoped active list are still on the old rule. The backend's
+own `contract_end()` docstring already states the rule adopted here — "An option year is not yet
+exercised" — so the fix there is to point `lease_end` at `contract_end`; that is a backend change
+and is not made here.
+
+Verified: Noa Shalev moves from Current to Ended; Lisa Martinez, who has no lease dates at all,
+stays Active, which is the documented behaviour for a half-entered record.
+
