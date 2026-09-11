@@ -281,7 +281,11 @@ export function RevenuePaymentPanel({
       <RentGridLegend />
 
       <Portal>
-        <Dialog visible={pending != null} onDismiss={() => !saving && setPending(null)}>
+        <Dialog
+          visible={pending != null}
+          onDismiss={() => !saving && setPending(null)}
+          style={styles.dialog}
+        >
           <Dialog.Title>
             {t('transactions.recordPayment.title', { defaultValue: 'Record rent payment' })}
           </Dialog.Title>
@@ -315,6 +319,13 @@ export function RevenuePaymentPanel({
 }
 
 const styles = StyleSheet.create({
+  // Paper derives a dialog's radius as `roundness * 7` (MD3's 28 from its default
+  // roundness of 4), and this theme sets roundness to 16 for cards and inputs - so a
+  // dialog that does not say otherwise lands on 112 and swallows its own corners.
+  // Every dialog in the app pins 16 by hand for this reason.
+  dialog: {
+    borderRadius: 16,
+  },
   content: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,

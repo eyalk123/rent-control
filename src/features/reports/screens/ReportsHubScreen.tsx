@@ -4,6 +4,7 @@ import { ActivityIndicator, Menu, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import FileBarChart2 from 'lucide-react-native/icons/file-chart-column';
 import MoreVertical from 'lucide-react-native/icons/ellipsis-vertical';
@@ -178,6 +179,7 @@ export function ReportsHubScreen() {
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
   const { isRtl } = useLanguageContext();
+  const BackIcon = isRtl ? ChevronRight : ChevronLeft;
 
   const [history, setHistory] = useState<ReportExport[]>([]);
   const [loading, setLoading] = useState(false);
@@ -242,12 +244,17 @@ export function ReportsHubScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <View style={[styles.header, { borderBottomColor: colors.outline }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} hitSlop={8}>
-          <ChevronRight
-            size={22}
-            color={colors.textPrimary}
-            style={{ transform: [{ scaleX: isRtl ? 1 : -1 }] }}
-          />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back', { defaultValue: 'Back' })}
+        >
+          {/* Pick the icon that already points the right way instead of mirroring one:
+              react-native-svg clips to the viewport, so a scaleX(-1) on the Svg root
+              pushes the glyph outside it on Android and the arrow renders as nothing. */}
+          <BackIcon size={22} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text variant="titleLarge" style={[styles.headerTitle, { color: colors.textPrimary }]}>
           {t('home.reports')}

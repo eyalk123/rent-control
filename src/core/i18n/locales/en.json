@@ -510,6 +510,7 @@
     "add": "Add",
     "edit": "Edit",
     "selectItem": "Select item",
+    "moreActions": "More actions",
     "showMore": "Show more",
     "showLess": "Show less",
     "step_n_of_m": "Step {{n}} of {{m}}",
@@ -1058,7 +1059,7 @@
         },
         "end": {
           "title": "Ending a tenancy",
-          "body": "Marks the lease over from the date you choose, with a reason if there is one. Nothing is deleted: the tenant stays on the property, their payments stay in the reports, and the record can be reopened if it turns out they are staying."
+          "body": "End lease sits behind this menu, a step away from Extend so a routine renewal and the end of a tenancy do not get mixed up. It marks the lease over from the date you choose, with a reason if there is one. Nothing is deleted: the tenant stays on the property, their payments stay in the reports, and the record can be reopened if it turns out they are staying."
         }
       },
       "property-detail": {

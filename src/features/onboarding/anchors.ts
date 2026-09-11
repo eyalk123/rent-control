@@ -84,7 +84,7 @@ export const ANCHORS = {
   /** Only on a live lease — an ended one has no Extend, a terminated one has neither, so
    *  both steps are `optional` and drop themselves there. See registry.ts. */
   renterDetailExtend: 'renterDetail.extendButton',
-  renterDetailEndLease: 'renterDetail.endLeaseButton', // -> EndLeaseDialog trigger
+  renterDetailMore: 'renterDetail.moreMenu', // overflow; holds the EndLeaseDialog trigger
 
   // Lease form — src/shared/components/form/
   leaseTermBuilder: 'leaseForm.termBuilder', // -> LeaseTermBuilder.tsx

@@ -55,7 +55,7 @@ export function EndLeaseDialog({ visible, renter, loading, onConfirm, onDismiss 
       <Dialog
         visible={visible}
         onDismiss={loading ? undefined : onDismiss}
-        style={{ backgroundColor: colors.inputFilledBackground }}
+        style={[styles.dialog, { backgroundColor: colors.inputFilledBackground }]}
       >
         <Dialog.Title style={{ color: colors.textPrimary }}>
           {t('renter.endLeaseTitle')}
@@ -127,6 +127,13 @@ export function EndLeaseDialog({ visible, renter, loading, onConfirm, onDismiss 
 }
 
 const styles = StyleSheet.create({
+  // Paper derives a dialog's radius as `roundness * 7` (MD3's 28 from its default
+  // roundness of 4). This theme sets roundness to 16 for cards and inputs, so a dialog
+  // that does not say otherwise comes out at 112 - a squircle that swallows its own
+  // corners. Every other dialog in the app pins 16 by hand; this one had been missed.
+  dialog: {
+    borderRadius: 16,
+  },
   content: {
     gap: spacing.md,
   },

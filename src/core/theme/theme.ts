@@ -30,6 +30,19 @@ export const lightTheme: MD3Theme = {
     onError: "#FFFFFF",
     errorContainer: "rgba(154,52,18,0.13)",
     onErrorContainer: lightColors.error,
+    // MD3's stock light elevation tints each level with its own baseline purple
+    // (level2 is rgb(233,226,239)), which is where the lavender on menus, dialogs and
+    // any other elevated Paper surface came from - nothing in this palette produced it.
+    // The dark theme has always overridden this; light never did. Cards and sheets here
+    // are white on cream and lift by shadow, not by tint, so every level is `surface`.
+    elevation: {
+      level0: "transparent",
+      level1: lightColors.surface,
+      level2: lightColors.surface,
+      level3: lightColors.surface,
+      level4: lightColors.surface,
+      level5: lightColors.surface,
+    },
   },
 };
 

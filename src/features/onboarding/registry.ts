@@ -221,7 +221,7 @@ export const TOURS = {
       // you have read it. Edit is on every renter; the other two are not — see below.
       { id: 'edit', anchor: ANCHORS.renterDetailEdit, placement: 'bottom' },
       { id: 'extend', anchor: ANCHORS.renterDetailExtend, placement: 'bottom', seed: { id: 'extend-lease', opens: 'extend-lease' }, optional: true },
-      { id: 'end', anchor: ANCHORS.renterDetailEndLease, placement: 'bottom', seed: { id: 'end-lease', opens: null }, optional: true },
+      { id: 'end', anchor: ANCHORS.renterDetailMore, placement: 'bottom', seed: { id: 'end-lease', opens: null }, optional: true },
     ],
   },
 

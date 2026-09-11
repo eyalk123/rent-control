@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
-import { Button, IconButton, Text, useTheme } from 'react-native-paper';
+import { Button, IconButton, Menu, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -86,6 +86,7 @@ export function RenterDetailScreen() {
         ? { ...txTabState, section: 'revenue' }
         : txTabState;
   const [endLeaseOpen, setEndLeaseOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [lifecyclePending, setLifecyclePending] = useState(false);
   const [linkPending, setLinkPending] = useState(false);
 
@@ -241,17 +242,47 @@ export function RenterDetailScreen() {
                 />
               </TourAnchor>
             )}
+            {/* End lease lives behind the overflow rather than beside Extend. As two filled
+                circles they were `calendar-plus` next to `calendar-remove` at 20px - the same
+                colour, size and icon family, differing by a few pixels - so a routine action
+                and a lifecycle one read as a pair. The menu gives End lease the text label an
+                icon-only button cannot have, and leaves Extend the only lease button up here.
+                Not styled destructive, for the reason the web hero notes: dressing it like
+                Delete pushes people into rewriting the lease term by hand instead. */}
             {!ended && (
-              <TourAnchor id={ANCHORS.renterDetailEndLease} style={styles.endLeaseIcon}>
-                <IconButton
-                  icon="calendar-remove"
-                  iconColor="#FFF"
-                  size={20}
-                  style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
-                  onPress={() => setEndLeaseOpen(true)}
-                  accessibilityLabel={t('renter.endLease')}
-                />
-              </TourAnchor>
+              <View style={styles.moreIcon}>
+                <Menu
+                  visible={moreOpen}
+                  onDismiss={() => setMoreOpen(false)}
+                  // Drops from under the button rather than over it: the default `top`
+                  // covers the header controls it was opened from.
+                  anchorPosition="bottom"
+                  anchor={
+                    /* The absolute positioning sits on the View *outside* Menu: Menu wraps its
+                       anchor in a plain View and measures that to place the surface, so an
+                       absolutely-positioned child would collapse it and misplace the menu. */
+                    <TourAnchor id={ANCHORS.renterDetailMore}>
+                      <IconButton
+                        icon="dots-vertical"
+                        iconColor="#FFF"
+                        size={20}
+                        style={[styles.iconButtonReset, { backgroundColor: colors.primary }]}
+                        onPress={() => setMoreOpen(true)}
+                        accessibilityLabel={t('common.moreActions')}
+                      />
+                    </TourAnchor>
+                  }
+                >
+                  <Menu.Item
+                    leadingIcon="calendar-remove"
+                    onPress={() => {
+                      setMoreOpen(false);
+                      setEndLeaseOpen(true);
+                    }}
+                    title={t('renter.endLease')}
+                  />
+                </Menu>
+              </View>
             )}
           </View>
 
@@ -385,12 +416,13 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
-  // Sits immediately inboard of the extend button, matching its physical (not
-  // logical) positioning so the two stay a pair in both directions.
-  endLeaseIcon: {
+  // The overflow terminates the row at the physical edge and Extend sits inboard of it,
+  // which is where a `dots-vertical` is looked for. Physical (not logical) positioning,
+  // so the header controls keep the same arrangement under RTL.
+  moreIcon: {
     position: 'absolute',
     bottom: spacing.sm,
-    right: spacing.sm + 44,
+    right: spacing.sm,
   },
   container: {
     flex: 1,
@@ -408,7 +440,7 @@ const styles = StyleSheet.create({
   extendIcon: {
     position: 'absolute',
     bottom: spacing.sm,
-    right: spacing.sm,
+    right: spacing.sm + 44,
   },
   // IconButton ships its own margin; the anchor wrapper now owns the placement.
   iconButtonReset: {
