@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import { HelperText } from "react-native-paper";
 import { type Control, type FieldValues, type UseFormSetValue, useWatch } from "react-hook-form";
 import { useTour } from "@/src/features/onboarding/TourController";
 import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
@@ -22,6 +23,11 @@ type RenterLeaseInfoCardProps<TFieldValues extends FieldValues> = {
   ownerId: string;
   /** Passed through to LeaseTermBuilder, which keeps year one and the base rent in step. */
   setValue: UseFormSetValue<TFieldValues>;
+  /**
+   * A `number_of_payments` on file that the picker cannot express (anything but 12 / 4 / 1).
+   * Shown against the field so an empty picker is accounted for rather than mysterious.
+   */
+  unsupportedFrequency?: number | null;
 };
 
 function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
@@ -29,6 +35,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   t,
   ownerId,
   setValue,
+  unsupportedFrequency,
 }: RenterLeaseInfoCardProps<TFieldValues>) {
   // The lease tours are requested from here rather than from the screen because this card
   // is what mounts on step two of the form, and it owns every anchor they point at. Asking
@@ -95,7 +102,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
         <FormDropdownOptions
           control={control}
           name={"paymentFrequency" as any}
-          label={t("renter.numberOfPayments")}
+          label={t("renter.paymentFrequency", { defaultValue: "Payment frequency" })}
           options={[
             { value: "monthly", label: t("renter.frequencyMonthly") },
             { value: "quarterly", label: t("renter.frequencyQuarterly") },
@@ -103,6 +110,18 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           ]}
           sorted={false}
         />
+        {/* The lease on file says something this picker cannot express. Naming it beats an
+            empty field the user has no way to account for — and the save refuses until they
+            choose, rather than silently clearing what the lease actually said. */}
+        {unsupportedFrequency != null ? (
+          <HelperText type="error" visible>
+            {t("renter.unsupportedFrequency", {
+              count: unsupportedFrequency,
+              defaultValue:
+                "The lease says {{count}} payments a year. The app supports monthly, quarterly or yearly; pick one.",
+            })}
+          </HelperText>
+        ) : null}
       </View>
       </TourAnchor>
 

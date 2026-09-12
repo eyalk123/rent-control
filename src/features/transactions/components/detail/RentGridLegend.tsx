@@ -18,11 +18,29 @@ export function RentGridLegend() {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const swatches = [
+  const swatches: {
+    key: string;
+    backgroundColor: string;
+    borderColor: string;
+    opacity: number;
+    borderStyle?: 'solid' | 'dashed';
+  }[] = [
     { key: 'paid', backgroundColor: colors.revBg, borderColor: colors.revFg, opacity: 1 },
     { key: 'overdue', backgroundColor: colors.expBg, borderColor: colors.expFg, opacity: 1 },
     { key: 'due', backgroundColor: colors.subtleOutline, borderColor: colors.outline, opacity: 1 },
     { key: 'future', backgroundColor: colors.subtleOutline, borderColor: colors.subtleOutline, opacity: 0.65 },
+    // The off-months of a quarterly or yearly lease. Unfilled and dashed, so it reads as a
+    // slot the schedule deliberately leaves empty rather than as a month still pending.
+    // Full opacity here, unlike the 0.55 the grid cell itself carries: the cell is ~60px and
+    // reads fine when faint, but a 14px swatch at the same opacity disappeared entirely and
+    // the legend entry looked like a missing icon. The dashes alone carry "not filled".
+    {
+      key: 'notDue',
+      backgroundColor: 'transparent',
+      borderColor: colors.textSecondary,
+      opacity: 1,
+      borderStyle: 'dashed',
+    },
   ];
 
   return (
@@ -32,7 +50,12 @@ export function RentGridLegend() {
           <View
             style={[
               styles.swatch,
-              { backgroundColor: s.backgroundColor, borderColor: s.borderColor, opacity: s.opacity },
+              {
+                backgroundColor: s.backgroundColor,
+                borderColor: s.borderColor,
+                opacity: s.opacity,
+                borderStyle: s.borderStyle ?? 'solid',
+              },
             ]}
           />
           <Text style={[styles.label, { color: colors.textSecondary }]}>

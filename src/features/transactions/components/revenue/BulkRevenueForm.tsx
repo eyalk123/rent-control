@@ -9,8 +9,20 @@ import { FormScrollView, FormSectionCard } from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
 import { useAlert, useLanguageContext } from '@/src/core/context';
 import { sortLabels } from '@/src/shared/utils/sortOptions';
+import { formatMoney } from '@/src/shared/utils/money';
 import { usePropertyContext, useRenterContext } from '@/src/context';
-import { type PaymentMethod, type Property, type Renter, getRentForMonth } from '@/src/shared/types';
+import {
+  type PaymentMethod,
+  type Property,
+  type Renter,
+  getRentForMonth,
+  isNonMonthlyCadence,
+  paymentFrequencyLabel,
+} from '@/src/shared/types';
+import {
+  dueMonthsWithin,
+  paymentIntervalMonths,
+} from '@/src/features/transactions/utils/rentSchedule';
 import { PAYMENT_METHOD_VALUES } from '@/src/shared/constants/paymentMethods';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
@@ -131,6 +143,39 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
     });
   };
 
+  /**
+   * The months the chosen period covers for one renter, before cadence is applied.
+   * Shared by the submit path and the per-renter note so the two cannot drift apart.
+   */
+  const periodMonthsFor = (r: Renter): string[] =>
+    periodType === 'year'
+      ? getContractYearMonths(Number(periodValue), r.lease_start)
+      : periodType === 'custom'
+        ? [...customMonths].sort()
+        : getMonthsForPeriod(periodType, periodValue);
+
+  /** One line saying what this period will actually write for a non-monthly lease. */
+  const cadenceNoteFor = (r: Renter): string | null => {
+    if (!isNonMonthlyCadence(r.number_of_payments)) return null;
+    const cadence = paymentFrequencyLabel(r.number_of_payments);
+    if (!cadence) return null;
+    const label = t(cadence.key, { count: cadence.count });
+    const due = dueMonthsWithin(r, periodMonthsFor(r));
+    if (due.length === 0) {
+      return t('transactions.bulkRevenue.nothingDue', {
+        cadence: label,
+        defaultValue: '{{cadence}}: nothing due in this period',
+      });
+    }
+    const instalment = getRentForMonth(r, due[0]) * paymentIntervalMonths(r.number_of_payments);
+    return t('transactions.bulkRevenue.instalmentsNote', {
+      cadence: label,
+      count: due.length,
+      amount: formatMoney(instalment),
+      defaultValue: '{{cadence}}, {{count}} x {{amount}}',
+    });
+  };
+
   const handleSubmit = async () => {
     if (selection.checkedIds.size === 0) {
       appAlert(
@@ -175,18 +220,28 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
     let successCount = 0;
     const errors: string[] = [];
 
+    let skippedNothingDue = 0;
+
     for (const r of checkedRenters) {
-      const months =
-        periodType === 'year'
-          ? getContractYearMonths(Number(periodValue), r.lease_start)
-          : periodType === 'custom'
-            ? [...customMonths].sort()
-            : getMonthsForPeriod(periodType, periodValue);
+      const allMonths = periodMonthsFor(r);
+      // A quarterly lease picked out of a three-month period owes once, not three times, and
+      // it owes the whole instalment when it does. Writing three monthly rows instead put the
+      // payment grid and the overdue engine permanently at odds with this form: both key off
+      // the instalment landing on the cycle month, so every quarter came back flagged as paid
+      // short. The per-renter note in the list says what this will write.
+      const months = dueMonthsWithin(r, allMonths);
+      const interval = paymentIntervalMonths(r.number_of_payments);
+      if (months.length === 0) {
+        skippedNothingDue++;
+        continue;
+      }
 
       const storedAmount = Number(selection.amounts.get(r.id));
       const isManualOverride = selection.overriddenIds.has(r.id);
       for (const month of months) {
-        const amount = isManualOverride ? storedAmount : getRentForMonth(r, month);
+        // An override is used exactly as typed — it is what the landlord says they actually
+        // received, so it is already the instalment and multiplying it would double-count.
+        const amount = isManualOverride ? storedAmount : getRentForMonth(r, month) * interval;
         try {
           await createRevenueTransaction({
             property_id: r.property_id!,
@@ -207,6 +262,17 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
 
     setSubmitting(false);
 
+    // A renter the cadence had nothing for is named rather than dropped in silence: they were
+    // checked, so an unexplained lower count reads as a save that went wrong.
+    const skippedNote =
+      skippedNothingDue > 0
+        ? ' ' +
+          t('transactions.bulkRevenue.skippedNothingDue', {
+            count: skippedNothingDue,
+            defaultValue: 'Skipped {{count}} with nothing due in this period',
+          })
+        : '';
+
     if (errors.length > 0) {
       appAlert(
         t('error.title'),
@@ -214,9 +280,12 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
           success: successCount,
           failed: errors.length,
           defaultValue: '{{success}} saved, {{failed}} failed.',
-        }),
+        }) + skippedNote,
       );
+    } else if (successCount === 0 && skippedNothingDue > 0) {
+      appAlert(t('validation.title'), skippedNote.trim());
     } else {
+      if (skippedNote) appAlert(t('common.done', { defaultValue: 'Done' }), skippedNote.trim());
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       onSuccess();
     }
@@ -248,6 +317,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
             onToggleRenter={selection.handleToggleRenter}
             onAmountChange={selection.handleAmountChange}
             onToggleOverride={selection.handleToggleOverride}
+            cadenceNoteFor={cadenceNoteFor}
           />
 
           <Divider style={styles.sectionDivider} />

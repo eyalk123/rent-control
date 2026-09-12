@@ -14,6 +14,11 @@ interface Props {
   extraLabel?: string;
   /** Appended to the spoken label when the payment landed after the due day. */
   lateLabel?: string;
+  /**
+   * Spoken label for an off-month of a non-monthly cycle — the month, and why nothing is
+   * owed in it. Falls back to the bare status when the caller has no cadence to name.
+   */
+  notDueLabel?: string;
   onSelect: (cell: MonthCell) => void;
   saving?: boolean;
 }
@@ -54,16 +59,60 @@ function styleFor(status: MonthStatus, colors: Palette) {
   }
 }
 
-export function RentMonthBox({ cell, monthLabel, statusLabel, extraLabel, lateLabel, onSelect, saving }: Props) {
+export function RentMonthBox({
+  cell,
+  monthLabel,
+  statusLabel,
+  extraLabel,
+  lateLabel,
+  notDueLabel,
+  onSelect,
+  saving,
+}: Props) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  // Months the lease never covered, and the off-months of a quarterly or yearly cycle, are
-  // not things the landlord can act on — drawing them as boxes only invited "what is the
-  // difference between these two grays?". They hold their slot so the months stay aligned
-  // between years and between renters.
-  if (cell.status === 'not-due' || cell.status === 'outside-lease') {
+  // Months the lease never covered. Nothing to say about them, so they are not drawn — they
+  // only hold their slot so the months stay aligned between years and between renters.
+  if (cell.status === 'outside-lease') {
     return <View style={styles.box} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />;
+  }
+
+  // An off-month of a quarterly or yearly cycle. Drawn, but visibly inert.
+  //
+  // These used to be blank like `outside-lease`, which read as missing data rather than as a
+  // deliberate gap: a yearly lease showed eleven holes and looked broken. So the cell keeps
+  // its outline and its month name, drops the fill, and carries a dash — present, plainly
+  // empty, and plainly not something to act on.
+  //
+  // A plain `View`, never a disabled `Pressable`: there is no payment to record against a
+  // month the lease does not bill for, so the cell should not be pressable at all rather
+  // than swallow the press. It stays readable to a screen reader, which is the one way the
+  // gap would otherwise go unexplained.
+  if (cell.status === 'not-due') {
+    return (
+      <View
+        accessibilityRole="image"
+        accessibilityLabel={notDueLabel ?? statusLabel}
+        style={[
+          styles.box,
+          styles.filled,
+          {
+            // No fill: every actionable state in this grid is a tinted block, so an untinted
+            // outline is the one treatment that cannot be mistaken for one of them.
+            backgroundColor: 'transparent',
+            borderColor: colors.subtleOutline,
+            borderStyle: 'dashed',
+            opacity: 0.55,
+          },
+        ]}
+      >
+        <Text style={[styles.month, { color: colors.textSecondary }]} numberOfLines={1}>
+          {monthLabel}
+        </Text>
+        <Text style={[styles.glyph, { color: colors.textSecondary }]}>–</Text>
+      </View>
+    );
   }
 
   const s = styleFor(cell.status, colors);

@@ -1,5 +1,15 @@
 import { useState } from 'react';
 import { getCurrentMonthlyRent, type Renter } from '@/src/shared/types';
+import { paymentIntervalMonths } from '@/src/features/transactions/utils/rentSchedule';
+
+/**
+ * What one instalment is worth today — the monthly rent times the length of the cycle.
+ * A quarterly lease is billed three months at a time, so seeding the override box with the
+ * monthly figure opened it on a third of what the save would write.
+ */
+function currentInstalment(renter: Renter): number {
+  return getCurrentMonthlyRent(renter) * paymentIntervalMonths(renter.number_of_payments);
+}
 
 interface UseRenterSelectionParams {
   allRenters: Renter[];
@@ -24,7 +34,7 @@ export function useRenterSelection({ allRenters, onDirtyChange }: UseRenterSelec
         const next = new Map(prev);
         for (const r of allRenters) {
           if (!next.has(r.id)) {
-            next.set(r.id, String(getCurrentMonthlyRent(r) || ''));
+            next.set(r.id, String(currentInstalment(r) || ''));
           }
         }
         return next;
@@ -44,7 +54,7 @@ export function useRenterSelection({ allRenters, onDirtyChange }: UseRenterSelec
         setAmounts((am) => {
           if (am.has(renter.id)) return am;
           const next2 = new Map(am);
-          next2.set(renter.id, String(getCurrentMonthlyRent(renter) || ''));
+          next2.set(renter.id, String(currentInstalment(renter) || ''));
           return next2;
         });
         onDirtyChange?.(true);
@@ -67,7 +77,7 @@ export function useRenterSelection({ allRenters, onDirtyChange }: UseRenterSelec
         setAmounts((am) => {
           if (am.has(renterId)) return am;
           const next2 = new Map(am);
-          next2.set(renterId, String(getCurrentMonthlyRent(renter) || ''));
+          next2.set(renterId, String(currentInstalment(renter) || ''));
           return next2;
         });
       }

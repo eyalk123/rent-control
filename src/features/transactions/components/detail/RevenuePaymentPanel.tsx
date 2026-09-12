@@ -16,7 +16,12 @@ import {
   summariseRentYear,
   type MonthCell,
 } from '@/src/features/transactions/utils/rentSchedule';
-import type { Renter, Transaction } from '@/src/shared/types';
+import {
+  isNonMonthlyCadence,
+  paymentFrequencyLabel,
+  type Renter,
+  type Transaction,
+} from '@/src/shared/types';
 import { RentMonthBox } from './RentMonthBox';
 import { RentGridLegend } from './RentGridLegend';
 
@@ -193,12 +198,30 @@ export function RevenuePaymentPanel({
     );
   };
 
-  const renderRow = ({ renter, cells }: GridRow, showName: boolean) => (
+  const renderRow = ({ renter, cells }: GridRow, showName: boolean) => {
+    // A quarterly or yearly lease leaves most of its row empty by design. The badge is what
+    // turns that from "why is this grid full of holes?" into "of course — it bills 4x a
+    // year", and it is the only place the cadence appears on this screen.
+    const cadence = isNonMonthlyCadence(renter.number_of_payments)
+      ? paymentFrequencyLabel(renter.number_of_payments)
+      : null;
+    const cadenceLabel = cadence ? t(cadence.key, { count: cadence.count }) : undefined;
+
+    return (
     <View key={renter.id} style={styles.renterBlock}>
-      {showName ? (
-        <Text style={[styles.renterName, { color: colors.textPrimary }]} numberOfLines={1}>
-          {`${renter.first_name} ${renter.last_name}`}
-        </Text>
+      {showName || cadenceLabel ? (
+        <View style={styles.renterHeader}>
+          {showName ? (
+            <Text style={[styles.renterName, { color: colors.textPrimary }]} numberOfLines={1}>
+              {`${renter.first_name} ${renter.last_name}`}
+            </Text>
+          ) : null}
+          {cadenceLabel ? (
+            <View style={[styles.cadenceBadge, { borderColor: colors.subtleOutline }]}>
+              <Text style={[styles.cadenceText, { color: colors.textSecondary }]}>{cadenceLabel}</Text>
+            </View>
+          ) : null}
+        </View>
       ) : null}
       <View style={styles.grid}>
         {cells.map((cell) => (
@@ -225,13 +248,22 @@ export function RevenuePaymentPanel({
                   : undefined
             }
             lateLabel={t('transactions.rentGrid.paidLate', { defaultValue: 'paid late' })}
+            notDueLabel={
+              cadenceLabel
+                ? `${monthLabelFor(cell.monthKey, locale)}, ${t('transactions.rentGrid.notDueReason', {
+                    cadence: cadenceLabel.toLowerCase(),
+                    defaultValue: 'no instalment due this month ({{cadence}} lease)',
+                  })}`
+                : undefined
+            }
             onSelect={(c) => handleSelect(renter, c)}
             saving={saving && pending?.renter.id === renter.id && pending?.cell.monthKey === cell.monthKey}
           />
         ))}
       </View>
     </View>
-  );
+    );
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -365,7 +397,24 @@ const styles = StyleSheet.create({
   renterBlock: {
     gap: spacing.xs,
   },
+  renterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  cadenceBadge: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 1,
+  },
+  cadenceText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
   renterName: {
+    flexShrink: 1,
+
     fontSize: 13,
     fontWeight: '600',
   },

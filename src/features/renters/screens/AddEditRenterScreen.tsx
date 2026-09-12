@@ -64,7 +64,7 @@ export function AddEditRenterScreen() {
   const current = renters[qIndex];
   const hasNextRenter = qIndex < renters.length - 1;
 
-  const { formMethods, onSubmit, isSubmitting, isFetching, ownerId, conflicts, conflictChoices, resolveConflict, contractConflict, contractChoice, resolveContractConflict } = useRenterForm({
+  const { formMethods, onSubmit, isSubmitting, isFetching, ownerId, conflicts, conflictChoices, resolveConflict, contractConflict, contractChoice, resolveContractConflict, unsupportedFrequency } = useRenterForm({
     id,
     t,
     refreshRenters,
@@ -276,7 +276,13 @@ export function AddEditRenterScreen() {
             </>
           )}
           {shownStep === "lease" && (
-            <RenterLeaseInfoCard control={control} t={t} ownerId={ownerId} setValue={setValue} />
+            <RenterLeaseInfoCard
+              control={control}
+              t={t}
+              ownerId={ownerId}
+              setValue={setValue}
+              unsupportedFrequency={unsupportedFrequency}
+            />
           )}
           </FieldReviewProvider>
         </FormScrollView>

@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { Property, Renter } from '@/src/shared/types';
 import { getCurrentMonthlyRent } from '@/src/shared/types';
+import { billedCadenceLabel } from '@/src/shared/utils/cadence';
 import { getRenterLifecycle } from '@/src/shared/utils/renterStatus';
 import { EmptyState, Icon } from '@/src/shared/components/ui';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
@@ -67,7 +68,12 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
                 style={{ color: colors.textSecondary }}
                 numberOfLines={1}
               >
-                {t('renter.monthlyRent')}: {formatMoney(getCurrentMonthlyRent(renter))}/{t('renter.frequencyMonthly').toLowerCase()}
+                {/* The rent is stored monthly, so that is what is shown — but the "/month"
+                    suffix used to be hardcoded, which told a quarterly tenant's landlord
+                    they were collecting monthly. Name the real cadence instead. */}
+                {t('renter.monthlyRent')}: {formatMoney(getCurrentMonthlyRent(renter))}/
+                {t('renter.frequencyMonthly').toLowerCase()}
+                {billedCadenceLabel(renter, t) ? ` (${billedCadenceLabel(renter, t)})` : ''}
               </Text>
               <Text
                 variant="bodySmall"

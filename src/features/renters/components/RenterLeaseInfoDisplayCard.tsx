@@ -7,7 +7,7 @@ import { DetailRow, DetailSection } from '@/src/shared/components/ui';
 import { formatMoney } from '@/src/shared/utils/money';
 import { getLeaseYearLabel, isCurrentLeaseYear } from '@/src/shared/utils/leaseYear';
 import { DEFAULT_PAYMENT_DAY_NUM } from '@/src/shared/constants/paymentDay';
-import type { Renter } from '@/src/shared/types';
+import { paymentFrequencyLabel, type Renter } from '@/src/shared/types';
 
 interface RenterLeaseInfoDisplayCardProps {
   renter: Renter;
@@ -15,6 +15,10 @@ interface RenterLeaseInfoDisplayCardProps {
 }
 
 export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterLeaseInfoDisplayCardProps) {
+  // Named, not numbered: "4" meant nothing on a screen whose own form offers
+  // Monthly / Quarterly / Yearly. An unsupported stored value still shows itself
+  // ("6 per year") rather than rendering blank.
+  const frequency = paymentFrequencyLabel(renter.number_of_payments);
   const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -101,10 +105,10 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
           value={paymentTypeLabel(renter.payment_type)}
         />
       )}
-      {renter.number_of_payments != null && (
+      {frequency && (
         <DetailRow
-          label={t('renter.numberOfPayments')}
-          value={String(renter.number_of_payments)}
+          label={t('renter.paymentFrequency', { defaultValue: 'Payment frequency' })}
+          value={t(frequency.key, { count: frequency.count })}
         />
       )}
     </DetailSection>

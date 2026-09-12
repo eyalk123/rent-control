@@ -3,6 +3,7 @@ import { Checkbox, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { getCurrentMonthlyRent, type Property, type Renter } from '@/src/shared/types';
+import { paymentIntervalMonths } from '@/src/features/transactions/utils/rentSchedule';
 import { RenterContractCard } from './RenterContractCard';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
@@ -25,6 +26,12 @@ interface RenterSelectionSectionProps {
   onToggleRenter: (renter: Renter) => void;
   onAmountChange: (renterId: number, value: string) => void;
   onToggleOverride: (renterId: number, renter: Renter) => void;
+  /**
+   * One line per renter saying what the current period will actually write for them —
+   * only ever non-null for a non-monthly lease, which is the case where the period picker
+   * alone does not tell the whole story. Supplied by the form, which owns the period.
+   */
+  cadenceNoteFor?: (renter: Renter) => string | null;
 }
 
 export function RenterSelectionSection({
@@ -39,6 +46,7 @@ export function RenterSelectionSection({
   onToggleRenter,
   onAmountChange,
   onToggleOverride,
+  cadenceNoteFor,
 }: RenterSelectionSectionProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -109,11 +117,17 @@ export function RenterSelectionSection({
                   key={renter.id}
                   renter={renter}
                   checked={checkedIds.has(renter.id)}
-                  amount={amounts.get(renter.id) ?? String(getCurrentMonthlyRent(renter) || '')}
+                  amount={
+                    amounts.get(renter.id) ??
+                    String(
+                      getCurrentMonthlyRent(renter) * paymentIntervalMonths(renter.number_of_payments) || '',
+                    )
+                  }
                   overridden={overriddenIds.has(renter.id)}
                   onToggle={() => onToggleRenter(renter)}
                   onAmountChange={(v) => onAmountChange(renter.id, v)}
                   onToggleOverride={() => onToggleOverride(renter.id, renter)}
+                  cadenceNote={cadenceNoteFor?.(renter) ?? null}
                   anchor={renter.id === firstRenterId ? ANCHORS.revenueAmountCell : undefined}
                 />
               ))}

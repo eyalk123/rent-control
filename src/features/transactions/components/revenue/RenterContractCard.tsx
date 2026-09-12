@@ -14,6 +14,12 @@ type RenterContractCardProps = {
   onToggle: () => void;
   onAmountChange: (value: string) => void;
   onToggleOverride: () => void;
+  /**
+   * What the chosen period will actually write for this renter, when that is not simply
+   * "the months you picked" — a quarterly lease owes once per quarter, and the whole
+   * instalment when it does. Null on a monthly lease, which needs no explaining.
+   */
+  cadenceNote?: string | null;
   /** Onboarding anchor — only the first card in the list carries it. */
   anchor?: string;
 };
@@ -26,6 +32,7 @@ export function RenterContractCard({
   onToggle,
   onAmountChange,
   onToggleOverride,
+  cadenceNote,
   anchor,
 }: RenterContractCardProps) {
   const { t } = useTranslation();
@@ -63,6 +70,18 @@ export function RenterContractCard({
           </Text>
         )}
       </View>
+
+      {/* A non-monthly lease is the one case where what gets written is not simply "the
+          months you picked", so it says what it will do rather than letting the save quietly
+          differ from the period picker. */}
+      {cadenceNote ? (
+        <Text
+          variant="bodySmall"
+          style={[styles.cadenceNote, { color: colors.textSecondary, paddingLeft: checkboxWidth + spacing.sm }]}
+        >
+          {cadenceNote}
+        </Text>
+      ) : null}
 
       {/* Second row: amount controls, indented under name */}
       {checked && (
@@ -108,6 +127,9 @@ export function RenterContractCard({
 }
 
 const styles = StyleSheet.create({
+  cadenceNote: {
+    marginTop: 2,
+  },
   card: {
     borderRadius: 10,
     borderWidth: 1,

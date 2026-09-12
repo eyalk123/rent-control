@@ -420,6 +420,11 @@
     "frequencyMonthly": "Monthly",
     "frequencyQuarterly": "Quarterly",
     "frequencyYearly": "Yearly",
+    "frequencyOther": "{{count}} per year",
+    "billedQuarterly": "billed quarterly",
+    "billedYearly": "billed yearly",
+    "billedOther": "billed {{count}}x per year",
+    "unsupportedFrequency": "The lease says {{count}} payments a year. The app supports monthly, quarterly or yearly; pick one.",
     "insuranceType": "Insurance type",
     "insuranceTypeWireTransfer": "Bank transfer",
     "insuranceTypeBankGuarantee": "Bank guarantee",
@@ -596,7 +601,8 @@
       "paid": "Paid",
       "overdue": "Overdue",
       "due": "Due now",
-      "future": "Not due yet"
+      "future": "Not due yet",
+      "notDue": "Not due"
     },
     "rentGrid": {
       "summary": "{{collected}} collected of {{expected}}",
@@ -610,6 +616,7 @@
       "leaseNowSays": "lease now says {{amount}}",
       "paidWhatWasAsked": "paid {{amount}}, which matched the lease at the time",
       "paidLate": "paid late",
+      "notDueReason": "no instalment due this month ({{cadence}} lease)",
       "legendMismatch": "Amount differs from the lease",
       "legendLeaseChanged": "Matched the lease when paid; the lease has changed since",
       "legendLeaseChanged": "Matched the lease when paid; the lease has changed since",
@@ -658,6 +665,9 @@
     "editTransaction": "Edit Transaction",
     "updateTransaction": "Update Transaction",
     "bulkRevenue": {
+      "instalmentsNote": "{{cadence}}, {{count}} x {{amount}}",
+      "nothingDue": "{{cadence}}: nothing due in this period",
+      "skippedNothingDue": "Skipped {{count}} with nothing due in this period",
       "filters": "Filters",
       "ownerFilter": "Owner",
       "allOwners": "All owners",

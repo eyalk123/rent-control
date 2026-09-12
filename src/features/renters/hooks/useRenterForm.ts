@@ -101,6 +101,13 @@ export function useRenterForm({
   // The scanned lease vs. a contract the matched renter already has. Tracked apart from the scalar
   // conflicts because the choice drives `fullContractUrl` (and so the submit-time upload).
   const [contractConflict, setContractConflict] = React.useState<{ existingUrl: string } | null>(null);
+  /**
+   * A stored `number_of_payments` that is none of 12 / 4 / 1 — which the picker cannot
+   * represent, so it opens empty. Saving used to write `null` over it without a word; now the
+   * form names what is on file and refuses to save until the user picks one of the three,
+   * which is the only way the value converges on something the app can honour.
+   */
+  const [unsupportedFrequency, setUnsupportedFrequency] = React.useState<number | null>(null);
   const [contractChoice, setContractChoice] = React.useState<"keep" | "update">("keep");
 
   const buildDefaults = React.useCallback(
@@ -170,6 +177,11 @@ export function useRenterForm({
     getRenterById(numericId)
       .then((renter) => {
         const lease_years = renter.lease_years ?? [];
+        setUnsupportedFrequency(
+          renter.number_of_payments != null && ![12, 4, 1].includes(renter.number_of_payments)
+            ? renter.number_of_payments
+            : null,
+        );
         savedLeaseRef.current = { years: lease_years, start: renter.lease_start ?? null };
         // Prefer the structured intent the backend persisted; otherwise infer it
         // from the materialized lease_years so the builder re-opens sensibly.
@@ -301,6 +313,20 @@ export function useRenterForm({
   }, [effId, isEdit, prefillNonce, reset]);
 
   const submit = handleSubmit(async (values) => {
+    // Refuse rather than wipe. The stored cadence is real information from the lease; if the
+    // app cannot express it, the user chooses its replacement — the save does not choose
+    // "none" for them.
+    if (unsupportedFrequency != null && !values.paymentFrequency) {
+      appAlert(
+        t("validation.title"),
+        t("renter.unsupportedFrequency", {
+          count: unsupportedFrequency,
+          defaultValue:
+            "The lease says {{count}} payments a year. The app supports monthly, quarterly or yearly; pick one.",
+        }),
+      );
+      return;
+    }
     // Attach the scanned lease as the full contract (uploaded only now, on submit).
     let resolvedFullContractUrl = values.fullContractUrl ?? null;
     if (pendingFullContract && !resolvedFullContractUrl) {
@@ -512,5 +538,6 @@ export function useRenterForm({
     contractConflict,
     contractChoice,
     resolveContractConflict,
+    unsupportedFrequency,
   };
 }

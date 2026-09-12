@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { getCurrentMonthlyRent, type Renter } from '@/src/shared/types';
+import { getCurrentMonthlyRent, paymentFrequencyLabel, type Renter } from '@/src/shared/types';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
 import { formatDateFull } from '@/src/shared/utils/dates';
@@ -27,6 +27,10 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
   const colors = theme.dark ? darkColors : lightColors;
 
   const monthlyRent = getCurrentMonthlyRent(renter);
+  // Named, not numbered: "4" meant nothing on a screen whose own form offers
+  // Monthly / Quarterly / Yearly. An unsupported stored value still shows itself
+  // ("6 per year") rather than rendering blank.
+  const frequency = paymentFrequencyLabel(renter.number_of_payments);
 
   const insuranceTypeLabel = (insuranceType: string) => {
     switch (insuranceType) {
@@ -76,12 +80,8 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
         />
         <StatBox
           icon="credit-card"
-          value={
-            renter.number_of_payments != null
-              ? String(renter.number_of_payments)
-              : renter.payment_type || '—'
-          }
-          label={t('renter.numberOfPayments')}
+          value={frequency ? t(frequency.key, { count: frequency.count }) : renter.payment_type || '—'}
+          label={t('renter.paymentFrequency', { defaultValue: 'Payment frequency' })}
           backgroundColor={colors.inputBackground}
           iconColor={colors.sectionAccent}
           textColor={colors.textPrimary}

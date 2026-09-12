@@ -94,6 +94,12 @@ export function mapExtraction(extraction: LeaseExtraction): MappedExtraction {
 function mapRenter(r: ExtractedRenter, index: number, notes: Map<string, FieldNote>): MappedRenter {
   const n = r.number_of_payments;
   const freq = n === 12 ? 'monthly' : n === 4 ? 'quarterly' : n === 1 ? 'yearly' : undefined;
+  // The lease states a cadence the product does not offer (every two months, twice a year).
+  // It used to map to `undefined` and vanish: the field simply arrived blank, with nothing to
+  // say the document had in fact answered it. Surfacing it as a review item is the difference
+  // between "we could not read this" and "we read it, and you have to choose" — and the user
+  // is the only one who can decide which of the three it should become.
+  const unsupportedFrequency = n != null && freq === undefined ? n : null;
   // payment_day_of_month -> the form's date-shaped paymentDate ("2000-01-DD"). Guard the
   // 1-31 range: padStart only pads, it never truncates, so an out-of-range day used to
   // produce a non-date like "2000-01-521234567" that later got sliced back down to a
@@ -136,6 +142,18 @@ function mapRenter(r: ExtractedRenter, index: number, notes: Map<string, FieldNo
     const source = note?.source_text ?? null;
     provenance.push({ formKey: a.key, labelKey: a.i18n, prefilledValue: v, source });
     if (note) review.push({ field: a.i18n, formKey: a.key, value: v, source, confidence: note.confidence });
+  }
+
+  // Pushed unconditionally, unlike the loop above which only flags what the model itself was
+  // unsure about. The model was perfectly sure here — it is the app that cannot represent
+  // the answer, so the user has to be told rather than the value quietly disappearing.
+  if (unsupportedFrequency != null) {
+    review.push({
+      field: 'renter.paymentFrequency',
+      formKey: 'paymentFrequency',
+      value: String(unsupportedFrequency),
+      source: notes.get(`renter.${index}.number_of_payments`)?.source_text ?? null,
+    });
   }
 
   // Nested structures (not part of the scalar review/diff). Only seed the year-by-year

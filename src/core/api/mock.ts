@@ -112,6 +112,17 @@ const seedProperties: Property[] = [
   },
 ];
 
+/**
+ * Lease start for the payment-cadence fixtures: 1 January, `yearsAgo` years back.
+ *
+ * January is deliberate — it puts a quarterly cycle on Jan/Apr/Jul/Oct and a yearly one on
+ * January, which makes the grid's off-months obvious at a glance. Anchored to the current
+ * year so the fixture does not rot the way a literal date would.
+ */
+function cadenceLeaseStart(yearsAgo: number): string {
+  return `${new Date().getFullYear() - yearsAgo}-01-01`;
+}
+
 const seedRenters: Renter[] = [
   {
     id: 1,
@@ -170,8 +181,17 @@ const seedRenters: Renter[] = [
     last_name: 'Wilson',
     phone: '512-555-0104',
     email: 'james.wilson@email.com',
-    lease_years: [{ amount: 2100, type: 'contract' }],
-    lease_start: '2024-04-15',
+    lease_years: [
+      { amount: 2100, type: 'contract' },
+      { amount: 2200, type: 'contract' },
+      { amount: 2300, type: 'contract' },
+    ],
+    lease_start: cadenceLeaseStart(1),
+    // Quarterly: owes on Jan/Apr/Jul/Oct, three months' rent each time. The payment grid,
+    // the bulk revenue form and the overdue engine all have to agree about that.
+    number_of_payments: 4,
+    payment_type: 'monthly',
+    payment_day_of_month: 1,
     property: null,
     contact_id: null,
   },
@@ -194,8 +214,16 @@ const seedRenters: Renter[] = [
     last_name: 'Thompson',
     phone: '512-555-0106',
     email: 'robert.thompson@email.com',
-    lease_years: [{ amount: 1950, type: 'contract' }],
-    lease_start: '2024-05-01',
+    lease_years: [
+      { amount: 1950, type: 'contract' },
+      { amount: 2050, type: 'contract' },
+      { amount: 2150, type: 'contract' },
+    ],
+    lease_start: cadenceLeaseStart(1),
+    // Yearly: one instalment a year, in January, worth twelve months' rent.
+    number_of_payments: 1,
+    payment_type: 'monthly',
+    payment_day_of_month: 1,
     property: null,
     contact_id: null,
   },
