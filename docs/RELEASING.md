@@ -51,11 +51,22 @@ out regardless. Promotion to production is a manual step in the Play Console.
    sitting on it, and submitting into a track with a draft can collide. Internal testing is
    clean.
 
-5. **Add the release notes by hand.** `eas submit` **cannot** set Play's "What's new" text —
-   its `--what-to-test` flag is iOS/TestFlight only. Either paste into the Play Console
-   release, or script it against the Play Developer API (`edits.tracks.update`) using the
-   same service account key. Play caps this at 500 characters per language; the listing is
-   English + Hebrew.
+5. **Set the release notes.** `eas submit` **cannot** do this — its `--what-to-test` flag is
+   iOS/TestFlight only. Use the script, which drives `edits.tracks.update` with the same
+   service account key:
+
+   ```
+   python scripts/play-release-notes.py                      # inspect the track, write nothing
+   python scripts/play-release-notes.py --apply --version-code 13 --en "en-US=notes.txt"
+   ```
+
+   Play caps this at 500 characters per language. **The listing currently carries only
+   `en-US`** — run the script with no arguments to confirm before writing, and do not pass a
+   language the listing does not have. Hebrew notes need a Hebrew listing added in the Play
+   Console first.
+
+   Do not skip this step: build 12 (v1.0.1) shipped with no release notes at all, which is
+   what the script exists to prevent.
 
 6. **Verify.** Play Console → Testing → Internal testing shows the new version code.
    Credentials can be checked any time at
