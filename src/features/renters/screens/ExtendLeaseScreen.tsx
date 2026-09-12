@@ -362,44 +362,47 @@ export function ExtendLeaseScreen() {
 
           {/* Add years — the number inputs drive the schedule; no button */}
           <View style={[styles.card, { borderColor: colors.outline, backgroundColor: colors.surface }]}>
-            <TourAnchor
-              id={ANCHORS.extendYearsStepper}
-              style={[styles.stepperRow, { flexDirection: rowDirection, justifyContent: isRtl ? "flex-end" : "flex-start" }]}
-            >
-              <Stepper
-                label={t("renter.yearsToAdd")}
-                unitLabel={t("renter.yearsUnit")}
-                min={0}
-                max={10}
-                value={addCount}
-                onChange={setAddCount}
-              />
-              {/* A few months is the common holdover, and the reason this stepper
-                  exists: extending by a whole year is often not what was agreed. */}
-              <Stepper
-                label={t("renter.extraMonths")}
-                unitLabel={t("renter.monthsUnit")}
-                min={0}
-                max={11}
-                value={addMonths}
-                onChange={setAddMonths}
-              />
-              <Stepper
-                label={t("renter.optionYearsToAdd")}
-                unitLabel={t("renter.yearsUnit")}
-                min={0}
-                max={10}
-                value={addOptionCount}
-                onChange={setAddOptionCount}
-              />
-              <Stepper
-                label={t("renter.extraOptionMonths")}
-                unitLabel={t("renter.monthsUnit")}
-                min={0}
-                max={11}
-                value={addOptionMonths}
-                onChange={setAddOptionMonths}
-              />
+            {/* Two rows on purpose: the option steppers extend the renewal options, not the
+                contract term, and one wrapping row let them sit beside the years to add. */}
+            <TourAnchor id={ANCHORS.extendYearsStepper}>
+              <View style={[styles.stepperRow, { flexDirection: rowDirection, justifyContent: isRtl ? "flex-end" : "flex-start" }]}>
+                <Stepper
+                  label={t("renter.yearsToAdd")}
+                  unitLabel={t("renter.yearsUnit")}
+                  min={0}
+                  max={10}
+                  value={addCount}
+                  onChange={setAddCount}
+                />
+                {/* A few months is the common holdover, and the reason this stepper
+                    exists: extending by a whole year is often not what was agreed. */}
+                <Stepper
+                  label={t("renter.extraMonths")}
+                  unitLabel={t("renter.monthsUnit")}
+                  min={0}
+                  max={11}
+                  value={addMonths}
+                  onChange={setAddMonths}
+                />
+              </View>
+              <View style={[styles.stepperRow, { flexDirection: rowDirection, justifyContent: isRtl ? "flex-end" : "flex-start" }]}>
+                <Stepper
+                  label={t("renter.optionYearsToAdd")}
+                  unitLabel={t("renter.yearsUnit")}
+                  min={0}
+                  max={10}
+                  value={addOptionCount}
+                  onChange={setAddOptionCount}
+                />
+                <Stepper
+                  label={t("renter.extraOptionMonths")}
+                  unitLabel={t("renter.monthsUnit")}
+                  min={0}
+                  max={11}
+                  value={addOptionMonths}
+                  onChange={setAddOptionMonths}
+                />
+              </View>
             </TourAnchor>
 
             {/* Increment for new years */}
