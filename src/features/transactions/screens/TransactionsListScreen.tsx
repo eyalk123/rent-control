@@ -3,6 +3,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   SectionList,
+  StyleSheet,
+  View,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
@@ -48,6 +50,25 @@ const EMPTY_DEFAULT: Record<string, string> = {
 };
 
 const LIST_ANCHOR = { flex: 1 } as const;
+
+/** Carries the gap that used to sit on top of the section header, where - because that
+ *  header sticks - it padded the pinned month away from the status bar instead of
+ *  separating two months. Hoisted so the list is not handed a new component each render. */
+const renderSectionFooter = () => <View style={styles.sectionFooter} />;
+
+const styles = StyleSheet.create({
+  sectionFooter: {
+    height: spacing.sm,
+  },
+  /** Fixed height so the content size never changes as the spinner comes and goes. */
+  footer: {
+    height: 52,
+    justifyContent: 'center',
+  },
+  footerHidden: {
+    opacity: 0,
+  },
+});
 
 export function TransactionsListScreen() {
   // Gated on having properties: a money screen with nothing in it teaches nothing, and a
@@ -191,10 +212,12 @@ export function TransactionsListScreen() {
             }
           />
         }
+        renderSectionFooter={renderSectionFooter}
         renderSectionHeader={({ section }) => (
           <TransactionSectionHeader
             title={section.title}
             profit={(section as { profit: number }).profit}
+            complete={(section as { complete: boolean }).complete}
             anchorId={
               section === filters.listSections[0]
                 ? ANCHORS.transactionsMonthHeader
@@ -219,11 +242,22 @@ export function TransactionsListScreen() {
         maxToRenderPerBatch={10}
         windowSize={5}
         onEndReached={loadMore}
-        onEndReachedThreshold={0.4}
+        // In viewport-heights. At 0.4 a fast fling outran the fetch and slammed into the
+        // end of the content on every throw; asking for the next page a screen and a half
+        // early means the list keeps having somewhere to go.
+        onEndReachedThreshold={1.5}
+        // Always rendered, always the same height. Swapping this between null and a
+        // spinner changed the content height by the spinner's ~52dp, and the scroll was
+        // pinned to the end of the content at exactly that moment - so the list lurched
+        // 52dp up and back down on every page. That is the twitch.
         ListFooterComponent={
-          loadingMore
-            ? <ActivityIndicator style={{ paddingVertical: spacing.lg }} color={theme.colors.primary} />
-            : null
+          <View style={styles.footer}>
+            <ActivityIndicator
+              animating={loadingMore}
+              color={theme.colors.primary}
+              style={!loadingMore && styles.footerHidden}
+            />
+          </View>
         }
         contentContainerStyle={[
           { paddingHorizontal: spacing.lg },

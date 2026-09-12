@@ -17,7 +17,7 @@ export function useTransactionFilters() {
   const { t } = useTranslation();
   const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
-  const { transactions } = usePaginatedTransactionContext();
+  const { transactions, hasMore } = usePaginatedTransactionContext();
   const { properties } = usePropertyContext();
 
   const [propertyFilter, setPropertyFilter] = useState<number | null>(null);
@@ -105,15 +105,25 @@ export function useTransactionFilters() {
 
   const currentKey = currentMonthKey();
 
+  /**
+   * Sections, newest month first, each flagged with whether it is whole.
+   *
+   * The server paginates in effective-date order (see `effectiveDate`), so a month can only
+   * be half-loaded if it is the *oldest* one on screen - the moment a row of an older month
+   * arrives, every newer month is exhausted. That last month is whole only once the pager
+   * says there is nothing left to fetch. Anything else would show a running subtotal that
+   * silently changes as the reader scrolls.
+   */
   const listSections = useMemo(() => {
     const buckets = bucketByMonth(typeFiltered);
-    return buckets.map((b) => ({
+    return buckets.map((b, i) => ({
       key: b.key,
       title: monthYearLabel(b.key, locale),
       profit: b.profit,
+      complete: i < buckets.length - 1 || !hasMore,
       data: b.transactions,
     }));
-  }, [typeFiltered, locale]);
+  }, [typeFiltered, locale, hasMore]);
 
   const filterChips = useMemo<FilterChip[]>(() => [
     {

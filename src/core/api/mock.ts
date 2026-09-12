@@ -449,11 +449,100 @@ const seedTransactions: Transaction[] = [
   },
 ];
 
+/**
+ * A long, realistic transaction history for the preview build.
+ *
+ * The six hand-written seeds above are enough to look at a row, but not enough to exercise
+ * the list: pagination, month sections and their totals only misbehave once there are more
+ * rows than one page. Deterministic (fixed seed) so page 2 of a run matches page 2 of the
+ * next one — a shuffling mock would look exactly like the pagination bug it is here to expose.
+ */
+function generateHistory(months: number, startId: number): Transaction[] {
+  let seed = 0x5eed;
+  const rand = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return seed / 0x7fffffff;
+  };
+  const pick = <T,>(arr: T[]): T => arr[Math.floor(rand() * arr.length)];
+
+  const renters = seedRenters.filter((r) => r.property_id != null);
+  const expenses: Array<{ category_id: number; category_name: string; supplier_id: number; supplier_name: string; label: string }> = [
+    { category_id: 1, category_name: 'maintenance', supplier_id: 1, supplier_name: 'Joe Plumber', label: 'Repair call' },
+    { category_id: 2, category_name: 'electricity', supplier_id: 2, supplier_name: 'City Power Co', label: 'Electricity bill' },
+    { category_id: 3, category_name: 'water', supplier_id: 3, supplier_name: 'Water Utility', label: 'Water bill' },
+  ];
+
+  const out: Transaction[] = [];
+  let id = startId;
+  const today = new Date();
+
+  for (let back = 1; back <= months; back++) {
+    const d = new Date(today.getFullYear(), today.getMonth() - back, 1);
+    const monthFor = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+
+    for (const r of renters) {
+      const property = seedProperties.find((p) => p.id === r.property_id);
+      const rent = getRentForMonth(r, monthFor.slice(0, 7)) || r.lease_years?.[0]?.amount || 2000;
+      const day = String(Math.min(28, (r.payment_day_of_month ?? 1) + Math.floor(rand() * 3))).padStart(2, '0');
+      out.push({
+        id: id++,
+        type: 'revenue',
+        property_id: r.property_id as number,
+        renter_id: r.id,
+        payment_method: pick(['bank_transfer', 'bit', 'cash', 'check'] as const),
+        date_of_payment: `${monthFor.slice(0, 8)}${day}`,
+        month_for: monthFor,
+        amount: Math.round(rent),
+        expected_amount: Math.round(rent),
+        currency_code: 'ILS',
+        category_id: null,
+        category_ids: [],
+        supplier_id: null,
+        notes: null,
+        receipt_image_url: null,
+        property_name: property?.address ?? '',
+        renter_name: `${r.first_name} ${r.last_name}`,
+        category_name: null,
+        supplier_name: null,
+      });
+    }
+
+    const expenseCount = 1 + Math.floor(rand() * 3);
+    for (let i = 0; i < expenseCount; i++) {
+      const e = pick(expenses);
+      const property = pick(seedProperties);
+      const day = String(2 + Math.floor(rand() * 26)).padStart(2, '0');
+      out.push({
+        id: id++,
+        type: 'expense',
+        property_id: property.id,
+        renter_id: null,
+        payment_method: 'bank_transfer',
+        date_of_payment: `${monthFor.slice(0, 8)}${day}`,
+        month_for: null,
+        amount: 60 + Math.floor(rand() * 600),
+        expected_amount: null,
+        currency_code: 'ILS',
+        category_id: e.category_id,
+        category_ids: [e.category_id],
+        supplier_id: e.supplier_id,
+        notes: e.label,
+        receipt_image_url: null,
+        property_name: property.address,
+        renter_name: null,
+        category_name: e.category_name,
+        supplier_name: e.supplier_name,
+      });
+    }
+  }
+  return out;
+}
+
 let mockProperties: Property[] = [...seedProperties];
 let mockRenters: Renter[] = [...seedRenters];
 let mockExpenseCategories: ExpenseCategory[] = [...seedExpenseCategories];
 let mockSuppliers: Supplier[] = [...seedSuppliers];
-let mockTransactions: Transaction[] = [...seedTransactions];
+let mockTransactions: Transaction[] = [...seedTransactions, ...generateHistory(18, 1000)];
 let mockPropertyFiles: PropertyFile[] = [
   {
     id: 1,
@@ -666,12 +755,28 @@ export const mockExpenseCategoriesApi = {
   },
 };
 
+/** Same ordering as the server's `list` query: effective date desc, then newest first. */
+function sortLikeServer(list: Transaction[]): Transaction[] {
+  return [...list].sort((a, b) => {
+    const da = a.month_for ?? a.date_of_payment;
+    const db = b.month_for ?? b.date_of_payment;
+    if (da !== db) return da < db ? 1 : -1;
+    return b.id - a.id;
+  });
+}
+
+/** Stand-in for network time, so paginated screens are exercised the way a device sees them. */
+const MOCK_LATENCY_MS = 180;
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 export const mockTransactionsApi = {
   getTransactions: async (params: {
     type?: 'revenue' | 'expense';
     propertyId?: number;
     renterId?: number;
     search?: string;
+    limit?: number;
+    offset?: number;
   } = {}): Promise<Transaction[]> => {
     let list = mockTransactions;
     if (params.type) {
@@ -693,7 +798,14 @@ export const mockTransactionsApi = {
         (t.notes ?? '').toLowerCase().includes(q)
       );
     }
-    return [...list];
+    // Honour limit/offset. Without this the mock handed back every row on the first
+    // request, so `hasMore` went false immediately and the preview build could not
+    // reproduce anything that only happens while paging.
+    const sorted = sortLikeServer(list);
+    if (params.limit == null && params.offset == null) return sorted;
+    await delay(MOCK_LATENCY_MS);
+    const offset = params.offset ?? 0;
+    return sorted.slice(offset, offset + (params.limit ?? sorted.length));
   },
   /**
    * Mirrors the server's `_expected_rent`: what the lease quoted for `monthFor`, to be

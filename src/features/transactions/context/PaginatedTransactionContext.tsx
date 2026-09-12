@@ -5,7 +5,13 @@ import { getApiErrorMessage } from '@/src/core/api/client';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useTranslation } from 'react-i18next';
 
-const PAGE_SIZE = 10;
+/**
+ * Rows per page. Ten was under a screenful: a hard fling covers several screens, so the list
+ * ran out of content on every throw no matter how fast the fetch came back. Forty is roughly
+ * three screens - enough that the next page lands before the reader catches up - and still a
+ * small response. The server accepts up to 500.
+ */
+const PAGE_SIZE = 40;
 
 interface PaginatedTransactionContextValue {
   transactions: Transaction[];
