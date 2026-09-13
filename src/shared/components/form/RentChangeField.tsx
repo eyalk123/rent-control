@@ -1,4 +1,5 @@
 import React from "react";
+import { allowedModes } from "@/src/shared/utils/capabilities";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { useTranslation } from "react-i18next";
@@ -21,6 +22,15 @@ export const RENT_ESCALATION_MODES: RentEscalationMode[] = [
   "fixed",
   "cpi",
 ];
+
+/**
+ * `cpi` needs an index source behind it; outside Israel there is none and the API refuses
+ * the value. The array above keeps every mode, because an existing lease can still hold
+ * `cpi` and must keep rendering — only the picker narrows.
+ */
+const MODE_REQUIREMENTS: Partial<Record<RentEscalationMode, "cpiLinkage">> = {
+  cpi: "cpiLinkage",
+};
 
 type RentChangeFieldProps = {
   /** Caption above the control — the two callers word it differently (whole lease vs. new years). */
@@ -57,7 +67,10 @@ function RentChangeFieldInner({
   // guessable from its label alone.
   const anchorRef = useTourAnchor(ANCHORS.leaseRentChangeField);
 
-  const segments: Segment<RentEscalationMode>[] = RENT_ESCALATION_MODES.map((m) => ({
+  const segments: Segment<RentEscalationMode>[] = allowedModes(
+    RENT_ESCALATION_MODES,
+    MODE_REQUIREMENTS,
+  ).map((m) => ({
     value: m,
     label: t(
       {

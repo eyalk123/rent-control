@@ -21,6 +21,7 @@ import React, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { setActiveFormat } from '@/src/shared/utils/money';
+import { setActiveCapabilities } from '@/src/shared/utils/capabilities';
 import {
   getCountries,
   getMyCountry,
@@ -170,6 +171,7 @@ export function CountryProvider({ children }: PropsWithChildren) {
   // flash, only the old behaviour for a moment.
   useEffect(() => {
     if (!config) return;
+    setActiveCapabilities(config.capabilities);
     setActiveFormat({
       currency: config.currency,
       currencySymbol: config.currencySymbol,

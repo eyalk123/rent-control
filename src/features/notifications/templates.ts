@@ -30,6 +30,19 @@ export const WHATSAPP_TEMPLATE_KEYS = [
 
 export type WhatsAppTemplateKey = (typeof WHATSAPP_TEMPLATE_KEYS)[number];
 
+/**
+ * Which templates are editable at all. The two CPI ones belong to a notification that can
+ * never fire without an index source, so offering their editors would be offering to word
+ * a message nobody will receive. Four become two.
+ *
+ * The array above keeps all four: a stored override must still round-trip, and an Israeli
+ * account still uses them.
+ */
+export const TEMPLATE_REQUIREMENTS: Partial<Record<WhatsAppTemplateKey, 'cpiLinkage'>> = {
+  cpi_upcoming: 'cpiLinkage',
+  cpi_changed: 'cpiLinkage',
+};
+
 /** Overrides as stored: `{ overdue: { en: '...', he: '...' } }`. */
 export type WhatsAppTemplates = Partial<Record<WhatsAppTemplateKey, Record<string, string>>>;
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { allowedModes } from '@/src/shared/utils/capabilities';
 import {
   ScrollView,
   StyleSheet,
@@ -20,6 +21,7 @@ import { getPreferences, updateSettings } from '../api/preferences';
 import {
   TEMPLATE_TOKENS,
   WHATSAPP_TEMPLATE_KEYS,
+  TEMPLATE_REQUIREMENTS,
   getDefaultTemplate,
   renderTemplate,
   sampleValues,
@@ -198,6 +200,10 @@ function TemplateSection({
   );
 }
 
+/** The templates this country can actually use — see TEMPLATE_REQUIREMENTS. */
+const availableTemplateKeys = (): WhatsAppTemplateKey[] =>
+  allowedModes<WhatsAppTemplateKey>([...WHATSAPP_TEMPLATE_KEYS], TEMPLATE_REQUIREMENTS);
+
 export function WhatsAppTemplatesScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -215,7 +221,7 @@ export function WhatsAppTemplatesScreen() {
   const [templates, setTemplates] = React.useState<WhatsAppTemplates>({});
   const [loading, setLoading] = React.useState(true);
   const [expanded, setExpanded] = React.useState<WhatsAppTemplateKey | null>(
-    WHATSAPP_TEMPLATE_KEYS[0],
+    availableTemplateKeys()[0],
   );
 
   const load = React.useCallback(async (silent = false) => {
@@ -321,7 +327,7 @@ export function WhatsAppTemplatesScreen() {
           {t('whatsappTemplates.subtitle')}
         </Text>
 
-        {WHATSAPP_TEMPLATE_KEYS.map((key, index) => {
+        {availableTemplateKeys().map((key, index) => {
           const override = templates[key]?.[locale];
           return (
             <TemplateSection
