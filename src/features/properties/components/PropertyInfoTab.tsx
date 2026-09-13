@@ -1,4 +1,5 @@
 import React from 'react';
+import { registryKey1, registryKey2 } from '@/src/shared/utils/registryLabels';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -169,10 +170,10 @@ export function PropertyInfoTab({ property, transactions, transactionsLoading }:
           <DetailRow label={t('property.propertyOwner')} value={property.property_owner} />
         )}
         {property.block != null && property.block !== '' && (
-          <DetailRow label={t('property.block')} value={property.block} />
+          <DetailRow label={t(registryKey1())} value={property.block} />
         )}
         {property.plot != null && property.plot !== '' && (
-          <DetailRow label={t('property.plot')} value={property.plot} />
+          <DetailRow label={t(registryKey2() ?? 'property.plot')} value={property.plot} />
         )}
       </DetailSection>
 

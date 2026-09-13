@@ -322,7 +322,22 @@
     "basicInfoSubtitle": "היכן הנכס ומה סוגו.",
     "photo": "תמונה",
     "addAPhoto": "הוסף תמונה",
-    "photoHelper": "או בחר איור בית"
+    "photoHelper": "או בחר איור בית",
+    "typeCondoTownhouse": "דירת גן / בתי עיר",
+    "typeRoom": "חדר",
+    "typeOther": "אחר",
+    "type_condo_townhouse": "דירת גן / בתי עיר",
+    "type_room": "חדר",
+    "type_other": "אחר",
+    "registry": {
+      "parcel_number": "מספר חלקה",
+      "cadastral_ref": "מזהה קדסטראלי",
+      "title_number": "מספר בעלות",
+      "apn": "מספר חלקה (APN)",
+      "folio_number": "מספר תיק",
+      "lot_number": "מספר מגרש",
+      "plan_number": "מספר תוכנית"
+    }
   },
   "renter": {
     "renter": "שוכר",
@@ -471,7 +486,8 @@
       "paid": "שולם",
       "pending": "ממתין",
       "overdue": "באיחור"
-    }
+    },
+    "insuranceTypeNone": "ללא"
   },
   "empty": {
     "noProperties": "אין נכסים עדיין. לחץ + להוספה.",
@@ -693,7 +709,13 @@
       "perContract": "לפי חוזה",
       "override": "עקוף",
       "auto": "אוטו'"
-    }
+    },
+    "paymentMethodCard": "כרטיס אשראי",
+    "paymentMethodMobilePayment": "תשלום בנייד",
+    "paymentMethodOther": "אחר",
+    "paymentMethod_card": "כרטיס אשראי",
+    "paymentMethod_mobile_payment": "תשלום בנייד",
+    "paymentMethod_other": "אחר"
   },
   "expenseCategories": {
     "maintenance": "תחזוקה",

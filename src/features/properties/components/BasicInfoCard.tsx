@@ -1,4 +1,5 @@
 import React from "react";
+import { registryKey1, registryKey2 } from "@/src/shared/utils/registryLabels";
 import type { Control, FieldValues } from "react-hook-form";
 import { HelperText } from "react-native-paper";
 import {
@@ -12,7 +13,7 @@ import {
 } from "@/src/shared/components/form";
 import { useRtlPlaceholder } from "@/src/core/context";
 import { PropertyHouseImageField } from "@/src/features/properties/components/PropertyHouseImageField";
-import { PROPERTY_TYPES } from "@/src/features/properties/validation/propertyValidation";
+import { availablePropertyTypes } from "@/src/features/properties/validation/propertyValidation";
 import type { PropertyType } from "@/src/shared/types";
 import type { TFunction } from "i18next";
 import { usePropertyContext } from "@/src/context";
@@ -64,7 +65,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
 
   const propertyTypeOptions = React.useMemo(
     () =>
-      PROPERTY_TYPES.map((ty) => ({
+      availablePropertyTypes().map((ty) => ({
         label: translateTypeLabel(ty),
         value: ty,
       })),
@@ -124,13 +125,13 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
         <FormNumericField
           control={control}
           name={"block" as any}
-          label={t("property.block")}
+          label={t(registryKey1())}
           keyboardType="numeric"
         />
         <FormNumericField
           control={control}
           name={"plot" as any}
-          label={t("property.plot")}
+          label={t(registryKey2() ?? "property.plot")}
           keyboardType="numeric"
         />
       </FormRow>

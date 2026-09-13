@@ -263,7 +263,7 @@
     "ownerCreate": "Add new owner...",
     "createOwnerTitle": "Add property owner",
     "ownerNamePlaceholder": "Owner name",
-    "zipCode": "Zip Code",
+    "zipCode": "Postal code",
     "type": "Property Type",
     "typePlaceholder": "e.g. Apartment, House",
     "sqFt": "Size (m²)",
@@ -290,7 +290,7 @@
     "changeImage": "Change Image",
     "atAGlance": "At a Glance",
     "floor": "Floor",
-    "apartment": "Apartment",
+    "apartment": "Unit",
     "uploadProfilePicture": "Upload Profile Picture",
     "surfaceArea": "Surface area",
     "areaUnit": "m²",
@@ -305,7 +305,7 @@
     "waterMeterNumber": "Water meter number",
     "waterAccountNumber": "Water account number",
     "propertyTax": "Property tax",
-    "houseCommittee": "House committee",
+    "houseCommittee": "Building / HOA fees",
     "details": "Details",
     "additionalDetails": "Additional details",
     "removePhoto": "Remove photo",
@@ -316,13 +316,28 @@
       "transactions": "Transactions",
       "documents": "Documents"
     },
-    "inventoryNotes": "Apartment Notes",
+    "inventoryNotes": "Unit notes",
     "inventoryNotesPlaceholder": "Furniture, appliances, items...",
     "noTransactions": "No transactions for this property",
     "basicInfoSubtitle": "Where the property is and what type it is.",
     "photo": "Photo",
     "addAPhoto": "Add a photo",
-    "photoHelper": "Or pick a house illustration"
+    "photoHelper": "Or pick a house illustration",
+    "typeCondoTownhouse": "Condo / Townhouse",
+    "typeRoom": "Room",
+    "typeOther": "Other",
+    "type_condo_townhouse": "Condo / Townhouse",
+    "type_room": "Room",
+    "type_other": "Other",
+    "registry": {
+      "parcel_number": "Parcel number",
+      "cadastral_ref": "Cadastral reference",
+      "title_number": "Title number",
+      "apn": "Parcel number (APN)",
+      "folio_number": "Folio number",
+      "lot_number": "Lot number",
+      "plan_number": "Plan number"
+    }
   },
   "renter": {
     "renter": "Renter",
@@ -425,9 +440,9 @@
     "billedYearly": "billed yearly",
     "billedOther": "billed {{count}}x per year",
     "unsupportedFrequency": "The lease says {{count}} payments a year. The app supports monthly, quarterly or yearly; pick one.",
-    "insuranceType": "Insurance type",
-    "insuranceTypeWireTransfer": "Bank transfer",
-    "insuranceTypeBankGuarantee": "Bank guarantee",
+    "insuranceType": "Security type",
+    "insuranceTypeWireTransfer": "Deposit",
+    "insuranceTypeBankGuarantee": "Guarantee",
     "insuranceAmount": "Insurance amount",
     "leaseStartPlaceholder": "e.g. 2024-01-01",
     "property": "Property",
@@ -470,7 +485,8 @@
       "paid": "Paid",
       "pending": "Pending",
       "overdue": "Overdue"
-    }
+    },
+    "insuranceTypeNone": "None"
   },
   "empty": {
     "noProperties": "No properties yet. Tap + to add one.",
@@ -538,7 +554,7 @@
     "title": "Validation",
     "addressRequired": "Address is required.",
     "cityRequired": "City is required.",
-    "zipRequired": "Zip code is required.",
+    "zipRequired": "Postal code is required.",
     "typeRequired": "Property type is required.",
     "sqFtRequired": "Valid square footage is required.",
     "priceRequired": "Valid purchase price is required.",
@@ -689,7 +705,13 @@
       "selectMonth": "Month",
       "selectQuarter": "Quarter",
       "selectYear": "Year"
-    }
+    },
+    "paymentMethodCard": "Card",
+    "paymentMethodMobilePayment": "Mobile payment",
+    "paymentMethodOther": "Other",
+    "paymentMethod_card": "Card",
+    "paymentMethod_mobile_payment": "Mobile payment",
+    "paymentMethod_other": "Other"
   },
   "expenseCategories": {
     "maintenance": "Maintenance",
@@ -759,7 +781,7 @@
     "uploadFromGallery": "Upload from Gallery",
     "uploading": "Uploading...",
     "uploadFailed": "Upload failed. Please try again.",
-    "landRegistry": "Land Registry Extract",
+    "landRegistry": "Ownership document",
     "idImage": "Tenant ID Image"
   },
   "documentScan": {

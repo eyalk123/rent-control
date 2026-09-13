@@ -22,6 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { setActiveFormat } from '@/src/shared/utils/money';
 import { setActiveCapabilities } from '@/src/shared/utils/capabilities';
+import { setActiveRegistryKeys } from '@/src/shared/utils/registryLabels';
 import {
   getCountries,
   getMyCountry,
@@ -172,6 +173,7 @@ export function CountryProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     if (!config) return;
     setActiveCapabilities(config.capabilities);
+    setActiveRegistryKeys(config.registryKey1, config.registryKey2);
     setActiveFormat({
       currency: config.currency,
       currencySymbol: config.currencySymbol,

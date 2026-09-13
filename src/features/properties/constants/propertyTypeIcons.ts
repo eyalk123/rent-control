@@ -19,6 +19,12 @@ export const PROPERTY_TYPE_ICONS: Record<PropertyType, IconName> = {
   commercial: 'store',
   garden_apartment: 'home',
   housing_unit: 'building',
+  // The global set reuses existing glyphs for the same reason the Israeli ones do — a
+  // condo reads as multi-dwelling, a single room as house-like, and `other` takes the
+  // neutral default rather than widening the closed IconName union for one label.
+  condo_townhouse: 'building',
+  room: 'home',
+  other: 'home',
 };
 
 export function getPropertyTypeIcon(type: PropertyType): IconName {
