@@ -15,6 +15,8 @@ import { AgentChatProvider } from "@/src/features/agent/context/AgentChatContext
 import { AnchorRegistryProvider } from "@/src/features/onboarding/AnchorRegistry";
 import { TourStateProvider } from "@/src/features/onboarding/TourStateContext";
 import { LegalConsentProvider } from "@/src/features/legal/LegalConsentContext";
+import { CountryProvider } from "@/src/features/country/CountryContext";
+import { CountryGate } from "@/src/features/country/components/CountryGate";
 import { LegalConsentGate } from "@/src/features/legal/components/LegalConsentGate";
 import { TourControllerProvider } from "@/src/features/onboarding/TourController";
 import { TourOverlay } from "@/src/features/onboarding/TourOverlay";
@@ -77,6 +79,10 @@ function DirectionalContent() {
           Above the tour, below the offline blocker — a device with no connection has a
           more immediate problem, and accepting would fail anyway. */}
       <LegalConsentGate />
+      {/* Below the consent gate: terms are the condition of using the product at all,
+          while a country is a setting within it — and asking where someone lives before
+          they have agreed to anything is the wrong order to collect it in. */}
+      <CountryGate />
       {/* Last, so it covers the tour too. Blocks the app while the device has no
           connection, without unmounting the screen (or half-typed form) underneath. */}
       <OfflineGate />
@@ -114,6 +120,7 @@ function AppContent() {
             <TransactionSummaryProvider>
               <LanguageProvider>
                 <LegalConsentProvider>
+                <CountryProvider>
                 <AgentChatProvider>
                   <TourStateProvider>
                     <AnchorRegistryProvider>
@@ -123,6 +130,7 @@ function AppContent() {
                     </AnchorRegistryProvider>
                   </TourStateProvider>
                 </AgentChatProvider>
+                </CountryProvider>
                 </LegalConsentProvider>
               </LanguageProvider>
             </TransactionSummaryProvider>
