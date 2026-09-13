@@ -1,4 +1,5 @@
 import React from 'react';
+import { currencySymbol } from '@/src/shared/utils/money';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Switch, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -254,7 +255,7 @@ export function NotificationsSettingsScreen() {
                       <View style={styles.thresholdFields}>
                         <ThresholdField
                           label={t('notifications.cpiMinAmount')}
-                          suffix="₪"
+                          suffix={currencySymbol()}
                           value={settings.cpi_min_change_amount}
                           onCommit={(v) => patchSettings({ cpi_min_change_amount: v })}
                           colors={colors}

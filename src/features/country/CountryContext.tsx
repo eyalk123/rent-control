@@ -20,6 +20,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { setActiveFormat } from '@/src/shared/utils/money';
 import {
   getCountries,
   getMyCountry,
@@ -160,6 +161,24 @@ export function CountryProvider({ children }: PropsWithChildren) {
     () => (country ? countries.find((c) => c.countryCode === country) : undefined),
     [country, countries],
   );
+
+  // Publish the account's formats to the shared money/date/number helpers. Module state
+  // rather than context because `formatMoney` is called from ~100 places, most of them deep
+  // inside render functions where threading a config through would mean touching every
+  // component in the chain. Until this resolves the helpers use their Israeli default,
+  // which is what the app did before any of this existed — so there is no wrong-currency
+  // flash, only the old behaviour for a moment.
+  useEffect(() => {
+    if (!config) return;
+    setActiveFormat({
+      currency: config.currency,
+      currencySymbol: config.currencySymbol,
+      currencySymbolPosition: config.currencySymbolPosition,
+      numberFormat: config.numberFormat,
+      dateFormat: config.dateFormat,
+      areaUnit: config.areaUnit,
+    });
+  }, [config]);
 
   const value = useMemo(
     () => ({
