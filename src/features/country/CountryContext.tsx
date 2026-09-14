@@ -21,7 +21,7 @@ import React, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { setActiveFormat } from '@/src/shared/utils/money';
-import { setActiveCapabilities } from '@/src/shared/utils/capabilities';
+import { setActiveCapabilities, setOpenEndedTenancies } from '@/src/shared/utils/capabilities';
 import { setActiveRegistryKeys } from '@/src/shared/utils/registryLabels';
 import { setActiveDialCode } from '@/src/shared/utils/whatsapp';
 import {
@@ -174,6 +174,7 @@ export function CountryProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     if (!config) return;
     setActiveCapabilities(config.capabilities);
+    setOpenEndedTenancies(config.openEndedTenancies);
     setActiveRegistryKeys(config.registryKey1, config.registryKey2);
     setActiveDialCode(config.dialCode, config.countryCode);
     setActiveFormat({

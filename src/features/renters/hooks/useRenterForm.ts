@@ -1,4 +1,5 @@
 import React from "react";
+import { isOpenEndedCountry } from '@/src/shared/utils/capabilities';
 import { useAlert } from "@/src/core/context";
 import { useAppAuth } from "@/src/core/auth/AuthContext";
 import { useForm, type DefaultValues } from "react-hook-form";
@@ -124,8 +125,12 @@ export function useRenterForm({
       paymentDate: DEFAULT_PAYMENT_DATE,
       paymentFrequency: undefined,
       insuranceType: "",
+      suppressExpiryAlerts: false,
       insuranceAmount: "",
-      contractTermYears: "",
+      // Pre-filled to 5 where tenancies are open-ended: the field is normally blank,
+      // so this is a pre-fill rather than a changed default, and it only reduces how
+      // often an invented end date needs revisiting.
+      contractTermYears: isOpenEndedCountry() ? "5" : "",
       contractTermMonths: "",
       optionYears: "",
       optionTermMonths: "",
@@ -246,6 +251,7 @@ export function useRenterForm({
               ? "yearly"
               : undefined,
           insuranceType: renter.insurance_type ?? "",
+          suppressExpiryAlerts: renter.suppress_expiry_alerts ?? false,
           insuranceAmount:
             renter.insurance_amount != null
               ? String(renter.insurance_amount)
@@ -440,6 +446,7 @@ export function useRenterForm({
       payment_type: values.paymentType.trim() || null,
       payment_day_of_month:
         paymentDayNum != null && !Number.isNaN(paymentDayNum) ? paymentDayNum : null,
+      suppress_expiry_alerts: values.suppressExpiryAlerts,
       insurance_type: values.insuranceType.trim() || null,
       insurance_amount:
         insuranceAmt != null && !Number.isNaN(insuranceAmt) ? insuranceAmt : null,

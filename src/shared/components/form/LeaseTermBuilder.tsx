@@ -1,4 +1,5 @@
 import React from "react";
+import { isOpenEndedCountry } from "@/src/shared/utils/capabilities";
 import {
   Controller,
   useFieldArray,
@@ -10,7 +11,7 @@ import {
   type UseFormSetValue,
 } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import { Text, useTheme, HelperText } from "react-native-paper";
 import type { TFunction } from "i18next";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
 import { useLanguageContext } from "@/src/core/context";
@@ -205,6 +206,17 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
 
   return (
     <View ref={termAnchorRef} collapsable={false}>
+      {/*
+        One line, not a modal. Where tenancies are open-ended the lease model cannot express
+        "no end date", so the honest thing is to say so beside the stepper being asked for a
+        number and then get out of the way. Extend stays available after expiry, so the
+        estimate is workable rather than a dead end.
+      */}
+      {isOpenEndedCountry() ? (
+        <HelperText type="info" visible>
+          {t("renter.openEndedTermNote")}
+        </HelperText>
+      ) : null}
       <Controller
         control={control}
         name={"contractTermYears" as Path<TFieldValues>}
