@@ -1,4 +1,5 @@
 import React from 'react';
+import { capabilities } from '@/src/shared/utils/capabilities';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { Control } from 'react-hook-form';
 import { Controller, useFormState } from 'react-hook-form';
@@ -79,18 +80,32 @@ export function SupplierForm({
         label={t('suppliers.notes', { defaultValue: 'Notes (optional)' })}
       />
       <TourAnchor id={ANCHORS.supplierFormBank}>
-        <Controller
-          control={control}
-          name="bankAccount"
-          render={({ field: { value, onChange } }) => (
-            <BankAccountInput
-              value={value ?? { bank: '', branch: '', account: '' }}
-              onChange={onChange}
-              editable={!isSubmitting}
-              error={errors.bankAccount?.message as string | undefined}
-            />
-          )}
-        />
+        {capabilities().structuredBankDetails ? (
+          <Controller
+            control={control}
+            name="bankAccount"
+            render={({ field: { value, onChange } }) => (
+              <BankAccountInput
+                value={value ?? { bank: '', branch: '', account: '' }}
+                onChange={onChange}
+                editable={!isSubmitting}
+                error={errors.bankAccount?.message as string | undefined}
+              />
+            )}
+          />
+        ) : (
+          /* Bank + branch + account picked from a list is an Israeli banking shape. No
+             IBAN, routing-number or sort-code validation: a rule that rejects a valid
+             account is worse than no rule. */
+          <FormTextField
+            control={control}
+            name="paymentDetails"
+            label={t('suppliers.paymentDetails', { defaultValue: 'Payment details' })}
+            placeholder={t('suppliers.paymentDetailsPlaceholder', {
+              defaultValue: 'Account or transfer details',
+            })}
+          />
+        )}
       </TourAnchor>
       <TourAnchor id={ANCHORS.supplierFormCategories}>
         <Controller

@@ -760,7 +760,9 @@
     "bankCode": "בנק",
     "branchCode": "סניף",
     "accountNumber": "חשבון",
-    "unknownBank": "בנק לא ידוע"
+    "unknownBank": "בנק לא ידוע",
+    "paymentDetails": "פרטי תשלום",
+    "paymentDetailsPlaceholder": "פרטי חשבון או העברה"
   },
   "country": {
     "gateTitle": "איפה הנכסים שלך?",

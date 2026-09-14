@@ -1,4 +1,5 @@
 import React from 'react';
+import { capabilities } from '@/src/shared/utils/capabilities';
 import { useAlert } from '@/src/core/context';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,6 +44,7 @@ export function useSupplierForm({
       notes: '',
       categoryIds: [],
       bankAccount: { bank: '', branch: '', account: '' },
+      paymentDetails: '',
     },
     mode: 'onBlur',
   });
@@ -63,6 +65,9 @@ export function useSupplierForm({
     getSupplierById(numericId)
       .then((supplier) => {
         const parsedBankAccount = (() => {
+          // One stored string, two ways to show it — Israel splits it back into
+          // bank/branch/account, everyone else sees exactly what was typed.
+          if (!capabilities().structuredBankDetails) return { bank: '', branch: '', account: '' };
           if (!supplier.bank_account) return { bank: '', branch: '', account: '' };
           const parts = supplier.bank_account.split('/');
           return {
@@ -78,6 +83,9 @@ export function useSupplierForm({
           notes: supplier.notes ?? '',
           categoryIds: supplier.category_ids ?? [],
           bankAccount: parsedBankAccount,
+          paymentDetails: capabilities().structuredBankDetails
+            ? ''
+            : (supplier.bank_account ?? ''),
         });
       })
       .catch((err) => {
@@ -89,7 +97,9 @@ export function useSupplierForm({
   }, [id, isEdit, reset]);
 
   const submit = handleSubmit(async (values) => {
-    const serialisedBankAccount = isValidBankAccount(values.bankAccount)
+    const serialisedBankAccount = !capabilities().structuredBankDetails
+      ? (values.paymentDetails?.trim() || null)
+      : isValidBankAccount(values.bankAccount)
       ? `${values.bankAccount.bank}/${values.bankAccount.branch}/${values.bankAccount.account}`
       : null;
 

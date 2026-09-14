@@ -756,7 +756,9 @@
     "bankCode": "Bank",
     "branchCode": "Branch",
     "accountNumber": "Account",
-    "unknownBank": "Unknown bank"
+    "unknownBank": "Unknown bank",
+    "paymentDetails": "Payment details",
+    "paymentDetailsPlaceholder": "Account or transfer details"
   },
   "country": {
     "gateTitle": "Where are your properties?",
