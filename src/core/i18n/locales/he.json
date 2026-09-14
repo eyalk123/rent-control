@@ -114,6 +114,8 @@
     "languageHe": "עברית",
     "suppliers": "ספקים",
     "signOut": "התנתק",
+    "signOutConfirm": "להתנתק?",
+    "signOutConfirmMessage": "תצטרך להתחבר מחדש כדי לחזור לחשבון שלך.",
     "account": "חשבון",
     "deleteAccount": "מחק חשבון",
     "deleteAccountTitle": "מחיקת חשבון",

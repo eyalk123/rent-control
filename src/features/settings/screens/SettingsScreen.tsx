@@ -68,11 +68,23 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
     ]);
   }, [appAlert, t, tourState]);
 
-  const handleSignOut = React.useCallback(async () => {
-    // Unregister the push token while the auth token is still valid, then sign out.
-    await unregisterDevice();
-    await signOut();
-  }, [unregisterDevice, signOut]);
+  // Confirmed first: the row sits one tap away in a list of otherwise harmless settings, and
+  // signing out drops any unsaved work and costs a full re-authentication to undo. The web
+  // client asks the same question (SettingsPage `handleSignOut`).
+  const handleSignOut = React.useCallback(() => {
+    appAlert(t('settings.signOutConfirm'), t('settings.signOutConfirmMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('settings.signOut'),
+        style: 'destructive',
+        onPress: async () => {
+          // Unregister the push token while the auth token is still valid, then sign out.
+          await unregisterDevice();
+          await signOut();
+        },
+      },
+    ]);
+  }, [appAlert, t, unregisterDevice, signOut]);
 
   return (
     <ScreenContainer>
