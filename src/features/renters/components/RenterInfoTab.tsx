@@ -34,7 +34,6 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
 
   const insuranceTypeLabel = (insuranceType: string) => {
     switch (insuranceType) {
-      case 'none': return t('renter.insuranceTypeNone');
       case 'wire_transfer': return t('renter.insuranceTypeWireTransfer');
       case 'bank_guarantee': return t('renter.insuranceTypeBankGuarantee');
       default: return insuranceType;

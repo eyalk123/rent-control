@@ -149,12 +149,8 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           control={control}
           name={"insuranceType" as any}
           label={t("renter.insuranceType")}
-          // "None" is a real answer, not an omission — see the web twin for why.
+          // No "none" entry — the field is already optional, so blank *is* "no security".
           options={[
-            {
-              value: "none",
-              label: t("renter.insuranceTypeNone"),
-            },
             {
               value: "wire_transfer",
               label: t("renter.insuranceTypeWireTransfer"),

@@ -486,7 +486,6 @@
       "pending": "Pending",
       "overdue": "Overdue"
     },
-    "insuranceTypeNone": "None",
     "suppressExpiryAlerts": "Don't warn me when this lease expires",
     "openEndedTermNote": "Tenancies here are usually open-ended. Rent Control needs an end date on every lease — pick your best estimate and extend it whenever you like."
   },
