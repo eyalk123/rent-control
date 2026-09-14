@@ -8,7 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { spacing } from '@/src/core/theme';
 import { ScreenContainer } from '@/src/shared/components/ui';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import { downloadIncomeExpenseReport } from '@/src/features/reports/api/reports';
+import {
+  defaultRevenueBasis,
+  downloadIncomeExpenseReport,
+  type RevenueBasis,
+} from '@/src/features/reports/api/reports';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
@@ -22,12 +26,15 @@ export function IncomeExpenseReportScreen() {
   const { year: yearParam } = useLocalSearchParams<{ year?: string }>();
   const [year, setYear] = useState(yearParam ? parseInt(yearParam, 10) : CURRENT_YEAR);
   const [format, setFormat] = useState<'pdf' | 'csv'>('pdf');
+  // Pre-selected from the country, never forced — the choice belongs to the report,
+  // not the account, so it is made here rather than in Settings.
+  const [basis, setBasis] = useState<RevenueBasis>(defaultRevenueBasis);
   const [loading, setLoading] = useState(false);
 
   async function handleExport() {
     setLoading(true);
     try {
-      await downloadIncomeExpenseReport(year, format);
+      await downloadIncomeExpenseReport(year, format, basis);
     } catch (err) {
       const msg = getApiErrorMessage(err, t('reports.exportError'));
       alert(msg);
@@ -68,6 +75,22 @@ export function IncomeExpenseReportScreen() {
             </Button>
           ))}
         </View>
+
+        <Text variant="labelLarge" style={styles.sectionLabel}>
+          {t('reports.basisLabel')}
+        </Text>
+        <SegmentedButtons
+          value={basis}
+          onValueChange={(v) => setBasis(v as RevenueBasis)}
+          buttons={[
+            { value: 'accrual', label: t('reports.basisAccrual') },
+            { value: 'cash', label: t('reports.basisCash') },
+          ]}
+          style={styles.segmented}
+        />
+        <Text variant="bodySmall" style={styles.basisHint}>
+          {t('reports.basisHint')}
+        </Text>
 
         <Text variant="labelLarge" style={styles.sectionLabel}>
           {t('reports.format')}
@@ -126,6 +149,11 @@ const styles = StyleSheet.create({
   },
   yearButton: {
     minWidth: 70,
+  },
+  basisHint: {
+    marginTop: -4,
+    marginBottom: 8,
+    opacity: 0.7,
   },
   segmented: {
     marginTop: spacing.xs,

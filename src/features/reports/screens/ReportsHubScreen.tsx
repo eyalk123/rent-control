@@ -113,6 +113,12 @@ function HistoryRow({
         </Text>
         <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
           {date}
+          {/* Absent on an expense log and on anything exported before the choice existed
+              — accrual by definition. Shown so two income reports for the same year,
+              differing by a month's rent, can be told apart before opening either. */}
+          {item.revenue_basis
+            ? ` · ${t(item.revenue_basis === 'cash' ? 'reports.basisCash' : 'reports.basisAccrual')}`
+            : ''}
         </Text>
       </View>
       <Menu
