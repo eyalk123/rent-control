@@ -23,6 +23,7 @@ import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { setActiveFormat } from '@/src/shared/utils/money';
 import { setActiveCapabilities } from '@/src/shared/utils/capabilities';
 import { setActiveRegistryKeys } from '@/src/shared/utils/registryLabels';
+import { setActiveDialCode } from '@/src/shared/utils/whatsapp';
 import {
   getCountries,
   getMyCountry,
@@ -174,6 +175,7 @@ export function CountryProvider({ children }: PropsWithChildren) {
     if (!config) return;
     setActiveCapabilities(config.capabilities);
     setActiveRegistryKeys(config.registryKey1, config.registryKey2);
+    setActiveDialCode(config.dialCode, config.countryCode);
     setActiveFormat({
       currency: config.currency,
       currencySymbol: config.currencySymbol,
