@@ -10,7 +10,7 @@ import {
   type UseFormSetValue,
 } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import { Text, useTheme, HelperText, Switch } from "react-native-paper";
 import type { TFunction } from "i18next";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
 import { useLanguageContext } from "@/src/core/context";
@@ -81,6 +81,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
   const contractMonthsStr = useWatch({ control, name: "contractTermMonths" as any }) as string | undefined;
   const optionStr = useWatch({ control, name: "optionYears" as any }) as string | undefined;
   const optionMonthsStr = useWatch({ control, name: "optionTermMonths" as any }) as string | undefined;
+  const openEnded = Boolean(useWatch({ control, name: "openEnded" as any }));
   const baseRentStr = useWatch({ control, name: "baseRent" as any }) as string | undefined;
   const escMode =
     (useWatch({ control, name: "escalationMode" as any }) as RentEscalationMode | undefined) ?? "none";
@@ -205,6 +206,28 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
 
   return (
     <View ref={termAnchorRef} collapsable={false}>
+      {/*
+        The switch, not a warning. It used to be one line of copy telling the landlord the
+        model could not express their tenancy and to invent a date anyway; now they say so and
+        the server keeps the schedule rolling. Offered everywhere, defaulted on where
+        tenancies normally have no end — an Israeli month-to-month holdover is the same shape.
+      */}
+      <Controller
+        control={control}
+        name={"openEnded" as Path<TFieldValues>}
+        render={({ field }) => (
+          <View>
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>{t("renter.openEnded")}</Text>
+              <Switch value={Boolean(field.value)} onValueChange={field.onChange} />
+            </View>
+            <HelperText type="info" visible>
+              {t(field.value ? "renter.openEndedOnNote" : "renter.openEndedOffNote")}
+            </HelperText>
+          </View>
+        )}
+      />
+      {openEnded ? null : (
       <Controller
         control={control}
         name={"contractTermYears" as Path<TFieldValues>}
@@ -219,7 +242,9 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
           />
         )}
       />
+      )}
 
+      {openEnded ? null : (
       <Controller
         control={control}
         name={"contractTermMonths" as Path<TFieldValues>}
@@ -234,7 +259,9 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
           />
         )}
       />
+      )}
 
+      {openEnded ? null : (
       <Controller
         control={control}
         name={"optionYears" as Path<TFieldValues>}
@@ -249,7 +276,9 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
           />
         )}
       />
+      )}
 
+      {openEnded ? null : (
       <Controller
         control={control}
         name={"optionTermMonths" as Path<TFieldValues>}
@@ -264,6 +293,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
           />
         )}
       />
+      )}
 
       <TourAnchor id={ANCHORS.leaseBaseRent}>
         <FormNumericField
@@ -285,6 +315,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
               <RentChangeField
                 label={t("renter.rentChange")}
                 fitContent
+                openEnded={openEnded}
                 mode={(modeField.value as RentEscalationMode) ?? "none"}
                 onModeChange={(v) => {
                   if (v === "cpi") cpiSwitchRef.current = true;
@@ -377,14 +408,46 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
                 )}
               />
             ) : (
-              <LeaseYearRow
+              // Editable under the whole-lease rules too, not only in `custom`. Correcting
+              // one year is not designing a schedule, and sending someone to Custom to fix a
+              // single number made them rebuild the lease to describe what the landlord
+              // actually did. `cpi` stays read-only — the server owns those amounts.
+              <Controller
                 key={index}
-                label={getLeaseYearLabel(leaseStart, modelRows, index, language)}
-                amount={String(row?.amount ?? "")}
-                type={yearType}
-                isCurrent={isCurrentLeaseYear(leaseStart, modelRows, index)}
-                projected={isCpiProjected}
-                rowDirection={rowDirection}
+                control={control}
+                name={`leaseYears.${index}.amount` as Path<TFieldValues>}
+                render={({ field: amountField }) => (
+                  <LeaseYearRow
+                    label={getLeaseYearLabel(leaseStart, modelRows, index, language)}
+                    amount={String(amountField.value ?? "")}
+                    type={yearType}
+                    isCurrent={isCurrentLeaseYear(leaseStart, modelRows, index)}
+                    projected={isCpiProjected}
+                    rowDirection={rowDirection}
+                    onAmountBlur={escMode === "cpi" ? undefined : amountField.onBlur}
+                    onAmountChange={
+                      escMode === "cpi"
+                        ? undefined
+                        : (v) => {
+                            amountField.onChange(v);
+                            // Pin it: the whole-lease rule no longer describes this year, and
+                            // everything after it chains from here instead of from the base.
+                            setValue(
+                              `leaseYears.${index}.rule` as Path<TFieldValues>,
+                              { mode: "manual", value: "" } as PathValue<TFieldValues, Path<TFieldValues>>,
+                            );
+                            // Year one *is* the first-year rent; keep the two in step, or the
+                            // server (which prices year one off base_rent) would overwrite it.
+                            if (index === 0) {
+                              setValue(
+                                "baseRent" as Path<TFieldValues>,
+                                v as PathValue<TFieldValues, Path<TFieldValues>>,
+                              );
+                            }
+                          }
+                    }
+                  />
+                )}
               />
             );
           })}
@@ -418,6 +481,17 @@ const styles = StyleSheet.create({
     height: 1,
     marginTop: spacing.xs,
     marginBottom: spacing.md,
+  },
+  // Matches the expiry switch's row on RenterLeaseInfoCard — this control replaces it when
+  // it is on, so the two must not read as different kinds of thing.
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  switchLabel: {
+    flex: 1,
   },
   timelineTitle: {
     fontWeight: "700",

@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Text, TextInput, Button, useTheme, Divider, Checkbox } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { postLegalAcceptance } from '@/src/features/legal/api/legalAcceptance';
@@ -25,6 +19,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRtlInputStyle, useRtlPlaceholder } from '@/src/core/context';
 import { loginSchema, type LoginFormValues } from '@/src/core/auth/authFormSchema';
+import { spacing } from '@/src/core/theme';
+import { ScreenContainer } from '@/src/shared/components/ui';
 
 function GoogleGlyph({ size = 20 }: { size?: number }) {
   return (
@@ -182,184 +178,203 @@ export default function SignInScreen() {
   const isLogin = step === 'login';
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.root, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <View style={styles.inner}>
-        {/* Logo + title */}
-        <View style={styles.header}>
-          <Image
-            source={require('@/assets/images/rent-control-icon-no-text.png')}
-            style={[styles.logo, isDark && { tintColor: colors.secondary }]}
-            resizeMode="contain"
-          />
-          <Text variant="headlineMedium" style={[styles.appName, { color: colors.onBackground }]}>
-            Rent Control
-          </Text>
-          <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}>
-            {isLogin ? t('auth.signInSubtitle') : t('auth.createAccountSubtitle')}
-          </Text>
-        </View>
+    /* ScreenContainer for the safe-area insets: this screen has no header and draws its own
+       background, and once the form can scroll (below) it would otherwise slide under the
+       status bar.
 
-        {/* Card */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
-          {/* Google button */}
-          <TouchableOpacity
-            style={[styles.googleBtn, { borderColor: colors.outline, backgroundColor: isDark ? colors.surfaceVariant : '#fff' }]}
-            onPress={signInWithGoogle}
-            disabled={googleLoading}
-            activeOpacity={0.75}
-          >
-            <GoogleGlyph size={20} />
-            <Text variant="labelLarge" style={[styles.googleBtnText, { color: colors.onSurface }]}>
-              {googleLoading ? t('auth.connecting') : t('auth.continueWithGoogle')}
+       A scroller, not a KeyboardAvoidingView: that one only avoided on iOS — Android got
+       `behavior={undefined}`, i.e. nothing — and `adjustResize` alone just shrinks the window
+       around a vertically centred View. Measured on the emulator, the keyboard covered half
+       the password field and hid the Sign in button entirely; on the register step it also
+       hid the terms checkbox that has to be ticked before the button enables, so an account
+       could not be created without dismissing the keyboard first. `flexGrow: 1` +
+       `justifyContent: 'center'` keeps the form centred when it fits and lets it scroll when
+       the keyboard makes it taller than the window. */
+    <ScreenContainer>
+      <KeyboardAwareScrollView
+        style={[styles.root, { backgroundColor: colors.background }]}
+        contentContainerStyle={styles.inner}
+        enableOnAndroid
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={spacing.keyboardExtraScrollHeight}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        <View style={styles.content}>
+          {/* Logo + title */}
+          <View style={styles.header}>
+            <Image
+              source={require('@/assets/images/rent-control-icon-no-text.png')}
+              style={[styles.logo, isDark && { tintColor: colors.secondary }]}
+              resizeMode="contain"
+            />
+            <Text variant="headlineMedium" style={[styles.appName, { color: colors.onBackground }]}>
+              Rent Control
             </Text>
-          </TouchableOpacity>
-
-          <View style={styles.dividerRow}>
-            <Divider style={styles.dividerLine} />
-            <Text variant="bodySmall" style={[styles.dividerText, { color: colors.onSurfaceVariant }]}>
-              {t('auth.or')}
+            <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}>
+              {isLogin ? t('auth.signInSubtitle') : t('auth.createAccountSubtitle')}
             </Text>
-            <Divider style={styles.dividerLine} />
           </View>
 
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { value, onChange, onBlur } }) => (
-              <>
-                <TextInput
-                  mode="outlined"
-                  label={rtlPlaceholder(t('auth.email'))}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  returnKeyType="next"
-                  style={styles.input}
-                  contentStyle={rtlInputStyle}
-                  error={!!errors.email}
-                />
-                {errors.email ? (
-                  <Text variant="bodySmall" style={[styles.fieldError, { color: colors.error }]}>
-                    {t(errors.email.message!, { defaultValue: errors.email.message })}
-                  </Text>
-                ) : null}
-              </>
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { value, onChange, onBlur } }) => (
-              <>
-                <TextInput
-                  mode="outlined"
-                  label={rtlPlaceholder(t('auth.password'))}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  secureTextEntry
-                  autoComplete={isLogin ? 'current-password' : 'new-password'}
-                  returnKeyType="done"
-                  onSubmitEditing={isLogin ? signIn : register}
-                  style={styles.input}
-                  contentStyle={rtlInputStyle}
-                  error={!!errors.password}
-                />
-                {errors.password ? (
-                  <Text variant="bodySmall" style={[styles.fieldError, { color: colors.error }]}>
-                    {t(errors.password.message!, { defaultValue: errors.password.message })}
-                  </Text>
-                ) : null}
-              </>
-            )}
-          />
-
-          {/* Registration only. The documents live at `app/legal/*`, outside the settings
-              auth guard, precisely so a signed-out person can read what they are accepting. */}
-          {!isLogin ? (
-            <View style={styles.acceptRow}>
-              <Checkbox
-                status={accepted ? 'checked' : 'unchecked'}
-                onPress={() => { setAccepted((v) => !v); setError(''); }}
-              />
-              <Text
-                variant="bodySmall"
-                style={[styles.acceptText, { color: colors.onSurfaceVariant }]}
-              >
-                {withLinks(t('auth.acceptTerms'), {
-                  terms: (
-                    <Text
-                      style={{ color: colors.primary }}
-                      onPress={() => router.push('/legal/terms' as any)}
-                    >
-                      {t('legal.termsOfService')}
-                    </Text>
-                  ),
-                  privacy: (
-                    <Text
-                      style={{ color: colors.primary }}
-                      onPress={() => router.push('/legal/privacy' as any)}
-                    >
-                      {t('legal.privacyPolicy')}
-                    </Text>
-                  ),
-                })}
+          {/* Card */}
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.outlineVariant }]}>
+            {/* Google button */}
+            <TouchableOpacity
+              style={[styles.googleBtn, { borderColor: colors.outline, backgroundColor: isDark ? colors.surfaceVariant : '#fff' }]}
+              onPress={signInWithGoogle}
+              disabled={googleLoading}
+              activeOpacity={0.75}
+            >
+              <GoogleGlyph size={20} />
+              <Text variant="labelLarge" style={[styles.googleBtnText, { color: colors.onSurface }]}>
+                {googleLoading ? t('auth.connecting') : t('auth.continueWithGoogle')}
               </Text>
+            </TouchableOpacity>
+
+            <View style={styles.dividerRow}>
+              <Divider style={styles.dividerLine} />
+              <Text variant="bodySmall" style={[styles.dividerText, { color: colors.onSurfaceVariant }]}>
+                {t('auth.or')}
+              </Text>
+              <Divider style={styles.dividerLine} />
             </View>
-          ) : null}
 
-          {error ? (
-            <Text variant="bodySmall" style={[styles.error, { color: colors.error }]}>
-              {error}
-            </Text>
-          ) : null}
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { value, onChange, onBlur } }) => (
+                <>
+                  <TextInput
+                    mode="outlined"
+                    label={rtlPlaceholder(t('auth.email'))}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    returnKeyType="next"
+                    style={styles.input}
+                    contentStyle={rtlInputStyle}
+                    error={!!errors.email}
+                  />
+                  {errors.email ? (
+                    <Text variant="bodySmall" style={[styles.fieldError, { color: colors.error }]}>
+                      {t(errors.email.message!, { defaultValue: errors.email.message })}
+                    </Text>
+                  ) : null}
+                </>
+              )}
+            />
 
-          {resetSent ? (
-            <Text variant="bodySmall" style={[styles.error, { color: colors.primary }]}>
-              {t('auth.resetEmailSent')}
-            </Text>
-          ) : null}
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { value, onChange, onBlur } }) => (
+                <>
+                  <TextInput
+                    mode="outlined"
+                    label={rtlPlaceholder(t('auth.password'))}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    secureTextEntry
+                    autoComplete={isLogin ? 'current-password' : 'new-password'}
+                    returnKeyType="done"
+                    onSubmitEditing={isLogin ? signIn : register}
+                    style={styles.input}
+                    contentStyle={rtlInputStyle}
+                    error={!!errors.password}
+                  />
+                  {errors.password ? (
+                    <Text variant="bodySmall" style={[styles.fieldError, { color: colors.error }]}>
+                      {t(errors.password.message!, { defaultValue: errors.password.message })}
+                    </Text>
+                  ) : null}
+                </>
+              )}
+            />
 
-          <Button
-            mode="contained"
-            onPress={isLogin ? signIn : register}
-            loading={loading}
-            disabled={loading || (!isLogin && !accepted)}
-            style={styles.submitBtn}
-            contentStyle={styles.submitBtnContent}
-          >
-            {isLogin ? t('auth.signIn') : t('auth.createAccount')}
-          </Button>
+            {/* Registration only. The documents live at `app/legal/*`, outside the settings
+                auth guard, precisely so a signed-out person can read what they are accepting. */}
+            {!isLogin ? (
+              <View style={styles.acceptRow}>
+                <Checkbox
+                  status={accepted ? 'checked' : 'unchecked'}
+                  onPress={() => { setAccepted((v) => !v); setError(''); }}
+                />
+                <Text
+                  variant="bodySmall"
+                  style={[styles.acceptText, { color: colors.onSurfaceVariant }]}
+                >
+                  {withLinks(t('auth.acceptTerms'), {
+                    terms: (
+                      <Text
+                        style={{ color: colors.primary }}
+                        onPress={() => router.push('/legal/terms' as any)}
+                      >
+                        {t('legal.termsOfService')}
+                      </Text>
+                    ),
+                    privacy: (
+                      <Text
+                        style={{ color: colors.primary }}
+                        onPress={() => router.push('/legal/privacy' as any)}
+                      >
+                        {t('legal.privacyPolicy')}
+                      </Text>
+                    ),
+                  })}
+                </Text>
+              </View>
+            ) : null}
 
-          {isLogin ? (
+            {error ? (
+              <Text variant="bodySmall" style={[styles.error, { color: colors.error }]}>
+                {error}
+              </Text>
+            ) : null}
+
+            {resetSent ? (
+              <Text variant="bodySmall" style={[styles.error, { color: colors.primary }]}>
+                {t('auth.resetEmailSent')}
+              </Text>
+            ) : null}
+
+            <Button
+              mode="contained"
+              onPress={isLogin ? signIn : register}
+              loading={loading}
+              disabled={loading || (!isLogin && !accepted)}
+              style={styles.submitBtn}
+              contentStyle={styles.submitBtnContent}
+            >
+              {isLogin ? t('auth.signIn') : t('auth.createAccount')}
+            </Button>
+
+            {isLogin ? (
+              <Button
+                mode="text"
+                onPress={forgotPassword}
+                disabled={loading}
+                style={{ marginTop: 0 }}
+              >
+                {t('auth.forgotPassword')}
+              </Button>
+            ) : null}
+
             <Button
               mode="text"
-              onPress={forgotPassword}
+              onPress={() => { setStep(isLogin ? 'register' : 'login'); setError(''); setResetSent(false); setAccepted(false); }}
               disabled={loading}
-              style={{ marginTop: 0 }}
+              style={{ marginTop: 4 }}
             >
-              {t('auth.forgotPassword')}
+              {isLogin ? t('auth.newHere') : t('auth.alreadyHaveAccount')}
             </Button>
-          ) : null}
-
-          <Button
-            mode="text"
-            onPress={() => { setStep(isLogin ? 'register' : 'login'); setError(''); setResetSent(false); setAccepted(false); }}
-            disabled={loading}
-            style={{ marginTop: 4 }}
-          >
-            {isLogin ? t('auth.newHere') : t('auth.alreadyHaveAccount')}
-          </Button>
+          </View>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+    </ScreenContainer>
   );
 }
 
@@ -368,9 +383,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inner: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  content: {
     gap: 28,
   },
   header: {

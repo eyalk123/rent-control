@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { HelperText } from "react-native-paper";
-import { type Control, type FieldValues, type UseFormSetValue, useWatch } from "react-hook-form";
+import { HelperText, Switch, Text } from "react-native-paper";
+import { Controller, type Control, type FieldValues, type UseFormSetValue, useWatch } from "react-hook-form";
 import { useTour } from "@/src/features/onboarding/TourController";
 import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 import { ANCHORS } from "@/src/features/onboarding/anchors";
@@ -49,6 +49,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   const escalationMode = useWatch({ control, name: "escalationMode" as never }) as unknown as
     | string
     | undefined;
+  const openEndedWatch = Boolean(useWatch({ control, name: "openEnded" as never }));
 
   // `lease-form` is asked for by the screen, not here: it covers the whole renter form now
   // and has to open on page one, before this card exists. The two elaborations below stay,
@@ -125,11 +126,39 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
       </View>
       </TourAnchor>
 
+      {/*
+        The expiring alert counts down to the contract end date. Where a tenancy is
+        open-ended that date is the landlord's estimate, so the countdown is noise — and an
+        Israeli month-to-month holdover has the same problem, which is why this is offered
+        to everyone rather than gated on the country.
+      */}
+      {/*
+        Hidden while the lease is open-ended, which already implies it: that countdown is to a
+        date the generator moves every year, so there is nothing left for this switch to
+        decide. Two controls for one outcome is worse than one; the value is still stored and
+        editable for every lease that is not open-ended.
+      */}
+      {openEndedWatch ? null : (
+      <View style={styles.inputWrap}>
+        <Controller
+          control={control}
+          name={"suppressExpiryAlerts" as any}
+          render={({ field }) => (
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>{t("renter.suppressExpiryAlerts")}</Text>
+              <Switch value={Boolean(field.value)} onValueChange={field.onChange} />
+            </View>
+          )}
+        />
+      </View>
+      )}
+
       <View style={styles.inputWrap}>
         <FormDropdownOptions
           control={control}
           name={"insuranceType" as any}
           label={t("renter.insuranceType")}
+          // No "none" entry — the field is already optional, so blank *is* "no security".
           options={[
             {
               value: "wire_transfer",
@@ -175,6 +204,15 @@ export const RenterLeaseInfoCard = React.memo(
 const styles = StyleSheet.create({
   inputWrap: {
     marginBottom: spacing.md,
+  },
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  switchLabel: {
+    flex: 1,
   },
   input: {
     marginBottom: 0,

@@ -1,4 +1,6 @@
 import React from 'react';
+import { allowedModes } from '@/src/shared/utils/capabilities';
+import { currencySymbol } from '@/src/shared/utils/money';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Switch, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +13,7 @@ import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { deleteRule, getPreferences, updateRule, updateSettings } from '../api/preferences';
 import {
   NOTIFICATION_EVENTS,
+  EVENT_REQUIREMENTS,
   isRuleEvent,
   type NotificationEvent,
   type NotificationPreferences,
@@ -196,7 +199,9 @@ export function NotificationsSettingsScreen() {
   }
 
   const cardStyle = [styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }];
-  const firstRuleEvent = NOTIFICATION_EVENTS.find(isRuleEvent);
+  // Only the events this country can actually receive — see EVENT_REQUIREMENTS.
+  const availableEvents = allowedModes(NOTIFICATION_EVENTS, EVENT_REQUIREMENTS);
+  const firstRuleEvent = availableEvents.find(isRuleEvent);
 
   return (
     <ScreenContainer>
@@ -221,7 +226,7 @@ export function NotificationsSettingsScreen() {
         {/* Per-event sections. The anchor wrapper repeats the scroll container's gap so
             grouping the sections under it does not change their spacing. */}
         <TourAnchor id={ANCHORS.notificationsEventList} style={styles.eventListAnchor}>
-        {NOTIFICATION_EVENTS.map((event) => {
+        {availableEvents.map((event) => {
           const rules = prefs.rules.filter((r) => r.event_type === event);
           const muted = isMuted(event);
           const dimmed = muted || !masterOn;
@@ -254,7 +259,7 @@ export function NotificationsSettingsScreen() {
                       <View style={styles.thresholdFields}>
                         <ThresholdField
                           label={t('notifications.cpiMinAmount')}
-                          suffix="₪"
+                          suffix={currencySymbol()}
                           value={settings.cpi_min_change_amount}
                           onCommit={(v) => patchSettings({ cpi_min_change_amount: v })}
                           colors={colors}

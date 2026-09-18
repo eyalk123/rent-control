@@ -23,7 +23,7 @@ import {
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { EndLeaseDialog } from '@/src/features/renters/components/EndLeaseDialog';
-import { getRenterLifecycle, isTerminated } from '@/src/shared/utils/renterStatus';
+import { getRenterLifecycle, isOpenEnded, isTerminated } from '@/src/shared/utils/renterStatus';
 import { formatDateFull } from '@/src/shared/utils/dates';
 import { RenterInfoTab } from '@/src/features/renters/components/RenterInfoTab';
 import { RenterPropertyTab } from '@/src/features/renters/components/RenterPropertyTab';
@@ -190,6 +190,7 @@ export function RenterDetailScreen() {
 
   const ended = getRenterLifecycle(renter) === 'ended';
   const terminated = isTerminated(renter);
+  const openEnded = isOpenEnded(renter);
   // A lease that simply ran its term is the canonical thing you renew, and the tenant
   // routinely stays on while the paperwork catches up — so Extend survives expiry. A
   // *terminated* lease is different: the owner has declared the tenancy over, so the
@@ -314,6 +315,28 @@ export function RenterDetailScreen() {
               and always a Reopen action, which earns the full banner. Using the banner for
               both left the expired case as a full-width bordered box with one short
               left-aligned line and a large empty right half. */}
+          {/*
+            A third case in the same row. Unlike the two below it this is not a lifecycle
+            state — the lease is perfectly live — but it belongs here because it answers the
+            same question the others do: what kind of tenancy am I looking at. Mobile has no
+            "lease ends in" stat to replace, so without this the screen says nothing at all
+            about a lease whose end date the server keeps moving.
+          */}
+          {!ended && openEnded && (
+            <View style={styles.statusChipRow}>
+              <View
+                style={[
+                  styles.statusChip,
+                  { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
+                ]}
+              >
+                <Text variant="labelMedium" style={{ color: colors.textSecondary }}>
+                  {t('renter.openEndedShort')}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {ended && !terminated && (
             <View style={styles.statusChipRow}>
               <View

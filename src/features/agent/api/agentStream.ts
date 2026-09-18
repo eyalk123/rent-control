@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { fetch as expoFetch } from 'expo/fetch';
+import { CLIENT_HEADERS } from '@/src/core/api/clientHeaders';
 import type { AgentEvent } from '../types';
 
 // Same base URL source as src/core/api/client.ts.
@@ -70,6 +71,10 @@ export async function streamAgentChatHttp({
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      // This call bypasses the Axios instance, so it has to carry the client-telemetry
+      // headers itself — sending an agent message counts as real work in
+      // `owner_client_days`, and without these it would be attributed to no client.
+      ...CLIENT_HEADERS,
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ message, conversation_id: conversationId }),

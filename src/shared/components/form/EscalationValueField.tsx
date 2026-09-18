@@ -1,4 +1,5 @@
 import React from "react";
+import { currencySymbol } from '@/src/shared/utils/money';
 import { StyleSheet, View, TextInput as RNTextInput } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { useTranslation } from "react-i18next";
@@ -36,7 +37,9 @@ function EscalationValueFieldInner({ mode, value, onChangeText, onBlur, label }:
       <View
         style={[styles.affixInput, { borderColor: colors.inputBorder, backgroundColor: 'transparent' }]}
       >
-        {mode === "fixed" ? <Text style={[styles.affix, { color: colors.textSecondary }]}>₪</Text> : null}
+        {mode === "fixed" ? (
+          <Text style={[styles.affix, { color: colors.textSecondary }]}>{currencySymbol()}</Text>
+        ) : null}
         <RNTextInput
           value={value}
           onChangeText={onChangeText}

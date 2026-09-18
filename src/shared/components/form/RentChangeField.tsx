@@ -1,4 +1,6 @@
 import React from "react";
+import { allowedModes } from "@/src/shared/utils/capabilities";
+import { RENT_ESCALATION_MODES, RENT_MODE_REQUIREMENTS } from "@/src/shared/constants/rentModes";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { useTranslation } from "react-i18next";
@@ -9,18 +11,11 @@ import { EscalationValueField } from "./EscalationValueField";
 import { ANCHORS } from "@/src/features/onboarding/anchors";
 import { TourAnchor, useTourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 
-/**
- * The escalation modes, in display order. Every caller offers all of them. `custom` leads
- * because it is the one that expresses a real lease — the other four are each a special case
- * of it. It is not the default; every caller sets `none` explicitly.
- */
-export const RENT_ESCALATION_MODES: RentEscalationMode[] = [
-  "custom",
-  "none",
-  "percent",
-  "fixed",
-  "cpi",
-];
+// Re-exported so the existing import path (and the form barrel) keeps working.
+export { RENT_ESCALATION_MODES, RENT_MODE_REQUIREMENTS };
+
+/** The modes an open-ended lease can use — see the `openEnded` prop. */
+const CHAINABLE_OPEN_ENDED_MODES = new Set<RentEscalationMode>(["none", "percent", "fixed"]);
 
 type RentChangeFieldProps = {
   /** Caption above the control — the two callers word it differently (whole lease vs. new years). */
@@ -33,6 +28,14 @@ type RentChangeFieldProps = {
   onValueBlur?: () => void;
   /** Size segments to their labels — see SegmentedControl. */
   fitContent?: boolean;
+  /**
+   * Narrows the list to the modes an endless lease can be priced by.
+   *
+   * `custom` gives every year its own rule and `cpi` needs an index reading per year —
+   * neither can be written for a year the generator has not appended yet, which is why the
+   * API refuses both alongside the switch. Offering them would only produce a rejected save.
+   */
+  openEnded?: boolean;
 };
 
 /**
@@ -49,6 +52,7 @@ function RentChangeFieldInner({
   onValueChange,
   onValueBlur,
   fitContent = false,
+  openEnded = false,
 }: RentChangeFieldProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -57,7 +61,12 @@ function RentChangeFieldInner({
   // guessable from its label alone.
   const anchorRef = useTourAnchor(ANCHORS.leaseRentChangeField);
 
-  const segments: Segment<RentEscalationMode>[] = RENT_ESCALATION_MODES.map((m) => ({
+  const segments: Segment<RentEscalationMode>[] = allowedModes(
+    RENT_ESCALATION_MODES,
+    RENT_MODE_REQUIREMENTS,
+  )
+    .filter((m) => !openEnded || CHAINABLE_OPEN_ENDED_MODES.has(m))
+    .map((m) => ({
     value: m,
     label: t(
       {

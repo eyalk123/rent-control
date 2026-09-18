@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 // error message funnels through getApiErrorMessage below. Initialised as an import side
 // effect by src/core/i18n, which the root layout imports before anything can call an API.
 import i18n from 'i18next';
+import { CLIENT_HEADERS } from './clientHeaders';
 
 const baseURL =
   Constants.expoConfig?.extra?.apiUrl || 'http://localhost:8000';
@@ -13,6 +14,9 @@ const apiClient = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+    // Tells the backend which client this is, on every request — see clientHeaders.ts.
+    // Defaults rather than an interceptor: they never vary per request.
+    ...CLIENT_HEADERS,
   },
 });
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { allowedModes } from "@/src/shared/utils/capabilities";
 import { Pressable, StyleSheet, View, type ViewStyle } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { useTranslation } from "react-i18next";
@@ -24,6 +25,15 @@ export const LEASE_YEAR_RULE_MODES: LeaseYearRuleMode[] = [
   "fixed",
   "cpi",
 ];
+
+/**
+ * Which of those a country may actually pick. The full list stays intact: an existing
+ * lease can still *hold* a `cpi` rule and must keep rendering, and the label map still
+ * needs its entry. Only the picker narrows.
+ */
+const RULE_MODE_REQUIREMENTS: Partial<Record<LeaseYearRuleMode, "cpiLinkage">> = {
+  cpi: "cpiLinkage",
+};
 
 export const LEASE_YEAR_RULE_LABEL_KEYS: Record<LeaseYearRuleMode, string> = {
   manual: "renter.rentChangeManual",
@@ -110,7 +120,7 @@ function LeaseYearRowInner({
   // estimate — and typing over it would silently drop the rule. Show it, don't let it be edited.
   const amountEditable = Boolean(onAmountChange) && ruleMode !== "cpi";
 
-  const ruleOptions = LEASE_YEAR_RULE_MODES.map((m) => ({
+  const ruleOptions = allowedModes(LEASE_YEAR_RULE_MODES, RULE_MODE_REQUIREMENTS).map((m) => ({
     value: m,
     label: t(LEASE_YEAR_RULE_LABEL_KEYS[m]),
   }));
