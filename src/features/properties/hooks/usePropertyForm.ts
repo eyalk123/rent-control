@@ -185,7 +185,7 @@ export function usePropertyForm({
       plot: values.plot?.trim() || null,
       zip_code: values.zipCode,
       type: values.type,
-      sq_ft: Number(values.sqFt),
+      sq_ft: values.sqFt ? Number(values.sqFt) : null,
       image_url: imageUri,
       number_of_rooms: toOptionalNumber(values.numberOfRooms),
       water_meter_number: values.waterMeterNumber || null,

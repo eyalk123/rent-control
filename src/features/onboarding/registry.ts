@@ -49,7 +49,13 @@ export const TOURS = {
   home: {
     id: 'home',
     route: '/(tabs)/home',
-    gate: 'hasRenters',
+    // `hasProperties`, not `hasRenters`: a landlord with two properties and no tenants yet
+    // was shown nothing here, and every card on this screen is about the portfolio before
+    // it is about the people in it. Not `always`, unlike the list tours — this one opens
+    // the instant `first-run` closes, and `first-run` ends on the single instruction
+    // written for an empty account ("start with one property"). Seven more cards on top of
+    // that call to action buries the one thing we want acted on.
+    gate: 'hasProperties',
     kind: 'orientation',
     steps: [
       // A beat before the first spotlight, so the sweep does not go from the tab bar
@@ -77,12 +83,19 @@ export const TOURS = {
   'properties-list': {
     id: 'properties-list',
     route: '/(tabs)/properties',
-    gate: 'hasProperties',
+    // `always`. This tab is where a new account goes first and it is the one that explains
+    // the two ways a property gets in, so gating it on there already being properties
+    // withheld it from exactly the person it was written for. Only the step pointing at
+    // the list itself needs a portfolio.
+    gate: 'always',
     kind: 'page',
     steps: [
       { id: 'overview', anchor: null, placement: 'center' },
       { id: 'persistence', anchor: ANCHORS.propertiesFilters, placement: 'bottom' },
-      { id: 'cards', anchor: ANCHORS.propertiesList, placement: 'bottom', seed: { id: 'bulk-select', opens: null } },
+      // The anchor wraps the whole FlatList, so it is mounted even with nothing in it —
+      // this step would otherwise spotlight an empty state while describing a card. Its
+      // seed goes with it, which is right: there is nothing to bulk-select yet either.
+      { id: 'cards', anchor: ANCHORS.propertiesList, placement: 'bottom', seed: { id: 'bulk-select', opens: null }, skipWhen: 'noProperties' },
       // Shared with the renters tour, which says the same thing about the same control:
       // whichever tab is opened first says it. See `sharedWith`.
       { id: 'add', anchor: ANCHORS.propertiesAddButton, placement: 'top', sharedWith: ['renters-list'] },
@@ -113,12 +126,13 @@ export const TOURS = {
   'renters-list': {
     id: 'renters-list',
     route: '/(tabs)/renters',
-    gate: 'hasRenters',
+    // `always`, for the reason the properties tour is — see the note there.
+    gate: 'always',
     kind: 'page',
     steps: [
       { id: 'overview', anchor: null, placement: 'center' },
       { id: 'ended', anchor: ANCHORS.rentersEndedFilter, placement: 'bottom', seed: { id: 'ended-tenants', opens: null } },
-      { id: 'cards', anchor: ANCHORS.rentersList, placement: 'bottom' },
+      { id: 'cards', anchor: ANCHORS.rentersList, placement: 'bottom', skipWhen: 'noRenters' },
       // Shared with the properties tour — see the note there.
       { id: 'add', anchor: ANCHORS.rentersAddButton, placement: 'top', sharedWith: ['properties-list'] },
     ],
@@ -151,7 +165,7 @@ export const TOURS = {
       // belongs to the mode control, and a custom schedule is a rule per year, which is
       // what the year-one card is already talking about.
       { id: 'baseYear', anchor: ANCHORS.leaseBaseRent, placement: 'bottom', seed: { id: 'custom-schedule', opens: 'custom-mode' }, revealsAnchor: true },
-      { id: 'mode', anchor: ANCHORS.leaseRentChangeField, placement: 'bottom', seed: { id: 'cpi', opens: 'cpi-mode' }, revealsAnchor: true },
+      { id: 'mode', anchor: ANCHORS.leaseRentChangeField, placement: 'bottom', seed: { id: 'cpi', opens: 'cpi-mode', requires: 'cpiLinkage' }, revealsAnchor: true },
       { id: 'payment', anchor: ANCHORS.renterFormPayment, placement: 'top', revealsAnchor: true },
     ],
   },
@@ -159,7 +173,10 @@ export const TOURS = {
   'transactions-list': {
     id: 'transactions-list',
     route: '/(tabs)/transactions',
-    gate: 'hasProperties',
+    // `always`. The one step that needs a ledger to exist drops itself; what is left —
+    // what the screen is, where suppliers live, where rent gets recorded — is the part a
+    // new account needs most.
+    gate: 'always',
     kind: 'page',
     steps: [
       { id: 'overview', anchor: null, placement: 'center' },
@@ -254,7 +271,10 @@ export const TOURS = {
   chat: {
     id: 'chat',
     route: '/(tabs)/chat',
-    gate: 'hasRenters',
+    // `always`: both steps are about what the assistant is allowed to do rather than about
+    // any data, so somebody who opens the tab on their first day is being answered, not
+    // shown an empty room.
+    gate: 'always',
     kind: 'page',
     steps: [
       { id: 'overview', anchor: null, placement: 'center' },
@@ -269,6 +289,10 @@ export const TOURS = {
     id: 'cpi-mode',
     route: '/renters/add',
     gate: 'cpiSelected',
+    // Belt and braces: `cpiSelected` can never be true where the mode is not offered, so
+    // this tour was already unreachable. Saying so explicitly means the next person does
+    // not have to re-derive that chain to know why.
+    requires: 'cpiLinkage',
     kind: 'elaboration',
     arrivesFrom: 'cpi',
     steps: [
@@ -404,7 +428,7 @@ export const TOURS = {
     steps: [
       { id: 'offsets', anchor: ANCHORS.ruleOffsets, placement: 'bottom' },
       { id: 'scope', anchor: ANCHORS.ruleScope, placement: 'bottom' },
-      { id: 'cpiException', anchor: null, placement: 'center' },
+      { id: 'cpiException', anchor: null, placement: 'center', requires: 'cpiLinkage' },
     ],
   },
 

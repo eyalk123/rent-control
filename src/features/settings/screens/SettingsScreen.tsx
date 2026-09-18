@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useNotifications } from '@/src/features/notifications/context/NotificationContext';
 import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
+import { useCountry } from '@/src/features/country/CountryContext';
 import { useAlert } from '@/src/core/context';
 import { restartAppForRTL, type SupportedLanguage } from '@/src/core/i18n';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
@@ -21,6 +22,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   const router = useRouter();
   const { themeMode, setThemeMode } = useThemeContext();
   const { language, setLanguage, isRtl } = useLanguageContext();
+  const { savePreferences } = useCountry();
   const { signOut } = useAppAuth();
   const { unregisterDevice } = useNotifications();
   const rtlLabelStyle = useRtlLabelStyle();
@@ -39,6 +41,11 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   const handleLanguage = React.useCallback(
     async (lang: SupportedLanguage) => {
       const directionChanged = await setLanguage(lang);
+      // Both, in this order: the device copy is what renders now, the account copy is
+      // what follows the user to their next device. Before this was stored server-side,
+      // signing in elsewhere silently reverted the choice. Best-effort — a failed write
+      // must not block a language change that has already taken effect on screen.
+      savePreferences({ language: lang }).catch(() => {});
       if (!directionChanged) return;
       appAlert(t('restart.title'), t('restart.confirmMessage'), [
         { text: t('common.cancel'), style: 'cancel' },
@@ -51,7 +58,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
         },
       ]);
     },
-    [setLanguage, appAlert, t],
+    [setLanguage, savePreferences, appAlert, t],
   );
 
   // Reset is not undoable and puts every tour back in front of the user, so it asks first.

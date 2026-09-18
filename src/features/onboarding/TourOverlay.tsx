@@ -57,6 +57,7 @@ import {
 } from '@/src/core/theme';
 import { useAnchorRegistry, type AnchorRect } from './AnchorRegistry';
 import { useTourController } from './TourController';
+import { useCapability } from './useGates';
 import { callbackKey, seedKey, tourStepKey } from './types';
 
 /** Breathing room around the highlighted element. */
@@ -87,6 +88,7 @@ export function TourOverlay() {
   const controller = useTourController();
   const registry = useAnchorRegistry();
   const { t } = useTranslation();
+  const hasCapability = useCapability();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { width: screenW, height: screenH } = useWindowDimensions();
@@ -185,7 +187,11 @@ export function TourOverlay() {
   const tourId = active.tour.id;
   const title = t(tourStepKey(tourId, step.id, 'title'));
   const body = t(tourStepKey(tourId, step.id, 'body'));
-  const seedText = step.seed ? t(seedKey(step.seed.id)) : null;
+  // A seed whose capability this country lacks says nothing, while its step survives —
+  // the lease-form step explaining the rent-change field is worth showing everywhere, and
+  // only the sentence promising to explain the CPI is not.
+  const seedText =
+    step.seed && hasCapability(step.seed.requires) ? t(seedKey(step.seed.id)) : null;
   // Only on the first step, and only when the user actually saw the seed that sent them.
   const callback =
     active.arrivedFrom && active.stepIndex === 0 ? t(callbackKey(active.arrivedFrom)) : null;

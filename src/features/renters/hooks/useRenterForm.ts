@@ -126,11 +126,13 @@ export function useRenterForm({
       paymentFrequency: undefined,
       insuranceType: "",
       suppressExpiryAlerts: false,
+      // On where tenancies normally have no agreed end, off everywhere else — and only ever
+      // a default, because the switch is per lease. It replaces the silent five-year
+      // contract-term pre-fill this used to carry: the same countries, but stated rather
+      // than guessed at, with the server keeping the schedule rolling from here.
+      openEnded: isOpenEndedCountry(),
       insuranceAmount: "",
-      // Pre-filled to 5 where tenancies are open-ended: the field is normally blank,
-      // so this is a pre-fill rather than a changed default, and it only reduces how
-      // often an invented end date needs revisiting.
-      contractTermYears: isOpenEndedCountry() ? "5" : "",
+      contractTermYears: "",
       contractTermMonths: "",
       optionYears: "",
       optionTermMonths: "",
@@ -252,6 +254,7 @@ export function useRenterForm({
               : undefined,
           insuranceType: renter.insurance_type ?? "",
           suppressExpiryAlerts: renter.suppress_expiry_alerts ?? false,
+          openEnded: renter.open_ended ?? false,
           insuranceAmount:
             renter.insurance_amount != null
               ? String(renter.insurance_amount)
@@ -371,15 +374,20 @@ export function useRenterForm({
           ? row.type
           : "contract";
         if (!Number.isFinite(amount) || amount < 0) return null;
-        // Per-year rules only exist in custom mode, and "manual" is the absence of a rule —
-        // omit it so the payload stays the legacy shape for every other lease.
+        // Derived per-year rules only exist in custom mode. A `manual` rule is different:
+        // it marks an amount the user *typed*, which is what stops the whole-lease formula
+        // recomputing over it and what makes the years after it chain from it — so it has to
+        // survive in every mode. A year nobody touched carries no rule at all, keeping an
+        // untouched lease's payload exactly the shape it has always been.
         const rule =
-          values.escalationMode === "custom" && row?.rule && row.rule.mode !== "manual"
-            ? {
-                mode: row.rule.mode,
-                value: row.rule.value ? Number(row.rule.value) : undefined,
-              }
-            : undefined;
+          row?.rule?.mode === "manual"
+            ? { mode: "manual" as const }
+            : values.escalationMode === "custom" && row?.rule
+              ? {
+                  mode: row.rule.mode,
+                  value: row.rule.value ? Number(row.rule.value) : undefined,
+                }
+              : undefined;
         return rule ? { amount, type, rule } : { amount, type };
       })
       .filter((y): y is LeaseYear => y != null);
@@ -446,7 +454,8 @@ export function useRenterForm({
       payment_type: values.paymentType.trim() || null,
       payment_day_of_month:
         paymentDayNum != null && !Number.isNaN(paymentDayNum) ? paymentDayNum : null,
-      suppress_expiry_alerts: values.suppressExpiryAlerts,
+      suppress_expiry_alerts: values.suppressExpiryAlerts || values.openEnded,
+      open_ended: values.openEnded,
       insurance_type: values.insuranceType.trim() || null,
       insurance_amount:
         insuranceAmt != null && !Number.isNaN(insuranceAmt) ? insuranceAmt : null,

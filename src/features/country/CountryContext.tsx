@@ -20,7 +20,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
-import { setActiveFormat } from '@/src/shared/utils/money';
+import { setActiveFormat, setKnownCurrencies } from '@/src/shared/utils/money';
 import {
   setActiveCapabilities,
   setOpenEndedTenancies,
@@ -28,13 +28,15 @@ import {
 } from '@/src/shared/utils/capabilities';
 import { setActiveRegistryKeys } from '@/src/shared/utils/registryLabels';
 import { setActiveDialCode } from '@/src/shared/utils/whatsapp';
+import { getCountries, getMyCountry, setMyCountry, type Country } from './api/countries';
 import {
-  getCountries,
-  getMyCountry,
-  requestCountryNotification,
-  setMyCountry,
-  type Country,
-} from './api/countries';
+  getCurrencies,
+  getMyPreferences,
+  setMyPreferences,
+  type Currency,
+  type Preferences,
+} from './api/currencies';
+import { resolveEffectiveCurrency } from './effectiveCurrency';
 
 /**
  * Account-scoped, so it is cleared on sign-out — the same reason
@@ -45,6 +47,12 @@ export const COUNTRY_CACHE_KEY = 'country.mine.v1';
 
 /** Not account-scoped: the country table is the same for everyone and survives sign-out. */
 export const COUNTRY_TABLE_CACHE_KEY = 'country.table.v1';
+
+/** Reference data like the country table, and cached the same way. */
+export const CURRENCY_TABLE_CACHE_KEY = 'currency.table.v1';
+
+/** Account-scoped, like the country: cleared on sign-out for the same reason. */
+export const PREFERENCES_CACHE_KEY = 'country.preferences.v1';
 
 interface CountryValue {
   /** The account's ISO code, or null if the gate has not been answered. */
@@ -57,9 +65,14 @@ interface CountryValue {
   config: Country | undefined;
   /** Stores the choice. Does **not** dismiss the gate — see `finish`. */
   choose: (countryCode: string) => Promise<void>;
-  /** Dismisses the gate. Separate so the disclosure screen gets a chance to be read. */
+  /** Dismisses the gate. Kept separate from `choose` so one decision lives in one place. */
   finish: (countryCode: string) => void;
-  notifyMe: (countryCode: string) => void;
+  /** Every currency, for the signup and settings pickers. Empty until loaded. */
+  currencies: Currency[];
+  /** What the account chose. Nulls mean "never chose" — the defaults still apply. */
+  preferences: Preferences;
+  /** Stores either preference. Rejects a currency change once a property exists (409). */
+  savePreferences: (patch: Partial<Preferences>) => Promise<void>;
 }
 
 const CountryContext = createContext<CountryValue | null>(null);
@@ -72,15 +85,19 @@ export function CountryProvider({ children }: PropsWithChildren) {
   // slow or broken endpoint leaves `checked` false and the app usable, and the question is
   // asked again next launch. Only an explicit `country: null` gates anyone.
   const [checked, setChecked] = useState(false);
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [preferences, setPreferences] = useState<Preferences>({ currency: null, language: null });
 
   // Hydrate both halves from cache first, so an existing user never sees the gate flash.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [mine, table] = await AsyncStorage.multiGet([
+        const [mine, table, currencyTable, prefs] = await AsyncStorage.multiGet([
           COUNTRY_CACHE_KEY,
           COUNTRY_TABLE_CACHE_KEY,
+          CURRENCY_TABLE_CACHE_KEY,
+          PREFERENCES_CACHE_KEY,
         ]);
         if (cancelled) return;
         if (mine[1]) {
@@ -88,6 +105,8 @@ export function CountryProvider({ children }: PropsWithChildren) {
           setChecked(true);
         }
         if (table[1]) setCountries(JSON.parse(table[1]) as Country[]);
+        if (currencyTable[1]) setCurrencies(JSON.parse(currencyTable[1]) as Currency[]);
+        if (prefs[1]) setPreferences(JSON.parse(prefs[1]) as Preferences);
       } catch {
         // A cache miss or a corrupt blob is not worth surfacing; the server is the truth.
       }
@@ -104,7 +123,8 @@ export function CountryProvider({ children }: PropsWithChildren) {
     if (!isLoaded || isSignedIn) return;
     setCountry(null);
     setChecked(false);
-    AsyncStorage.removeItem(COUNTRY_CACHE_KEY).catch(() => {});
+    setPreferences({ currency: null, language: null });
+    AsyncStorage.multiRemove([COUNTRY_CACHE_KEY, PREFERENCES_CACHE_KEY]).catch(() => {});
   }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
@@ -117,6 +137,11 @@ export function CountryProvider({ children }: PropsWithChildren) {
         setCountry(server);
         setChecked(true);
         if (server) AsyncStorage.setItem(COUNTRY_CACHE_KEY, server).catch(() => {});
+
+        const prefs = await getMyPreferences();
+        if (cancelled) return;
+        setPreferences(prefs);
+        AsyncStorage.setItem(PREFERENCES_CACHE_KEY, JSON.stringify(prefs)).catch(() => {});
       } catch {
         // Offline, or the endpoint is down. Keep whatever the cache gave us rather than
         // putting a blocking screen in front of someone's own portfolio.
@@ -132,10 +157,12 @@ export function CountryProvider({ children }: PropsWithChildren) {
     let cancelled = false;
     (async () => {
       try {
-        const table = await getCountries();
+        const [table, currencyTable] = await Promise.all([getCountries(), getCurrencies()]);
         if (cancelled) return;
         setCountries(table);
+        setCurrencies(currencyTable);
         AsyncStorage.setItem(COUNTRY_TABLE_CACHE_KEY, JSON.stringify(table)).catch(() => {});
+        AsyncStorage.setItem(CURRENCY_TABLE_CACHE_KEY, JSON.stringify(currencyTable)).catch(() => {});
       } catch {
         // Cached copy, or an empty picker with a retry. Not fatal.
       }
@@ -150,18 +177,23 @@ export function CountryProvider({ children }: PropsWithChildren) {
     AsyncStorage.setItem(COUNTRY_CACHE_KEY, countryCode).catch(() => {});
   }, []);
 
-  // Deliberately separate from `choose`: setting `country` is what lifts the gate, and
-  // doing it inside `choose` would unmount the screen before the user could read what
-  // their country does and does not get.
+  // Deliberately separate from `choose`: setting `country` is what lifts the gate, so the
+  // gate stays the one thing that decides when it goes away rather than that being a side
+  // effect of the write landing. Web's `useFinishCountrySetup` splits it the same way.
   const finish = useCallback((countryCode: string) => {
     setCountry(countryCode);
     setChecked(true);
   }, []);
 
-  const notifyMe = useCallback((countryCode: string) => {
-    // Fire and forget: a preference, and a failure must never stand between the user and
-    // their portfolio.
-    requestCountryNotification(countryCode).catch(() => {});
+  /**
+   * Stores the currency and/or language. Throws on failure — a currency change is
+   * refused with 409 once the account has a property, and that is an answer the caller
+   * has to show rather than a transient error to swallow.
+   */
+  const savePreferences = useCallback(async (patch: Partial<Preferences>) => {
+    const next = await setMyPreferences(patch);
+    setPreferences(next);
+    AsyncStorage.setItem(PREFERENCES_CACHE_KEY, JSON.stringify(next)).catch(() => {});
   }, []);
 
   const config = useMemo(
@@ -176,21 +208,36 @@ export function CountryProvider({ children }: PropsWithChildren) {
   // which is what the app did before any of this existed — so there is no wrong-currency
   // flash, only the old behaviour for a moment.
   useEffect(() => {
+    if (currencies.length) setKnownCurrencies(currencies);
+  }, [currencies]);
+
+  useEffect(() => {
     if (!config) return;
     setActiveCapabilities(config.capabilities);
     setOpenEndedTenancies(config.openEndedTenancies);
     setRevenueBasisDefault(config.revenueBasisDefault);
     setActiveRegistryKeys(config.registryKey1, config.registryKey2);
     setActiveDialCode(config.dialCode, config.countryCode);
+
+    // The chosen currency where there is one, the country's own otherwise. The rule
+    // lives in `effectiveCurrency.ts` so the formatter stays a formatter, and so this
+    // app and the web app answer it identically.
+    const currency = resolveEffectiveCurrency(config, currencies, preferences.currency);
+
     setActiveFormat({
-      currency: config.currency,
-      currencySymbol: config.currencySymbol,
-      currencySymbolPosition: config.currencySymbolPosition,
+      currency: currency?.code ?? config.currency,
+      currencySymbol: currency?.symbol ?? config.currencySymbol,
+      currencySymbolPosition: currency?.symbolPosition ?? config.currencySymbolPosition,
+      // Spacing stays the country's even when the currency is one the country does not use:
+      // it is how this reader writes money, not a property of the money. A German account
+      // holding dollars still writes the symbol away from the number.
+      currencySymbolSpaced: config.currencySymbolSpaced,
+      currencyDecimals: currency?.decimals ?? 2,
       numberFormat: config.numberFormat,
       dateFormat: config.dateFormat,
       areaUnit: config.areaUnit,
     });
-  }, [config]);
+  }, [config, currencies, preferences.currency]);
 
   const value = useMemo(
     () => ({
@@ -200,9 +247,22 @@ export function CountryProvider({ children }: PropsWithChildren) {
       config,
       choose,
       finish,
-      notifyMe,
+      currencies,
+      preferences,
+      savePreferences,
     }),
-    [isSignedIn, checked, country, countries, config, choose, finish, notifyMe],
+    [
+      isSignedIn,
+      checked,
+      country,
+      countries,
+      config,
+      choose,
+      finish,
+      currencies,
+      preferences,
+      savePreferences,
+    ],
   );
 
   return <CountryContext.Provider value={value}>{children}</CountryContext.Provider>;

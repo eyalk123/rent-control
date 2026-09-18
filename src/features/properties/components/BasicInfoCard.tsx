@@ -1,5 +1,6 @@
 import React from "react";
 import { registryKey1, registryKey2 } from "@/src/shared/utils/registryLabels";
+import { areaUnitLabel } from "@/src/shared/utils/money";
 import type { Control, FieldValues } from "react-hook-form";
 import { HelperText } from "react-native-paper";
 import {
@@ -121,19 +122,29 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
       </FormRow>
 
       <FormSubheading title={t("property.landRegistry")} />
+      {/*
+        Free text, not numbers. Israel's block and parcel are digits, but a UK title number
+        (NGL123456) and a cadastral reference are not — and the column behind both has always
+        been a string, so a numeric keypad was the only thing refusing them. That made the
+        country-specific labels unusable in most of the countries they were added for.
+
+        The second field renders only where the country has a second identifier. Falling back
+        to "Plot" showed an Israeli concept to a country with one — which the property detail
+        screen already knew not to do.
+      */}
       <FormRow>
-        <FormNumericField
+        <FormTextField
           control={control}
           name={"block" as any}
           label={t(registryKey1())}
-          keyboardType="numeric"
         />
-        <FormNumericField
-          control={control}
-          name={"plot" as any}
-          label={t(registryKey2() ?? "property.plot")}
-          keyboardType="numeric"
-        />
+        {registryKey2() ? (
+          <FormTextField
+            control={control}
+            name={"plot" as any}
+            label={t(registryKey2()!)}
+          />
+        ) : null}
       </FormRow>
 
       <FormSubheading title={t("property.details")} />
@@ -160,7 +171,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
       <FormNumericField
         control={control}
         name={"sqFt" as any}
-        label={t("property.sqFt")}
+        label={`${t("property.sqFt")} (${areaUnitLabel()})`}
         keyboardType="numeric"
       />
       <PropertyHouseImageField

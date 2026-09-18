@@ -49,6 +49,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
   const escalationMode = useWatch({ control, name: "escalationMode" as never }) as unknown as
     | string
     | undefined;
+  const openEndedWatch = Boolean(useWatch({ control, name: "openEnded" as never }));
 
   // `lease-form` is asked for by the screen, not here: it covers the whole renter form now
   // and has to open on page one, before this card exists. The two elaborations below stay,
@@ -131,6 +132,13 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
         Israeli month-to-month holdover has the same problem, which is why this is offered
         to everyone rather than gated on the country.
       */}
+      {/*
+        Hidden while the lease is open-ended, which already implies it: that countdown is to a
+        date the generator moves every year, so there is nothing left for this switch to
+        decide. Two controls for one outcome is worse than one; the value is still stored and
+        editable for every lease that is not open-ended.
+      */}
+      {openEndedWatch ? null : (
       <View style={styles.inputWrap}>
         <Controller
           control={control}
@@ -143,6 +151,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           )}
         />
       </View>
+      )}
 
       <View style={styles.inputWrap}>
         <FormDropdownOptions

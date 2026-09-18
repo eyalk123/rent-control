@@ -5,7 +5,7 @@ import { Icon } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Renter } from '@/src/shared/types';
 import { getLeaseEndDate } from '@/src/shared/types';
-import { getEffectiveLeaseEnd, getRenterLifecycle } from '@/src/shared/utils/renterStatus';
+import { getEffectiveLeaseEnd, getRenterLifecycle, isOpenEnded } from '@/src/shared/utils/renterStatus';
 import { formatDateFull, getLeaseUrgency } from '@/src/shared/utils/dates';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { lightColors, darkColors } from '@/src/core/theme';
@@ -29,10 +29,19 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
   const lifecycle = getRenterLifecycle(renter);
   const ended = lifecycle === 'ended';
   const leaseEndDate = getEffectiveLeaseEnd(renter) ?? getLeaseEndDate(renter);
-  const leaseUrgency = useMemo(() => getLeaseUrgency(leaseEndDate), [leaseEndDate]);
-  const leaseEndLabel = leaseEndDate
-    ? t('renter.leaseEnd', { date: formatDateFull(leaseEndDate, language) })
-    : null;
+  // An open-ended lease has an end date, but the generator rolls it forward every year —
+  // printing it would state an end the app invented and then quietly changed, and nothing
+  // about a date that moves on its own is urgent.
+  const openEnded = isOpenEnded(renter);
+  const leaseUrgency = useMemo(
+    () => getLeaseUrgency(openEnded ? null : leaseEndDate),
+    [leaseEndDate, openEnded],
+  );
+  const leaseEndLabel = openEnded
+    ? t('renter.openEndedShort')
+    : leaseEndDate
+      ? t('renter.leaseEnd', { date: formatDateFull(leaseEndDate, language) })
+      : null;
 
   return (
     <TouchableOpacity onPress={() => onPress(renter.id)} onLongPress={onLongPress ? () => onLongPress(renter.id) : undefined} activeOpacity={0.7}>

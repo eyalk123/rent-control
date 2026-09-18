@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatArea } from '@/src/shared/utils/money';
 import { registryKey1, registryKey2 } from '@/src/shared/utils/registryLabels';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
@@ -157,7 +158,7 @@ export function PropertyInfoTab({ property, transactions, transactionsLoading }:
       <DetailSection title={t('property.basicInfo')}>
         <DetailRow
           label={t('property.surfaceArea')}
-          value={`${property.sq_ft.toLocaleString()} ${t('property.areaUnit')}`}
+          value={formatArea(property.sq_ft)}
         />
         {property.number_of_rooms != null && (
           <DetailRow

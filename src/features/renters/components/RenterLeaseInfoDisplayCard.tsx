@@ -8,6 +8,7 @@ import { formatMoney } from '@/src/shared/utils/money';
 import { getLeaseYearLabel, isCurrentLeaseYear } from '@/src/shared/utils/leaseYear';
 import { DEFAULT_PAYMENT_DAY_NUM } from '@/src/shared/constants/paymentDay';
 import { paymentFrequencyLabel, type Renter } from '@/src/shared/types';
+import { isOpenEnded } from '@/src/shared/utils/renterStatus';
 
 interface RenterLeaseInfoDisplayCardProps {
   renter: Renter;
@@ -27,6 +28,13 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
 
   return (
     <DetailSection title={t('renter.leaseInfo')}>
+      {/* Said once above the list rather than per row: the tail is projection, and the one
+          thing a reader needs to know is that it extends itself rather than running out. */}
+      {isOpenEnded(renter) && (
+        <Text variant="bodySmall" style={[styles.generatedNote, { color: colors.textSecondary }]}>
+          {t('renter.openEndedGeneratedNote')}
+        </Text>
+      )}
       {hasLeaseYears && (
         <ScrollView
           style={styles.leaseYearsScroll}
@@ -76,9 +84,14 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
                     ]}
                   >
                     {`${formatMoney(year.amount)} (${
-                      year.type === 'contract'
-                        ? t('renter.leaseYearTypeContract')
-                        : t('renter.leaseYearTypeOption')
+                      // A generated period is neither a term the owner agreed nor an option
+                      // the tenant took — it is the horizon the server keeps ahead of today.
+                      // Saying "Contract" about it would be the one wrong word here.
+                      year.generated
+                        ? t('renter.openEndedGenerated')
+                        : year.type === 'contract'
+                          ? t('renter.leaseYearTypeContract')
+                          : t('renter.leaseYearTypeOption')
                     })`}
                   </Text>
                 </View>
@@ -126,6 +139,9 @@ const LEASE_ROW_HEIGHT = 48;
 const LEASE_ROWS_VISIBLE = 4.5;
 
 const styles = StyleSheet.create({
+  generatedNote: {
+    marginBottom: spacing.sm,
+  },
   leaseYearsScroll: {
     maxHeight: LEASE_ROW_HEIGHT * LEASE_ROWS_VISIBLE,
   },
