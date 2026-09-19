@@ -12,9 +12,10 @@
  * screen: confirm, and you are in the app. There used to be a second step for non-Israeli
  * accounts listing the country-specific features that do not exist yet, with a "notify me
  * when you add {Country}" capture under it. Both are gone — the first thing a new user met
- * was an inventory of absences, and the one sentence on it that did real work (open-ended
- * tenancies still need an estimated end date) is said by the lease form itself, at the
- * field it is about: `renter.openEndedTermNote` in LeaseTermBuilder.
+ * was an inventory of absences. The one sentence on it that did real work — open-ended
+ * tenancies need saying something about — is now the **Open-ended lease** switch itself, in
+ * LeaseTermBuilder, at the field it is about. It no longer asks for an estimated end date:
+ * the switch turns the schedule over to `run-lease-generation`.
  *
  * An absolutely-positioned sibling of the navigator, like the consent gate, and it sits
  * just below it: terms are the condition of using the product at all, a country is a

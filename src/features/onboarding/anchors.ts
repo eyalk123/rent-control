@@ -87,6 +87,11 @@ export const ANCHORS = {
   renterDetailMore: 'renterDetail.moreMenu', // overflow; holds the EndLeaseDialog trigger
 
   // Lease form — src/shared/components/form/
+  /** The open-ended switch at the top of the lease block. It is the control that decides
+   *  the shape of everything under it — term steppers hidden, rent-change modes narrowed,
+   *  expiry alert muted — so it earns a stop before the term rather than after it. Also
+   *  `revealsAnchor`: it sits on the form's second page. */
+  leaseOpenEnded: 'leaseForm.openEnded', // -> LeaseTermBuilder.tsx
   leaseTermBuilder: 'leaseForm.termBuilder', // -> LeaseTermBuilder.tsx
   leaseRentChangeField: 'leaseForm.rentChangeField', // -> RentChangeField.tsx
   leaseBaseRent: 'leaseForm.baseRent',

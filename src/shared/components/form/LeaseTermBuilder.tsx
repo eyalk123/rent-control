@@ -216,7 +216,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
         control={control}
         name={"openEnded" as Path<TFieldValues>}
         render={({ field }) => (
-          <View>
+          <TourAnchor id={ANCHORS.leaseOpenEnded}>
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>{t("renter.openEnded")}</Text>
               <Switch value={Boolean(field.value)} onValueChange={field.onChange} />
@@ -224,7 +224,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
             <HelperText type="info" visible>
               {t(field.value ? "renter.openEndedOnNote" : "renter.openEndedOffNote")}
             </HelperText>
-          </View>
+          </TourAnchor>
         )}
       />
       {openEnded ? null : (

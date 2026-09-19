@@ -1,5 +1,6 @@
 import React from "react";
 import { allowedModes } from "@/src/shared/utils/capabilities";
+import { indexLabelKey } from "@/src/shared/utils/indexLabels";
 import { Pressable, StyleSheet, View, type ViewStyle } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { useTranslation } from "react-i18next";
@@ -122,7 +123,8 @@ function LeaseYearRowInner({
 
   const ruleOptions = allowedModes(LEASE_YEAR_RULE_MODES, RULE_MODE_REQUIREMENTS).map((m) => ({
     value: m,
-    label: t(LEASE_YEAR_RULE_LABEL_KEYS[m]),
+    // `cpi` is the one mode whose name the country decides — see `indexLabels.ts`.
+    label: t(m === "cpi" ? indexLabelKey() : LEASE_YEAR_RULE_LABEL_KEYS[m]),
   }));
 
   return (
@@ -165,7 +167,7 @@ function LeaseYearRowInner({
             >
               <Icon name="trending-up" size={12} color={colors.textSecondary} />
               <Text style={[styles.cpiChipText, { color: colors.textSecondary }]}>
-                {t("renter.rentChangeCpi")}
+                {t(indexLabelKey())}
               </Text>
             </View>
           ) : null}
@@ -183,7 +185,7 @@ function LeaseYearRowInner({
         >
           <Icon name="trending-up" size={12} color={colors.textSecondary} />
           <Text style={[styles.cpiChipText, { color: colors.textSecondary }]}>
-            {t("renter.rentChangeCpi")}
+            {t(indexLabelKey())}
           </Text>
         </View>
       ) : null}

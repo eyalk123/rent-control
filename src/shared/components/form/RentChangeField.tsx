@@ -1,5 +1,6 @@
 import React from "react";
 import { allowedModes } from "@/src/shared/utils/capabilities";
+import { indexLabelKey, indexNoteKey } from "@/src/shared/utils/indexLabels";
 import { RENT_ESCALATION_MODES, RENT_MODE_REQUIREMENTS } from "@/src/shared/constants/rentModes";
 import { StyleSheet, View } from "react-native";
 import { Text, useTheme } from "react-native-paper";
@@ -15,7 +16,7 @@ import { TourAnchor, useTourAnchor } from "@/src/features/onboarding/AnchorRegis
 export { RENT_ESCALATION_MODES, RENT_MODE_REQUIREMENTS };
 
 /** The modes an open-ended lease can use — see the `openEnded` prop. */
-const CHAINABLE_OPEN_ENDED_MODES = new Set<RentEscalationMode>(["none", "percent", "fixed"]);
+const OPEN_ENDED_MODES = new Set<RentEscalationMode>(["none", "percent", "fixed", "cpi"]);
 
 type RentChangeFieldProps = {
   /** Caption above the control — the two callers word it differently (whole lease vs. new years). */
@@ -31,9 +32,14 @@ type RentChangeFieldProps = {
   /**
    * Narrows the list to the modes an endless lease can be priced by.
    *
-   * `custom` gives every year its own rule and `cpi` needs an index reading per year —
-   * neither can be written for a year the generator has not appended yet, which is why the
-   * API refuses both alongside the switch. Offering them would only produce a rejected save.
+   * Only `custom` drops out. It gives every year its own rule, and a rule cannot be written
+   * for a year the generator has not appended yet, which is why the API refuses it alongside
+   * the switch — offering it would only produce a rejected save.
+   *
+   * Index linkage stays. It prices every period from the base index frozen at signing and
+   * never asks where the schedule ends, so a month-to-month holdover can be index-linked like
+   * any other tenancy. Where the country has no index the capability filter has already
+   * removed it, so the two narrowings compose without either knowing about the other.
    */
   openEnded?: boolean;
 };
@@ -65,7 +71,7 @@ function RentChangeFieldInner({
     RENT_ESCALATION_MODES,
     RENT_MODE_REQUIREMENTS,
   )
-    .filter((m) => !openEnded || CHAINABLE_OPEN_ENDED_MODES.has(m))
+    .filter((m) => !openEnded || OPEN_ENDED_MODES.has(m))
     .map((m) => ({
     value: m,
     label: t(
@@ -73,7 +79,9 @@ function RentChangeFieldInner({
         none: "renter.rentChangeSame",
         percent: "renter.rentChangePercent",
         fixed: "renter.rentChangeFixed",
-        cpi: "renter.rentChangeCpi",
+        // The one label the country has a say in: which index this market's leases are
+        // linked to is a different concept, not a different wording. See `indexLabels.ts`.
+        cpi: indexLabelKey(),
         custom: "renter.rentChangeCustom",
       }[m],
     ),
@@ -94,7 +102,7 @@ function RentChangeFieldInner({
         // note, so the note is the only thing on screen for the tour to point at.
         <TourAnchor id={ANCHORS.leaseCpiBase}>
           <Text style={[styles.cpiNote, { color: colors.textSecondary }]}>
-            {t("renter.rentChangeCpiNote")}
+            {t(indexNoteKey())}
           </Text>
         </TourAnchor>
       ) : null}

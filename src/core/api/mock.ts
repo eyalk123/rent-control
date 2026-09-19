@@ -939,3 +939,18 @@ export const mockSuppliersApi = {
     return { ...mockSuppliers[idx] };
   },
 };
+
+// --- Support messages ("Report a bug") ---------------------------------------
+// The real endpoint emails the product owner and answers 502 if it could not. In dev
+// preview there is nothing to send, so acknowledge it and let the form's success path run.
+
+let nextFeedbackId = 1;
+
+export const mockFeedbackApi = {
+  // Generic so the caller's own union survives the round-trip: a plain `string`
+  // here would not satisfy the typed receipt the real endpoint returns.
+  submitFeedback: async <T extends string>(data: { type: T }) => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 200));
+    return { id: nextFeedbackId++, type: data.type, created_at: new Date().toISOString() };
+  },
+};

@@ -206,6 +206,22 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
           variant="titleMedium"
           style={[styles.sectionTitle, rtlLabelStyle]}
         >
+          {t('feedback.sectionTitle')}
+        </Text>
+        <List.Section>
+          <List.Item
+            title={t('feedback.rowLabel')}
+            description={t('feedback.rowHint')}
+            left={(props) => <Icon name="message-circle" size={20} color={props.color} />}
+            onPress={() => router.push('/settings/feedback' as any)}
+            style={styles.listItem}
+          />
+        </List.Section>
+
+        <Text
+          variant="titleMedium"
+          style={[styles.sectionTitle, rtlLabelStyle]}
+        >
           {t('legal.sectionTitle')}
         </Text>
         <List.Section>

@@ -22,7 +22,7 @@
   "agent": {
     "title": "Assistant",
     "assistantName": "Rent Control",
-    "placeholder": "Ask about your properties, renters, or transactions…",
+    "placeholder": "Ask a question…",
     "send": "Send",
     "stop": "Stop",
     "newChat": "New chat",
@@ -495,8 +495,7 @@
     "openEndedShort": "Open-ended",
     "openEndedTenancy": "Tenancy",
     "openEndedGenerated": "Auto",
-    "openEndedGeneratedNote": "The later years are projections that extend automatically. Edit any amount to correct it.",
-    "openEndedTermNote": "Tenancies here are usually open-ended. Rent Control needs an end date on every lease — pick your best estimate and extend it whenever you like."
+    "openEndedGeneratedNote": "The later years are projections that extend automatically. Edit any amount to correct it."
   },
   "empty": {
     "noProperties": "No properties yet. Tap + to add one.",
@@ -627,7 +626,8 @@
       "paid": "Paid",
       "overdue": "Overdue",
       "due": "Due now",
-      "future": "Not due yet",
+      "future": "Not due yet"
+,
       "notDue": "Not due"
     },
     "rentGrid": {
@@ -1063,6 +1063,10 @@
           "title": "Anyone else on the lease",
           "body": "A guarantor, a partner, a parent paying the rent — add them here with their own phone number, and they are part of the tenancy rather than a note somewhere. Optional, and you can come back to it later."
         },
+        "openEnded": {
+          "title": "Tenancies with no end",
+          "body": "Some tenancies just run — month to month once a contract lapses, or by law in much of Europe. Turn this on and we keep the schedule rolling instead of asking you to invent an end date."
+        },
         "term": {
           "title": "The term",
           "body": "Years and months together, so a lease of 1 year and 6 months is entered as easily as one of 2 years. The end date follows from them — it is calculated, never typed."
@@ -1358,6 +1362,7 @@
       "extend-lease": "Extend adds years or months and prices them, with a live preview — and it clears the expiring-lease alert for you.",
       "end-lease": "Tenant leaving early? End lease records the exit without rewriting past rent or reports. It's undoable.",
       "notification-rules": "Custom rules change the reminder days and scope them to one owner, property or renter.",
+      "feedback": "Not a question about your portfolio? Settings → Send us a message reaches a person — a bug, an idea, or anything about the app itself.",
       "whatsapp-templates": "The WhatsApp wording is yours to rewrite, in each language. We never send anything to a tenant — the message lands in your input box, unsent."
     },
     "callbacks": {
@@ -1385,5 +1390,35 @@
       "replayDone": "Tours reset. They'll appear again as you go.",
       "disable": "Turn off tours"
     }
+  },
+  "feedback": {
+    "fromChatPrompt": "Not a question for the assistant?",
+    "fromChatAction": "Report a bug or send a suggestion",
+    "sectionTitle": "Feedback",
+    "title": "Send us a message",
+    "subtitle": "Tell us about a bug, ask a question, or suggest something.",
+    "rowLabel": "Send us a message",
+    "rowHint": "We read every message and reply by email.",
+    "typeLabel": "What is this about?",
+    "type_bug": "Bug",
+    "type_question": "Question",
+    "type_suggestion": "Suggestion",
+    "messageLabel": "Your message",
+    "placeholder_bug": "What happened, and what did you expect instead?",
+    "placeholder_question": "What would you like to know?",
+    "placeholder_suggestion": "What would make Rent Control better for you?",
+    "messageTooLong": "That message is too long.",
+    "screenshotsLabel": "Screenshots (optional)",
+    "addScreenshot": "Add",
+    "removeScreenshot": "Remove screenshot",
+    "screenshotHint": "Up to {{max}} images.",
+    "screenshotPrivacy": "Screenshots may include your renters' details.",
+    "screenshotFailed": "That image couldn't be attached. Try another one.",
+    "submit": "Send",
+    "replyTo": "We'll reply to {{email}}.",
+    "replyToGeneric": "We'll reply to the email address on your account.",
+    "successTitle": "Thank you",
+    "successMessage": "Your message is on its way. We'll reply by email.",
+    "submitFailed": "We couldn't send your message. Please try again."
   }
 }

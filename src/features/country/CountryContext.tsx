@@ -27,6 +27,7 @@ import {
   setRevenueBasisDefault,
 } from '@/src/shared/utils/capabilities';
 import { setActiveRegistryKeys } from '@/src/shared/utils/registryLabels';
+import { setActiveIndexKeys } from '@/src/shared/utils/indexLabels';
 import { setActiveDialCode } from '@/src/shared/utils/whatsapp';
 import { getCountries, getMyCountry, setMyCountry, type Country } from './api/countries';
 import {
@@ -217,6 +218,7 @@ export function CountryProvider({ children }: PropsWithChildren) {
     setOpenEndedTenancies(config.openEndedTenancies);
     setRevenueBasisDefault(config.revenueBasisDefault);
     setActiveRegistryKeys(config.registryKey1, config.registryKey2);
+    setActiveIndexKeys(config.indexLabelKey, config.indexNoteKey);
     setActiveDialCode(config.dialCode, config.countryCode);
 
     // The chosen currency where there is one, the country's own otherwise. The rule

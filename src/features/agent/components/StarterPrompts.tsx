@@ -2,8 +2,9 @@ import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { Icon, type IconName } from '@/src/shared/components/ui';
-import { useLanguageContext, useRtlLabelStyle } from '@/src/context';
+import { useLanguageContext } from '@/src/context';
 import { darkColors, ICON_MD, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { useAgentChat } from '../context/AgentChatContext';
 
@@ -26,8 +27,8 @@ export function StarterPrompts() {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { isRtl } = useLanguageContext();
-  const rtlLabelStyle = useRtlLabelStyle();
   const { send } = useAgentChat();
+  const router = useRouter();
   const accentBg = colors.accentBg;
 
   return (
@@ -37,20 +38,20 @@ export function StarterPrompts() {
     >
       <Text
         variant="titleMedium"
-        style={[styles.emptyTitle, rtlLabelStyle, styles.fullWidth, { color: colors.textPrimary }]}
+        style={[styles.emptyTitle, styles.fullWidth, { color: colors.textPrimary }]}
       >
         {t('agent.emptyTitle')}
       </Text>
       <Text
         variant="bodyMedium"
-        style={[styles.hint, rtlLabelStyle, styles.fullWidth, { color: colors.textSecondary }]}
+        style={[styles.hint, styles.fullWidth, { color: colors.textSecondary }]}
       >
         {t('agent.emptyHint')}
       </Text>
 
       <Text
         variant="labelSmall"
-        style={[styles.sectionLabel, rtlLabelStyle, styles.fullWidth, { color: colors.textSecondary }]}
+        style={[styles.sectionLabel, styles.fullWidth, { color: colors.textSecondary }]}
       >
         {t('agent.startersLabel')}
       </Text>
@@ -80,16 +81,46 @@ export function StarterPrompts() {
           );
         })}
       </View>
+
+      {/* The assistant is read-only — it answers and cites, it never files anything.
+          People still type "this is broken" into it, and without this those reports
+          die here. Deliberately not a card: it must not compete with the starters,
+          only be there when a starter is not what someone wanted. */}
+      <View style={[styles.feedback, { borderTopColor: colors.outline }]}>
+        <Text
+          variant="bodySmall"
+          style={[styles.feedbackPrompt, styles.fullWidth, { color: colors.textSecondary }]}
+        >
+          {t('feedback.fromChatPrompt')}
+        </Text>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          onPress={() => router.push('/settings/feedback' as any)}
+          // Plain `row`: React Native already mirrors it under native RTL, so adding
+          // `row-reverse` here flipped it a second time and left the icon trailing the
+          // Hebrew text instead of leading it.
+          style={styles.feedbackRow}
+        >
+          <Icon name="message-circle" size={ICON_SM} color={colors.accent} />
+          <Text style={[styles.feedbackAction, { color: colors.accent }]}>
+            {t('feedback.fromChatAction')}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  // `useRtlLabelStyle` sets `alignSelf: 'flex-start'`, which shrinks the Text box to its
-  // longest line — fine for a one-liner, but it left the two-line Hebrew hint in a box
-  // narrower than the column and pinned to the left edge, so `textAlign: 'right'` had nothing
-  // to align against and the paragraph read as LTR. Stretching the box back to full width
-  // (applied after the hook's style, so it wins) is what makes the right alignment visible.
+  // Full-width boxes so each line aligns against the column, not against its own
+  // longest line.
+  //
+  // These deliberately carry NO `textAlign`. Under native RTL the platform default
+  // already right-aligns them, and the app's `useRtlLabelStyle` — which sets
+  // `textAlign: 'right'` explicitly — rendered these Paper <Text> nodes flush LEFT in
+  // Hebrew, while the untouched starter-card labels below were correct. Setting nothing
+  // is what works here; see the note in the component.
   fullWidth: {
     alignSelf: 'stretch',
   },
@@ -129,6 +160,25 @@ const styles = StyleSheet.create({
   prompt: {
     flex: 1,
     fontSize: 15,
+    fontWeight: '600',
+  },
+  feedback: {
+    marginTop: spacing.xl,
+    paddingTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  feedbackPrompt: {
+    marginBottom: spacing.xs,
+  },
+  feedbackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+    paddingVertical: spacing.xs,
+  },
+  feedbackAction: {
+    fontSize: 14,
     fontWeight: '600',
   },
 });

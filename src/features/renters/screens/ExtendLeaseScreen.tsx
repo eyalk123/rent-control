@@ -407,6 +407,10 @@ export function ExtendLeaseScreen() {
 
             {/* Increment for new years */}
             <View style={styles.incrementBlock}>
+              {/* Narrowed for an open-ended lease exactly as the renter form is. Without it
+                  this offered Custom on a lease the API answers with a 422 — a control the
+                  server has no path for, which is the inversion `RentChangeField` warns
+                  about. The renter carries the switch, so this screen can just read it. */}
               <RentChangeField
                 label={t("renter.newYearIncrement")}
                 fitContent
@@ -414,6 +418,7 @@ export function ExtendLeaseScreen() {
                 onModeChange={setMode}
                 value={value}
                 onValueChange={setValue}
+                openEnded={renter?.open_ended === true}
               />
             </View>
           </View>

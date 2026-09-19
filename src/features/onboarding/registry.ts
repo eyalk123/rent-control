@@ -27,7 +27,13 @@ export const TOURS = {
       // the spotlight sat on Properties alone.
       { id: 'renters', anchor: ANCHORS.tabRenters, placement: 'top' },
       { id: 'money', anchor: ANCHORS.tabTransactions, placement: 'top', seed: { id: 'suppliers', opens: 'suppliers' } },
-      { id: 'chat', anchor: ANCHORS.tabChat, placement: 'top' },
+      // The seed here rather than a step of its own: this platform has no persistent
+      // feedback control to spotlight — the form lives behind Settings — and a seed is
+      // exactly the shape for a feature you cannot see from where you are standing. It
+      // rides on the assistant step because that is where the distinction lands: the
+      // assistant answers questions about your portfolio, this reaches a person about the
+      // app. Web points a real step at its top-bar button instead.
+      { id: 'chat', anchor: ANCHORS.tabChat, placement: 'top', seed: { id: 'feedback', opens: null } },
       // Dropped once there is a portfolio: it is the closing call to action for someone
       // who still needs it, and noise to everyone else. See `skipWhen` in types.ts.
       { id: 'start', anchor: null, placement: 'center', skipWhen: 'hasProperties' },
@@ -157,6 +163,11 @@ export const TOURS = {
       // The one page-one field worth a stop of its own: a repeating sub-form where every
       // other field is an input, and nothing on it says who a second contact is for.
       { id: 'extraContacts', anchor: ANCHORS.renterFormExtraContacts, placement: 'top', revealsAnchor: true },
+      // Before `term`, because it is above it on the screen and because it decides what
+      // `term` even shows: with the switch on the steppers are gone and there is no end
+      // date to explain. Ungated — the switch is per lease, not per country, and the
+      // Israeli month-to-month holdover is exactly the tenancy it was written for.
+      { id: 'openEnded', anchor: ANCHORS.leaseOpenEnded, placement: 'bottom', revealsAnchor: true },
       { id: 'term', anchor: ANCHORS.leaseTermBuilder, placement: 'bottom', revealsAnchor: true },
       // `baseYear` before `mode`, which is the order they are in on the screen: the first
       // year's rent sits directly under the term and the rent-change control below that.
