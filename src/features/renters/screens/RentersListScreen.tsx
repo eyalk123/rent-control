@@ -24,6 +24,7 @@ import { RenterCard } from '@/src/features/renters/components/RenterCard';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { deleteRenter } from '@/src/features/renters/api/renters';
 import { getEffectiveLeaseEnd, getRenterLifecycle } from '@/src/shared/utils/renterStatus';
+import { formatPropertyAddress } from '@/src/shared/utils/propertyAddress';
 import { spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
@@ -84,11 +85,13 @@ export function RentersListScreen() {
     for (const r of renters) {
       if (r.property && !seen.has(r.property.id)) {
         seen.add(r.property.id);
-        opts.push({ id: r.property.id, label: r.property.address });
+        opts.push({ id: r.property.id, label: formatPropertyAddress(r.property, t) });
       }
     }
     return opts;
-  }, [renters]);
+    // Floor/apartment included: two flats in one building share an address, and without
+    // the unit the two rows are the same word twice.
+  }, [renters, t]);
 
   const renterOptions = useMemo<FilterOption[]>(
     () => renters.map((r) => ({ id: r.id, label: `${r.first_name} ${r.last_name}` })),

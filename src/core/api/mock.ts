@@ -23,7 +23,17 @@ import { getLeaseEndDate, getRentForMonth } from '@/src/shared/types';
 export const USE_MOCK_API = process.env.EXPO_PUBLIC_DEV_WEB_PREVIEW === '1';
 
 function toPropertyBrief(p: Property): PropertyBrief {
-  return { id: p.id, address: p.address, city: p.city, type: p.type, image_url: p.image_url };
+  // floor/apartment included, as `PropertyBriefRead` on the backend sends them: without the
+  // unit, two flats in one building are the same address twice wherever a brief is labelled.
+  return {
+    id: p.id,
+    address: p.address,
+    city: p.city,
+    type: p.type,
+    floor: p.floor,
+    apartment: p.apartment,
+    image_url: p.image_url,
+  };
 }
 
 const seedProperties: Property[] = [

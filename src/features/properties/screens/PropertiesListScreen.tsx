@@ -26,6 +26,7 @@ import {
 import { PropertyCard } from '@/src/features/properties/components/PropertyCard';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { deleteProperty } from '@/src/features/properties/api/properties';
+import { formatPropertyAddress } from '@/src/shared/utils/propertyAddress';
 import { spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
@@ -68,9 +69,11 @@ export function PropertiesListScreen() {
     }, [])
   );
 
+  // Floor/apartment included: two flats in one building share an address, and without
+  // the unit the two rows are the same word twice.
   const propertyOptions = useMemo<FilterOption[]>(
-    () => properties.map((p) => ({ id: p.id, label: p.address })),
-    [properties],
+    () => properties.map((p) => ({ id: p.id, label: formatPropertyAddress(p, t) })),
+    [properties, t],
   );
 
   const renterOptions = useMemo<FilterOption[]>(

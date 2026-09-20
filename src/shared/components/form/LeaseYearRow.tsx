@@ -1,7 +1,7 @@
 import React from "react";
 import { allowedModes } from "@/src/shared/utils/capabilities";
 import { indexLabelKey } from "@/src/shared/utils/indexLabels";
-import { Pressable, StyleSheet, View, type ViewStyle } from "react-native";
+import { Pressable, StyleSheet, View, type TextStyle, type ViewStyle } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
@@ -35,6 +35,25 @@ export const LEASE_YEAR_RULE_MODES: LeaseYearRuleMode[] = [
 const RULE_MODE_REQUIREMENTS: Partial<Record<LeaseYearRuleMode, "cpiLinkage">> = {
   cpi: "cpiLinkage",
 };
+
+/**
+ * How far the rule line is pushed in so it starts under the amount field: the row's own
+ * `paddingHorizontal`, the year label's `minWidth`, and the gap that follows it.
+ */
+const RULE_INDENT = spacing.xs + 52 + spacing.sm;
+
+/**
+ * Which physical side that indent goes on. It has to follow `rowDirection`, not the writing
+ * direction: `row-reverse` lays the row out against the writing direction, so `paddingStart`
+ * would land the indent on the side the content *ends*. That is what happened on the
+ * lease-extension screen in Hebrew — it passes `row-reverse` there, and the rule dropdown sat
+ * flush against the edge while the amount above it was indented.
+ */
+function ruleIndentStyle(rowDirection: ViewStyle["flexDirection"]): ViewStyle {
+  return rowDirection === "row-reverse"
+    ? { paddingEnd: RULE_INDENT }
+    : { paddingStart: RULE_INDENT };
+}
 
 export const LEASE_YEAR_RULE_LABEL_KEYS: Record<LeaseYearRuleMode, string> = {
   manual: "renter.rentChangeManual",
@@ -226,9 +245,10 @@ function LeaseYearRowInner({
     </View>
 
     {/* The rule sits on its own line: a phone row has no space for year + amount + rule +
-        value + type side by side. */}
+        value + type side by side. It starts under the amount field, not under the year
+        label — see `ruleIndentStyle`. */}
     {onRuleChange ? (
-      <View style={[styles.ruleRow, { flexDirection: rowDirection }]}>
+      <View style={[styles.ruleRow, ruleIndentStyle(rowDirection), { flexDirection: rowDirection }]}>
         <DropdownField
           data={ruleOptions}
           sorted={false}
@@ -243,13 +263,15 @@ function LeaseYearRowInner({
             onChangeText={onRuleValueChange}
             onBlur={onRuleValueBlur}
             label=""
+            containerStyle={styles.ruleValue}
+            boxStyle={styles.ruleValueBox}
           />
         ) : null}
       </View>
     ) : null}
 
     {error ? (
-      <Text style={[styles.errorText, { color: colors.error }]}>
+      <Text style={[styles.errorText, ruleIndentStyle(rowDirection) as TextStyle, { color: colors.error }]}>
         {t(error, { defaultValue: error })}
       </Text>
     ) : null}
@@ -280,15 +302,23 @@ const styles = StyleSheet.create({
   cpiChipText: { fontSize: 11, fontWeight: "700" },
   typeToggle: { minWidth: 56, alignItems: "center" },
   typeText: { fontSize: 13, textAlign: "center" },
+  // The indent itself is `ruleIndentStyle`, which has to know the row direction.
   ruleRow: {
     alignItems: "center",
     gap: spacing.sm,
     paddingHorizontal: spacing.xs,
     paddingBottom: spacing.xs,
-    paddingStart: 52 + spacing.sm,
   },
-  ruleDropdown: { minWidth: 120, height: 40 },
-  errorText: { fontSize: 12, paddingHorizontal: spacing.xs, paddingBottom: spacing.xs, paddingStart: 52 + spacing.sm },
+  // No height here — the box is `fieldSurface`'s, same as the amount field above. The
+  // `marginBottom` is FormField's, which only earns its keep on a stacked form.
+  ruleDropdown: { minWidth: 120, marginBottom: 0 },
+  ruleValue: { marginBottom: 0 },
+  ruleValueBox: { width: 116 },
+  errorText: {
+    fontSize: 12,
+    paddingHorizontal: spacing.xs,
+    paddingBottom: spacing.xs,
+  },
   chip: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,

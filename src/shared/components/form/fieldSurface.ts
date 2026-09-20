@@ -40,7 +40,16 @@ export function useFieldSurface(state: FieldSurfaceState = {}): ViewStyle {
 /**
  * Focus is a colour change, not a width change. Growing the border from 1 to 2 nudged every
  * character in the field over by a pixel on focus, because React Native draws a border inside
- * the box. The ring is carried by `inputBorderFocus` plus elevation instead.
+ * the box. The ring is carried by `inputBorderFocus`, plus a shadow on iOS.
+ *
+ * **No `elevation` here, and this is the one place that departs from MOBILE-DESIGN.md §6's
+ * "always pair a shadow with an Android elevation" rule.** The field is deliberately
+ * unfilled (see `useFieldSurface`), and Android draws an elevation shadow *behind* the
+ * view — with nothing opaque in front of it the shadow shows straight through the box.
+ * Focusing a field therefore filled it with a grey slab and left only the editable text
+ * line white: not a focus ring, a rendering artefact. The rule assumes an opaque surface;
+ * an unfilled one cannot cast an Android shadow at all, so the honest version is not to
+ * try. `inputBorderFocus` carries the state on its own at 11.5:1 light.
  */
 export function useFieldFocusShadow(): ViewStyle {
   const theme = useTheme();
@@ -50,7 +59,6 @@ export function useFieldFocusShadow(): ViewStyle {
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: theme.dark ? 0.3 : 0.16,
     shadowRadius: 4,
-    elevation: 2,
   };
 }
 
