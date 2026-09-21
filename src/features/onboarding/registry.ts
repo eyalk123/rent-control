@@ -291,6 +291,11 @@ export const TOURS = {
       { id: 'overview', anchor: null, placement: 'center' },
       { id: 'ask', anchor: ANCHORS.chatInput, placement: 'top' },
       { id: 'scope', anchor: null, placement: 'center' },
+      // Last, not first: what the assistant *is* has to land before what it costs. On a
+      // free account the tab already shows its own locked state, so this is for the paid
+      // case — saying plainly that the feature travels with the plan, before someone
+      // discovers it by downgrading.
+      { id: 'plan', anchor: null, placement: 'center' },
     ],
   },
 

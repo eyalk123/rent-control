@@ -81,6 +81,14 @@ scoping `TMPDIR` per port; two bundlers sharing one cache silently serve a **1-m
     Axios instance must spread `CLIENT_HEADERS` in too; `features/agent/api/agentStream.ts`
     does, because sending an agent message counts as real work.
 - `src/features/`: Feature slices (home, properties, renters, transactions, suppliers, reports, notifications, settings, legal, document-scan, agent). `legal/` holds the Privacy Policy, Terms and Accessibility Statement, reached from Settings; its `legalContent.ts` is a **duplicate** of the web app's copy and must be edited in both repos together. `agent/` is the "Ask Rent Control" assistant — SSE streaming against `POST /agent/chat`, read-only. `onboarding/` is the guided tour: `registry.ts` holds the tour/step structure (copy lives in i18n under `onboarding.*`), `types.ts` is byte-identical to the web repo's so both platforms share tour and seed IDs, and progress is stored per account (`/users/me/tour-state`) so a tour seen in the browser does not reappear here. **The content is unfinished, so `flags.ts` keeps it off by default: on under `__DEV__` and in the `preview`/`simulator` EAS profiles, off in release builds unless `EXPO_PUBLIC_ONBOARDING_TOURS=on`.**
+- `src/features/subscription/` is the plan gate. `SubscriptionContext` holds `GET /subscription`
+  and is **deliberately not cached in AsyncStorage** — a stale plan would either lock
+  properties someone has just paid to unlock, or leave them writable after a lapse, and a
+  failed fetch degrades to "nothing is restricted" so a network problem never becomes a
+  lockout. `types.ts` is **byte-identical to the web app's copy** and must be edited in both
+  repos together, the same rule `legalContent.ts` carries. Nothing is recomputed here: which
+  properties are locked and what a plan includes are resolved server-side, because this app
+  ships on a store review cycle and cannot be hotfixed when a price moves.
 - `@/*` resolves to repo root. All imports must use `@/src/...` (no relative `../`).
 
 **ROUTING INSTRUCTIONS:**

@@ -15,6 +15,8 @@ import { getPropertyById } from '@/src/features/properties/api/properties';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Property } from '@/src/shared/types';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
+import { LockedBadge } from '@/src/features/subscription/components/LockedBadge';
+import { useSubscription } from '@/src/features/subscription/SubscriptionContext';
 import {
   Icon,
   LoadingOverlay,
@@ -42,6 +44,7 @@ type TabKey = 'info' | 'renters' | 'transactions' | 'documents';
 export function PropertyDetailScreen() {
   useTour('property-detail');
   const { t } = useTranslation();
+  const { isLocked: isPropertyLocked } = useSubscription();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -101,6 +104,11 @@ export function PropertyDetailScreen() {
     }, [id, t])
   );
 
+  // `property.locked` is what the API said about this row; `isLocked` is the account-level
+  // answer. They agree, and asking both means the badge still renders if a cached property
+  // object predates the field.
+  const isLocked = Boolean(property?.locked) || isPropertyLocked(property?.id);
+
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(`/properties/edit/${property!.id}` as any);
@@ -146,11 +154,20 @@ export function PropertyDetailScreen() {
                 resizeMode="cover"
               />
               <IconButton
-                icon={() => <Icon name="pencil" size={22} color={colors.onPrimary} />}
+                icon={() => (
+                  <Icon
+                    name={isLocked ? 'lock' : 'pencil'}
+                    size={22}
+                    color={colors.onPrimary}
+                  />
+                )}
                 size={22}
+                disabled={isLocked}
                 style={[styles.editIcon, { backgroundColor: colors.primary }]}
                 onPress={handleEdit}
-                accessibilityLabel={t('property.editProperty')}
+                accessibilityLabel={
+                  isLocked ? t('subscription.lockedActionHint') : t('property.editProperty')
+                }
               />
             </View>
           ) : (
@@ -168,11 +185,20 @@ export function PropertyDetailScreen() {
                 />
               </View>
               <IconButton
-                icon={() => <Icon name="pencil" size={22} color={colors.textPrimary} />}
+                icon={() => (
+                  <Icon
+                    name={isLocked ? 'lock' : 'pencil'}
+                    size={22}
+                    color={colors.textPrimary}
+                  />
+                )}
                 size={22}
+                disabled={isLocked}
                 style={styles.editIcon}
                 onPress={handleEdit}
-                accessibilityLabel={t('property.editProperty')}
+                accessibilityLabel={
+                  isLocked ? t('subscription.lockedActionHint') : t('property.editProperty')
+                }
               />
             </View>
           )}
@@ -182,6 +208,15 @@ export function PropertyDetailScreen() {
               {property.address}{formatFloorApartment(property, t)}, {property.city}
             </Text>
           </View>
+
+          {/* Under the address, not in the header: it is a fact about this property's
+              state, and it has to be legible before someone taps a disabled control and
+              wonders why nothing happened. */}
+          {isLocked ? (
+            <View style={styles.lockedRow}>
+              <LockedBadge />
+            </View>
+          ) : null}
 
           {/* Tab bar */}
           <TourAnchor
@@ -283,6 +318,7 @@ const styles = StyleSheet.create({
     left: spacing.sm,
     margin: 0,
   },
+  lockedRow: { paddingHorizontal: 16, paddingBottom: 4 },
   addressRow: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

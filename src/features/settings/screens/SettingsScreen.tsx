@@ -222,6 +222,22 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
           variant="titleMedium"
           style={[styles.sectionTitle, rtlLabelStyle]}
         >
+          {t('subscription.settings.title')}
+        </Text>
+        <List.Section>
+          <List.Item
+            title={t('subscription.settings.rowLabel')}
+            description={t('subscription.settings.rowHint')}
+            left={(props) => <Icon name="wallet" size={20} color={props.color} />}
+            onPress={() => router.push('/settings/plan' as any)}
+            style={styles.listItem}
+          />
+        </List.Section>
+
+        <Text
+          variant="titleMedium"
+          style={[styles.sectionTitle, rtlLabelStyle]}
+        >
           {t('legal.sectionTitle')}
         </Text>
         <List.Section>

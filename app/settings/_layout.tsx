@@ -35,6 +35,10 @@ export default function SettingsLayout() {
         options={{ headerTitle: t('feedback.title') }}
       />
       <Stack.Screen
+        name="plan"
+        options={{ headerTitle: t('subscription.settings.title') }}
+      />
+      <Stack.Screen
         name="legal/privacy"
         options={{ headerTitle: t('legal.privacyPolicy') }}
       />

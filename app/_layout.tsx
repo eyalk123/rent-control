@@ -16,6 +16,7 @@ import { AnchorRegistryProvider } from "@/src/features/onboarding/AnchorRegistry
 import { TourStateProvider } from "@/src/features/onboarding/TourStateContext";
 import { LegalConsentProvider } from "@/src/features/legal/LegalConsentContext";
 import { CountryProvider } from "@/src/features/country/CountryContext";
+import { SubscriptionProvider } from "@/src/features/subscription/SubscriptionContext";
 import { CountryGate } from "@/src/features/country/components/CountryGate";
 import { LegalConsentGate } from "@/src/features/legal/components/LegalConsentGate";
 import { TourControllerProvider } from "@/src/features/onboarding/TourController";
@@ -121,6 +122,7 @@ function AppContent() {
               <LanguageProvider>
                 <LegalConsentProvider>
                 <CountryProvider>
+                <SubscriptionProvider>
                 <AgentChatProvider>
                   <TourStateProvider>
                     <AnchorRegistryProvider>
@@ -130,6 +132,7 @@ function AppContent() {
                     </AnchorRegistryProvider>
                   </TourStateProvider>
                 </AgentChatProvider>
+                </SubscriptionProvider>
                 </CountryProvider>
                 </LegalConsentProvider>
               </LanguageProvider>

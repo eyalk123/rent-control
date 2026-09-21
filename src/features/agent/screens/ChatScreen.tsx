@@ -8,6 +8,7 @@ import { EmptyState, ScreenContainer } from '@/src/shared/components/ui';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { useRtlLabelStyle } from '@/src/context';
 import { ICON_MD, spacing } from '@/src/core/theme';
+import { useSubscription } from '@/src/features/subscription/SubscriptionContext';
 import { useAgentChat } from '../context/AgentChatContext';
 import { MessageList } from '../components/MessageList';
 import { Composer } from '../components/Composer';
@@ -27,6 +28,11 @@ export function ChatScreen() {
   // offset is the tab bar, which sits below this screen and would otherwise be double-counted;
   // on Android the keyboard's screen coordinates already account for it.
   const tabBarHeight = useBottomTabBarHeight();
+  // Separate from `enabled`, which asks whether the assistant is configured on the server
+  // at all. Folding the two together would hide the feature from free accounts entirely,
+  // and a feature nobody can see is a feature nobody upgrades for.
+  const { subscription } = useSubscription();
+  const agentIncluded = subscription ? subscription.agent || !subscription.enforced : true;
 
   return (
     <ScreenContainer edges={['top', 'left', 'right']}>
@@ -74,6 +80,16 @@ export function ChatScreen() {
         />
       ) : !enabled ? (
         <EmptyState message={t('agent.disabled')} icon="message-square" />
+      ) : !agentIncluded ? (
+        // A plan gate, not an outage — so it names the feature and offers a way forward
+        // rather than saying "unavailable". And no composer: an input box that rejects
+        // whatever is typed into it is worse than no input box.
+        <EmptyState
+          message={t('subscription.agentLocked.body')}
+          icon="lock"
+          actionLabel={t('subscription.agentLocked.cta')}
+          onAction={() => router.push('/settings/plan' as never)}
+        />
       ) : (
         <KeyboardAvoidingView
           style={styles.filler}

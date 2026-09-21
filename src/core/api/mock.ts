@@ -16,6 +16,7 @@ import type {
   PropertyFile,
 } from '@/src/shared/types';
 import { getLeaseEndDate, getRentForMonth } from '@/src/shared/types';
+import { getSubscriptionMock } from '@/src/features/subscription/api/subscriptionMock';
 
 // Set to true to use in-memory mock data when no backend is available.
 // The dev web preview (EXPO_PUBLIC_DEV_WEB_PREVIEW=1, see src/core/auth/AuthContext.tsx)
@@ -576,10 +577,27 @@ let nextCategoryId = 6;
 let nextSupplierId = 4;
 let nextTransactionId = 7;
 
+/**
+ * Property ids only, undecorated.
+ *
+ * Exists to break a cycle: `getSubscriptionMock` needs to know how many properties there
+ * are in order to decide which are over the ceiling, and `getProperties` needs the answer
+ * in order to tag each row. Having the former call the latter recurses forever. This
+ * returns the raw ids and calls nothing, so the dependency runs one way.
+ */
+export function mockPropertyIds(): number[] {
+  return mockProperties.map((p) => p.id);
+}
+
 export const mockPropertiesApi = {
   getProperties: async (): Promise<Property[]> => {
+    // `locked` is decorated here for the same reason the real API sets it server-side:
+    // one resolution applied to every row, so the list and the detail screen cannot
+    // disagree about which properties the plan still covers.
+    const { locked_property_ids: lockedIds } = await getSubscriptionMock();
     return mockProperties.map((p) => ({
       ...p,
+      locked: lockedIds.includes(p.id),
       renters: mockRenters.filter((r) => r.property_id === p.id).map((r) => ({
         ...r,
         property: toPropertyBrief(p),
@@ -593,7 +611,8 @@ export const mockPropertiesApi = {
       ...r,
       property: toPropertyBrief(p),
     }));
-    return { ...p, renters };
+    const { locked_property_ids: lockedIds } = await getSubscriptionMock();
+    return { ...p, renters, locked: lockedIds.includes(id) };
   },
   createProperty: async (data: PropertyCreate | Partial<Property>): Promise<Property> => {
     const newProp: Property = {

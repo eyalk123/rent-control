@@ -8,6 +8,7 @@ import { lightColors, darkColors } from '@/src/core/theme';
 import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
 import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
+import { LockedBadge } from '@/src/features/subscription/components/LockedBadge';
 
 interface PropertyCardProps {
   property: Property;
@@ -104,6 +105,10 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
                   ? t('property.occupancy.occupied')
                   : t('property.occupancy.vacant')}
               </Text>
+              {/* Read straight off the property the API returned, so this badge and the
+                  one on the detail screen come from one server-side resolution and
+                  cannot disagree. */}
+              {property.locked ? <LockedBadge compact /> : null}
             </View>
           </View>
           {!isSelectMode && (
@@ -158,6 +163,11 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    // Wraps rather than squeezing: the read-only badge only appears on an over-limit
+    // account, and on a narrow phone it needs its own line rather than truncating the
+    // occupancy label next to it.
+    flexWrap: 'wrap',
+    gap: 6,
   },
   statusDot: {
     width: 6,

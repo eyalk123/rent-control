@@ -24,6 +24,7 @@ import {
   FilterOption,
 } from '@/src/shared/components/ui';
 import { PropertyCard } from '@/src/features/properties/components/PropertyCard';
+import { OverLimitNotice } from '@/src/features/subscription/components/OverLimitNotice';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { deleteProperty } from '@/src/features/properties/api/properties';
 import { formatPropertyAddress } from '@/src/shared/utils/propertyAddress';
@@ -315,6 +316,10 @@ export function PropertiesListScreen() {
             isSelected={selectedIds.has(item.id)}
           />
         )}
+        // Explains, once per plan, why some cards below are read-only. In the header
+        // rather than beside a card: it is about the account, not about one property, and
+        // it scrolls away with the list instead of eating a fixed strip of a phone screen.
+        ListHeaderComponent={<OverLimitNotice />}
         contentContainerStyle={[
           styles.list,
           { paddingBottom: 80 + insets.bottom },

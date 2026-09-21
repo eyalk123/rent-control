@@ -66,7 +66,13 @@ SHOT=".emulator-shot-$PORT.png"
 metro_up() {
   local i
   for i in 1 2 3; do
-    if curl -s -m 15 -o /dev/null "http://127.0.0.1:$PORT/status"; then return 0; fi
+    # `-o NUL`, never `-o /dev/null` — the same trap `prewarm` documents below.
+    # MSYS_NO_PATHCONV=1 stops Git Bash rewriting the path, so curl tries to open a
+    # literal /dev/null, fails to write and exits 23 on an otherwise perfect 200. That
+    # made this function report "down" for a Metro that was answering fine, and
+    # `spawn_metro`'s `until metro_up` loop then span forever: the emulator booted, Metro
+    # bound the port, and the script never reached `launch`.
+    if curl -s -m 15 -o NUL "http://127.0.0.1:$PORT/status"; then return 0; fi
     sleep 1
   done
   return 1

@@ -18,6 +18,7 @@ import { setScanHandoff } from '@/src/features/document-scan/handoff';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { TourScrollView } from '@/src/features/onboarding/TourScrollView';
+import { ScanQuotaStrip } from '@/src/features/subscription/components/ScanQuotaStrip';
 import { useTour } from '@/src/features/onboarding/TourController';
 
 /** Which "Add" flow this scan feeds. `property` creates a property (chaining to a renter);
@@ -177,6 +178,11 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
           </View>
         ) : (
           <TourScrollView contentContainerStyle={styles.body}>
+            {/* Before the picker, not after a rejection. A quota someone discovers by
+                photographing a lease and being refused has already cost them the upload —
+                on a phone, over mobile data, that is a worse trade than it sounds. */}
+            <ScanQuotaStrip />
+
             {/* The prompt is inside the anchor, not above it. It is the sentence that says
                 what this screen does with the file, and spotlighting only the two buttons
                 left it in the dark next to a card explaining them. */}

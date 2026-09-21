@@ -557,7 +557,8 @@
     "step_n_of_m": "Step {{n}} of {{m}}",
     "remove": "Remove",
     "undo": "Undo",
-    "save": "Save"
+    "save": "Save",
+    "dismiss": "Dismiss"
   },
   "validation": {
     "title": "Validation",
@@ -626,8 +627,7 @@
       "paid": "Paid",
       "overdue": "Overdue",
       "due": "Due now",
-      "future": "Not due yet"
-,
+      "future": "Not due yet",
       "notDue": "Not due"
     },
     "rentGrid": {
@@ -639,12 +639,9 @@
       "expectedWas": "expected {{amount}}",
       "leaseNowSays": "lease now says {{amount}}",
       "paidWhatWasAsked": "paid {{amount}}, which matched the lease at the time",
-      "leaseNowSays": "lease now says {{amount}}",
-      "paidWhatWasAsked": "paid {{amount}}, which matched the lease at the time",
       "paidLate": "paid late",
       "notDueReason": "no instalment due this month ({{cadence}} lease)",
       "legendMismatch": "Amount differs from the lease",
-      "legendLeaseChanged": "Matched the lease when paid; the lease has changed since",
       "legendLeaseChanged": "Matched the lease when paid; the lease has changed since",
       "legendLate": "Paid after the due day"
     },
@@ -1117,11 +1114,11 @@
         },
         "tabs": {
           "title": "Three tabs",
-          "body": "The lease itself, the unit they live in, and their money. The tour goes through the first and the last \u2014 the middle one is a shortcut to that property."
+          "body": "The lease itself, the unit they live in, and their money. The tour goes through the first and the last — the middle one is a shortcut to that property."
         },
         "timeline": {
           "title": "The lease, year by year",
-          "body": "Every period of the lease with the rent for it, in order, including the rises still ahead \u2014 so the year that is about to get more expensive is visible now rather than a surprise later. A year whose rent is not yet fixed is marked as a projection."
+          "body": "Every period of the lease with the rent for it, in order, including the rises still ahead — so the year that is about to get more expensive is visible now rather than a surprise later. A year whose rent is not yet fixed is marked as a projection."
         },
         "payments": {
           "title": "Over on Transactions: did the rent come in?",
@@ -1129,15 +1126,15 @@
         },
         "expenses": {
           "title": "And what this tenancy cost",
-          "body": "Expenses are the other half of the same tab \u2014 the switch above the grid. They are grouped by category rather than by month, because what you spent on a tenant is a different question from whether their rent arrived."
+          "body": "Expenses are the other half of the same tab — the switch above the grid. They are grouped by category rather than by month, because what you spent on a tenant is a different question from whether their rent arrived."
         },
         "edit": {
           "title": "Fixing what is already there",
-          "body": "Edit reopens the renter's own form \u2014 a corrected phone number, a document you did not have at the time, a rent figure typed wrong. Use it to correct the record; use the buttons beside it to change what the lease actually says."
+          "body": "Edit reopens the renter's own form — a corrected phone number, a document you did not have at the time, a rent figure typed wrong. Use it to correct the record; use the buttons beside it to change what the lease actually says."
         },
         "extend": {
           "title": "Extending, not editing",
-          "body": "Adds years or months onto the end of the lease and leaves everything already agreed exactly as it is. A tenancy you ended by hand has to be reopened first \u2014 extending a terminated lease would quietly un-end it."
+          "body": "Adds years or months onto the end of the lease and leaves everything already agreed exactly as it is. A tenancy you ended by hand has to be reopened first — extending a terminated lease would quietly un-end it."
         },
         "end": {
           "title": "Ending a tenancy",
@@ -1155,7 +1152,7 @@
         },
         "tabs": {
           "title": "Four tabs",
-          "body": "What you entered about the place, who lives in it, the money it has made and cost, and the paperwork \u2014 one tab each. The tour walks the last three."
+          "body": "What you entered about the place, who lives in it, the money it has made and cost, and the paperwork — one tab each. The tour walks the last three."
         },
         "renters": {
           "title": "Who is here, and who was",
@@ -1163,7 +1160,7 @@
         },
         "payments": {
           "title": "The money this unit made",
-          "body": "Rent as a month-by-month grid, one box per month, so an unpaid month is a hole you can see. Expenses sit beside it grouped by category \u2014 what a place costs you is a different question from whether the rent came in."
+          "body": "Rent as a month-by-month grid, one box per month, so an unpaid month is a hole you can see. Expenses sit beside it grouped by category — what a place costs you is a different question from whether the rent came in."
         },
         "documents": {
           "title": "Two slots, not a folder",
@@ -1182,6 +1179,10 @@
         "scope": {
           "title": "What it can see",
           "body": "Your properties, renters and transactions — and nothing outside your account. It reads; it never changes anything."
+        },
+        "plan": {
+          "title": "Included on paid plans",
+          "body": "The assistant comes with every paid plan. On the free plan you can see it here, but asking is switched off until you move up."
         }
       },
       "cpi-mode": {
@@ -1271,7 +1272,7 @@
       "supplier-form": {
         "overview": {
           "title": "Saving a supplier",
-          "body": "A name and at least one category is all it needs \u2014 the plumber, the electrician, the management company. Save one here and it is offered on every expense from then on, instead of being retyped each time."
+          "body": "A name and at least one category is all it needs — the plumber, the electrician, the management company. Save one here and it is offered on every expense from then on, instead of being retyped each time."
         },
         "bank": {
           "title": "Their bank details, for your reference only",
@@ -1333,7 +1334,7 @@
       "lease-scan": {
         "pick": {
           "title": "Start with the document",
-          "body": "Photograph the lease or pick a file you already have — an image, a PDF or a Word document. A lease that runs to several pages is several photos: take them one after another and they are read as one document. Then Extract, and we do the reading."
+          "body": "Photograph the lease or pick a file you already have — an image, a PDF or a Word document. A lease that runs to several pages is several photos: take them one after another and they are read as one document. Then Extract, and we do the reading. Free accounts get three scans a month, and the count above the buttons shows what is left."
         },
         "review": {
           "title": "Nothing saves unread",
@@ -1420,5 +1421,62 @@
     "successTitle": "Thank you",
     "successMessage": "Your message is on its way. We'll reply by email.",
     "submitFailed": "We couldn't send your message. Please try again."
+  },
+  "subscription": {
+    "readOnly": "Read-only",
+    "lockedActionHint": "This property is above your plan's limit. It stays readable and exportable, but cannot be edited until you move up a plan or remove another property.",
+    "overLimit": {
+      "heading": "1 property is now read-only",
+      "heading_plural": "{{count}} properties are now read-only",
+      "body": "Your plan covers {{limit}} properties. Your oldest {{limit}} stay fully editable; the most recently added one is read-only for now.",
+      "body_plural": "Your plan covers {{limit}} properties. Your oldest {{limit}} stay fully editable; the {{count}} added after them are read-only for now.",
+      "safe": "Nothing has been deleted. Every property still opens, reports still run, and exports still include everything.",
+      "cta": "See plans"
+    },
+    "plan": {
+      "free": "Free",
+      "tier_3_8": "3–8 properties",
+      "tier_9_15": "9–15 properties",
+      "tier_16_plus": "16+ properties"
+    },
+    "settings": {
+      "title": "Plan & billing",
+      "currentPlan": "Current plan",
+      "properties": "Properties",
+      "propertiesUsage": "{{used}} of {{limit}}",
+      "propertiesUnlimited": "{{used}}, no limit",
+      "leaseScans": "AI lease scans",
+      "leaseScansUsage": "{{used}} of {{limit}} this month",
+      "leaseScansUnlimited": "Unlimited",
+      "assistant": "Ask Rent Control",
+      "assistantIncluded": "Included",
+      "assistantNotIncluded": "Not on this plan",
+      "renews": "Renews {{date}}",
+      "renewsNot": "Does not renew",
+      "managedBy": {
+        "apple": "Billed through the App Store. Manage or cancel in your Apple account settings.",
+        "google": "Billed through Google Play. Manage or cancel in your Play account settings.",
+        "paddle": "Billed on the web. Manage or cancel from here, or email us.",
+        "unknown": "Contact us to manage this subscription."
+      },
+      "notEnforced": "Plan limits are not being applied yet. Nothing is restricted.",
+      "upgrade": "See plans",
+      "lockedList": "Read-only properties",
+      "rowLabel": "Plan & billing",
+      "rowHint": "What your plan includes and what you have used"
+    },
+    "scanLimit": {
+      "remaining": "{{count}} AI lease scan left this month",
+      "remaining_plural": "{{count}} AI lease scans left this month",
+      "used": "You have used all {{limit}} AI lease scans on your plan this month.",
+      "resets": "Your next scans are available on {{date}}.",
+      "upgrade": "Move up a plan for unlimited scans",
+      "onPaidPlan": "Unlimited on your plan"
+    },
+    "agentLocked": {
+      "heading": "Ask Rent Control is on paid plans",
+      "body": "Ask questions about your portfolio in plain language — which leases end soon, what a property earned last year, who is behind on rent.",
+      "cta": "See plans"
+    }
   }
 }
