@@ -209,7 +209,7 @@ export default function SignInScreen() {
               resizeMode="contain"
             />
             <Text variant="headlineMedium" style={[styles.appName, { color: colors.onBackground }]}>
-              Rent Control
+              RentVance
             </Text>
             <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}>
               {isLogin ? t('auth.signInSubtitle') : t('auth.createAccountSubtitle')}

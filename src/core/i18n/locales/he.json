@@ -6,7 +6,7 @@
     "accessibility": "הצהרת נגישות",
     "lastUpdated": "עודכן לאחרונה",
     "gateTitle": "עוד דבר אחד",
-    "gateDescription": "עדכנו את המסמכים שיש לאשר לפני השימוש ב-Rent Control. יש לעיין במסמכים ולאשר כדי להמשיך.",
+    "gateDescription": "עדכנו את המסמכים שיש לאשר לפני השימוש ב-RentVance. יש לעיין במסמכים ולאשר כדי להמשיך.",
     "gateAccept": "אישור והמשך",
     "gateDecline": "לא כעת — התנתקות",
     "gateError": "לא הצלחנו לרשום את האישור. יש לנסות שוב."
@@ -21,7 +21,7 @@
   },
   "agent": {
     "title": "עוזר",
-    "assistantName": "Rent Control",
+    "assistantName": "RentVance",
     "placeholder": "שאלו שאלה…",
     "send": "שליחה",
     "stop": "עצירה",
@@ -587,7 +587,7 @@
   },
   "offline": {
     "title": "אין חיבור לאינטרנט",
-    "body": "כדי להציג את הנתונים שלכם, Rent Control זקוק לחיבור לאינטרנט. בדקו את החיבור ונסו שוב."
+    "body": "כדי להציג את הנתונים שלכם, RentVance זקוק לחיבור לאינטרנט. בדקו את החיבור ונסו שוב."
   },
   "error": {
     "title": "שגיאה",
@@ -931,7 +931,7 @@
     "tours": {
       "first-run": {
         "welcome": {
-          "title": "ברוכים הבאים ל-Rent Control",
+          "title": "ברוכים הבאים ל-RentVance",
           "body": "הנכסים שלך, האנשים ששוכרים אותם, וכל תשלום שעובר ביניהם. הנה איפה הכול נמצא — זה לוקח דקה."
         },
         "home": {
@@ -1173,7 +1173,7 @@
       },
       "chat": {
         "overview": {
-          "title": "שואלים את Rent Control",
+          "title": "שואלים את RentVance",
           "body": "שאלה על התיק שלך, בשפה שלך. הנה איך זה עובד."
         },
         "ask": {
@@ -1411,7 +1411,7 @@
     "messageLabel": "ההודעה שלכם",
     "placeholder_bug": "מה קרה, ומה ציפיתם שיקרה במקום?",
     "placeholder_question": "מה תרצו לדעת?",
-    "placeholder_suggestion": "מה ישפר עבורכם את Rent Control?",
+    "placeholder_suggestion": "מה ישפר עבורכם את RentVance?",
     "messageTooLong": "ההודעה ארוכה מדי.",
     "screenshotsLabel": "צילומי מסך (לא חובה)",
     "addScreenshot": "הוספה",
@@ -1452,7 +1452,7 @@
       "leaseScans": "סריקות חוזה AI",
       "leaseScansUsage": "{{used}} מתוך {{limit}} החודש",
       "leaseScansUnlimited": "ללא הגבלה",
-      "assistant": "שאל את Rent Control",
+      "assistant": "שאל את RentVance",
       "assistantIncluded": "כלול",
       "assistantNotIncluded": "לא בתוכנית הזו",
       "renews": "מתחדש ב־{{date}}",
@@ -1478,7 +1478,7 @@
       "onPaidPlan": "ללא הגבלה בתוכנית שלך"
     },
     "agentLocked": {
-      "heading": "שאל את Rent Control זמין בתוכניות בתשלום",
+      "heading": "שאל את RentVance זמין בתוכניות בתשלום",
       "body": "אפשר לשאול שאלות על התיק בשפה חופשית — אילו חוזים מסתיימים בקרוב, כמה נכס הכניס בשנה שעברה, מי מפגר בתשלום.",
       "cta": "לתוכניות"
     }

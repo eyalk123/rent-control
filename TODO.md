@@ -1,4 +1,4 @@
-# TODO — Rent Control App
+# TODO — RentVance App
 
 Ordered by importance: critical issues first, polish last.
 

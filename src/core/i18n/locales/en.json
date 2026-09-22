@@ -6,7 +6,7 @@
     "accessibility": "Accessibility Statement",
     "lastUpdated": "Last updated",
     "gateTitle": "One more thing",
-    "gateDescription": "We've updated what you need to agree to before using Rent Control. Please review the documents below and confirm to continue.",
+    "gateDescription": "We've updated what you need to agree to before using RentVance. Please review the documents below and confirm to continue.",
     "gateAccept": "Accept and continue",
     "gateDecline": "Not now — sign out",
     "gateError": "We couldn't record your acceptance. Please try again."
@@ -21,7 +21,7 @@
   },
   "agent": {
     "title": "Assistant",
-    "assistantName": "Rent Control",
+    "assistantName": "RentVance",
     "placeholder": "Ask a question…",
     "send": "Send",
     "stop": "Stop",
@@ -586,7 +586,7 @@
   },
   "offline": {
     "title": "No internet connection",
-    "body": "Rent Control needs an internet connection to show your data. Check your connection and try again."
+    "body": "RentVance needs an internet connection to show your data. Check your connection and try again."
   },
   "error": {
     "title": "Error",
@@ -927,7 +927,7 @@
     "tours": {
       "first-run": {
         "welcome": {
-          "title": "Welcome to Rent Control",
+          "title": "Welcome to RentVance",
           "body": "Your properties, the people renting them, and every payment between the two. Here is where everything lives — it takes a minute."
         },
         "home": {
@@ -1169,7 +1169,7 @@
       },
       "chat": {
         "overview": {
-          "title": "Ask Rent Control",
+          "title": "Ask RentVance",
           "body": "A question about your own portfolio, in your own words. Here is how it works."
         },
         "ask": {
@@ -1276,7 +1276,7 @@
         },
         "bank": {
           "title": "Their bank details, for your reference only",
-          "body": "Nothing here is ever paid, scheduled or sent. Rent Control does not move money at all. This is somewhere to keep the account number so it is in front of you when you make the transfer yourself, rather than in a message you have to go looking for."
+          "body": "Nothing here is ever paid, scheduled or sent. RentVance does not move money at all. This is somewhere to keep the account number so it is in front of you when you make the transfer yourself, rather than in a message you have to go looking for."
         },
         "categories": {
           "title": "What they get filed under",
@@ -1407,7 +1407,7 @@
     "messageLabel": "Your message",
     "placeholder_bug": "What happened, and what did you expect instead?",
     "placeholder_question": "What would you like to know?",
-    "placeholder_suggestion": "What would make Rent Control better for you?",
+    "placeholder_suggestion": "What would make RentVance better for you?",
     "messageTooLong": "That message is too long.",
     "screenshotsLabel": "Screenshots (optional)",
     "addScreenshot": "Add",
@@ -1448,7 +1448,7 @@
       "leaseScans": "AI lease scans",
       "leaseScansUsage": "{{used}} of {{limit}} this month",
       "leaseScansUnlimited": "Unlimited",
-      "assistant": "Ask Rent Control",
+      "assistant": "Ask RentVance",
       "assistantIncluded": "Included",
       "assistantNotIncluded": "Not on this plan",
       "renews": "Renews {{date}}",
@@ -1474,7 +1474,7 @@
       "onPaidPlan": "Unlimited on your plan"
     },
     "agentLocked": {
-      "heading": "Ask Rent Control is on paid plans",
+      "heading": "Ask RentVance is on paid plans",
       "body": "Ask questions about your portfolio in plain language — which leases end soon, what a property earned last year, who is behind on rent.",
       "cta": "See plans"
     }

@@ -1,6 +1,6 @@
 # Backend: Suppliers & Categories Refactoring
 
-Implement the backend changes required to support the new suppliers and expense categories management in the Rent Control mobile app.
+Implement the backend changes required to support the new suppliers and expense categories management in the RentVance mobile app.
 
 ---
 

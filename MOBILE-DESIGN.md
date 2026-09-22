@@ -1,4 +1,4 @@
-# Rent Control — Mobile Design Reference
+# RentVance — Mobile Design Reference
 
 **What this is:** a description of the visual system the app *already uses*, extracted from the
 shipping code. It is not a proposal and it changes nothing. Read it before building a new screen so

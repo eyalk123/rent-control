@@ -1,4 +1,4 @@
-# Rent-Control — Complete App Documentation
+# RentVance — Complete App Documentation
 
 > **Last updated:** 2026-05-20  
 > **App version:** 1.0.0  
@@ -34,11 +34,11 @@
 
 ## 1. App Overview
 
-**Rent-Control** is a mobile-first property management application for landlords. It tracks properties, renters, lease terms, rent payments, and expenses in one place, with support for generating financial reports.
+**RentVance** is a mobile-first property management application for landlords. It tracks properties, renters, lease terms, rent payments, and expenses in one place, with support for generating financial reports.
 
 | Attribute | Value |
 |---|---|
-| App name | rent-control |
+| App name | RentVance |
 | Bundle ID | `com.eyalk123.rentcontrol` |
 | URL scheme | `rentcontrol://` |
 | Platforms | iOS, Android, Web |

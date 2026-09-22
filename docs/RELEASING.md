@@ -14,7 +14,7 @@ much later as an unrelated-looking permissions error. The real project is
 
 | Thing | Value |
 |---|---|
-| Play app | `com.eyalk123.rentcontrol` — Play display name is **"Karka"**, not "Rent Control" |
+| Play app | `com.eyalk123.rentcontrol` — Play display name is **"Karka"**, not "RentVance" |
 | Play developer account | `6600455956480709835` |
 | Service account | `rent-control-eas-submit@rent-control-5c5da.iam.gserviceaccount.com` |
 | Key location (local) | `C:\Users\eyalk\.secrets\rent-control-play.json` — outside the repo, deliberately |
