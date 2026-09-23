@@ -535,6 +535,7 @@
     "clearOne": "Clear {{name}} filter"
   },
   "common": {
+    "fileOpenFailed": "Couldn't open the file. Try again.",
     "back": "Back",
     "required": "Required",
     "optional": "Optional",

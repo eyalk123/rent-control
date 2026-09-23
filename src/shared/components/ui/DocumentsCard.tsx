@@ -1,6 +1,6 @@
-import { Linking } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { useOpenStoredFile } from '@/src/shared/hooks/useStoredFile';
 import { darkColors, lightColors } from '@/src/core/theme';
 import { Icon, type IconName } from './Icon';
 import { DetailRow } from './DetailRow';
@@ -20,6 +20,7 @@ export function DocumentsCard({ documents }: DocumentsCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const openFile = useOpenStoredFile();
 
   if (documents.length === 0) return null;
 
@@ -31,7 +32,7 @@ export function DocumentsCard({ documents }: DocumentsCardProps) {
           // Kept: a document row is a thing you open, and the glyph says which kind.
           icon={doc.icon ?? 'file-text'}
           label={doc.label}
-          onPress={() => Linking.openURL(doc.url)}
+          onPress={() => openFile(doc.url)}
         >
           <Icon name="external-link" size={18} color={colors.textSecondary} />
         </DetailRow>

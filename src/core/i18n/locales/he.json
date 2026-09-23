@@ -536,6 +536,7 @@
     "clearOne": "נקה סינון {{name}}"
   },
   "common": {
+    "fileOpenFailed": "לא ניתן לפתוח את הקובץ. נסו שוב.",
     "back": "חזרה",
     "required": "חובה",
     "optional": "אופציונלי",

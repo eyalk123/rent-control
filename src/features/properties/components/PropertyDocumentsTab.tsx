@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Button, Card, Chip, Text, useTheme } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { useAlert } from '@/src/core/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { Icon, SectionLabel } from '@/src/shared/components/ui';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
+import { useOpenStoredFile } from '@/src/shared/hooks/useStoredFile';
 import type { PendingFile, Property, PropertyFile } from '@/src/shared/types';
 import {
   bulkCreatePropertyFiles,
@@ -41,6 +42,7 @@ export function PropertyDocumentsTab({ property, onPropertyChange }: PropertyDoc
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const openFile = useOpenStoredFile();
   const { appAlert } = useAlert();
   const { user } = useAppAuth();
   const { uploadFile, uploading } = useFirebaseUpload('properties', user?.uid ?? '');
@@ -179,7 +181,7 @@ export function PropertyDocumentsTab({ property, onPropertyChange }: PropertyDoc
                     // and an attached file is content, not the one brand accent.
                     mode="outlined"
                     icon="file-document"
-                    onPress={() => Linking.openURL(url)}
+                    onPress={() => openFile(url)}
                     onClose={() => setTypedDoc(field, null)}
                     style={styles.typedChip}
                     // An outlined chip labels itself with onSurfaceVariant (Lc 71 here). The
@@ -218,7 +220,7 @@ export function PropertyDocumentsTab({ property, onPropertyChange }: PropertyDoc
                 <View key={file.id} style={[styles.fileRow, { borderColor: colors.outline }]}>
                   <TouchableOpacity
                     style={styles.fileRowLeft}
-                    onPress={() => Linking.openURL(file.url)}
+                    onPress={() => openFile(file.url)}
                     activeOpacity={0.7}
                   >
                     <Icon name="file-text" size={18} color={colors.sectionAccent} />

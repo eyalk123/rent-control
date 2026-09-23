@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
 import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
-import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
+import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { LockedBadge } from '@/src/features/subscription/components/LockedBadge';
 
@@ -28,7 +28,7 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
   // the property as its history, which is why counting the list marked it occupied forever.
   const isOccupied =
     property.hasRenters ?? getCurrentRenters(property.renters).length > 0;
-  const imageSource = getPropertyImageSource(property.image_url);
+  const imageSource = usePropertyImageSource(property.image_url);
   const floorApartment = formatFloorApartment(property, t, false);
 
   return (

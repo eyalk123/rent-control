@@ -33,7 +33,7 @@ import {
 } from '@/src/features/transactions/components/detail/tabState';
 import { PropertyDocumentsTab } from '@/src/features/properties/components/PropertyDocumentsTab';
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
-import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
+import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor, useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
@@ -108,6 +108,8 @@ export function PropertyDetailScreen() {
   // answer. They agree, and asking both means the badge still renders if a cached property
   // object predates the field.
   const isLocked = Boolean(property?.locked) || isPropertyLocked(property?.id);
+  // Above the early returns: it is a hook.
+  const imageSource = usePropertyImageSource(property?.image_url);
 
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -133,7 +135,6 @@ export function PropertyDetailScreen() {
     );
   }
 
-  const imageSource = getPropertyImageSource(property.image_url);
 
   return (
     <ScreenContainer edges={['top', 'left', 'right']}>

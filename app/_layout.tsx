@@ -22,6 +22,7 @@ import { LegalConsentGate } from "@/src/features/legal/components/LegalConsentGa
 import { TourControllerProvider } from "@/src/features/onboarding/TourController";
 import { TourOverlay } from "@/src/features/onboarding/TourOverlay";
 import { NotificationProvider } from "@/src/features/notifications/context/NotificationContext";
+import { clearLocalFileCaches } from "@/src/shared/utils/localFileCache";
 import "@/src/core/i18n";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
@@ -170,6 +171,10 @@ export default Sentry.wrap(function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    clearLocalFileCaches();
+  }, []);
 
   if (!fontsLoaded) {
     return null;

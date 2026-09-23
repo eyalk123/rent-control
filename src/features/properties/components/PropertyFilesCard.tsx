@@ -1,7 +1,8 @@
 import React from 'react';
-import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { useOpenStoredFile } from '@/src/shared/hooks/useStoredFile';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { Icon, SectionLabel } from '@/src/shared/components/ui';
 import { getPropertyFiles } from '@/src/features/properties/api/propertyFilesApi';
@@ -15,6 +16,7 @@ export function PropertyFilesCard({ propertyId }: PropertyFilesCardProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const openFile = useOpenStoredFile();
   const [files, setFiles] = React.useState<PropertyFile[]>([]);
 
   React.useEffect(() => {
@@ -34,7 +36,7 @@ export function PropertyFilesCard({ propertyId }: PropertyFilesCardProps) {
           <TouchableOpacity
             key={file.id}
             style={styles.row}
-            onPress={() => Linking.openURL(file.url)}
+            onPress={() => openFile(file.url)}
             activeOpacity={0.7}
           >
             <View style={styles.rowLeft}>

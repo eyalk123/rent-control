@@ -10,6 +10,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAlert } from '@/src/core/context';
+import { useStoredFileUri } from '@/src/shared/hooks/useStoredFile';
+import { canFallBack, localCopyOf, readsThroughSdk, reportFallback, storagePathOf } from '@/src/shared/utils/storedFile';
 import { getTransactionById } from '@/src/features/transactions/api/transactions';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Transaction } from '@/src/shared/types';
@@ -19,6 +21,22 @@ import { useLanguageContext } from '@/src/context';
 import { formatDateFull } from '@/src/shared/utils/dates';
 import { formatMoney } from '@/src/shared/utils/money';
 import { monthYearLabel } from '@/src/features/transactions/utils/aggregate';
+
+/** A local copy of the receipt to share: read as the signed-in user, or — for a value that is
+ *  not one of our files, or while the old download link still works — downloaded from it. */
+async function receiptLocalUri(value: string, filename: string): Promise<string> {
+  if (readsThroughSdk(value)) {
+    try {
+      return await localCopyOf(storagePathOf(value)!);
+    } catch (error) {
+      if (!canFallBack(value)) throw error;
+      reportFallback(error);
+    }
+  }
+  const uri = `${FileSystem.cacheDirectory}${filename}`;
+  await FileSystem.downloadAsync(value, uri);
+  return uri;
+}
 
 function InfoRow({
   label,
@@ -60,6 +78,7 @@ export function TransactionDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [receiptFullscreen, setReceiptFullscreen] = useState(false);
+  const receiptUri = useStoredFileUri(transaction?.receipt_image_url);
 
   useFocusEffect(
     useCallback(() => {
@@ -89,8 +108,7 @@ export function TransactionDetailScreen() {
     if (!transaction?.receipt_image_url) return;
     try {
       const filename = 'receipt.jpg';
-      const uri = `${FileSystem.cacheDirectory}${filename}`;
-      await FileSystem.downloadAsync(transaction.receipt_image_url, uri);
+      const uri = await receiptLocalUri(transaction.receipt_image_url, filename);
       await Sharing.shareAsync(uri, { mimeType: 'image/jpeg', dialogTitle: filename });
     } catch {
       appAlert(t('error.title'), t('error.shareFailed', { defaultValue: 'Could not share receipt.' }));
@@ -292,7 +310,7 @@ export function TransactionDetailScreen() {
             </View>
             <Pressable onPress={() => setReceiptFullscreen(true)}>
               <Image
-                source={{ uri: transaction.receipt_image_url }}
+                source={receiptUri ? { uri: receiptUri } : undefined}
                 style={styles.receiptImage}
                 contentFit="contain"
               />
@@ -326,7 +344,7 @@ export function TransactionDetailScreen() {
             showsHorizontalScrollIndicator={false}
           >
             <Image
-              source={{ uri: transaction.receipt_image_url! }}
+              source={receiptUri ? { uri: receiptUri } : undefined}
               style={styles.modalImage}
               contentFit="contain"
             />

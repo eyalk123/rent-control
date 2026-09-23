@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { useController, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { ActivityIndicator, Button, Chip, Text, useTheme } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
@@ -8,6 +8,7 @@ import type { TFunction } from 'i18next';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
+import { useOpenStoredFile, useStoredFileUri } from '@/src/shared/hooks/useStoredFile';
 import { Icon } from '@/src/shared/components/ui';
 import { fileNameFromUrl } from '@/src/shared/utils/fileName';
 
@@ -38,6 +39,9 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
   const { field } = useController({ control, name });
   const { uploadFile, uploading } = useFirebaseUpload(entityType, ownerId);
   const url: string | null = (field.value as string | null | undefined) ?? null;
+  const openFile = useOpenStoredFile();
+  // Only an image field shows a preview; a document field must not download its file.
+  const imageUri = useStoredFileUri(accept === 'image' ? url : null);
 
   const filename = url ? fileNameFromUrl(url) : null;
 
@@ -84,7 +88,7 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
   };
 
   const handleOpen = () => {
-    if (url) Linking.openURL(url);
+    if (url) openFile(url);
   };
 
   const handleClear = () => {
@@ -103,7 +107,7 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
           </View>
         ) : url ? (
           <View>
-            <Image source={{ uri: url }} style={styles.previewImage} resizeMode="cover" />
+            <Image source={imageUri ? { uri: imageUri } : undefined} style={styles.previewImage} resizeMode="cover" />
             <View style={styles.previewActions}>
               <Button mode="outlined" onPress={handlePick} icon="image-edit" compact style={styles.actionBtn}>
                 {t('property.changeImage')}

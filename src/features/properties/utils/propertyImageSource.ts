@@ -3,12 +3,13 @@ import {
   parseImageUrlKey,
   getPresetByKey,
 } from '@/src/features/properties/constants/houseImagePresets';
+import { storagePathOf } from '@/src/shared/utils/storedFile';
 
 /**
  * Resolve a property's `image_url` to a React Native Image source.
  *
  * - `rc-house:<key>` → bundled asset require(...)
- * - http(s) or file URI → { uri: imageUrl }
+ * - http(s) or file URI, or a bare storage path → { uri: imageUrl } (see usePropertyImageSource)
  * - anything else / null → null (caller should show placeholder)
  */
 export function getPropertyImageSource(
@@ -22,7 +23,7 @@ export function getPropertyImageSource(
     return preset?.source ?? null;
   }
 
-  if (imageUrl.startsWith('http') || imageUrl.startsWith('file://')) {
+  if (imageUrl.startsWith('http') || imageUrl.startsWith('file://') || storagePathOf(imageUrl)) {
     return { uri: imageUrl };
   }
 

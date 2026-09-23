@@ -13,6 +13,7 @@ import { Icon } from '@/src/shared/components/ui';
 import * as ImagePicker from 'expo-image-picker';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
+import { useStoredFileUri } from '@/src/shared/hooks/useStoredFile';
 import {
   HOUSE_IMAGE_PRESETS,
   toImageUrlKey,
@@ -44,6 +45,7 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
   const selectedKey = imageUrl ? parseImageUrlKey(imageUrl) : null;
   const selectedPreset = selectedKey ? getPresetByKey(selectedKey) : null;
   const isCustomPhoto = imageUrl && !selectedKey;
+  const customPhotoUri = useStoredFileUri(isCustomPhoto ? imageUrl : null);
 
   const tileSize =
     (screenWidth - spacing.lg * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
@@ -151,7 +153,7 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
       ) : isCustomPhoto ? (
         <View style={styles.previewContainer}>
           <Image
-            source={{ uri: imageUrl! }}
+            source={customPhotoUri ? { uri: customPhotoUri } : undefined}
             style={styles.previewImage}
             resizeMode="cover"
           />

@@ -7,7 +7,7 @@ import type { PropertyBrief, Renter } from '@/src/shared/types';
 import { Icon, EmptyState } from '@/src/shared/components/ui';
 import { PropertyPicker } from '@/src/features/properties/components/PropertyPicker';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
-import { getPropertyImageSource } from '@/src/features/properties/utils/propertyImageSource';
+import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
@@ -33,7 +33,7 @@ function PropertyCard({
   const typeLabel = t(
     `property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`,
   );
-  const imageSource = getPropertyImageSource(property.image_url);
+  const imageSource = usePropertyImageSource(property.image_url);
   const floorApartment = formatFloorApartment(property, t, false);
 
   return (

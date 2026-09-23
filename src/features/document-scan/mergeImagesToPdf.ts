@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import { PDFDocument } from 'pdf-lib';
 import type { PickedFile } from './api/extractLease';
+import { scanCacheDir } from './scanCache';
 
 /** Merge one or more captured/picked images into a single PDF, one image per page, written to
  *  the cache directory. Used so a multi-page photographed lease is uploaded — and later stored
@@ -17,7 +18,7 @@ export async function mergeImagesToPdf(pages: PickedFile[], fileName = 'lease.pd
     sheet.drawImage(embedded, { x: 0, y: 0, width: embedded.width, height: embedded.height });
   }
   const outBase64 = await pdf.saveAsBase64();
-  const outUri = `${FileSystem.cacheDirectory}${fileName}`;
+  const outUri = `${await scanCacheDir()}${fileName}`;
   await FileSystem.writeAsStringAsync(outUri, outBase64, {
     encoding: FileSystem.EncodingType.Base64,
   });
