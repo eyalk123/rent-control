@@ -9,7 +9,7 @@
       "distribution": "internal",
       "env": {
         "APP_VARIANT": "development",
-        "EXPO_PUBLIC_API_URL": "https://rent-control-backend-production.up.railway.app",
+        "EXPO_PUBLIC_API_URL": "https://api.rentvance.app",
         "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com"
       }
     },
@@ -17,7 +17,7 @@
       "distribution": "internal",
       "env": {
         "APP_VARIANT": "preview",
-        "EXPO_PUBLIC_API_URL": "https://rent-control-backend-production.up.railway.app",
+        "EXPO_PUBLIC_API_URL": "https://api.rentvance.app",
         "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com",
         "EXPO_PUBLIC_ONBOARDING_TOURS": "on"
       }
@@ -30,7 +30,7 @@
       },
       "env": {
         "APP_VARIANT": "preview",
-        "EXPO_PUBLIC_API_URL": "https://rent-control-backend-production.up.railway.app",
+        "EXPO_PUBLIC_API_URL": "https://api.rentvance.app",
         "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com",
         "EXPO_PUBLIC_ONBOARDING_TOURS": "on"
       }
@@ -38,7 +38,7 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://rent-control-backend-production.up.railway.app",
+        "EXPO_PUBLIC_API_URL": "https://api.rentvance.app",
         "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com"
       }
     }

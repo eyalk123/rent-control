@@ -129,5 +129,5 @@ Built and shipped with **EAS** (`eas.json`), bundle id `com.eyalk123.rentcontrol
 | `production` | App Store release |
 
 All profiles point at the production backend
-(`https://rent-control-backend-production.up.railway.app`), so a build will not talk to your
+(`https://api.rentvance.app`), so a build will not talk to your
 local API unless you change that. iOS submission credentials are configured in `eas.json`.
