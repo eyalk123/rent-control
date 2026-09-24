@@ -70,7 +70,7 @@ export function OverLimitNotice() {
           <Button
             mode="contained"
             compact
-            onPress={() => router.push('/settings/plan' as never)}
+            onPress={() => router.push('/settings/plans' as never)}
           >
             {t('subscription.overLimit.cta')}
           </Button>

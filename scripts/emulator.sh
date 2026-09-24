@@ -116,7 +116,11 @@ spawn_metro() {
 }
 
 # Gradle needs JDK 17+; the `java` on PATH is JDK 8.
-export JAVA_HOME="${JAVA_HOME_OVERRIDE:-/c/Program Files/Android/Android Studio/jbr}"
+# Windows form, converted explicitly. MSYS_NO_PATHCONV=1 (below) stops Git Bash translating
+# /c/... paths for native programs, and that includes the JAVA_HOME gradlew.bat reads: left in
+# Unix form it fails with "JAVA_HOME is set to an invalid directory" before compiling anything.
+# The same setting is why metro_up uses `-o NUL` rather than `-o /dev/null`.
+export JAVA_HOME="$(cygpath -w "${JAVA_HOME_OVERRIDE:-/c/Program Files/Android/Android Studio/jbr}")"
 
 export MSYS_NO_PATHCONV=1   # keep Git Bash from mangling /data, /sdcard, etc.
 

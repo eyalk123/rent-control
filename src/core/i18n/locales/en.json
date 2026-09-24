@@ -1479,6 +1479,23 @@
       "heading": "Ask RentVance is on paid plans",
       "body": "Ask questions about your portfolio in plain language — which leases end soon, what a property earned last year, who is behind on rent.",
       "cta": "See plans"
+    },
+    "plans": {
+      "title": "Choose your plan",
+      "subtitle": "Plans are priced by how many properties you hold. Everything else is the same on every paid plan.",
+      "portfolio": "You have {{count}} property.",
+      "portfolio_plural": "You have {{count}} properties.",
+      "recommendedHint": "The {{plan}} plan covers all of them.",
+      "recommended": "Covers all your properties.",
+      "tooSmallMobile": "Too small for your {{count}} property. Some would stay read-only.",
+      "tooSmallMobile_plural": "Too small for your {{count}} properties. Some would stay read-only.",
+      "current": "Your plan",
+      "choose": "Choose this plan",
+      "storeSoon": "Subscribing in the app opens soon",
+      "includes": "Every paid plan includes unlimited AI lease scans and {{assistant}}.",
+      "included": "Your account includes the {{plan}} plan at no cost.",
+      "webManagedMobile": "You subscribed on the web, so your plan is managed there. To change it, email us.",
+      "seePlans": "See plans"
     }
   }
 }

@@ -39,6 +39,10 @@ export async function getSubscriptionMock(): Promise<Subscription> {
     plan,
     limit: limits.limit,
     property_count: ids.length,
+    // The server computes this from the real band boundaries; the mock only needs to land
+    // in the right band for the fixture sizes it actually serves.
+    required_plan:
+      ids.length <= 2 ? 'free' : ids.length <= 8 ? 'tier_3_8' : ids.length <= 15 ? 'tier_9_15' : 'tier_16_plus',
     locked_property_ids: locked,
     show_lock_notice: locked.length > 0 && !lockNoticeSeen,
     enforced: true,

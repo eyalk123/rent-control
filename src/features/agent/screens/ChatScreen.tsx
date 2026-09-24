@@ -88,7 +88,7 @@ export function ChatScreen() {
           message={t('subscription.agentLocked.body')}
           icon="lock"
           actionLabel={t('subscription.agentLocked.cta')}
-          onAction={() => router.push('/settings/plan' as never)}
+          onAction={() => router.push('/settings/plans' as never)}
         />
       ) : (
         <KeyboardAvoidingView

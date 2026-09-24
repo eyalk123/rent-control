@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Card, Divider, List, Text, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Button, Card, Divider, List, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Icon, type IconName } from '@/src/shared/components/ui';
@@ -92,6 +92,14 @@ export function PlanScreen() {
               {t('subscription.settings.notEnforced')}
             </Text>
           ) : null}
+
+          <Button
+            mode={subscription.plan === 'free' ? 'contained' : 'outlined'}
+            onPress={() => router.push('/settings/plans' as never)}
+            style={styles.seePlans}
+          >
+            {t('subscription.plans.seePlans')}
+          </Button>
         </Card.Content>
       </Card>
 
@@ -192,6 +200,7 @@ const styles = StyleSheet.create({
   planName: { fontWeight: '700', marginTop: 2, marginBottom: 2 },
   divider: { marginVertical: 12 },
   note: { marginTop: 10, fontStyle: 'italic' },
+  seePlans: { marginTop: 14, alignSelf: 'flex-start' },
   usageRow: {
     flexDirection: 'row',
     alignItems: 'center',

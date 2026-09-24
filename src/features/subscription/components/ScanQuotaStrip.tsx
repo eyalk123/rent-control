@@ -62,7 +62,7 @@ export function ScanQuotaStrip() {
             <Text
               variant="labelMedium"
               style={[styles.link, { color: colors.primary }]}
-              onPress={() => router.push('/settings/plan' as never)}
+              onPress={() => router.push('/settings/plans' as never)}
             >
               {t('subscription.scanLimit.upgrade')}
             </Text>
