@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { IconButton, List, SegmentedButtons, Switch, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -16,6 +16,10 @@ import { spacing } from '@/src/core/theme';
 import { AccountPreviewCard } from '../components/AccountPreviewCard';
 import { TOURS_ENABLED } from '@/src/features/onboarding/flags';
 import { useTourState } from '@/src/features/onboarding/TourStateContext';
+
+// Generated from the notices file at web build time, so the app links to it rather than
+// shipping its own copy.
+const LICENSES_URL = 'https://rentvance.app/licenses';
 
 export const SettingsScreen = React.memo(function SettingsScreen() {
   const { t } = useTranslation();
@@ -257,6 +261,13 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
             title={t('legal.accessibility')}
             left={(props) => <Icon name="eye" size={20} color={props.color} />}
             onPress={() => router.push('/settings/legal/accessibility' as any)}
+            style={styles.listItem}
+          />
+          <List.Item
+            title={t('legal.openSourceLicenses')}
+            left={(props) => <Icon name="file-text" size={20} color={props.color} />}
+            right={(props) => <Icon name="external-link" size={16} color={props.color} />}
+            onPress={() => Linking.openURL(LICENSES_URL)}
             style={styles.listItem}
           />
         </List.Section>
