@@ -1003,7 +1003,7 @@
         },
         "persistence": {
           "title": "Your view stays put",
-          "body": "Search, filters and sort are still exactly as you left them the next time you open this screen — nothing resets behind your back."
+          "body": "Your filters stay exactly as you left them while you move between tabs — nothing resets behind your back."
         },
         "cards": {
           "title": "One card per unit",
@@ -1043,7 +1043,7 @@
         },
         "cards": {
           "title": "One card each",
-          "body": "A face, a phone number and the lease status — enough to know who you are looking at."
+          "body": "A face, where they live and when the lease ends — enough to know who you are looking at."
         },
         "add": {
           "title": "Two ways in",
