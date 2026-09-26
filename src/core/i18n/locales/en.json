@@ -494,6 +494,7 @@
     "openEndedOnNote": "No agreed end date. We keep the next five years on the schedule and add another each year — correct any year's rent whenever it changes.",
     "openEndedOffNote": "Tenancies here usually have no end date. Turn this on and we'll keep the schedule running instead of asking you to invent one.",
     "openEndedShort": "Open-ended",
+    "leaseEndsCaption": "Lease ends",
     "openEndedTenancy": "Tenancy",
     "openEndedGenerated": "Auto",
     "openEndedGeneratedNote": "The later years are projections that extend automatically. Edit any amount to correct it."
@@ -1425,14 +1426,25 @@
     "submitFailed": "We couldn't send your message. Please try again."
   },
   "subscription": {
-    "readOnly": "Read-only",
-    "lockedActionHint": "This property is above your plan's limit. It stays readable and exportable, but cannot be edited until you move up a plan or remove another property.",
+    "locked": "Locked",
+    "lockedActionHint": "This property is above your plan's limit. It stays locked until you move up a plan or delete another property. Its data is kept, and the account export still includes it.",
+    "lockedCard": {
+      "upgrade": "Upgrade",
+      "delete": "Delete",
+      "deleteTitle": "Delete {{address}}?"
+    },
+    "lockedDetail": {
+      "title": "This property is locked",
+      "body": "It's above your plan's limit, so it can't be opened. Move up a plan to unlock it, or delete it from the properties list to get back under your limit.",
+      "cta": "See plans",
+      "back": "Back to properties"
+    },
     "overLimit": {
-      "heading": "1 property is now read-only",
-      "heading_plural": "{{count}} properties are now read-only",
-      "body": "Your plan covers {{limit}} properties. Your oldest {{limit}} stay fully editable; the most recently added one is read-only for now.",
-      "body_plural": "Your plan covers {{limit}} properties. Your oldest {{limit}} stay fully editable; the {{count}} added after them are read-only for now.",
-      "safe": "Nothing has been deleted. Every property still opens, reports still run, and exports still include everything.",
+      "heading": "1 property is now locked",
+      "heading_plural": "{{count}} properties are now locked",
+      "body": "Your plan covers {{limit}} properties. Your oldest {{limit}} stay fully available; the most recently added one is locked for now.",
+      "body_plural": "Your plan covers {{limit}} properties. Your oldest {{limit}} stay fully available; the {{count}} added after them are locked for now.",
+      "safe": "Nothing has been deleted. A locked property can't be opened and is left out of reports and reminders, but the account export still includes everything. Move up a plan to unlock it, or delete a property to get back under your limit.",
       "cta": "See plans"
     },
     "plan": {
@@ -1463,7 +1475,7 @@
       },
       "notEnforced": "Plan limits are not being applied yet. Nothing is restricted.",
       "upgrade": "See plans",
-      "lockedList": "Read-only properties",
+      "lockedList": "Locked properties",
       "rowLabel": "Plan & billing",
       "rowHint": "What your plan includes and what you have used"
     },
@@ -1487,8 +1499,8 @@
       "portfolio_plural": "You have {{count}} properties.",
       "recommendedHint": "The {{plan}} plan covers all of them.",
       "recommended": "Covers all your properties.",
-      "tooSmallMobile": "Too small for your {{count}} property. Some would stay read-only.",
-      "tooSmallMobile_plural": "Too small for your {{count}} properties. Some would stay read-only.",
+      "tooSmallMobile": "Too small for your {{count}} property. Some would stay locked.",
+      "tooSmallMobile_plural": "Too small for your {{count}} properties. Some would stay locked.",
       "current": "Your plan",
       "choose": "Choose this plan",
       "storeSoon": "Subscribing in the app opens soon",

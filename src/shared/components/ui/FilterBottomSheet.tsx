@@ -13,8 +13,8 @@ import { Text, TextInput, TouchableRipple, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLanguageContext } from '@/src/core/context';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { Icon } from '@/src/shared/components/ui/Icon';
+import { darkColors, lightColors, radii, spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
+import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
 import { sortOptions } from '@/src/shared/utils/sortOptions';
 
 export interface FilterOption {
@@ -22,6 +22,8 @@ export interface FilterOption {
   label: string;
   /** Sentinel rows ("All", "Unassigned") stay above the sorted options. */
   pinned?: boolean;
+  /** A glyph shown in a tile before the label - the property type, a person, an owner. */
+  icon?: IconName;
 }
 
 /** Below this many options the list is faster to read than to search. */
@@ -124,7 +126,9 @@ export function FilterBottomSheet({
           style={[
             styles.sheet,
             {
-              backgroundColor: colors.inputFilledBackground,
+              // Dark mode has no visible shadow, so the sheet steps up a surface instead;
+              // at plain surface it was the same colour as the cards behind it.
+              backgroundColor: theme.dark ? darkColors.surfaceElevated : colors.surface,
               paddingBottom: insets.bottom + spacing.lg,
             },
           ]}
@@ -140,9 +144,32 @@ export function FilterBottomSheet({
             >
               {title}
             </Text>
-            <Pressable onPress={handleDismiss} hitSlop={8}>
-              <Icon name="x" size={20} color={colors.textSecondary} />
-            </Pressable>
+            <View style={styles.headerActions}>
+              {/* Clearing lives up here rather than as a red first row: it is an action on
+                  the sheet, not one of the options, and in red it read like an error. */}
+              {selectedId !== null ? (
+                <Pressable
+                  onPress={() => handleSelect(null)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                >
+                  <Text
+                    maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
+                    style={[styles.clearLabel, { color: colors.primary }]}
+                  >
+                    {t('filters.clear', { defaultValue: 'Clear filter' })}
+                  </Text>
+                </Pressable>
+              ) : null}
+              <Pressable
+                onPress={handleDismiss}
+                hitSlop={8}
+                accessibilityRole="button"
+                style={[styles.closeBtn, { backgroundColor: colors.controlFill }]}
+              >
+                <Icon name="x" size={16} color={colors.textSecondary} />
+              </Pressable>
+            </View>
           </View>
 
           {showSearch ? (
@@ -160,8 +187,12 @@ export function FilterBottomSheet({
                   )}
                 />
               }
-              style={[styles.searchInput, { backgroundColor: colors.surface }]}
-              outlineStyle={{ borderColor: colors.outline, borderRadius: 10 }}
+              // Filled, no resting outline, to match the chips that opened this sheet. The
+              // outline comes back on focus so the field still shows it has the keyboard.
+              style={[styles.searchInput, { backgroundColor: colors.controlFill }]}
+              outlineColor="transparent"
+              activeOutlineColor={colors.primary}
+              outlineStyle={{ borderRadius: radii.md }}
               textColor={colors.textPrimary}
               placeholderTextColor={colors.placeholder}
               autoCorrect={false}
@@ -175,52 +206,51 @@ export function FilterBottomSheet({
             style={styles.list}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
-            ListHeaderComponent={
-              selectedId !== null ? (
-                <TouchableRipple
-                  onPress={() => handleSelect(null)}
-                  style={styles.row}
-                >
-                  <View style={styles.rowInner}>
-                    <Text style={[styles.rowLabel, { color: colors.error }]}>
-                      {t('filters.clear', { defaultValue: 'Clear filter' })}
-                    </Text>
-                    <Icon name="x" size={16} color={colors.error} />
-                  </View>
-                </TouchableRipple>
-              ) : null
-            }
             renderItem={({ item }) => {
               const active = item.id === selectedId;
               return (
                 <TouchableRipple
                   onPress={() => handleSelect(item.id)}
-                  style={styles.row}
+                  borderless
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  style={[styles.row, active && { backgroundColor: colors.primaryBg }]}
                 >
                   <View style={styles.rowInner}>
+                    {item.icon ? (
+                      <View
+                        style={[
+                          styles.rowIcon,
+                          { backgroundColor: active ? colors.surface : colors.primaryBg },
+                        ]}
+                      >
+                        <Icon name={item.icon} size={16} color={colors.primary} />
+                      </View>
+                    ) : null}
                     <Text
+                      numberOfLines={1}
                       style={[
                         styles.rowLabel,
                         {
-                          color: active ? colors.primary : colors.textPrimary,
-                          fontWeight: active ? '700' : '400',
+                          color: colors.textPrimary,
+                          fontWeight: active ? '600' : '400',
                         },
                       ]}
                     >
                       {item.label}
                     </Text>
                     {active && (
-                      <Icon name="check" size={16} color={colors.primary} />
+                      <View style={styles.check}>
+                        <Icon name="check" size={18} color={colors.primary} />
+                      </View>
                     )}
                   </View>
                 </TouchableRipple>
               );
             }}
-            ItemSeparatorComponent={() => (
-              <View
-                style={[styles.separator, { backgroundColor: colors.outline }]}
-              />
-            )}
+            // No separators: the rows are tall enough to read as rows on their own, and the
+            // selected one is marked by its fill rather than by being the odd line out.
+            contentContainerStyle={styles.listContent}
           />
         </View>
       </View>
@@ -235,10 +265,16 @@ const styles = StyleSheet.create({
     pointerEvents: 'box-none',
   },
   sheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: radii.sheet,
+    borderTopRightRadius: radii.sheet,
     maxHeight: '70%',
     paddingTop: spacing.xs,
+    // White on the white cards behind it, so the edge needs a shadow to exist at all.
+    shadowColor: '#1E3A5F',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 16,
   },
   handleRow: {
     alignItems: 'center',
@@ -254,7 +290,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
+  clearLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchWrapper: {
     paddingHorizontal: spacing.lg,
@@ -264,22 +316,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   list: {
-    maxHeight: 340,
+    maxHeight: 360,
+  },
+  listContent: {
+    paddingHorizontal: spacing.sm,
   },
   row: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    minHeight: 52,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.md,
   },
   rowInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: spacing.md,
   },
+  rowIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Content-sized rather than flex: 1. A flexed Text on Android aligns by its own script, so
+  // an English address in the Hebrew layout would jump to the wrong edge.
   rowLabel: {
+    flexShrink: 1,
     fontSize: 15,
   },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginHorizontal: spacing.lg,
+  check: {
+    marginStart: 'auto',
   },
 });

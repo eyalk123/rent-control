@@ -13,6 +13,10 @@ import {
   updateRenter,
 } from '@/src/features/renters/api/renters';
 import { getApiErrorMessage } from '@/src/core/api/client';
+import {
+  LockedPropertyState,
+  isPropertyLockedError,
+} from '@/src/features/subscription/components/LockedPropertyState';
 import type { Renter } from '@/src/shared/types';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import {
@@ -56,6 +60,8 @@ export function RenterDetailScreen() {
   const [renter, setRenter] = useState<Renter | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // A renter on a property over the plan's limit is refused like the property itself.
+  const [locked, setLocked] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('info');
   // Owned here, not in the tab: the tabs render conditionally, so leaving Transactions
   // unmounts the panel and would otherwise discard the section and its filters.
@@ -101,11 +107,13 @@ export function RenterDetailScreen() {
         }
         setLoading(true);
         setError(null);
+        setLocked(false);
         try {
           const data = await getRenterById(numericId);
           setRenter(data);
         } catch (err) {
-          setError(getApiErrorMessage(err, t('error.loadFailed')));
+          if (isPropertyLockedError(err)) setLocked(true);
+          else setError(getApiErrorMessage(err, t('error.loadFailed')));
         } finally {
           setLoading(false);
         }
@@ -173,6 +181,14 @@ export function RenterDetailScreen() {
     return (
       <ScreenContainer>
         <LoadingOverlay visible={true} />
+      </ScreenContainer>
+    );
+  }
+
+  if (locked) {
+    return (
+      <ScreenContainer>
+        <LockedPropertyState />
       </ScreenContainer>
     );
   }

@@ -21,7 +21,11 @@ import type {
   RentEscalationMode,
 } from "@/src/shared/types";
 import { getLeaseYearLabel, isCurrentLeaseYear } from "@/src/shared/utils/leaseYear";
-import { buildLeaseYears, isProjectedYear } from "@/src/shared/utils/leaseSchedule";
+import {
+  buildLeaseYears,
+  hasYearStarted,
+  isProjectedYear,
+} from "@/src/shared/utils/leaseSchedule";
 import { addMonths, periodMonths } from "@/src/shared/types";
 import { formatDateFull } from "@/src/shared/utils/dates";
 import { Stepper, Icon } from "@/src/shared/components/ui";
@@ -130,7 +134,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
         escalationValue: Number(escValStr) || 0,
       },
       toModel(current),
-      { resetCpiAmounts },
+      { resetCpiAmounts, leaseStart },
     );
 
     // Rebuilding the whole array remounts every row, so reserve it for changes that really
@@ -179,6 +183,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
     escValStr,
     rulesKey,
     amountsKey,
+    leaseStart,
   ]);
 
   /** Rows in the numeric model, for deriving which years render as projections. */
@@ -367,13 +372,16 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
                           amount={(amountField.value as string) ?? ""}
                           type={yearType}
                           isCurrent={isCurrentLeaseYear(leaseStart, modelRows, index)}
-                          projected={isProjectedYear(modelRows, index)}
+                          projected={
+                            isProjectedYear(modelRows, index) &&
+                            !hasYearStarted(leaseStart, modelRows, index)
+                          }
                           onAmountBlur={amountField.onBlur}
                           onAmountChange={(v) => {
                             amountField.onChange(v);
                             // Typing an amount means the stated rule no longer describes it —
                             // fall back to manual so the number and the rule can't disagree.
-                            if (rule) ruleField.onChange(undefined);
+                            if (rule) ruleField.onChange({ mode: "manual", value: "" });
                             // Year one *is* the first-year rent; keep the two in step, or the
                             // server (which prices year one off base_rent) would overwrite it.
                             if (index === 0) {
@@ -389,11 +397,13 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
                             index === 0
                               ? undefined
                               : (mode) =>
-                                  ruleField.onChange(
-                                    mode === "manual"
-                                      ? undefined
-                                      : { mode, value: rule?.value ?? "" },
-                                  )
+                                  // `manual` is written out, never cleared: react-hook-form
+                                  // reads an `undefined` field back as its *default*, which
+                                  // on an edit is the saved rule — so the pick snapped back.
+                                  ruleField.onChange({
+                                    mode,
+                                    value: mode === "manual" ? "" : rule?.value ?? "",
+                                  })
                           }
                           ruleValue={rule?.value ?? ""}
                           onRuleValueChange={(v) =>

@@ -15,8 +15,10 @@ import { getPropertyById } from '@/src/features/properties/api/properties';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Property } from '@/src/shared/types';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
-import { LockedBadge } from '@/src/features/subscription/components/LockedBadge';
-import { useSubscription } from '@/src/features/subscription/SubscriptionContext';
+import {
+  LockedPropertyState,
+  isPropertyLockedError,
+} from '@/src/features/subscription/components/LockedPropertyState';
 import {
   Icon,
   LoadingOverlay,
@@ -44,7 +46,6 @@ type TabKey = 'info' | 'renters' | 'transactions' | 'documents';
 export function PropertyDetailScreen() {
   useTour('property-detail');
   const { t } = useTranslation();
-  const { isLocked: isPropertyLocked } = useSubscription();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -53,6 +54,9 @@ export function PropertyDetailScreen() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // The API refuses every read of a property over the plan's limit; that is a state of
+  // its own, not a load failure.
+  const [locked, setLocked] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('info');
   // Owned here, not in the tab: the tabs render conditionally, so leaving Transactions
   // unmounts the panel and would otherwise discard the section and its filters.
@@ -91,11 +95,13 @@ export function PropertyDetailScreen() {
         }
         setLoading(true);
         setError(null);
+        setLocked(false);
         try {
           const data = await getPropertyById(numericId);
           setProperty(data);
         } catch (err) {
-          setError(getApiErrorMessage(err, t('error.loadFailed')));
+          if (isPropertyLockedError(err)) setLocked(true);
+          else setError(getApiErrorMessage(err, t('error.loadFailed')));
         } finally {
           setLoading(false);
         }
@@ -104,10 +110,6 @@ export function PropertyDetailScreen() {
     }, [id, t])
   );
 
-  // `property.locked` is what the API said about this row; `isLocked` is the account-level
-  // answer. They agree, and asking both means the badge still renders if a cached property
-  // object predates the field.
-  const isLocked = Boolean(property?.locked) || isPropertyLocked(property?.id);
   // Above the early returns: it is a hook.
   const imageSource = usePropertyImageSource(property?.image_url);
 
@@ -120,6 +122,14 @@ export function PropertyDetailScreen() {
     return (
       <ScreenContainer>
         <LoadingOverlay visible={true} />
+      </ScreenContainer>
+    );
+  }
+
+  if (locked) {
+    return (
+      <ScreenContainer>
+        <LockedPropertyState />
       </ScreenContainer>
     );
   }
@@ -157,18 +167,15 @@ export function PropertyDetailScreen() {
               <IconButton
                 icon={() => (
                   <Icon
-                    name={isLocked ? 'lock' : 'pencil'}
+                    name="pencil"
                     size={22}
                     color={colors.onPrimary}
                   />
                 )}
                 size={22}
-                disabled={isLocked}
                 style={[styles.editIcon, { backgroundColor: colors.primary }]}
                 onPress={handleEdit}
-                accessibilityLabel={
-                  isLocked ? t('subscription.lockedActionHint') : t('property.editProperty')
-                }
+                accessibilityLabel={t('property.editProperty')}
               />
             </View>
           ) : (
@@ -188,18 +195,15 @@ export function PropertyDetailScreen() {
               <IconButton
                 icon={() => (
                   <Icon
-                    name={isLocked ? 'lock' : 'pencil'}
+                    name="pencil"
                     size={22}
                     color={colors.textPrimary}
                   />
                 )}
                 size={22}
-                disabled={isLocked}
                 style={styles.editIcon}
                 onPress={handleEdit}
-                accessibilityLabel={
-                  isLocked ? t('subscription.lockedActionHint') : t('property.editProperty')
-                }
+                accessibilityLabel={t('property.editProperty')}
               />
             </View>
           )}
@@ -209,15 +213,6 @@ export function PropertyDetailScreen() {
               {property.address}{formatFloorApartment(property, t)}, {property.city}
             </Text>
           </View>
-
-          {/* Under the address, not in the header: it is a fact about this property's
-              state, and it has to be legible before someone taps a disabled control and
-              wonders why nothing happened. */}
-          {isLocked ? (
-            <View style={styles.lockedRow}>
-              <LockedBadge />
-            </View>
-          ) : null}
 
           {/* Tab bar */}
           <TourAnchor
@@ -319,7 +314,6 @@ const styles = StyleSheet.create({
     left: spacing.sm,
     margin: 0,
   },
-  lockedRow: { paddingHorizontal: 16, paddingBottom: 4 },
   addressRow: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

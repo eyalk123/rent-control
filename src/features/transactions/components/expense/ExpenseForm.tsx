@@ -12,7 +12,7 @@ import {
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { Controller, type Control, type UseFormSetValue, type FieldErrors } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { usePropertyContext } from '@/src/context';
+import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
 import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
@@ -44,7 +44,7 @@ export function ExpenseForm({
   contentContainerStyle,
 }: ExpenseFormProps) {
   const { t } = useTranslation();
-  const { properties } = usePropertyContext();
+  const { properties } = useAccessibleProperties();
 
   // Requested here rather than from AddTransactionScreen: the screen also renders the
   // revenue forms and the choose step, so it is mounted long before this form is.

@@ -10,7 +10,8 @@ import { spacing } from '@/src/core/theme';
 import { useAlert, useLanguageContext } from '@/src/core/context';
 import { sortLabels } from '@/src/shared/utils/sortOptions';
 import { formatMoney } from '@/src/shared/utils/money';
-import { usePropertyContext, useRenterContext } from '@/src/context';
+import { useRenterContext } from '@/src/context';
+import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 import {
   type PaymentMethod,
   type Property,
@@ -52,7 +53,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   const { t } = useTranslation();
   const { appAlert } = useAlert();
   const insets = useSafeAreaInsets();
-  const { properties } = usePropertyContext();
+  const { properties } = useAccessibleProperties();
   const { renters } = useRenterContext();
   const { language } = useLanguageContext();
 

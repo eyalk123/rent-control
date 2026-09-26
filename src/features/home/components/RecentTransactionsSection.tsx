@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, ICON_SM, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { formatMoney } from '@/src/shared/utils/money';
 import { formatDateShort } from '@/src/shared/utils/dates';
@@ -23,7 +23,7 @@ export function RecentTransactionsSection({ items }: RecentTransactionsSectionPr
   const colors = theme.dark ? darkColors : lightColors;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
+    <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
       {items.slice(0, 3).map((item, idx) => {
         const isRevenue = item.type === 'revenue';
         const description = isRevenue
@@ -68,7 +68,8 @@ export function RecentTransactionsSection({ items }: RecentTransactionsSectionPr
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: radii.lg,
+    ...cardShadow,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,

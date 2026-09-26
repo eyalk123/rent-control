@@ -11,7 +11,7 @@ import {
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { Controller, type Control, type UseFormSetValue, type FieldErrors } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { usePropertyContext } from '@/src/context';
+import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
 import { PaymentMethodField } from '@/src/shared/components/form';
 import type { RevenueFormValues } from '@/src/features/transactions/screens/types';
@@ -33,7 +33,7 @@ export function SingleRevenueForm({
   contentContainerStyle,
 }: SingleRevenueFormProps) {
   const { t } = useTranslation();
-  const { properties } = usePropertyContext();
+  const { properties } = useAccessibleProperties();
 
   const propertyData = useMemo(
     () =>

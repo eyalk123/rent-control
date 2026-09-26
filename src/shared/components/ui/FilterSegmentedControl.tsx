@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
-import { darkColors, lightColors, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
+import { darkColors, lightColors, radii, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 
 export interface FilterSegment<T extends string> {
   value: T;
@@ -40,12 +40,13 @@ function FilterSegmentedControlInner<T extends string>({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const trackColor = theme.dark ? 'rgba(241,236,223,0.08)' : 'rgba(26,45,74,0.07)';
+  const trackColor = colors.controlFill;
 
-  // Tinted thumb, textPrimary label. primary as the label colour measures 2.04:1 against this
-  // tint in dark - it is a mid-tone navy and there is nothing for it to contrast with on a
-  // navy track. textPrimary gives 9.9:1 light and 9.0:1 dark, and the tint still reads navy.
-  const defaultActiveBg = colors.primary + '1F';
+  // A raised thumb, textPrimary label. The old navy tint on a navy-tinted track came out as
+  // a slightly darker grey, and the selected option read as disabled rather than chosen.
+  // A white thumb lifted off the track is unambiguous. primary is still not the label colour:
+  // it measures 2.04:1 on the dark track, textPrimary 9.9:1 light and 9.0:1 dark.
+  const defaultActiveBg = colors.controlThumb;
   const defaultActiveFg = colors.textPrimary;
 
   const handlePress = (next: T) => {
@@ -71,6 +72,9 @@ function FilterSegmentedControlInner<T extends string>({
             style={({ pressed }) => [
               styles.segment,
               active && { backgroundColor: seg.activeBg ?? defaultActiveBg },
+              // Only the default thumb is raised. A segment with its own colour (revenue teal,
+              // expense rust) is already distinct, and a shadow under a tint looks muddy.
+              active && !seg.activeBg && styles.raised,
               pressed && !active && { opacity: 0.6 },
             ]}
           >
@@ -99,7 +103,7 @@ export const FilterSegmentedControl = React.memo(
 const styles = StyleSheet.create({
   track: {
     flexDirection: 'row',
-    borderRadius: 10,
+    borderRadius: radii.md,
     padding: 3,
   },
   segment: {
@@ -108,7 +112,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 36,
     paddingHorizontal: 6,
-    borderRadius: 8,
+    borderRadius: radii.sm,
+  },
+  raised: {
+    shadowColor: '#1E3A5F',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 1,
   },
   label: {
     fontSize: 13,

@@ -571,6 +571,12 @@ both.
 **Rule:** an absolutely positioned overlay may not encode another component's height as a literal.
 Take the inset from the hook and the height from `onLayout`.
 
+*2026-09-26:* the button is no longer an overlay. Floating over a scrolling list, it covered the
+first transaction's amount once the list moved. It is now a pill in the title row beside the gear
+(`TransactionsTitleRow`), so it scrolls with the title and needs no position of its own; the
+measuring above, `onTitleRowLayout` and `TITLE_ROW_HEIGHT_FALLBACK` are gone. The rule still holds
+for any overlay that remains — but the first question is whether it needs to be an overlay at all.
+
 **A silent catch is not an empty state.** `TransactionSummaryContext` swallowed every summary
 failure with `catch { /* silent — chart shows empty state */ }`, which made a broken request
 indistinguishable from a month with no transactions — the chart just went blank with nothing to say

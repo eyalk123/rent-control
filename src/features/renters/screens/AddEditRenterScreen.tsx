@@ -1,5 +1,6 @@
 import { LoadingOverlay, ScreenContainer, FormHeader } from "@/src/shared/components/ui";
-import { useRenterContext, usePropertyContext } from "@/src/context";
+import { useRenterContext } from "@/src/context";
+import { useAccessibleProperties } from "@/src/features/properties/context/PropertyContext";
 import { useWatch } from "react-hook-form";
 import { useRenterForm } from "@/src/features/renters/hooks/useRenterForm";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
@@ -90,7 +91,7 @@ export function AddEditRenterScreen() {
 
   // Renter-scan property association: preselect the matched property, and softly warn if the
   // user picks one whose address differs from the lease. The picker stays the source of truth.
-  const { properties } = usePropertyContext();
+  const { properties } = useAccessibleProperties();
   const selectedPropertyId = useWatch({ control, name: "propertyId" });
   const scannedLeaseAddress = scan?.property
     ? {

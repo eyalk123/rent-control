@@ -4,7 +4,7 @@ import { Text, useTheme } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { darkColors, ICON_MD, ICON_SM, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, ICON_MD, ICON_SM, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
@@ -492,7 +492,7 @@ export function NeedsAttentionSection() {
     return (
       <>
         {header}
-        <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
+        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         {[0, 1].map((i) => (
           <View key={i}>
             {i > 0 && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
@@ -561,7 +561,7 @@ export function NeedsAttentionSection() {
     <>
       {header}
       <TourAnchor id={ANCHORS.homeNeedsAttention}>
-      <View style={[styles.card, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: colors.outline }]}>
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         {previewItems.map((item, idx) => (
           <AttentionItemRow
             key={item.notifId}
@@ -626,7 +626,8 @@ export function NeedsAttentionSection() {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: radii.lg,
+    ...cardShadow,
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
   },

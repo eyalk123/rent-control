@@ -23,10 +23,12 @@ import {
   FilterBottomSheet,
   FilterOption,
 } from '@/src/shared/components/ui';
-import { PropertyCard } from '@/src/features/properties/components/PropertyCard';
+import { LockedPropertyCard, PropertyCard } from '@/src/features/properties/components/PropertyCard';
+import { useSubscription } from '@/src/features/subscription/SubscriptionContext';
 import { OverLimitNotice } from '@/src/features/subscription/components/OverLimitNotice';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { deleteProperty } from '@/src/features/properties/api/properties';
+import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { formatPropertyAddress } from '@/src/shared/utils/propertyAddress';
 import { spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
@@ -49,6 +51,7 @@ export function PropertiesListScreen() {
   const { appAlert } = useAlert();
   const rtlLabelStyle = useRtlLabelStyle();
   const { properties, loading, error, refreshProperties } = usePropertyContext();
+  const { isLocked, refresh: refreshSubscription } = useSubscription();
   const { renters } = useRenterContext();
   const [refreshing, setRefreshing] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
@@ -73,7 +76,7 @@ export function PropertiesListScreen() {
   // Floor/apartment included: two flats in one building share an address, and without
   // the unit the two rows are the same word twice.
   const propertyOptions = useMemo<FilterOption[]>(
-    () => properties.map((p) => ({ id: p.id, label: formatPropertyAddress(p, t) })),
+    () => properties.map((p) => ({ id: p.id, label: formatPropertyAddress(p, t), icon: getPropertyTypeIcon(p.type) })),
     [properties, t],
   );
 
@@ -81,7 +84,7 @@ export function PropertiesListScreen() {
     () =>
       renters
         .filter((r) => r.property_id != null)
-        .map((r) => ({ id: r.id, label: `${r.first_name} ${r.last_name}` })),
+        .map((r) => ({ id: r.id, label: `${r.first_name} ${r.last_name}`, icon: 'user' })),
     [renters],
   );
 
@@ -92,7 +95,7 @@ export function PropertiesListScreen() {
       const o = p.property_owner?.trim();
       if (o && !seen.has(o)) {
         seen.add(o);
-        opts.push({ id: o, label: o });
+        opts.push({ id: o, label: o, icon: 'briefcase' });
       }
     }
     return opts;
@@ -157,6 +160,36 @@ export function PropertiesListScreen() {
     }
     router.push(`/properties/${id}` as any);
   }, [isSelectMode, router]);
+
+  const handleUpgrade = useCallback(() => {
+    router.push('/settings/plans' as never);
+  }, [router]);
+
+  // A locked property does not open, so its row carries its own delete: removing one is
+  // how an over-limit account gets back under its plan.
+  const handleDeleteLocked = useCallback((id: number) => {
+    const property = properties.find((p) => p.id === id);
+    appAlert(
+      t('subscription.lockedCard.deleteTitle', { address: property?.address ?? '' }),
+      t('bulkDelete.deleteConfirmMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('bulkDelete.deleteButton'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteProperty(id);
+            } catch {
+              appAlert(t('bulkDelete.partialError', { success: 0, failed: 1 }));
+            }
+            // The locked set moves with the count, so both are stale now.
+            await Promise.all([refreshProperties(), refreshSubscription()]);
+          },
+        },
+      ],
+    );
+  }, [properties, appAlert, t, refreshProperties, refreshSubscription]);
 
   const handleLongPress = useCallback((id: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -307,7 +340,17 @@ export function PropertiesListScreen() {
       <FlatList
         data={filteredProperties}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
+        renderItem={({ item }) => isLocked(item.id) ? (
+          <LockedPropertyCard
+            property={item}
+            onPress={handlePropertyPress}
+            onLongPress={handleLongPress}
+            onUpgrade={handleUpgrade}
+            onDelete={handleDeleteLocked}
+            isSelectMode={isSelectMode}
+            isSelected={selectedIds.has(item.id)}
+          />
+        ) : (
           <PropertyCard
             property={item}
             onPress={handlePropertyPress}
@@ -316,7 +359,7 @@ export function PropertiesListScreen() {
             isSelected={selectedIds.has(item.id)}
           />
         )}
-        // Explains, once per plan, why some cards below are read-only. In the header
+        // Explains, once per plan, why some cards below are locked. In the header
         // rather than beside a card: it is about the account, not about one property, and
         // it scrolls away with the list instead of eating a fixed strip of a phone screen.
         ListHeaderComponent={<OverLimitNotice />}

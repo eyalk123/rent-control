@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import { spacing } from '@/src/core/theme';
+import { cardShadow, radii, spacing } from '@/src/core/theme';
 import { FilterChipsBar, type FilterChip } from './FilterChipsBar';
 
 interface FilterBarProps {
@@ -35,14 +35,11 @@ export function FilterBar({ chips, children, style }: FilterBarProps) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
-    padding: spacing.sm,
-    gap: spacing.sm,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    // Same radius and shadow as the rows below it, so the filter card and the list read as
+    // one system rather than two.
+    borderRadius: radii.lg,
+    padding: spacing.sm + 2,
+    gap: spacing.sm + 2,
+    ...cardShadow,
   },
 });

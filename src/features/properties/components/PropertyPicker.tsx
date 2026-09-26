@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { type StyleProp, type ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
-import { usePropertyContext } from "@/src/context";
+import { useAccessibleProperties } from "@/src/features/properties/context/PropertyContext";
 import { DropdownField } from "@/src/shared/components/form";
 import { formatFloorApartment } from "@/src/shared/utils/propertyAddress";
 
@@ -23,7 +23,7 @@ export function PropertyPicker({
   error,
 }: PropertyPickerProps) {
   const { t } = useTranslation();
-  const { properties } = usePropertyContext();
+  const { properties } = useAccessibleProperties();
 
   const data = useMemo(
     () => [

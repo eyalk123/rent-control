@@ -4,7 +4,7 @@ import { Button, Card, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Icon } from '@/src/shared/components/ui';
-import { darkColors, lightColors } from '@/src/core/theme';
+import { cardShadow, darkColors, lightColors, radii } from '@/src/core/theme';
 import { useSubscription } from '../SubscriptionContext';
 
 /**
@@ -45,7 +45,7 @@ export function OverLimitNotice() {
   const limit = subscription.limit ?? 0;
 
   return (
-    <Card style={[styles.card, { borderColor: colors.outline }]} mode="outlined">
+    <Card style={[styles.card, { backgroundColor: colors.cardBackground }]} mode="contained">
       <Card.Content>
         <View style={styles.header}>
           <View style={[styles.iconWrap, { backgroundColor: colors.primaryBg }]}>
@@ -84,12 +84,13 @@ export function OverLimitNotice() {
 }
 
 const styles = StyleSheet.create({
-  card: { marginHorizontal: 16, marginBottom: 12, borderWidth: 1, borderRadius: 12 },
+  // Borderless with the list's shadow, like the property rows it sits above.
+  card: { marginHorizontal: 16, marginBottom: 12, borderRadius: radii.lg, ...cardShadow },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   iconWrap: {
     width: 30,
     height: 30,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, TextInput, View, StyleSheet } from 'react-native';
 import { RadioButton, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { useLanguageContext, usePropertyContext, useRenterContext, useRtlLabelStyle } from '@/src/context';
+import { useLanguageContext, useRenterContext, useRtlLabelStyle } from '@/src/context';
+import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { sortOptions } from '@/src/shared/utils/sortOptions';
@@ -119,7 +120,7 @@ export function ScopeSelector({ value, onChange }: Props) {
   const rtlLabelStyle = useRtlLabelStyle();
   const { isRtl, language } = useLanguageContext();
   const [kind, setKind] = useState<ScopeKind>(() => initialKind(value));
-  const { properties } = usePropertyContext();
+  const { properties } = useAccessibleProperties();
   const { renters } = useRenterContext();
 
   // These render as inline checklists rather than through DropdownField, so they sort themselves.

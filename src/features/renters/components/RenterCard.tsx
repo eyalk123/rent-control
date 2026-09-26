@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Card, Checkbox, Text, useTheme } from 'react-native-paper';
-import { Icon } from '@/src/shared/components/ui';
+import { StyleSheet, View } from 'react-native';
+import { Checkbox, Text, useTheme } from 'react-native-paper';
+import { ListCard, StatusPill } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Renter } from '@/src/shared/types';
 import { getLeaseEndDate } from '@/src/shared/types';
@@ -37,112 +37,106 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
     () => getLeaseUrgency(openEnded ? null : leaseEndDate),
     [leaseEndDate, openEnded],
   );
-  const leaseEndLabel = openEnded
+  // The date alone: the caption above it says what it is, and without the "Lease ends:"
+  // prefix it fits the narrow column at the end of the card.
+  const leaseEndValue = openEnded
     ? t('renter.openEndedShort')
     : leaseEndDate
-      ? t('renter.leaseEnd', { date: formatDateFull(leaseEndDate, language) })
+      ? formatDateFull(leaseEndDate, language)
       : null;
+  // A lease that ran out on an ended tenancy is history, not a warning.
+  const leaseEndColor = ended
+    ? colors.textSecondary
+    : leaseUrgency === 'expired'
+      ? colors.error
+      : leaseUrgency === 'soon'
+        ? colors.accent
+        : colors.textPrimary;
 
   return (
-    <TouchableOpacity onPress={() => onPress(renter.id)} onLongPress={onLongPress ? () => onLongPress(renter.id) : undefined} activeOpacity={0.7}>
-      <Card style={styles.card} mode="outlined">
-        <Card.Content style={styles.content}>
-          {isSelectMode && (
-            <Checkbox
-              status={isSelected ? 'checked' : 'unchecked'}
-              onPress={() => onPress(renter.id)}
-            />
-          )}
-          <RenterAvatar
-            renter={renter}
-            size={50}
-            backgroundColor={colors.avatarBackground}
-            textColor={colors.avatarText}
-            style={[styles.avatar, { borderWidth: 1, borderColor: colors.avatarBorder }]}
-          />
-          <View style={styles.info}>
-            <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
-              {renter.first_name} {renter.last_name}
-            </Text>
-            <Text
-              variant="bodySmall"
-              style={{ color: colors.textSecondary }}
-              numberOfLines={1}
-            >
-              {renter.property ? `${renter.property.address}${formatFloorApartment(renter.property, t)}` : t('renter.unassigned')}
-            </Text>
-            <View
-              style={[
-                styles.badge,
-                { backgroundColor: ended ? colors.textSecondary : colors.success },
-              ]}
-            >
-              <Text variant="labelSmall" style={[styles.badgeText, { color: colors.onPrimary }]}>
-                {t(ended ? 'renter.status.ended' : 'renter.status.active')}
-              </Text>
-            </View>
-            {leaseEndLabel && (
-              <Text
-                variant="labelSmall"
-                style={[
-                  styles.leaseEndText,
-                  { color: colors.textSecondary },
-                  leaseUrgency === 'soon' && { color: colors.accent, fontWeight: '700' },
-                  leaseUrgency === 'expired' && { color: colors.error, fontWeight: '700' },
-                ]}
-                numberOfLines={1}
-              >
-                {leaseEndLabel}
-              </Text>
-            )}
-          </View>
-          {!isSelectMode && (
-            <Icon
-              name="chevron-right"
-              size={24}
+    <ListCard
+      onPress={() => onPress(renter.id)}
+      onLongPress={onLongPress ? () => onLongPress(renter.id) : undefined}
+    >
+      {isSelectMode && (
+        <Checkbox
+          status={isSelected ? 'checked' : 'unchecked'}
+          onPress={() => onPress(renter.id)}
+        />
+      )}
+      <RenterAvatar
+        renter={renter}
+        size={52}
+        radius={12}
+        backgroundColor={colors.primaryBg}
+        textColor={colors.primary}
+      />
+      <View style={styles.info}>
+        <Text variant="titleSmall" style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+          {renter.first_name} {renter.last_name}
+        </Text>
+        <Text
+          variant="bodySmall"
+          style={{ color: colors.textSecondary }}
+          numberOfLines={1}
+        >
+          {renter.property ? `${renter.property.address}${formatFloorApartment(renter.property, t)}` : t('renter.unassigned')}
+        </Text>
+        {/* Only the exception gets a pill. An "Active" pill on every row of the Active tab
+            said nothing the tab had not already said. */}
+        {ended ? (
+          <View style={styles.pillRow}>
+            <StatusPill
+              label={t('renter.status.ended')}
+              backgroundColor={colors.outline}
               color={colors.textSecondary}
             />
-          )}
-        </Card.Content>
-      </Card>
-    </TouchableOpacity>
+          </View>
+        ) : null}
+      </View>
+      {leaseEndValue && !isSelectMode ? (
+        <View style={styles.trailing}>
+          <Text
+            variant="labelSmall"
+            style={[styles.caption, { color: colors.textSecondary }]}
+            numberOfLines={1}
+          >
+            {t('renter.leaseEndsCaption')}
+          </Text>
+          <Text
+            variant="labelLarge"
+            style={[styles.leaseEndValue, { color: leaseEndColor }]}
+            numberOfLines={1}
+          >
+            {leaseEndValue}
+          </Text>
+        </View>
+      ) : null}
+    </ListCard>
   );
 });
 
 const styles = StyleSheet.create({
-  card: {
-    marginVertical: 4,
-    marginHorizontal: 16,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-  },
-  avatar: {
-    marginEnd: 12
-  },
   info: {
     flex: 1,
+    gap: 3,
   },
   name: {
     fontWeight: '700',
-    marginBottom: 2,
   },
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    marginTop: 4,
+  pillRow: {
+    flexDirection: 'row',
+    marginTop: 3,
   },
-  badgeText: {
+  trailing: {
+    alignItems: 'flex-end',
+    maxWidth: '38%',
+    gap: 2,
+  },
+  caption: {
     fontSize: 11,
   },
-  leaseEndText: {
-    marginTop: 2,
-    fontSize: 11,
+  leaseEndValue: {
+    fontWeight: '600',
   },
 });

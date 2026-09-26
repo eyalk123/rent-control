@@ -160,7 +160,6 @@ export function PlanScreen() {
                     <Icon name="lock" size={18} color={props.color} />
                   </View>
                 )}
-                onPress={() => router.push(`/(tabs)/properties/${property.id}` as never)}
               />
             ))}
           </List.Section>

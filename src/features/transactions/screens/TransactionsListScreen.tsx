@@ -19,7 +19,7 @@ import {
   ScreenContainer,
 } from '@/src/shared/components/ui';
 import { useLanguageContext } from '@/src/context';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { spacing } from '@/src/core/theme';
 import { useTransactionSummaryContext } from '@/src/features/transactions/context/TransactionSummaryContext';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import type { Transaction } from '@/src/shared/types';
@@ -28,14 +28,13 @@ import { TransactionRow } from '@/src/features/transactions/components/list/Tran
 import { useTransactionFilters } from '@/src/features/transactions/hooks/useTransactionFilters';
 import { useTransactionSelectMode } from '@/src/features/transactions/hooks/useTransactionSelectMode';
 import { SelectionHeader } from '@/src/features/transactions/components/list/SelectionHeader';
-import { TransactionsListHeader, TITLE_ROW_HEIGHT_FALLBACK } from '@/src/features/transactions/components/list/TransactionsListHeader';
+import { TransactionsListHeader, TransactionsTitleRow } from '@/src/features/transactions/components/list/TransactionsListHeader';
 import { TransactionSectionHeader } from '@/src/features/transactions/components/list/TransactionSectionHeader';
 import { TransactionListFABs } from '@/src/features/transactions/components/list/TransactionListFABs';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour } from '@/src/features/onboarding/TourController';
 import { TransactionFilterSheets } from '@/src/features/transactions/components/list/TransactionFilterSheets';
-import { SuppliersHeaderButton } from '@/src/features/transactions/components/list/SuppliersHeaderButton';
 
 const EMPTY_KEY: Record<string, string> = {
   all: 'empty.noTransactionSearchResults',
@@ -68,6 +67,10 @@ const styles = StyleSheet.create({
   footerHidden: {
     opacity: 0,
   },
+  /** The empty and error states have no list, so the title row takes the list's inset itself. */
+  emptyTitleRow: {
+    paddingHorizontal: spacing.lg,
+  },
 });
 
 export function TransactionsListScreen() {
@@ -76,7 +79,6 @@ export function TransactionsListScreen() {
   useTour('transactions-list');
   const { t } = useTranslation();
   const theme = useTheme();
-  const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { language } = useLanguageContext();
@@ -102,8 +104,6 @@ export function TransactionsListScreen() {
   });
 
   const [refreshing, setRefreshing] = useState(false);
-  // Measured from the list header; the floating Suppliers button sits below it.
-  const [titleRowHeight, setTitleRowHeight] = useState(TITLE_ROW_HEIGHT_FALLBACK);
   const [selectedKey, setSelectedKey] = useState(filters.currentKey);
 
   const selectedBucket =
@@ -142,13 +142,15 @@ export function TransactionsListScreen() {
   if (error && transactions.length === 0) {
     return (
       <ScreenContainer edges={['top', 'left', 'right']}>
+        <View style={styles.emptyTitleRow}>
+          <TransactionsTitleRow onSuppliersPress={handleSuppliersPress} />
+        </View>
         <EmptyState
           message={error}
           icon="alert-circle"
           actionLabel={t('common.tryAgain')}
           onAction={refresh}
         />
-        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
       </ScreenContainer>
     );
   }
@@ -156,13 +158,15 @@ export function TransactionsListScreen() {
   if (transactions.length === 0) {
     return (
       <ScreenContainer edges={['top', 'left', 'right']}>
+        <View style={styles.emptyTitleRow}>
+          <TransactionsTitleRow onSuppliersPress={handleSuppliersPress} />
+        </View>
         <EmptyState
           message={t('empty.noTransactions', {
             defaultValue: 'No transactions yet. Tap + to add one.',
           })}
           icon="wallet"
         />
-        <SuppliersHeaderButton colors={colors} onPress={handleSuppliersPress} label={t('suppliers.title')} />
         <AppFab
           icon="plus"
           onPress={handleAddPress}
@@ -207,9 +211,8 @@ export function TransactionsListScreen() {
             summaryLoading={summaryLoading}
             summaryError={summaryError}
             onRetrySummary={refreshSummary}
-            onTitleRowLayout={(h) =>
-              setTitleRowHeight((prev) => (Math.abs(prev - h) < 0.5 ? prev : h))
-            }
+            onSuppliersPress={handleSuppliersPress}
+            showSuppliers={!selectMode.isSelectMode}
           />
         }
         renderSectionFooter={renderSectionFooter}
@@ -288,15 +291,6 @@ export function TransactionsListScreen() {
         onAdd={handleAddPress}
         bottomInset={insets.bottom}
       />
-
-      {!selectMode.isSelectMode && (
-        <SuppliersHeaderButton
-          colors={colors}
-          onPress={handleSuppliersPress}
-          label={t('suppliers.title')}
-          titleRowHeight={titleRowHeight}
-        />
-      )}
 
       <TransactionFilterSheets
         activeSheet={filters.activeSheet}

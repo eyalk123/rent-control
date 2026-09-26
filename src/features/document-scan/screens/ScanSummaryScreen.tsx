@@ -7,7 +7,8 @@ import { Icon, ScreenContainer, FormHeader } from '@/src/shared/components/ui';
 import { DropdownField } from '@/src/shared/components/form';
 import { spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
-import { usePropertyContext, useRenterContext } from '@/src/context';
+import { useRenterContext } from '@/src/context';
+import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { peekScanHandoff, setScanHandoff } from '@/src/features/document-scan/handoff';
 import type { MappedRenter } from '@/src/features/document-scan/mapExtraction';
@@ -30,7 +31,7 @@ export function ScanSummaryScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { target } = useLocalSearchParams<{ target?: 'property' | 'renter' }>();
-  const { properties } = usePropertyContext();
+  const { properties } = useAccessibleProperties();
   const { renters: existingRenters } = useRenterContext();
 
   // Read the handoff once (it isn't consumed until the add screens run).

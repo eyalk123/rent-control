@@ -8,9 +8,9 @@ import { darkColors, lightColors } from '@/src/core/theme';
 /**
  * The marker on a property the plan no longer covers.
  *
- * Says "read-only", not "locked out". Nothing has been hidden or deleted — the record
- * still opens, still reports and still exports — and a badge implying otherwise would
- * contradict the published refund policy as well as frightening people about their data.
+ * A locked property cannot be opened: the list shows it as a stub and every other read
+ * is refused. Nothing is deleted, though, and the account export still includes it — the
+ * over-limit notice says so, so the badge itself can stay one word.
  */
 export function LockedBadge({ compact = false }: { compact?: boolean }) {
   const { t } = useTranslation();
@@ -25,7 +25,7 @@ export function LockedBadge({ compact = false }: { compact?: boolean }) {
         { backgroundColor: colors.inputFilledBackground, borderColor: colors.outline },
       ]}
       accessibilityRole="text"
-      accessibilityLabel={t('subscription.readOnly')}
+      accessibilityLabel={t('subscription.locked')}
     >
       <Icon name="lock" size={compact ? 10 : 12} color={colors.textSecondary} />
       <Text
@@ -36,7 +36,7 @@ export function LockedBadge({ compact = false }: { compact?: boolean }) {
           { color: colors.textSecondary },
         ]}
       >
-        {t('subscription.readOnly')}
+        {t('subscription.locked')}
       </Text>
     </View>
   );

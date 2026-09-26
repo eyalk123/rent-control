@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { darkColors, ICON_MD, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, ICON_MD, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
 import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
 
 interface ActionButton {
@@ -69,7 +69,7 @@ export function QuickActionsSection() {
       {actions.map((action) => (
         <TouchableOpacity
           key={action.key}
-          style={[styles.button, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.outline }]}
+          style={[styles.button, { backgroundColor: theme.colors.surface }]}
           onPress={action.onPress}
           activeOpacity={0.7}
         >
@@ -98,7 +98,8 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: radii.lg,
+    ...cardShadow,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
     flexDirection: 'column',

@@ -6,7 +6,8 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePropertyContext, useRenterContext, useRtlLabelStyle } from '@/src/context';
+import { useRenterContext, useRtlLabelStyle } from '@/src/context';
+import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 import {
   AppFab,
   AddOptionsDialog,
@@ -24,6 +25,7 @@ import { RenterCard } from '@/src/features/renters/components/RenterCard';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { deleteRenter } from '@/src/features/renters/api/renters';
 import { getEffectiveLeaseEnd, getRenterLifecycle } from '@/src/shared/utils/renterStatus';
+import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { formatPropertyAddress } from '@/src/shared/utils/propertyAddress';
 import { spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
@@ -48,7 +50,7 @@ export function RentersListScreen() {
   const { appAlert } = useAlert();
   const rtlLabelStyle = useRtlLabelStyle();
   const { renters, loading, error, refreshRenters } = useRenterContext();
-  const { properties } = usePropertyContext();
+  const { properties } = useAccessibleProperties();
   const [refreshing, setRefreshing] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -85,7 +87,7 @@ export function RentersListScreen() {
     for (const r of renters) {
       if (r.property && !seen.has(r.property.id)) {
         seen.add(r.property.id);
-        opts.push({ id: r.property.id, label: formatPropertyAddress(r.property, t) });
+        opts.push({ id: r.property.id, label: formatPropertyAddress(r.property, t), icon: getPropertyTypeIcon(r.property.type) });
       }
     }
     return opts;
@@ -94,7 +96,7 @@ export function RentersListScreen() {
   }, [renters, t]);
 
   const renterOptions = useMemo<FilterOption[]>(
-    () => renters.map((r) => ({ id: r.id, label: `${r.first_name} ${r.last_name}` })),
+    () => renters.map((r) => ({ id: r.id, label: `${r.first_name} ${r.last_name}`, icon: 'user' })),
     [renters],
   );
 
@@ -105,7 +107,7 @@ export function RentersListScreen() {
       const o = p.property_owner?.trim();
       if (o && !seen.has(o)) {
         seen.add(o);
-        opts.push({ id: o, label: o });
+        opts.push({ id: o, label: o, icon: 'briefcase' });
       }
     }
     return opts;

@@ -12,6 +12,8 @@ interface RenterAvatarProps {
   backgroundColor?: string;
   /** Override text color when showing initials. */
   textColor?: string;
+  /** Corner radius. Defaults to a circle. */
+  radius?: number;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -20,6 +22,7 @@ export function RenterAvatar({
   size = 40,
   backgroundColor,
   textColor,
+  radius,
   style,
 }: RenterAvatarProps) {
   const theme = useTheme();
@@ -29,12 +32,14 @@ export function RenterAvatar({
   const bg = backgroundColor ?? colors.inputBackground;
   const txtColor = textColor ?? colors.textSecondary;
 
+  const borderRadius = radius ?? size / 2;
+
   const initials = `${renter.first_name?.[0] ?? ''}${renter.last_name?.[0] ?? ''}`.toUpperCase() || '?';
 
   return (
-    <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: bg }, style]}>
+    <View style={[styles.avatar, { width: size, height: size, borderRadius, backgroundColor: bg }, style]}>
       {imageUri ? (
-        <Image source={{ uri: imageUri }} style={[styles.image, { width: size, height: size, borderRadius: size / 2 }]} />
+        <Image source={{ uri: imageUri }} style={[styles.image, { width: size, height: size, borderRadius }]} />
       ) : (
         <Text variant="labelLarge" style={{ color: txtColor, fontSize: size * 0.4, lineHeight: size * 0.5 }}>
           {initials}

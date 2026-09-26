@@ -1,14 +1,16 @@
 /**
  * A single transaction row card.
  *
- * - Leading 32×32 circle (revenue ↑ / expense ↓ icon, tinted)
- * - Colored left edge (3px, revenue teal / expense copper) — redundant with
- *   the icon color so colorblind users still distinguish revenue from expense.
+ * - Leading 36×36 tile (revenue ↑ / expense ↓ icon, tinted)
  * - Right side: signed amount + date.
+ *
+ * Borderless, on the same surface as the Properties and Renters rows. There used to be a
+ * coloured leading edge as well, but it only ever repeated the icon's colour - it could not
+ * help anyone who cannot tell teal from copper. The arrow's direction and the +/− sign carry
+ * revenue vs expense without relying on colour.
  */
 import React from 'react';
 import {
-  I18nManager,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -16,9 +18,11 @@ import {
 import { Checkbox, Text, useTheme } from 'react-native-paper';
 
 import {
+  cardShadow,
   darkColors,
   ICON_XS,
   lightColors,
+  radii,
   spacing,
   useIsLargeText,
 } from '@/src/core/theme';
@@ -50,7 +54,6 @@ export const TransactionRow = React.memo(function TransactionRow({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const isLargeText = useIsLargeText();
-  const isRtl = I18nManager.isRTL;
 
   const subtitle = React.useMemo(() => (
     [
@@ -72,11 +75,6 @@ export const TransactionRow = React.memo(function TransactionRow({
   const bg = isRevenue ? colors.revBg : colors.expBg;
   const sign = isRevenue ? '+' : '−'; // U+2212
 
-  // Leading-edge color bar: in RTL, the leading edge is on the right.
-  const edgeStyle = isRtl
-    ? { borderRightWidth: 3, borderRightColor: fg }
-    : { borderLeftWidth: 3, borderLeftColor: fg };
-
   return (
     <TouchableOpacity
       onPress={() => onPress(transaction.id)}
@@ -84,15 +82,7 @@ export const TransactionRow = React.memo(function TransactionRow({
       activeOpacity={0.7}
     >
       <View
-        style={[
-          styles.card,
-          edgeStyle,
-          {
-            backgroundColor: colors.surface,
-            borderColor: colors.outline,
-            shadowColor: '#000',
-          },
-        ]}
+        style={[styles.card, { backgroundColor: colors.surface }]}
       >
         {isSelectMode ? (
           <Checkbox
@@ -145,18 +135,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: spacing.sm,
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    borderRadius: radii.lg,
+    marginBottom: 10,
+    ...cardShadow,
   },
   iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -7,7 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Icon, ScreenContainer, FormHeader } from '@/src/shared/components/ui';
 import { useAlert } from '@/src/core/context';
-import { usePropertyContext } from '@/src/context';
+import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 import { spacing } from '@/src/core/theme';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { extractLease, type PickedFile } from '@/src/features/document-scan/api/extractLease';
@@ -49,7 +49,7 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
   const theme = useTheme();
   const router = useRouter();
   const { appAlert } = useAlert();
-  const { properties } = usePropertyContext();
+  const { properties } = useAccessibleProperties();
   const { propertyId } = useLocalSearchParams<{ propertyId?: string }>();
   const [pages, setPages] = React.useState<PickedFile[]>([]);
   const [busy, setBusy] = React.useState(false);

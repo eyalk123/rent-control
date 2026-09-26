@@ -3,7 +3,7 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { darkColors, lightColors, spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
+import { darkColors, lightColors, radii, spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 
 export interface FilterChip {
@@ -61,10 +61,14 @@ export const FilterChipsBar = React.memo(function FilterChipsBar({ chips }: Filt
             accessibilityLabel={active ? `${chip.label}: ${chip.selectedLabel}` : chip.label}
             style={({ pressed }) => [
               styles.chip,
+              // At rest a chip is a soft fill with no outline: the filter card already frames
+              // the row, and an outline on every chip was one set of lines too many. Only a
+              // chip holding a value gets an edge, so the line itself says "this is narrowing
+              // the list".
               {
-                backgroundColor: active ? activeBg : 'transparent',
-                borderColor: active ? colors.textPrimary : colors.outline,
-                borderWidth: active ? 1.5 : 1,
+                backgroundColor: active ? activeBg : colors.controlFill,
+                borderColor: active ? colors.textPrimary : 'transparent',
+                borderWidth: 1.5,
                 opacity: pressed ? 0.8 : 1,
               },
             ]}
@@ -76,7 +80,7 @@ export const FilterChipsBar = React.memo(function FilterChipsBar({ chips }: Filt
               style={[
                 styles.chipLabel,
                 active && styles.chipLabelActive,
-                { color: active ? colors.textPrimary : colors.textSecondary },
+                { color: active ? colors.textPrimary : colors.fieldLabel },
               ]}
               numberOfLines={1}
             >
@@ -142,7 +146,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingStart: 12,
     paddingEnd: 9,
-    borderRadius: 999,
+    borderRadius: radii.pill,
     gap: 5,
     // A value longer than the card still truncates rather than forcing a horizontal overflow.
     maxWidth: '100%',

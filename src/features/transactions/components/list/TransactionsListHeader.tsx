@@ -11,13 +11,41 @@ import { type FilterChip } from './FilterChipsBar';
 import { TypeFilterChips, type TransactionTypeFilter } from './TypeFilterChips';
 import { FilterBar } from '@/src/shared/components/ui/FilterBar';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
+import { SuppliersHeaderButton } from './SuppliersHeaderButton';
+
+interface TransactionsTitleRowProps {
+  onSuppliersPress: () => void;
+  /** Hidden in select mode, where the row's controls would act on the wrong thing. */
+  showSuppliers?: boolean;
+}
 
 /**
- * First-frame fallback for the title row height, in dp. The real value is measured and
- * reported through `onTitleRowLayout` - this is only what `SuppliersHeaderButton` uses for
- * the frame before layout lands, and on the empty/error states, which render no title row.
+ * Title, Suppliers and the gear. Exported so the empty and error states carry the same row:
+ * Suppliers has to stay reachable before the first transaction exists.
  */
-export const TITLE_ROW_HEIGHT_FALLBACK = 56;
+export function TransactionsTitleRow({ onSuppliersPress, showSuppliers = true }: TransactionsTitleRowProps) {
+  const { t } = useTranslation();
+  const rtlLabelStyle = useRtlLabelStyle();
+
+  return (
+    <View style={styles.titleRow}>
+      <Text
+        variant="headlineLarge"
+        maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
+        numberOfLines={2}
+        style={[styles.screenTitle, rtlLabelStyle]}
+      >
+        {t('screens.transactions')}
+      </Text>
+      <View style={styles.titleActions}>
+        {showSuppliers ? (
+          <SuppliersHeaderButton onPress={onSuppliersPress} label={t('suppliers.title')} />
+        ) : null}
+        <SettingsGearButton />
+      </View>
+    </View>
+  );
+}
 
 interface TransactionsListHeaderProps {
   filterChips: FilterChip[];
@@ -30,8 +58,8 @@ interface TransactionsListHeaderProps {
   summaryLoading: boolean;
   summaryError: string | null;
   onRetrySummary: () => void;
-  /** Reports the measured title row height so the floating Suppliers button can clear it. */
-  onTitleRowLayout?: (height: number) => void;
+  onSuppliersPress: () => void;
+  showSuppliers?: boolean;
 }
 
 export function TransactionsListHeader({
@@ -45,27 +73,12 @@ export function TransactionsListHeader({
   summaryLoading,
   summaryError,
   onRetrySummary,
-  onTitleRowLayout,
+  onSuppliersPress,
+  showSuppliers,
 }: TransactionsListHeaderProps) {
-  const { t } = useTranslation();
-  const rtlLabelStyle = useRtlLabelStyle();
-
   return (
     <View>
-      <View
-        style={styles.titleRow}
-        onLayout={(e) => onTitleRowLayout?.(e.nativeEvent.layout.height)}
-      >
-        <Text
-          variant="headlineLarge"
-          maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
-          numberOfLines={2}
-          style={[styles.screenTitle, rtlLabelStyle]}
-        >
-          {t('screens.transactions')}
-        </Text>
-        <SettingsGearButton />
-      </View>
+      <TransactionsTitleRow onSuppliersPress={onSuppliersPress} showSuppliers={showSuppliers} />
       <DevProfiler id="TransactionsHero">
         <TransactionsHero bucket={heroBucket} loading={summaryLoading} />
       </DevProfiler>
@@ -94,11 +107,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  titleActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
   screenTitle: {
+    flexShrink: 1,
     fontWeight: '700',
     fontSize: 28,
     marginBottom: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    // No horizontal padding: the list's content container already insets by spacing.lg, and
+    // padding here as well put the title 16dp further in than on every other tab.
     paddingTop: spacing.sm,
   },
   filterCard: {

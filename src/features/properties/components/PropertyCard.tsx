@@ -1,12 +1,13 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
-import { Card, Checkbox, Text, useTheme } from 'react-native-paper';
-import { Icon } from '@/src/shared/components/ui';
+import { StyleSheet, View, Image } from 'react-native';
+import { Button, Checkbox, Text, useTheme } from 'react-native-paper';
+import { Icon, ListCard, StatusPill } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
 import { lightColors, darkColors } from '@/src/core/theme';
 import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
 import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
+import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { LockedBadge } from '@/src/features/subscription/components/LockedBadge';
 
@@ -23,159 +24,204 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
   const theme = useTheme();
   const isDark = theme.dark;
   const colors = isDark ? darkColors : lightColors;
+  const currentRenters = getCurrentRenters(property.renters);
   // The server sends `hasRenters`; the fallback is for payloads that only carry the
   // renter list. Either way a past tenant does not occupy the flat — they stay attached to
   // the property as its history, which is why counting the list marked it occupied forever.
-  const isOccupied =
-    property.hasRenters ?? getCurrentRenters(property.renters).length > 0;
+  const isOccupied = property.hasRenters ?? currentRenters.length > 0;
   const imageSource = usePropertyImageSource(property.image_url);
   const floorApartment = formatFloorApartment(property, t, false);
+  const typeLabel = t(`property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`);
+  // No ZIP code here: it is on the detail screen, and on a list row it was the part that
+  // pushed the property type off the end of the line.
+  // Floor/apartment gets its own line, as the card had before. Run into one line with the
+  // city and type, it wrapped mid-list and left a "•" hanging at the end of the first line.
+  const cityType = `${property.city} • ${typeLabel}`;
+
+  // Who lives there, on the side of the card that used to hold only a chevron. Two tenants
+  // on one lease show as the first name plus a count rather than a truncated pair.
+  const firstRenter = currentRenters[0];
+  const renterLabel = firstRenter
+    ? `${firstRenter.first_name} ${firstRenter.last_name}`.trim() +
+      (currentRenters.length > 1 ? ` +${currentRenters.length - 1}` : '')
+    : null;
 
   return (
-    <TouchableOpacity
+    <ListCard
       onPress={() => onPress(property.id)}
       onLongPress={onLongPress ? () => onLongPress(property.id) : undefined}
-      activeOpacity={0.7}
     >
-      <Card style={styles.card} mode="outlined">
-        <Card.Content style={styles.content}>
-          {isSelectMode && (
-            <Checkbox
-              status={isSelected ? 'checked' : 'unchecked'}
-              onPress={() => onPress(property.id)}
-            />
-          )}
-          {imageSource ? (
-            <Image
-              source={imageSource}
-              style={styles.thumbnail}
-              resizeMode="cover"
-            />
-          ) : (
-            <View
-              style={[
-                styles.thumbnailPlaceholder,
-                { backgroundColor: colors.inputBackground },
-              ]}
-            >
-              <Icon
-                name="home"
-                size={24}
-                color={colors.placeholder}
-              />
-            </View>
-          )}
-          <View style={styles.info}>
-            <Text variant="titleSmall" style={styles.address} numberOfLines={1}>
-              {property.address}
-            </Text>
-            {floorApartment !== '' && (
-              <Text
-                variant="bodySmall"
-                style={[styles.detail, { color: colors.textSecondary }]}
-                numberOfLines={1}
-              >
-                {floorApartment}
-              </Text>
-            )}
-            <Text
-              variant="bodySmall"
-              style={[styles.detail, { color: colors.textSecondary }]}
-              numberOfLines={1}
-            >
-              {property.city}{property.zip_code ? `, ${property.zip_code}` : ''} • {t(`property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`)}
-            </Text>
-            <View style={styles.statusRow}>
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: isOccupied ? colors.success : colors.error },
-                ]}
-              />
-              <Text
-                variant="labelSmall"
-                style={[
-                  styles.statusText,
-                  {
-                    color: isOccupied ? colors.success : colors.error,
-                  },
-                ]}
-              >
-                {isOccupied
-                  ? t('property.occupancy.occupied')
-                  : t('property.occupancy.vacant')}
-              </Text>
-              {/* Read straight off the property the API returned, so this badge and the
-                  one on the detail screen come from one server-side resolution and
-                  cannot disagree. */}
-              {property.locked ? <LockedBadge compact /> : null}
-            </View>
+      {isSelectMode && (
+        <Checkbox
+          status={isSelected ? 'checked' : 'unchecked'}
+          onPress={() => onPress(property.id)}
+        />
+      )}
+      {imageSource ? (
+        <Image source={imageSource} style={styles.thumbnail} resizeMode="cover" />
+      ) : (
+        <View style={[styles.thumbnail, styles.iconBox, { backgroundColor: colors.primaryBg }]}>
+          <Icon name={getPropertyTypeIcon(property.type)} size={24} color={colors.primary} />
+        </View>
+      )}
+      <View style={styles.info}>
+        <Text variant="titleSmall" style={[styles.address, { color: colors.textPrimary }]} numberOfLines={1}>
+          {property.address}
+        </Text>
+        {floorApartment !== '' && (
+          <Text
+            variant="bodySmall"
+            style={{ color: colors.textSecondary }}
+            numberOfLines={1}
+          >
+            {floorApartment}
+          </Text>
+        )}
+        <Text
+          variant="bodySmall"
+          style={[styles.detail, { color: colors.textSecondary }]}
+          numberOfLines={1}
+        >
+          {cityType}
+        </Text>
+        <View style={styles.statusRow}>
+          <StatusPill
+            label={isOccupied ? t('property.occupancy.occupied') : t('property.occupancy.vacant')}
+            backgroundColor={isOccupied ? colors.revBg : colors.expBg}
+            color={isOccupied ? colors.revFg : colors.expFg}
+          />
+        </View>
+      </View>
+      {renterLabel && !isSelectMode ? (
+        <View style={styles.trailing}>
+          <Icon name="user" size={14} color={colors.textSecondary} />
+          <Text
+            variant="labelMedium"
+            style={[styles.trailingText, { color: colors.textSecondary }]}
+            numberOfLines={1}
+          >
+            {renterLabel}
+          </Text>
+        </View>
+      ) : null}
+    </ListCard>
+  );
+});
+
+interface LockedPropertyCardProps {
+  property: Property;
+  /** Toggles selection in select mode. Outside it, the row itself does nothing. */
+  onPress: (id: number) => void;
+  onLongPress?: (id: number) => void;
+  onUpgrade: () => void;
+  onDelete: (id: number) => void;
+  isSelectMode?: boolean;
+  isSelected?: boolean;
+}
+
+/**
+ * A property over the plan's limit. The API sends only enough to recognise it — address,
+ * city, type — and refuses everything else, so this row has no photo, no occupancy, no
+ * renter and does not open. It offers the two ways out instead: a bigger plan, or deleting
+ * a property to get back under the limit. Still selectable, so a bulk delete can include it.
+ */
+export const LockedPropertyCard = React.memo(function LockedPropertyCard({
+  property,
+  onPress,
+  onLongPress,
+  onUpgrade,
+  onDelete,
+  isSelectMode = false,
+  isSelected = false,
+}: LockedPropertyCardProps) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const floorApartment = formatFloorApartment(property, t, false);
+  const typeLabel = t(`property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`);
+
+  return (
+    <ListCard
+      onPress={() => { if (isSelectMode) onPress(property.id); }}
+      onLongPress={onLongPress ? () => onLongPress(property.id) : undefined}
+    >
+      {isSelectMode && (
+        <Checkbox
+          status={isSelected ? 'checked' : 'unchecked'}
+          onPress={() => onPress(property.id)}
+        />
+      )}
+      <View style={[styles.thumbnail, styles.iconBox, { backgroundColor: colors.inputBackground }]}>
+        <Icon name="lock" size={22} color={colors.textSecondary} />
+      </View>
+      <View style={styles.info} testID="locked-property-card">
+        <Text variant="titleSmall" style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
+          {property.address}
+          {floorApartment !== '' ? ` ${floorApartment}` : ''}
+        </Text>
+        <Text variant="bodySmall" style={[styles.detail, { color: colors.textSecondary }]} numberOfLines={1}>
+          {`${property.city} • ${typeLabel}`}
+        </Text>
+        <View style={styles.statusRow}>
+          <LockedBadge compact />
+        </View>
+        {!isSelectMode && (
+          <View style={styles.lockedActions}>
+            <Button mode="contained" compact onPress={onUpgrade}>
+              {t('subscription.lockedCard.upgrade')}
+            </Button>
+            <Button mode="outlined" compact textColor={colors.error} onPress={() => onDelete(property.id)}>
+              {t('subscription.lockedCard.delete')}
+            </Button>
           </View>
-          {!isSelectMode && (
-            <Icon
-              name="chevron-right"
-              size={24}
-              color={colors.textSecondary}
-            />
-          )}
-        </Card.Content>
-      </Card>
-    </TouchableOpacity>
+        )}
+      </View>
+    </ListCard>
   );
 });
 
 const styles = StyleSheet.create({
-  card: {
-    marginVertical: 4,
-    marginHorizontal: 16,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  content: {
+  lockedActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 6,
   },
   thumbnail: {
-    width: 72,
-    height: 72,
-    borderRadius: 8,
-    marginEnd: 12,
+    width: 52,
+    height: 52,
+    borderRadius: 12,
   },
-  thumbnailPlaceholder: {
-    width: 72,
-    height: 72,
-    borderRadius: 8,
-    marginEnd: 12,
+  iconBox: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   info: {
     flex: 1,
+    gap: 3,
   },
   address: {
     fontWeight: '600',
-    marginBottom: 2,
   },
   detail: {
-    marginBottom: 4,
+    marginBottom: 3,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    // Wraps rather than squeezing: the read-only badge only appears on an over-limit
-    // account, and on a narrow phone it needs its own line rather than truncating the
-    // occupancy label next to it.
+    // Wraps rather than squeezing, so a pill never truncates on a narrow phone.
     flexWrap: 'wrap',
     gap: 6,
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginEnd: 4,
+  trailing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    maxWidth: '38%',
+    alignSelf: 'flex-start',
+    marginTop: 2,
   },
-  statusText: {
-    fontSize: 12,
+  trailingText: {
+    flexShrink: 1,
   },
 });

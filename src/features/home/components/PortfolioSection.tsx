@@ -3,12 +3,13 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, ICON_SM, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
 import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { formatMoney } from '@/src/shared/utils/money';
-import { usePropertyContext, useRenterContext, useTransactionSummaryContext } from '@/src/context';
+import { useRenterContext, useTransactionSummaryContext } from '@/src/context';
+import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 
 interface StatCardProps {
   icon: IconName;
@@ -19,11 +20,10 @@ interface StatCardProps {
   valueColor: string;
   labelColor: string;
   bg: string;
-  borderColor: string;
   onPress?: () => void;
 }
 
-function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColor, bg, borderColor, onPress }: StatCardProps) {
+function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColor, bg, onPress }: StatCardProps) {
   const content = (
     <>
       <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
@@ -36,13 +36,13 @@ function StatCard({ icon, iconColor, iconBg, value, label, valueColor, labelColo
 
   if (onPress) {
     return (
-      <TouchableOpacity style={[styles.card, { backgroundColor: bg, borderColor }]} onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity style={[styles.card, { backgroundColor: bg }]} onPress={onPress} activeOpacity={0.7}>
         {content}
       </TouchableOpacity>
     );
   }
 
-  return <View style={[styles.card, { backgroundColor: bg, borderColor }]}>{content}</View>;
+  return <View style={[styles.card, { backgroundColor: bg }]}>{content}</View>;
 }
 
 interface ThisMonthCardProps {
@@ -71,7 +71,7 @@ export function PortfolioSection() {
   const router = useRouter();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const { properties, loading: propLoading } = usePropertyContext();
+  const { properties, loading: propLoading } = useAccessibleProperties();
   const { renters, loading: renterLoading } = useRenterContext();
   const { heroBucket, summaryLoading } = useTransactionSummaryContext();
 
@@ -91,7 +91,7 @@ export function PortfolioSection() {
     return (
       <View style={styles.row}>
         {[0, 1].map((i) => (
-          <View key={i} style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
+          <View key={i} style={[styles.card, { backgroundColor: theme.colors.surface }]}>
             <SkeletonBlock opacity={shimmer} width={32} height={32} borderRadius={10} style={{ marginBottom: spacing.xs, marginTop: spacing.xs }} />
             <SkeletonBlock opacity={shimmer} width="60%" height={16} borderRadius={4} />
             <SkeletonBlock opacity={shimmer} width="70%" height={11} borderRadius={4} style={{ marginTop: 4 }} />
@@ -116,7 +116,6 @@ export function PortfolioSection() {
         valueColor={colors.textPrimary}
         labelColor={colors.textSecondary}
         bg={theme.colors.surface}
-        borderColor={theme.colors.outline}
         onPress={() => router.push('/(tabs)/properties')}
       />
       <StatCard
@@ -128,7 +127,6 @@ export function PortfolioSection() {
         valueColor={colors.textPrimary}
         labelColor={colors.textSecondary}
         bg={theme.colors.surface}
-        borderColor={theme.colors.outline}
         onPress={() => router.push('/(tabs)/renters')}
       />
       <ThisMonthCard
@@ -146,10 +144,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
   },
+  // Borderless with the list screens' shadow, so Home and the tabs read as one system.
   card: {
     flex: 1,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: radii.lg,
+    ...cardShadow,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xs,
     alignItems: 'center',
@@ -177,7 +176,6 @@ const styles = StyleSheet.create({
   },
   thisMonthCard: {
     flex: 1.5,
-    borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -9,7 +9,7 @@ import Plus from 'lucide-react-native/icons/plus';
 import Receipt from 'lucide-react-native/icons/receipt';
 import Share2 from 'lucide-react-native/icons/share-2';
 
-import { darkColors, lightColors } from '@/src/core/theme';
+import { darkColors, lightColors, cardShadow, radii } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
 import { formatDateShort } from '@/src/shared/utils/dates';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
@@ -173,9 +173,9 @@ export function HomeReportsCard() {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 14,
+    borderRadius: radii.lg,
     padding: 14,
-    borderWidth: StyleSheet.hairlineWidth,
+    ...cardShadow,
   },
   topRow: {
     flexDirection: 'row',

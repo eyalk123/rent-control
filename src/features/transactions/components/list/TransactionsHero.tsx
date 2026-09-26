@@ -113,8 +113,9 @@ export const TransactionsHero = React.memo(function TransactionsHero({ bucket, l
 });
 
 const styles = StyleSheet.create({
+  // No horizontal padding: the list already insets by spacing.lg, and the figures line up
+  // with the screen title above them.
   container: {
-    paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
@@ -148,7 +149,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   skeletonContainer: {
-    paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
     gap: spacing.sm,

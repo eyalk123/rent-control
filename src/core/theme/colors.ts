@@ -58,6 +58,11 @@ export const lightColors = {
   // as rgba() at four different alphas across seven files.
   accentBg: "rgba(212,162,76,0.14)",
   primaryBg: "rgba(30,58,95,0.10)",
+  // The resting fill of a borderless control: filter chips, segmented-control track, the
+  // search field in a filter sheet. One token so all three sit at the same weight.
+  controlFill: "rgba(26,45,74,0.06)",
+  // The raised thumb of a segmented control, sitting on controlFill.
+  controlThumb: "#FFFFFF",
 
   // Section accent (legacy)
   sectionAccent: "#D4A24C",
@@ -77,7 +82,9 @@ export const lightColors = {
   // P&L card backgrounds
   plPositiveBg: "#1F7A60",
   plNegativeBg: "#9A3412",
-  plNeutralBg: "#5A6472",
+  // Break-even is the brand navy, not slate. Slate beside white cards read as disabled, and a
+  // month with nothing booked yet is the normal state early in the month, not an absent one.
+  plNeutralBg: "#1E3A5F",
 
   // Avatar initials
   avatarBackground: "#EDF0F4",
@@ -142,6 +149,8 @@ export const darkColors = {
   // reproduces the 16.2%% chroma the old pairing gave, warm this time.
   accentBg: "rgba(194,149,67,0.28)",
   primaryBg: "rgba(101,172,226,0.18)",
+  controlFill: "rgba(239,238,235,0.07)",
+  controlThumb: "#3A4454",
 
   // Section accent
   sectionAccent: "#C29543",
@@ -164,7 +173,8 @@ export const darkColors = {
   // P&L card backgrounds - solid tiles that carry their own light text, independent of surface
   plPositiveBg: "#1F7A60",
   plNegativeBg: "#7A3020",
-  plNeutralBg: "#353C46", // was #3A3A3A - a 0% grey reads brown against a blue-cast page
+  // Navy to match light mode; deep enough that the cream label keeps ~8:1.
+  plNeutralBg: "#2B4A70",
 
   // Avatar initials - desaturated in step with the surfaces
   avatarBackground: "#354050",
