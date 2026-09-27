@@ -1,24 +1,16 @@
 import React from 'react';
 import { allowedModes } from '@/src/shared/utils/capabilities';
-import { currencySymbol } from '@/src/shared/utils/money';
-import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator, Switch, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { ScreenContainer } from '@/src/shared/components/ui';
-import { Icon } from '@/src/shared/components/ui/Icon';
-import { useAlert } from '@/src/core/context';
+import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
 import { useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
-import { deleteRule, getPreferences, updateRule, updateSettings } from '../api/preferences';
-import {
-  NOTIFICATION_EVENTS,
-  EVENT_REQUIREMENTS,
-  isRuleEvent,
-  type NotificationEvent,
-  type NotificationPreferences,
-  type NotificationRule,
-} from '../types';
+import { NOTIFICATION_EVENTS, EVENT_REQUIREMENTS, isRuleEvent, type NotificationEvent } from '../types';
+import { EVENT_ICONS, eventSummary } from '../summary';
+import { useNotificationPreferences } from '../hooks/useNotificationPreferences';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour } from '@/src/features/onboarding/TourController';
@@ -33,69 +25,19 @@ function NotificationsTourRequest() {
 }
 
 /**
- * The CPI event's stand-in for a rule editor. Offsets and scope make no sense for it —
- * it fires when the index moves — so the only dial is how big a change has to be before
- * it's worth an alert. Committed on blur so every keystroke isn't a PUT.
+ * The overview: the master switch, then one row per event saying when it fires (or that
+ * it is off). The master is the only switch here — an event's own on/off, its custom
+ * rules and the CPI threshold all live a tap deeper on NotificationEventScreen, so no
+ * control appears in two places.
  */
-function ThresholdField({
-  label,
-  suffix,
-  value,
-  onCommit,
-  colors,
-  surface,
-  rtlLabelStyle,
-}: {
-  label: string;
-  suffix: string;
-  value: number;
-  onCommit: (v: number) => void;
-  colors: typeof lightColors | typeof darkColors;
-  surface: string;
-  rtlLabelStyle: object;
-}) {
-  const [text, setText] = React.useState(String(value));
-
-  // Re-sync when a failed save rolls the stored value back under us.
-  React.useEffect(() => setText(String(value)), [value]);
-
-  const commit = () => {
-    const parsed = Number(text);
-    if (text.trim() === '' || Number.isNaN(parsed) || parsed < 0) {
-      setText(String(value)); // reject nonsense by snapping back to what is stored
-      return;
-    }
-    if (parsed !== value) onCommit(parsed);
-  };
-
-  return (
-    <View style={styles.thresholdField}>
-      <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>{label}</Text>
-      <View style={styles.thresholdInputRow}>
-        <TextInput
-          value={text}
-          onChangeText={setText}
-          onBlur={commit}
-          keyboardType="decimal-pad"
-          style={[
-            styles.thresholdInput,
-            { borderColor: colors.outline, color: colors.textPrimary, backgroundColor: surface },
-          ]}
-        />
-        <Text style={{ color: colors.textSecondary }}>{suffix}</Text>
-      </View>
-    </View>
-  );
-}
-
 export function NotificationsSettingsScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
-  const { appConfirm, appAlert } = useAlert();
   const rtlLabelStyle = useRtlLabelStyle();
   const { isRtl } = useLanguageContext();
+  const { prefs, settings, loading, patchSettings, isMuted } = useNotificationPreferences();
 
   const header = (
     <View style={[styles.pageHeader, { borderBottomColor: colors.outline }]}>
@@ -109,85 +51,7 @@ export function NotificationsSettingsScreen() {
     </View>
   );
 
-  const [prefs, setPrefs] = React.useState<NotificationPreferences | null>(null);
-  const [loading, setLoading] = React.useState(true);
-
-  const load = React.useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    try {
-      setPrefs(await getPreferences());
-    } catch {
-      // keep previous state on error
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      load(prefs !== null); // silent refetch when returning from the editor
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [load]),
-  );
-
-  const settings = prefs?.settings;
-  const masterOn = settings?.master_enabled ?? true;
-
-  const patchSettings = async (patch: Parameters<typeof updateSettings>[0]) => {
-    if (!settings) return;
-    const optimistic = { ...settings, ...patch };
-    setPrefs((p) => (p ? { ...p, settings: optimistic } : p));
-    try {
-      await updateSettings(patch);
-    } catch {
-      load(true);
-    }
-  };
-
-  const isMuted = (event: NotificationEvent) => settings?.muted_events.includes(event) ?? false;
-
-  const toggleMute = (event: NotificationEvent, enabled: boolean) => {
-    const current = settings?.muted_events ?? [];
-    const next = enabled ? current.filter((e) => e !== event) : [...current, event];
-    patchSettings({ muted_events: next });
-  };
-
-  const toggleRuleEnabled = async (rule: NotificationRule, value: boolean) => {
-    setPrefs((p) =>
-      p ? { ...p, rules: p.rules.map((r) => (r.id === rule.id ? { ...r, enabled: value } : r)) } : p,
-    );
-    try {
-      await updateRule(rule.id, { enabled: value });
-    } catch {
-      load(true);
-    }
-  };
-
-  const confirmDelete = async (rule: NotificationRule) => {
-    const ok = await appConfirm(t('notifications.deleteRuleTitle'), t('notifications.deleteRuleMessage'));
-    if (!ok) return;
-    try {
-      await deleteRule(rule.id);
-      load(true);
-    } catch {
-      appAlert(t('error.title', { defaultValue: 'Error' }), t('notifications.saveError', { defaultValue: 'Could not save. Please try again.' }));
-    }
-  };
-
-  const openEditor = (event: NotificationEvent, rule?: NotificationRule) =>
-    router.push({
-      pathname: '/notifications/rule',
-      params: rule ? { event, id: String(rule.id) } : { event },
-    } as never);
-
-  const scopeSummary = (rule: NotificationRule): string => {
-    if (rule.scope_property_owners.length) return rule.scope_property_owners.join(', ');
-    if (rule.scope_property_ids.length) return t('notifications.scopeCountProperties', { count: rule.scope_property_ids.length });
-    if (rule.scope_renter_ids.length) return t('notifications.scopeCountRenters', { count: rule.scope_renter_ids.length });
-    return t('notifications.scopeAll');
-  };
-
-  if (loading || !settings) {
+  if (loading || !prefs || !settings) {
     return (
       <ScreenContainer>
         {header}
@@ -198,153 +62,113 @@ export function NotificationsSettingsScreen() {
     );
   }
 
+  const masterOn = settings.master_enabled;
   const cardStyle = [styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }];
+  const chevron = isRtl ? 'chevron-left' : 'chevron-right';
   // Only the events this country can actually receive — see EVENT_REQUIREMENTS.
   const availableEvents = allowedModes(NOTIFICATION_EVENTS, EVENT_REQUIREMENTS);
   const firstRuleEvent = availableEvents.find(isRuleEvent);
+
+  const sectionLabel = (label: string) => (
+    <Text style={[styles.sectionLabel, rtlLabelStyle, { color: colors.textSecondary }]}>{label}</Text>
+  );
+
+  const iconBubble = (name: IconName, dim = false) => (
+    <View style={[styles.iconBubble, { backgroundColor: colors.primaryBg, opacity: dim ? 0.5 : 1 }]}>
+      <Icon name={name} size={ICON_SM} color={colors.primary} />
+    </View>
+  );
+
+  const openEvent = (event: NotificationEvent) =>
+    router.push({ pathname: '/notifications/event', params: { event } } as never);
 
   return (
     <ScreenContainer>
       {header}
       <NotificationsTourRequest />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[styles.subtitle, rtlLabelStyle, { color: colors.textSecondary }]}>
-          {t('notifications.subtitle')}
-        </Text>
-
-        {/* Master toggle */}
-        <View style={cardStyle}>
-          <View style={styles.row}>
-            <View style={styles.rowText}>
-              <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>{t('notifications.master')}</Text>
-              <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>{t('notifications.masterHint')}</Text>
-            </View>
-            <Switch value={masterOn} onValueChange={(v) => patchSettings({ master_enabled: v })} />
+        {/* Master switch — the page's one top-level control, set larger than the rows under it. */}
+        <View style={[...cardStyle, styles.masterRow]}>
+          <View style={styles.rowText}>
+            <Text style={[styles.masterTitle, rtlLabelStyle, { color: colors.textPrimary }]}>{t('notifications.master')}</Text>
+            <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>{t('notifications.masterHint')}</Text>
           </View>
+          <Switch
+            value={masterOn}
+            onValueChange={(v) => patchSettings({ master_enabled: v })}
+            accessibilityLabel={t('notifications.master')}
+          />
         </View>
 
-        {/* Per-event sections. The anchor wrapper repeats the scroll container's gap so
-            grouping the sections under it does not change their spacing. */}
-        <TourAnchor id={ANCHORS.notificationsEventList} style={styles.eventListAnchor}>
-        {availableEvents.map((event) => {
-          const rules = prefs.rules.filter((r) => r.event_type === event);
-          const muted = isMuted(event);
-          const dimmed = muted || !masterOn;
-          return (
-            <View key={event} style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, rtlLabelStyle, { color: colors.textPrimary }]}>
-                  {t(`notifications.event.${event}`)}
-                </Text>
-                <Switch value={!muted} onValueChange={(v) => toggleMute(event, v)} />
-              </View>
-
-              {/* Only the first rule-bearing event carries the anchor — the block is
-                  repeated per event, and it is present whether the event has rules yet
-                  or is still on its default. */}
-              <TourAnchor
-                id={event === firstRuleEvent ? ANCHORS.notificationsRulesEntry : undefined}
-                pointerEvents={dimmed ? 'none' : 'auto'}
-                style={{ opacity: dimmed ? 0.5 : 1 }}
-              >
-                {!isRuleEvent(event) ? (
-                  <View style={cardStyle}>
-                    <View style={styles.thresholdBlock}>
-                      <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>
-                        {t('notifications.cpiThresholdTitle')}
-                      </Text>
-                      <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>
-                        {t('notifications.cpiThresholdHint')}
-                      </Text>
-                      <View style={styles.thresholdFields}>
-                        <ThresholdField
-                          label={t('notifications.cpiMinAmount')}
-                          suffix={currencySymbol()}
-                          value={settings.cpi_min_change_amount}
-                          onCommit={(v) => patchSettings({ cpi_min_change_amount: v })}
-                          colors={colors}
-                          surface={theme.colors.surface}
-                          rtlLabelStyle={rtlLabelStyle}
-                        />
-                        <ThresholdField
-                          label={t('notifications.cpiMinPercent')}
-                          suffix="%"
-                          value={settings.cpi_min_change_percent}
-                          onCommit={(v) => patchSettings({ cpi_min_change_percent: v })}
-                          colors={colors}
-                          surface={theme.colors.surface}
-                          rtlLabelStyle={rtlLabelStyle}
-                        />
-                      </View>
-                    </View>
-                  </View>
-                ) : rules.length === 0 ? (
-                  <View style={cardStyle}>
-                    <View style={styles.row}>
+        {masterOn ? (
+          <View style={styles.section}>
+            {sectionLabel(t('notifications.sectionAlerts'))}
+            <TourAnchor id={ANCHORS.notificationsEventList} style={cardStyle}>
+              {availableEvents.map((event, i) => {
+                const muted = isMuted(event);
+                const rules = prefs.rules.filter((r) => r.event_type === event);
+                const title = t(`notifications.event.${event}`);
+                return (
+                  // Only the first rule-bearing event carries the rules anchor: it is the
+                  // row that leads to the reminder editor.
+                  <TourAnchor
+                    key={event}
+                    id={event === firstRuleEvent ? ANCHORS.notificationsRulesEntry : undefined}
+                    style={i > 0 ? [styles.divider, { borderTopColor: colors.outline }] : undefined}
+                  >
+                    <TouchableOpacity
+                      style={styles.eventRow}
+                      onPress={() => openEvent(event)}
+                      accessibilityRole="button"
+                      accessibilityLabel={title}
+                    >
+                      {iconBubble(EVENT_ICONS[event], muted)}
                       <View style={styles.rowText}>
-                        <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>{t('notifications.usingDefault')}</Text>
-                        <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>{t(`notifications.default.${event}`)}</Text>
+                        <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>{title}</Text>
+                        <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]} numberOfLines={2}>
+                          {muted ? t('notifications.eventOff') : eventSummary(event, rules, settings, t)}
+                        </Text>
                       </View>
-                      <TouchableOpacity onPress={() => openEditor(event)} style={[styles.outlineBtn, { borderColor: colors.outline }]}>
-                        <Text style={[styles.outlineBtnText, { color: colors.textPrimary }]}>{t('notifications.customize')}</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                ) : (
-                  <>
-                    {rules.map((rule) => (
-                      <View key={rule.id} style={[cardStyle, styles.ruleRow]}>
-                        <View style={styles.ruleInfo}>
-                          <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]} numberOfLines={1}>
-                            {rule.label || t('notifications.untitledRule')}
-                          </Text>
-                          <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]} numberOfLines={1}>
-                            {t(event === 'lease_expiring' ? 'notifications.summaryBefore' : 'notifications.summaryAfter', { days: rule.offsets.join(', ') })}
-                            {' · '}
-                            {scopeSummary(rule)}
-                          </Text>
-                        </View>
-                        <Switch value={rule.enabled} onValueChange={(v) => toggleRuleEnabled(rule, v)} />
-                        <TouchableOpacity onPress={() => openEditor(event, rule)} hitSlop={8} style={styles.iconBtn}>
-                          <Icon name="pencil" size={ICON_SM} color={colors.textSecondary} />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => confirmDelete(rule)} hitSlop={8} style={styles.iconBtn}>
-                          <Icon name="trash" size={ICON_SM} color={colors.error} />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                    <TouchableOpacity onPress={() => openEditor(event)} style={styles.addRow}>
-                      <Icon name="plus" size={ICON_SM} color={colors.primary} />
-                      <Text style={[styles.addText, { color: colors.primary }]}>{t('notifications.addRule')}</Text>
+                      <Icon name={chevron} size={ICON_SM} color={colors.textSecondary} />
                     </TouchableOpacity>
-                  </>
-                )}
-              </TourAnchor>
+                  </TourAnchor>
+                );
+              })}
+            </TourAnchor>
+          </View>
+        ) : (
+          <View style={styles.offNote}>
+            <Icon name="info" size={ICON_SM} color={colors.textSecondary} />
+            <View style={styles.rowText}>
+              <Text style={[styles.offNoteText, rtlLabelStyle, { color: colors.textSecondary }]}>{t('notifications.masterOff')}</Text>
             </View>
-          );
-        })}
-        </TourAnchor>
+          </View>
+        )}
 
         {/* The WhatsApp copy behind each alert's Message button. Not gated on the
             master switch: these messages are sent by hand from a feed row, so they
             still work for someone who has turned push off entirely. */}
-        <TourAnchor id={ANCHORS.notificationsTemplatesEntry}>
-        <TouchableOpacity
-          style={[...cardStyle, styles.row]}
-          onPress={() => router.push('/notifications/templates' as never)}
-          accessibilityRole="button"
-        >
-          <View style={styles.rowText}>
-            <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>
-              {t('notifications.messagesRow')}
-            </Text>
-            <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>
-              {t('notifications.messagesRowHint')}
-            </Text>
-          </View>
-          <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={ICON_SM} color={colors.textSecondary} />
-        </TouchableOpacity>
-        </TourAnchor>
+        <View style={styles.section}>
+          {sectionLabel(t('notifications.sectionMessages'))}
+          <TourAnchor id={ANCHORS.notificationsTemplatesEntry}>
+            <TouchableOpacity
+              style={[...cardStyle, styles.eventRow]}
+              onPress={() => router.push('/notifications/templates' as never)}
+              accessibilityRole="button"
+            >
+              {iconBubble('message-circle')}
+              <View style={styles.rowText}>
+                <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>
+                  {t('notifications.messagesRow')}
+                </Text>
+                <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]}>
+                  {t('notifications.messagesRowHint')}
+                </Text>
+              </View>
+              <Icon name={chevron} size={ICON_SM} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </TourAnchor>
+        </View>
       </ScrollView>
     </ScreenContainer>
   );
@@ -365,82 +189,53 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
     paddingBottom: spacing.xl,
-    gap: spacing.md,
-  },
-  eventListAnchor: {
-    gap: spacing.md,
-  },
-  subtitle: {
-    fontSize: 13,
-    marginBottom: spacing.xs,
+    gap: spacing.lg,
   },
   card: {
     borderRadius: 12,
     borderWidth: 1,
+    overflow: 'hidden',
   },
-  row: {
+  masterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
+  },
+  masterTitle: { fontSize: 17, fontWeight: '700' },
+  section: { gap: spacing.sm },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    paddingHorizontal: spacing.xs,
+  },
+  eventRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+    minHeight: 64,
+  },
+  divider: { borderTopWidth: StyleSheet.hairlineWidth },
+  iconBubble: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rowText: { flex: 1, gap: 2 },
-  rowTitle: { fontSize: 14, fontWeight: '600' },
-  rowHint: { fontSize: 12 },
-  section: { gap: spacing.sm },
-  sectionHeader: {
+  rowTitle: { fontSize: 15, fontWeight: '600' },
+  rowHint: { fontSize: 13 },
+  offNote: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.sm,
-  },
-  sectionTitle: { fontSize: 15, fontWeight: '700' },
-  outlineBtn: {
-    borderWidth: 1,
-    borderRadius: 9,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  outlineBtnText: { fontSize: 13, fontWeight: '600' },
-  ruleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
   },
-  ruleInfo: { flex: 1, gap: 2 },
-  thresholdBlock: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    gap: 4,
-  },
-  thresholdFields: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: spacing.sm,
-  },
-  thresholdField: { flex: 1, gap: 4 },
-  thresholdInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  thresholdInput: {
-    flex: 1,
-    height: 40,
-    borderWidth: 1,
-    borderRadius: 9,
-    paddingHorizontal: 10,
-    fontSize: 14,
-  },
-  iconBtn: { padding: 4 },
-  addRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: spacing.xs,
-  },
-  addText: { fontSize: 13, fontWeight: '600' },
+  offNoteText: { fontSize: 13, lineHeight: 18 },
 });

@@ -45,7 +45,10 @@ export function useRtlLabelStyle(): TextStyle {
   return {
     // In a flex column with direction: 'rtl', 'flex-start' aligns to the right edge.
     alignSelf: "flex-start",
-    textAlign: isRtl ? "right" : "left",
+    // Not "right" in RTL: under forceRTL React Native mirrors left/right, so "right" lands
+    // wrapped lines on the left edge. A one-line label hid that — alignSelf shrinks it to its
+    // text — but every paragraph that wrapped was left-aligned. "auto" follows the paragraph.
+    textAlign: isRtl ? "auto" : "left",
     writingDirection: isRtl ? "rtl" : "ltr",
   };
 }

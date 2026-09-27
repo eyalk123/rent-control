@@ -93,10 +93,11 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
     : lightColors.inputFilledBackground;
 
   const handleButtonPress = (btn: AlertButton) => {
+    // Taken before dismiss(), which clears the ref — reading it after meant an appConfirm
+    // promise never settled and every confirm button did nothing.
+    const resolve = resolveRef.current;
     dismiss();
-    if (resolveRef.current) {
-      resolveRef.current(btn.style !== "cancel");
-    }
+    resolve?.(btn.style !== "cancel");
     btn.onPress?.();
   };
 

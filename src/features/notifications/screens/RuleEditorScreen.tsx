@@ -14,7 +14,7 @@ import { useAlert } from '@/src/core/context';
 import { useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { ScopeSelector, type ScopeValue } from '../components/ScopeSelector';
-import { createRule, getPreferences, previewRule, updateRule } from '../api/preferences';
+import { createRule, deleteRule, getPreferences, previewRule, updateRule } from '../api/preferences';
 import type { NotificationEvent, NotificationRuleDraft, RulePreview } from '../types';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
@@ -51,7 +51,7 @@ export function RuleEditorScreen() {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
-  const { appAlert } = useAlert();
+  const { appAlert, appConfirm } = useAlert();
   const rtlLabelStyle = useRtlLabelStyle();
   const { isRtl } = useLanguageContext();
 
@@ -152,6 +152,20 @@ export function RuleEditorScreen() {
     }
   });
 
+  // Delete lives here rather than on the list row, so the list keeps one control per row
+  // and a stray tap on a phone can't reach it.
+  const onDelete = async () => {
+    if (ruleId == null) return;
+    const ok = await appConfirm(t('notifications.deleteRuleTitle'), t('notifications.deleteRuleMessage'));
+    if (!ok) return;
+    try {
+      await deleteRule(ruleId);
+      router.back();
+    } catch {
+      appAlert(t('error.title', { defaultValue: 'Error' }), t('notifications.saveError', { defaultValue: 'Could not save. Please try again.' }));
+    }
+  };
+
   if (loading) {
     return (
       <ScreenContainer>
@@ -217,6 +231,11 @@ export function RuleEditorScreen() {
           >
             {t('notifications.saveRule')}
           </Button>
+          {isEdit && (
+            <Button mode="text" onPress={onDelete} disabled={saving} textColor={colors.error} style={styles.deleteButton}>
+              {t('notifications.deleteRule')}
+            </Button>
+          )}
         </View>
       </View>
     </ScreenContainer>
@@ -266,4 +285,5 @@ const styles = StyleSheet.create({
   },
   saveButton: { borderRadius: 12 },
   saveButtonContent: { minHeight: 48 },
+  deleteButton: { marginTop: spacing.xs },
 });
