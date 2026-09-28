@@ -22,6 +22,7 @@ import React, {
 } from 'react';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { acknowledgeLockNotice, getSubscription } from './api/subscriptionApi';
+import { forgetPurchaser, identifyPurchaser } from './purchases';
 import type { Subscription } from './types';
 
 interface SubscriptionContextValue {
@@ -38,7 +39,8 @@ interface SubscriptionContextValue {
 const SubscriptionContext = createContext<SubscriptionContextValue | undefined>(undefined);
 
 export function SubscriptionProvider({ children }: PropsWithChildren) {
-  const { isLoaded, isSignedIn } = useAppAuth();
+  const { isLoaded, isSignedIn, user } = useAppAuth();
+  const uid = user?.uid ?? null;
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,6 +66,17 @@ export function SubscriptionProvider({ children }: PropsWithChildren) {
     if (!isLoaded) return;
     void refresh();
   }, [isLoaded, refresh]);
+
+  // The store SDK buys for whoever is signed in, identified by Firebase UID — see
+  // purchases.ts for why an anonymous id would lose the purchase.
+  useEffect(() => {
+    if (!isLoaded) return;
+    const job = uid ? identifyPurchaser(uid) : forgetPurchaser();
+    job.catch(() => {
+      // A store SDK that failed to start only makes the plans screen unable to sell; it must
+      // never break anything else. The screen reports its own load failure.
+    });
+  }, [isLoaded, uid]);
 
   const isLocked = useCallback(
     (propertyId: number | null | undefined) => {

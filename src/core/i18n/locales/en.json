@@ -1538,7 +1538,22 @@
       "includes": "Every paid plan includes unlimited AI lease scans and {{assistant}}.",
       "included": "Your account includes the {{plan}} plan at no cost.",
       "webManagedMobile": "You subscribed on the web, so your plan is managed there. To change it, email us.",
-      "seePlans": "See plans"
+      "seePlans": "See plans",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "per_monthly": "{{price}} / month",
+      "per_yearly": "{{price}} / year",
+      "activating": "Payment received. Activating your plan…",
+      "activatingSlow": "Your payment went through, but activating the plan is taking longer than usual. It will appear here shortly; you don’t need to pay again.",
+      "activated": "Your {{plan}} plan is active.",
+      "purchaseFailed": "The purchase couldn’t be completed. You haven’t been charged. Please try again.",
+      "storeLoadFailed": "Couldn’t load prices from the store. Check your connection and reopen this screen.",
+      "restore": "Restore purchases",
+      "restoreNone": "No active subscription was found for this store account.",
+      "renewalTerms": {
+        "apple": "Payment is charged to your Apple Account when you confirm the purchase. The subscription renews automatically at the same price and period unless it is cancelled at least 24 hours before the current period ends. You can manage or cancel it in your Apple Account settings.",
+        "google": "Payment is charged to your Google Play account when you confirm the purchase. The subscription renews automatically at the same price and period until you cancel it. You can manage or cancel it in Google Play under Payments and subscriptions."
+      }
     }
   }
 }

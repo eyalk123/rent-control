@@ -1,10 +1,21 @@
-import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Button, Card, Text, useTheme } from 'react-native-paper';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Button, Card, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
+import type { PurchasesOffering } from 'react-native-purchases';
 import { Icon, type IconName } from '@/src/shared/components/ui';
 import { darkColors, lightColors } from '@/src/core/theme';
+import { useAlert } from '@/src/core/context';
 import { useSubscription } from '../SubscriptionContext';
+import {
+  PURCHASES_AVAILABLE,
+  loadOffering,
+  packageFor,
+  purchase,
+  restore,
+  type BillingPeriod,
+} from '../purchases';
 import type { PlanId, Subscription } from '../types';
 
 /**
@@ -16,10 +27,11 @@ import type { PlanId, Subscription } from '../types';
  * second checkout. Buying in-app on top of an active web subscription would bill the
  * landlord twice through two systems that know nothing about each other.
  *
- * **No prices yet, on purpose.** Apple and Google each set their own per-storefront price,
- * and those arrive with the store SDK as localized strings. A hardcoded dollar figure here
- * would be wrong for most storefronts and is the one thing App Review rejects outright. Until
- * the SDK is wired, the cards show the band and what it covers.
+ * **Prices come only from the store.** Apple and Google each set their own per-storefront
+ * price (matched to Paddle's USD / EUR / ILS prices in the consoles), and the SDK hands them
+ * over as localized strings. A hardcoded figure here would be wrong for most storefronts and
+ * is the one thing App Review rejects outright. A build without a RevenueCat key for this
+ * platform shows the bands without prices and says subscribing opens soon.
  *
  * **No band boundaries either.** The server says which plan covers the portfolio
  * (`required_plan`), and a plan is too small if it ranks below that one. Only the order of
@@ -31,18 +43,100 @@ import type { PlanId, Subscription } from '../types';
 const PAID_PLANS: Exclude<PlanId, 'free'>[] = ['tier_3_8', 'tier_9_15', 'tier_16_plus'];
 const RANK: Record<PlanId, number> = { free: 0, tier_3_8: 1, tier_9_15: 2, tier_16_plus: 3 };
 
-/**
- * In-app purchase is not wired yet: no store products exist to sell. The monthly/yearly
- * choice returns with it. Without prices, flipping a period toggle would change nothing on
- * screen, and a control that visibly does nothing reads as broken.
- */
-const PURCHASE_AVAILABLE = false;
+/** How long to wait for the webhook to change the plan after the store took the payment. */
+const ACTIVATION_POLL_MS = 2500;
+const ACTIVATION_TIMEOUT_MS = 45000;
+
+type Activation = 'idle' | 'pending' | 'slow';
 
 export function PlansScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
-  const { subscription, loading } = useSubscription();
+  const router = useRouter();
+  const { appAlert } = useAlert();
+  const { subscription, loading, refresh } = useSubscription();
+
+  const [period, setPeriod] = useState<BillingPeriod>('monthly');
+  const [offering, setOffering] = useState<PurchasesOffering | null>(null);
+  const [offeringFailed, setOfferingFailed] = useState(false);
+  const [buying, setBuying] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [activation, setActivation] = useState<Activation>('idle');
+  const pollStarted = useRef<number | null>(null);
+
+  const canBuy = subscription?.plan === 'free';
+  const selling = PURCHASES_AVAILABLE && canBuy;
+
+  useEffect(() => {
+    if (!selling) return;
+    let cancelled = false;
+    loadOffering()
+      .then((o) => {
+        if (!cancelled) setOffering(o);
+      })
+      .catch(() => {
+        if (!cancelled) setOfferingFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selling]);
+
+  // After a purchase the store has the money, but the plan changes only when RevenueCat's
+  // webhook reaches the server. Poll until it does, like the web picker's pending state.
+  useEffect(() => {
+    if (activation === 'idle') return;
+    if (subscription && subscription.plan !== 'free') {
+      setActivation('idle');
+      pollStarted.current = null;
+      appAlert('', t('subscription.plans.activated', { plan: t(`subscription.plan.${subscription.plan}`) }));
+      return;
+    }
+    if (activation !== 'pending') return;
+    const timer = setTimeout(() => {
+      if (pollStarted.current && Date.now() - pollStarted.current > ACTIVATION_TIMEOUT_MS) {
+        setActivation('slow');
+      } else {
+        void refresh();
+      }
+    }, ACTIVATION_POLL_MS);
+    return () => clearTimeout(timer);
+  }, [activation, subscription, refresh, appAlert, t]);
+
+  const startActivation = useCallback(() => {
+    pollStarted.current = Date.now();
+    setActivation('pending');
+    void refresh();
+  }, [refresh]);
+
+  const buy = useCallback(
+    async (plan: Exclude<PlanId, 'free'>) => {
+      const pkg = packageFor(offering, plan, period);
+      if (!pkg) return;
+      setBuying(plan);
+      try {
+        if ((await purchase(pkg)) === 'purchased') startActivation();
+      } catch {
+        appAlert(t('error.title'), t('subscription.plans.purchaseFailed'));
+      } finally {
+        setBuying(null);
+      }
+    },
+    [offering, period, startActivation, appAlert, t],
+  );
+
+  const onRestore = useCallback(async () => {
+    setRestoring(true);
+    try {
+      if (await restore()) startActivation();
+      else appAlert('', t('subscription.plans.restoreNone'));
+    } catch {
+      appAlert(t('error.title'), t('subscription.plans.purchaseFailed'));
+    } finally {
+      setRestoring(false);
+    }
+  }, [startActivation, appAlert, t]);
 
   if (loading) {
     return (
@@ -59,7 +153,7 @@ export function PlansScreen() {
     );
   }
 
-  const canBuy = subscription.plan === 'free';
+  const storeName = Platform.OS === 'ios' ? 'apple' : 'google';
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -69,13 +163,72 @@ export function PlansScreen() {
 
       <AccountBanner subscription={subscription} />
 
-      {PAID_PLANS.map((plan) => (
-        <PlanCard key={plan} plan={plan} subscription={subscription} canBuy={canBuy} />
-      ))}
+      {activation !== 'idle' && (
+        <View style={[styles.banner, { backgroundColor: colors.primaryBg }]} accessibilityLiveRegion="polite">
+          {activation === 'pending' && <ActivityIndicator size="small" />}
+          <Text variant="bodyMedium" style={styles.bannerText}>
+            {t(activation === 'pending' ? 'subscription.plans.activating' : 'subscription.plans.activatingSlow')}
+          </Text>
+        </View>
+      )}
+
+      {selling && offering && (
+        <SegmentedButtons
+          value={period}
+          onValueChange={(v) => setPeriod(v as BillingPeriod)}
+          buttons={[
+            { value: 'monthly', label: t('subscription.plans.monthly') },
+            { value: 'yearly', label: t('subscription.plans.yearly') },
+          ]}
+          style={styles.periods}
+        />
+      )}
+      {selling && offeringFailed && (
+        <Text variant="bodySmall" style={[styles.loadFailed, { color: theme.colors.error }]}>
+          {t('subscription.plans.storeLoadFailed')}
+        </Text>
+      )}
+
+      {PAID_PLANS.map((plan) => {
+        const pkg = selling ? packageFor(offering, plan, period) : null;
+        return (
+          <PlanCard
+            key={plan}
+            plan={plan}
+            subscription={subscription}
+            canBuy={canBuy}
+            price={pkg ? t(`subscription.plans.per_${period}`, { price: pkg.product.priceString }) : null}
+            purchasable={Boolean(pkg) && activation === 'idle'}
+            buying={buying === plan}
+            onBuy={() => void buy(plan)}
+          />
+        );
+      })}
 
       <Text variant="bodySmall" style={[styles.includes, { color: colors.textSecondary }]}>
         {t('subscription.plans.includes', { assistant: t('subscription.settings.assistant') })}
       </Text>
+
+      {PURCHASES_AVAILABLE && (
+        <>
+          {/* What App Review requires beside an auto-renewing purchase: that it renews, how to
+              cancel, and links to the Terms and the Privacy Policy. */}
+          <Text variant="bodySmall" style={[styles.terms, { color: colors.textSecondary }]}>
+            {t(`subscription.plans.renewalTerms.${storeName}`)}
+          </Text>
+          <View style={styles.links}>
+            <Button compact mode="text" onPress={() => router.push('/settings/legal/terms' as any)}>
+              {t('legal.termsOfService')}
+            </Button>
+            <Button compact mode="text" onPress={() => router.push('/settings/legal/privacy' as any)}>
+              {t('legal.privacyPolicy')}
+            </Button>
+          </View>
+          <Button mode="text" onPress={() => void onRestore()} loading={restoring} disabled={restoring}>
+            {t('subscription.plans.restore')}
+          </Button>
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -124,10 +277,19 @@ function PlanCard({
   plan,
   subscription,
   canBuy,
+  price,
+  purchasable,
+  buying,
+  onBuy,
 }: {
   plan: Exclude<PlanId, 'free'>;
   subscription: Subscription;
   canBuy: boolean;
+  /** The store's localized price for the chosen period, or null when not for sale here. */
+  price: string | null;
+  purchasable: boolean;
+  buying: boolean;
+  onBuy: () => void;
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -168,6 +330,12 @@ function PlanCard({
           )}
         </View>
 
+        {price !== null && (
+          <Text variant="titleSmall" style={styles.price}>
+            {price}
+          </Text>
+        )}
+
         {note !== '' && (
           <Text variant="bodySmall" style={[styles.note, { color: colors.textSecondary }]}>
             {note}
@@ -176,11 +344,13 @@ function PlanCard({
 
         {canBuy && (
           <Button
-            mode={PURCHASE_AVAILABLE ? 'contained' : 'outlined'}
-            disabled={!PURCHASE_AVAILABLE}
+            mode={purchasable ? 'contained' : 'outlined'}
+            disabled={!purchasable || buying}
+            loading={buying}
+            onPress={onBuy}
             style={styles.buy}
           >
-            {PURCHASE_AVAILABLE ? t('subscription.plans.choose') : t('subscription.plans.storeSoon')}
+            {PURCHASES_AVAILABLE ? t('subscription.plans.choose') : t('subscription.plans.storeSoon')}
           </Button>
         )}
       </Card.Content>
@@ -208,4 +378,9 @@ const styles = StyleSheet.create({
   note: { marginTop: 6, lineHeight: 19 },
   buy: { marginTop: 12 },
   includes: { marginTop: 6, lineHeight: 19 },
+  periods: { marginBottom: 14 },
+  loadFailed: { marginBottom: 12, lineHeight: 19 },
+  price: { marginTop: 6, fontWeight: '600' },
+  terms: { marginTop: 16, lineHeight: 19 },
+  links: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 },
 });
