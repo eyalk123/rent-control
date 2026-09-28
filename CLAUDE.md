@@ -2,7 +2,7 @@
 
 Mobile-first property management app (iOS/Android/web). English + Hebrew (RTL).
 
-**Tech Stack:** Expo 54, React Native 0.81, React 19, TS 5.9, Expo Router 6, React Native Paper (MD3), Context API, React Hook Form + Zod, Axios, Firebase Auth + Google Sign-In, i18next, AsyncStorage. Backend: FastAPI.
+**Tech Stack:** Expo 54, React Native 0.81, React 19, TS 5.9, Expo Router 6, React Native Paper (MD3), Context API, React Hook Form + Zod, Axios, Firebase Auth + Google Sign-In + Sign in with Apple (iOS), i18next, AsyncStorage. Backend: FastAPI.
 
 **Commands:**
 

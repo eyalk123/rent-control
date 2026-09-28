@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TOUR_STATE_CACHE_KEY } from '@/src/features/onboarding/TourStateContext';
 import { LEGAL_CONSENT_CACHE_KEY } from '@/src/features/legal/LegalConsentContext';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { isAppleCancel, reauthenticateAppleForDeletion, revokeAppleToken } from '@/src/core/auth/appleAuth';
 import { deleteMyAccount } from '@/src/features/settings/api/account';
 import { ScreenContainer } from '@/src/shared/components/ui';
 import { Icon } from '@/src/shared/components/ui';
@@ -16,7 +17,7 @@ import { useAlert } from '@/src/core/context';
 const CONFIRM_WORD = 'DELETE';
 
 export function DeleteAccountScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { appAlert } = useAlert();
   const router = useRouter();
   const theme = useTheme();
@@ -31,10 +32,15 @@ export function DeleteAccountScreen() {
 
     setLoading(true);
     try {
+      // 0. Apple accounts only: the Apple sheet, before anything is deleted, so cancelling
+      //    it leaves the account whole. Yields the code Apple needs to revoke our tokens.
+      const appleAuthorizationCode = await reauthenticateAppleForDeletion(i18n.language);
+
       // 1. Delete all backend data
       await deleteMyAccount();
 
-      // 2. Delete Firebase Auth account
+      // 2. Revoke Apple's tokens (Apple accounts only), then delete the Firebase Auth account
+      await revokeAppleToken(appleAuthorizationCode);
       await deleteFirebaseAccount();
 
       // 3. Clear local storage — what belongs to the account, not what belongs to the
@@ -53,6 +59,7 @@ export function DeleteAccountScreen() {
     } catch (err: any) {
       setLoading(false);
 
+      if (isAppleCancel(err)) return;
       if (err?.code === 'auth/requires-recent-login') {
         appAlert(t('error.title'), t('settings.deleteAccountRequiresReauth'));
       } else {

@@ -14,6 +14,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type PropsWithChildren,
 } from 'react';
@@ -27,6 +28,7 @@ import {
   type LegalDocument,
   type LegalStatus,
 } from './api/legalAcceptance';
+import { AI_CONSENT_VERSION } from './aiConsent';
 
 /**
  * Account-scoped, so it is cleared on sign-out and on account deletion — the same two
@@ -41,6 +43,16 @@ interface LegalConsentValue {
   /** Whether the consent gate should be covering the app right now. */
   blocked: boolean;
   accept: () => Promise<void>;
+  /**
+   * Resolves true once the user has allowed sending data to Anthropic — immediately if they
+   * already have, otherwise after they answer the prompt. Call it before any lease scan or
+   * assistant message; false means send nothing.
+   */
+  requestAiConsent: () => Promise<boolean>;
+  /** Whether the AI consent prompt is showing (read by AiConsentSheet). */
+  aiPromptOpen: boolean;
+  /** The prompt's answer. Allowing records it on the account first and throws if that fails. */
+  answerAiPrompt: (allow: boolean) => Promise<void>;
 }
 
 const LegalConsentContext = createContext<LegalConsentValue | null>(null);
@@ -104,6 +116,36 @@ export function LegalConsentProvider({ children }: PropsWithChildren) {
 
   const outstanding = useMemo(() => outstandingDocuments(status), [status]);
 
+  const aiConsented = status.ai_processing?.version === AI_CONSENT_VERSION;
+  const [aiPromptOpen, setAiPromptOpen] = useState(false);
+  const aiResolverRef = useRef<((allowed: boolean) => void) | null>(null);
+
+  const requestAiConsent = useCallback((): Promise<boolean> => {
+    if (aiConsented) return Promise.resolve(true);
+    // A second request while the prompt is up (a double tap) gets its own answer rather
+    // than orphaning the first caller's promise.
+    aiResolverRef.current?.(false);
+    return new Promise<boolean>((resolve) => {
+      aiResolverRef.current = resolve;
+      setAiPromptOpen(true);
+    });
+  }, [aiConsented]);
+
+  const answerAiPrompt = useCallback(async (allow: boolean) => {
+    if (allow) {
+      // Recorded before anything is sent: if the write fails, the caller shows an error and
+      // the prompt stays open, so nothing reaches Anthropic without a stored permission.
+      const server = await postLegalAcceptance(['ai_processing']);
+      if (server) {
+        setStatus(server);
+        AsyncStorage.setItem(LEGAL_CONSENT_CACHE_KEY, JSON.stringify(server)).catch(() => {});
+      }
+    }
+    setAiPromptOpen(false);
+    aiResolverRef.current?.(allow);
+    aiResolverRef.current = null;
+  }, []);
+
   const accept = useCallback(async () => {
     const server = await postLegalAcceptance(outstanding);
     if (!server) return;
@@ -117,8 +159,11 @@ export function LegalConsentProvider({ children }: PropsWithChildren) {
       outstanding,
       blocked: isSignedIn && checked && outstanding.length > 0,
       accept,
+      requestAiConsent,
+      aiPromptOpen,
+      answerAiPrompt,
     }),
-    [isSignedIn, checked, outstanding, accept],
+    [isSignedIn, checked, outstanding, accept, requestAiConsent, aiPromptOpen, answerAiPrompt],
   );
 
   return <LegalConsentContext.Provider value={value}>{children}</LegalConsentContext.Provider>;

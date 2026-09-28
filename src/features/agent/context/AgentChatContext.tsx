@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useLegalConsent } from '@/src/features/legal/LegalConsentContext';
 import { getAgentStatus, getConversation, streamAgentChat } from '../api/agentApi';
 import { AgentHttpError, AgentStreamTimeoutError } from '../api/agentStream';
 import { createCitationScanner, parseCitations } from '../utils/citations';
@@ -32,7 +33,8 @@ interface AgentChatValue {
   status: ChatStatus;
   /** i18n tool key for the current activity line, or null. */
   activity: string | null;
-  send: (text: string) => void;
+  /** Resolves false when nothing was sent — empty, already streaming, or AI consent declined. */
+  send: (text: string) => Promise<boolean>;
   /** Resend the last question after a failed turn. */
   retry: () => void;
   stop: () => void;
@@ -71,6 +73,7 @@ function storedToDisplay(messages: StoredMessage[]): ChatDisplayMessage[] {
 export function AgentChatProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const { getToken, isSignedIn } = useAppAuth();
+  const { requestAiConsent } = useLegalConsent();
 
   const [enabled, setEnabled] = useState(false);
   const [statusLoading, setStatusLoading] = useState(true);
@@ -147,7 +150,7 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
     [t],
   );
 
-  const send = useCallback(
+  const sendNow = useCallback(
     (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || statusRef.current === 'streaming') return;
@@ -227,6 +230,19 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
     [getToken, patchMessage, setBusy, t, describeError],
   );
 
+  // Every message goes to Anthropic, so none leaves before the user has allowed that
+  // (App Store Guideline 5.1.2(i); see features/legal/aiConsent.ts). Already allowed resolves
+  // at once; otherwise the consent sheet asks first.
+  const send = useCallback(
+    async (text: string): Promise<boolean> => {
+      if (!text.trim() || statusRef.current === 'streaming') return false;
+      if (!(await requestAiConsent())) return false;
+      sendNow(text);
+      return true;
+    },
+    [requestAiConsent, sendNow],
+  );
+
   const stop = useCallback(() => {
     abortRef.current?.abort();
   }, []);
@@ -239,7 +255,7 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
       const lastUser = prev.map((m) => m.role === 'user').lastIndexOf(true);
       return lastUser === -1 ? prev : prev.slice(0, lastUser);
     });
-    send(question);
+    void send(question);
   }, [send]);
 
   const newChat = useCallback(() => {

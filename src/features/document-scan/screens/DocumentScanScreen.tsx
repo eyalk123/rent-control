@@ -20,6 +20,7 @@ import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { TourScrollView } from '@/src/features/onboarding/TourScrollView';
 import { ScanQuotaStrip } from '@/src/features/subscription/components/ScanQuotaStrip';
 import { useTour } from '@/src/features/onboarding/TourController';
+import { useLegalConsent } from '@/src/features/legal/LegalConsentContext';
 
 /** Which "Add" flow this scan feeds. `property` creates a property (chaining to a renter);
  *  `renter` fills a renter for an existing/matched property. */
@@ -46,6 +47,7 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
   // screen, which is a different route, so that step is centred instead. See registry.ts.
   useTour('lease-scan');
   const { t } = useTranslation();
+  const { requestAiConsent } = useLegalConsent();
   const theme = useTheme();
   const router = useRouter();
   const { appAlert } = useAlert();
@@ -118,6 +120,8 @@ export function DocumentScanScreen({ target = 'property' }: { target?: ScanTarge
 
   const handleExtract = async () => {
     if (pages.length === 0 || validate(pages)) return;
+    // The lease goes to Anthropic; nothing is uploaded until that is allowed (features/legal/aiConsent.ts).
+    if (!(await requestAiConsent())) return;
     setBusy(true);
     try {
       let file = pages[0];

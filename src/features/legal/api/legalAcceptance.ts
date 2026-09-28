@@ -3,8 +3,9 @@ import i18n from 'i18next';
 import apiClient from '@/src/core/api/client';
 import { USE_MOCK_API } from '@/src/core/api/mock';
 import { PRIVACY_VERSION, TERMS_VERSION } from '../legalContent';
+import { AI_CONSENT_VERSION } from '../aiConsent';
 
-export type LegalDocument = 'terms' | 'privacy';
+export type LegalDocument = 'terms' | 'privacy' | 'ai_processing';
 
 export interface LegalAcceptance {
   document: LegalDocument;
@@ -16,6 +17,8 @@ export interface LegalAcceptance {
 export interface LegalStatus {
   terms: LegalAcceptance | null;
   privacy: LegalAcceptance | null;
+  /** Permission to send data to Anthropic — asked on first AI use, not at the gate. */
+  ai_processing: LegalAcceptance | null;
 }
 
 interface LegalAcceptanceDto {
@@ -28,22 +31,25 @@ interface LegalAcceptanceDto {
 interface LegalStatusDto {
   terms: LegalAcceptanceDto | null;
   privacy: LegalAcceptanceDto | null;
+  // Absent from a backend older than the ai_processing migration.
+  ai_processing?: LegalAcceptanceDto | null;
 }
 
-export const EMPTY_LEGAL_STATUS: LegalStatus = { terms: null, privacy: null };
+export const EMPTY_LEGAL_STATUS: LegalStatus = { terms: null, privacy: null, ai_processing: null };
 
 function fromDto(dto: LegalStatusDto): LegalStatus {
   const one = (d: LegalAcceptanceDto | null): LegalAcceptance | null =>
     d
       ? { document: d.document, version: d.version, locale: d.locale, acceptedAt: d.accepted_at }
       : null;
-  return { terms: one(dto.terms), privacy: one(dto.privacy) };
+  return { terms: one(dto.terms), privacy: one(dto.privacy), ai_processing: one(dto.ai_processing ?? null) };
 }
 
 /** The version this build displays for each document — what the gate compares against. */
 export const REQUIRED_VERSIONS: Record<LegalDocument, string> = {
   terms: TERMS_VERSION,
   privacy: PRIVACY_VERSION,
+  ai_processing: AI_CONSENT_VERSION,
 };
 
 /**
@@ -60,12 +66,19 @@ export function outstandingDocuments(status: LegalStatus): LegalDocument[] {
   );
 }
 
-/** Mock mode has no server; an offline UI session should not meet the consent gate. */
+/**
+ * Mock mode has no server; an offline UI session should not meet the consent gate. AI
+ * consent starts ungiven so the prompt can be seen, and sticks once accepted this session.
+ */
+let mockAiAccepted = false;
 function mockStatus(): LegalStatus {
   const now = new Date().toISOString();
   return {
     terms: { document: 'terms', version: TERMS_VERSION, locale: 'en', acceptedAt: now },
     privacy: { document: 'privacy', version: PRIVACY_VERSION, locale: 'en', acceptedAt: now },
+    ai_processing: mockAiAccepted
+      ? { document: 'ai_processing', version: AI_CONSENT_VERSION, locale: 'en', acceptedAt: now }
+      : null,
   };
 }
 
@@ -85,7 +98,10 @@ export async function getLegalStatus(): Promise<LegalStatus> {
 export async function postLegalAcceptance(
   documents: LegalDocument[],
 ): Promise<LegalStatus | null> {
-  if (USE_MOCK_API) return mockStatus();
+  if (USE_MOCK_API) {
+    if (documents.includes('ai_processing')) mockAiAccepted = true;
+    return mockStatus();
+  }
 
   const locale = i18n.language?.startsWith('he') ? 'he' : 'en';
   const response = await apiClient.post<LegalStatusDto>('/users/me/legal', {

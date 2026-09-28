@@ -64,7 +64,7 @@ export function StarterPrompts() {
               key={key}
               activeOpacity={0.7}
               accessibilityRole="button"
-              onPress={() => send(prompt)}
+              onPress={() => void send(prompt)}
               style={[
                 styles.card,
                 { backgroundColor: theme.colors.surface, borderColor: colors.outline },

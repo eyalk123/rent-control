@@ -19,6 +19,7 @@ import { CountryProvider } from "@/src/features/country/CountryContext";
 import { SubscriptionProvider } from "@/src/features/subscription/SubscriptionContext";
 import { CountryGate } from "@/src/features/country/components/CountryGate";
 import { LegalConsentGate } from "@/src/features/legal/components/LegalConsentGate";
+import { AiConsentSheet } from "@/src/features/legal/components/AiConsentSheet";
 import { TourControllerProvider } from "@/src/features/onboarding/TourController";
 import { TourOverlay } from "@/src/features/onboarding/TourOverlay";
 import { NotificationProvider } from "@/src/features/notifications/context/NotificationContext";
@@ -77,6 +78,8 @@ function DirectionalContent() {
       {/* Sibling of the navigator, not a Modal: the tour overlay measures anchors in this
           window and must draw in the same coordinate space. */}
       <TourOverlay />
+      {/* Below the consent gate; asked before the first lease scan or assistant message. */}
+      <AiConsentSheet />
       {/* Blocks the app until the current Terms and Privacy Policy have been accepted.
           Above the tour, below the offline blocker — a device with no connection has a
           more immediate problem, and accepting would fail anyway. */}

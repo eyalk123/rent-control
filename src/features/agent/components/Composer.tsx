@@ -59,8 +59,11 @@ export function Composer() {
   const submit = () => {
     const value = text.trim();
     if (!value || streaming) return;
-    send(value);
-    setText('');
+    // Cleared only once it is actually sent, so declining the AI consent prompt keeps
+    // what they typed.
+    void send(value).then((sent) => {
+      if (sent) setText('');
+    });
   };
 
   return (
