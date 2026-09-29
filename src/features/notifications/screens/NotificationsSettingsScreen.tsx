@@ -69,8 +69,20 @@ export function NotificationsSettingsScreen() {
   const availableEvents = allowedModes(NOTIFICATION_EVENTS, EVENT_REQUIREMENTS);
   const firstRuleEvent = availableEvents.find(isRuleEvent);
 
+  // Full width, not rtlLabelStyle's shrink-to-fit: Android measures a letter-spaced label a
+  // hair narrower than it draws, and in Hebrew the last letter wrapped onto its own line
+  // ("הודעו / ת"). Hebrew has no case, so the uppercase tracking is dropped there too.
   const sectionLabel = (label: string) => (
-    <Text style={[styles.sectionLabel, rtlLabelStyle, { color: colors.textSecondary }]}>{label}</Text>
+    <Text
+      style={[
+        styles.sectionLabel,
+        rtlLabelStyle,
+        { alignSelf: 'stretch', color: colors.textSecondary },
+        isRtl && { letterSpacing: 0 },
+      ]}
+    >
+      {label}
+    </Text>
   );
 
   const iconBubble = (name: IconName, dim = false) => (

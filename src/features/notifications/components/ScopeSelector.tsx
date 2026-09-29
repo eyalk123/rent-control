@@ -90,7 +90,7 @@ function Checklist<T extends string | number>({
             onPress={() => onToggle(opt.value)}
             accessibilityRole="checkbox"
             accessibilityState={{ checked }}
-            style={[styles.checkRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}
+            style={styles.checkRow}
           >
             <Icon name={checked ? 'check-square' : 'square'} size={20} color={checked ? colors.primary : colors.textSecondary} />
             <Text style={[styles.checkLabel, rtlLabelStyle, { color: colors.textPrimary }]} numberOfLines={1}>
@@ -118,7 +118,7 @@ export function ScopeSelector({ value, onChange }: Props) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlLabelStyle = useRtlLabelStyle();
-  const { isRtl, language } = useLanguageContext();
+  const { language } = useLanguageContext();
   const [kind, setKind] = useState<ScopeKind>(() => initialKind(value));
   const { properties } = useAccessibleProperties();
   const { renters } = useRenterContext();
@@ -171,10 +171,9 @@ export function ScopeSelector({ value, onChange }: Props) {
             onPress={() => changeKind(optionValue)}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
-            // Drive direction from the app language so the radio sits on the
-            // start side in both LTR and RTL (Paper's own RTL relies on
-            // I18nManager, which only flips after a restart here).
-            style={[styles.optionRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}
+            // Plain `row`: the app forces native RTL (core/i18n), so `row` already
+            // puts the radio on the right in Hebrew. `row-reverse` flipped it back to LTR.
+            style={styles.optionRow}
           >
             <RadioButton
               value={optionValue}
@@ -227,6 +226,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   optionRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
     paddingVertical: 2,
@@ -245,6 +245,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   checkRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: 8,

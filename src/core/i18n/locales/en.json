@@ -299,7 +299,7 @@
     "zipCode": "Postal code",
     "type": "Property Type",
     "typePlaceholder": "e.g. Apartment, House",
-    "sqFt": "Size (m²)",
+    "sqFt": "Size",
     "typeLabel": "Type",
     "sqFtLabel": "m²",
     "typeApartment": "Apartment",
