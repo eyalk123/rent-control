@@ -14,6 +14,13 @@ Mobile-first property management app (iOS/Android/web). English + Hebrew (RTL).
 (run `eas` from this folder or it offers to create a bogus project, submit to the `internal` track,
 release notes must be added by hand because `eas submit` cannot set them).
 
+**Store and subscription setup:** what is configured in App Store Connect, Play Console and
+RevenueCat (product ids, prices, review accounts, service accounts) is recorded in
+`../docs/stores_answers/`; launch status and what is left is PLATFORM.md §19. The purchase
+screen sells nothing until `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`
+are in the `production` profile of `eas.json`. Never rename a store product id: the backend's
+`billing_catalog.py` maps them by exact string.
+
 **RUN IT ON THE EMULATOR — this is not optional for UI work.**
 
 An Android emulator is set up and working. `./scripts/emulator.sh preview` boots it, starts Metro

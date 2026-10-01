@@ -39,7 +39,9 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.rentvance.app",
-        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com"
+        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_ExXugoYIdlPzMbGrjLDCNrEDDSX",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "goog_ZCfksAuZUeoOYwGXnUwslzuxkrw"
       }
     }
   },
