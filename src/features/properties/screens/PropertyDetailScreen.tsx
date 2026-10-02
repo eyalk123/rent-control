@@ -24,6 +24,7 @@ import {
   EmptyState,
   ScreenContainer,
   DetailTabBar,
+  DetailBackButton,
 } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { PropertyInfoTab } from '@/src/features/properties/components/PropertyInfoTab';
@@ -157,6 +158,11 @@ export function PropertyDetailScreen() {
               avatar, so both detail screens open on an identity mark rather than a void. The
               edit button sits where the renter's does, and keeps its filled circle only over
               a photo, where a plain glyph would be illegible. */}
+          <DetailBackButton
+            fallbackHref="/properties"
+            top={spacing.xs}
+            color={colors.textPrimary}
+          />
           {imageSource ? (
             <View style={[styles.imageWrapper, { width }]}>
               <Image

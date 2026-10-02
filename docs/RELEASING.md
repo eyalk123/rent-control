@@ -80,10 +80,9 @@ date of the last production build. Do not describe improvements that are not in 
 this text is a public claim about what the software does.
 
 **Check what is actually enabled in the build before describing it.** The onboarding tours
-are the standing example — `src/features/onboarding/flags.ts` keeps them off in release
-builds unless `EXPO_PUBLIC_ONBOARDING_TOURS=on`, which the `preview` and `simulator`
-profiles set and `production` does not. Tour work can land in a build and be invisible to
-testers, so it does not belong in the notes unless the flag is on.
+are the standing example — `src/features/onboarding/flags.ts` turns them on in every build
+unless the profile sets `EXPO_PUBLIC_ONBOARDING_TOURS=off`. A feature behind a flag that
+is off in the build does not belong in the notes.
 
 ## Things an agent cannot do
 

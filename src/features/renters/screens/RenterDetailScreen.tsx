@@ -24,6 +24,7 @@ import {
   EmptyState,
   ScreenContainer,
   DetailTabBar,
+  DetailBackButton,
 } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
@@ -225,6 +226,11 @@ export function RenterDetailScreen() {
               { paddingTop: insets.top + spacing.sm },
             ]}
           >
+            <DetailBackButton
+              fallbackHref="/renters"
+              top={insets.top + spacing.xs}
+              color={colors.textPrimary}
+            />
             <RenterAvatar
               renter={renter}
               size={80}

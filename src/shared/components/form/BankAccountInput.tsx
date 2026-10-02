@@ -104,7 +104,7 @@ export default function BankAccountInput({
     ? colors.inputBorderFocus
     : colors.inputBorder;
   // Constant: growing the border on focus shifts every digit in the field sideways by a pixel.
-  const borderWidth = 1.5;
+  const borderWidth = 1;
   const backgroundColor = 'transparent';
 
   const handleFocus = () => {
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   } as object,
   container: {
     flexDirection: 'row',
-    borderRadius: 12,
+    borderRadius: 8,
     overflow: 'hidden',
     minHeight: 48,
   },

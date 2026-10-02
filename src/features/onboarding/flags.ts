@@ -1,19 +1,16 @@
 /**
  * Onboarding — the master switch.
  *
- * The tour content is roughly half written, and `main` ships, so the default has to be
- * "off unless someone deliberately asked for it". A partly finished tour is worse than no
- * tour: it points at controls it never explains and then burns its own "seen" mark on the
- * account, so the finished version never gets shown to that user at all.
+ * The tours are finished and on by default in every build — dev, preview and production —
+ * for every account. A user who does not want them turns them off in Settings (the
+ * account-level `toursDisabled` flag).
  *
  * Precedence, highest first:
  *
  *   1. `EXPO_PUBLIC_ONBOARDING_TOURS` (`on` / `off`) — set it in `.env` for a local run,
- *      or in an `eas.json` build profile's `env` block. The `preview` and `simulator`
- *      profiles set it to `on`, so an internal build can be used to test the tours; the
- *      `production` profile deliberately does not.
- *   2. Otherwise: `__DEV__`, i.e. on when running the dev bundle (`npx expo start`,
- *      emulator, dev client) and off in any release build.
+ *      or in an `eas.json` build profile's `env` block. Only `off` is useful now: it is the
+ *      way to build without the tours.
+ *   2. Otherwise: on.
  *
  * The web app has the same switch and the same defaults — see the web repo's
  * `features/onboarding/flags.ts`. It also carries a per-browser localStorage override,
@@ -38,4 +35,4 @@ const fromEnv = readFlag(process.env.EXPO_PUBLIC_ONBOARDING_TOURS);
  * they cost a ref callback each and keep the call sites honest while the content is being
  * written.
  */
-export const TOURS_ENABLED = fromEnv ?? __DEV__;
+export const TOURS_ENABLED = fromEnv ?? true;

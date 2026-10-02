@@ -183,6 +183,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   inputOutline: {
-    borderRadius: 12,
+    borderRadius: 8,
   },
 });

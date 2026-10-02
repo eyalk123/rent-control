@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   dropdownContainer: {
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 8,
     overflow: 'hidden',
   },
   placeholder: {
