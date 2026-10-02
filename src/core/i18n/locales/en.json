@@ -592,7 +592,8 @@
     "remove": "Remove",
     "undo": "Undo",
     "save": "Save",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "close": "Close"
   },
   "validation": {
     "title": "Validation",
@@ -675,9 +676,15 @@
       "paidWhatWasAsked": "paid {{amount}}, which matched the lease at the time",
       "paidLate": "paid late",
       "notDueReason": "no instalment due this month ({{cadence}} lease)",
-      "legendMismatch": "Amount differs from the lease",
-      "legendLeaseChanged": "Matched the lease when paid; the lease has changed since",
-      "legendLate": "Paid after the due day"
+      "mismatchCount": "{{count}} amount differs",
+      "mismatchCountPlural": "{{count}} amounts differ",
+      "lateCount": "{{count}} paid late",
+      "lateCountPlural": "{{count}} paid late",
+      "sheetExpected": "Expected {{amount}} at the time",
+      "sheetLateBy": "Paid {{count}} day after the due date",
+      "sheetLateByPlural": "Paid {{count}} days after the due date",
+      "sheetLeaseChanged": "Matched the lease when paid. The lease now says {{amount}}.",
+      "sheetPayments": "Payments"
     },
     "recordPayment": {
       "title": "Record rent payment",

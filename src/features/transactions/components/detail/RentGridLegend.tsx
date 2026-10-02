@@ -6,12 +6,11 @@ import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 
 /**
- * Key to the payment grid.
+ * Key to the payment grid's box colours.
  *
- * The two amber corner markers are the reason this exists: on the web they explain
- * themselves on hover, which is nothing on a touch screen, so without a legend they were a
- * pair of unexplained dots. The four box colours are listed alongside them for the same
- * reason.
+ * Only statuses: the grid no longer draws per-month markers for late or mismatched
+ * payments. Those are counted in the year summary, which highlights the months on tap, and
+ * explained in words in the month sheet, so nothing here needs a key.
  */
 export function RentGridLegend() {
   const { t } = useTranslation();
@@ -63,29 +62,6 @@ export function RentGridLegend() {
           </Text>
         </View>
       ))}
-
-      <View style={styles.item}>
-        <View style={[styles.dot, { backgroundColor: colors.warning }]} />
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          {t('transactions.rentGrid.legendMismatch', { defaultValue: 'Amount differs from the lease' })}
-        </Text>
-      </View>
-
-      <View style={styles.item}>
-        <View style={[styles.dot, styles.dotHollow, { borderColor: colors.textSecondary }]} />
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          {t('transactions.rentGrid.legendLeaseChanged', {
-            defaultValue: 'Matched the lease when paid; the lease has changed since',
-          })}
-        </Text>
-      </View>
-
-      <View style={styles.item}>
-        <View style={[styles.tick, { backgroundColor: colors.warning }]} />
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          {t('transactions.rentGrid.legendLate', { defaultValue: 'Paid after the due day' })}
-        </Text>
-      </View>
     </View>
   );
 }
@@ -108,21 +84,6 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 3,
     borderWidth: 1,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  // The neutral marker: an outline, not a fill, so it never competes with the amber dot.
-  dotHollow: {
-    borderWidth: 1,
-    opacity: 0.75,
-  },
-  tick: {
-    width: 10,
-    height: 5,
-    borderRadius: 1,
   },
   label: {
     fontSize: 11,

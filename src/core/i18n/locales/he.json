@@ -594,7 +594,8 @@
     "remove": "הסר",
     "undo": "בטל",
     "save": "שמירה",
-    "dismiss": "סגירה"
+    "dismiss": "סגירה",
+    "close": "סגירה"
   },
   "validation": {
     "title": "אימות",
@@ -677,9 +678,15 @@
       "paidWhatWasAsked": "שולם {{amount}}, בהתאם לחוזה שהיה באותה עת",
       "paidLate": "שולם באיחור",
       "notDueReason": "אין תשלום בחודש זה (חוזה {{cadence}})",
-      "legendMismatch": "הסכום שונה מהחוזה",
-      "legendLeaseChanged": "תאם לחוזה בזמן התשלום; החוזה שונה מאז",
-      "legendLate": "שולם אחרי מועד התשלום"
+      "mismatchCount": "סכום שונה בחודש אחד",
+      "mismatchCountPlural": "סכום שונה ב-{{count}} חודשים",
+      "lateCount": "חודש אחד שולם באיחור",
+      "lateCountPlural": "{{count}} חודשים שולמו באיחור",
+      "sheetExpected": "באותה עת היה צפוי {{amount}}",
+      "sheetLateBy": "שולם יום אחד אחרי מועד התשלום",
+      "sheetLateByPlural": "שולם {{count}} ימים אחרי מועד התשלום",
+      "sheetLeaseChanged": "תאם לחוזה בזמן התשלום. בחוזה כעת {{amount}}.",
+      "sheetPayments": "תשלומים"
     },
     "recordPayment": {
       "title": "רישום תשלום שכר דירה",

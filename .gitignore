@@ -53,6 +53,10 @@ app-example
 
 # local emulator scratch — the script scopes these by port, so match any suffix
 .emulator-shot*.png
+
+# ad-hoc screenshots stay local; only the store screenshots in raw/ are tracked
+/screenshots/*
+!/screenshots/raw/
 .emulator-metro-mode*
 .emulator-metro*.log
 .emulator-emu*.log

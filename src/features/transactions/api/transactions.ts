@@ -33,6 +33,20 @@ export interface TransactionUpdateExpense {
   receipt_image_url?: string | null;
 }
 
+/**
+ * The backend serialises `amount` and `expected_amount` as Decimal strings ("1950.00").
+ * Every consumer here treats them as numbers, and a string sails through `+` as
+ * concatenation rather than failing — the rent grid summed a year of payments into a
+ * non-number and reported "$0 collected". So they are converted once, at the edge.
+ */
+function fromApi(tx: Transaction): Transaction {
+  return {
+    ...tx,
+    amount: Number(tx.amount),
+    expected_amount: tx.expected_amount == null ? null : Number(tx.expected_amount),
+  };
+}
+
 export type TransactionsListParams = {
   type?: 'revenue' | 'expense';
   propertyId?: number;
@@ -73,7 +87,7 @@ export async function getTransactions(
     },
   });
 
-  return response.data;
+  return response.data.map(fromApi);
 }
 
 export async function getTransactionsSummary(): Promise<TransactionSummaryResponse> {
@@ -133,7 +147,7 @@ export async function createRevenueTransaction(
     '/transactions/revenue',
     payload,
   );
-  return response.data;
+  return fromApi(response.data);
 }
 
 export async function createExpenseTransaction(
@@ -167,7 +181,7 @@ export async function createExpenseTransaction(
     '/transactions/expense',
     payload,
   );
-  return response.data;
+  return fromApi(response.data);
 }
 
 export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
@@ -197,13 +211,13 @@ export async function createExpenseCategory(
 export async function updateRevenueTransaction(id: number, payload: TransactionUpdateRevenue): Promise<Transaction> {
   if (USE_MOCK_API) return getTransactionById(id);
   const response = await apiClient.patch<Transaction>(`/transactions/revenue/${id}`, payload);
-  return response.data;
+  return fromApi(response.data);
 }
 
 export async function updateExpenseTransaction(id: number, payload: TransactionUpdateExpense): Promise<Transaction> {
   if (USE_MOCK_API) return getTransactionById(id);
   const response = await apiClient.patch<Transaction>(`/transactions/expense/${id}`, payload);
-  return response.data;
+  return fromApi(response.data);
 }
 
 export async function getTransactionById(id: number): Promise<Transaction> {
@@ -214,7 +228,7 @@ export async function getTransactionById(id: number): Promise<Transaction> {
     return found;
   }
   const response = await apiClient.get<Transaction>(`/transactions/${id}`);
-  return response.data;
+  return fromApi(response.data);
 }
 
 export async function deleteTransaction(id: number): Promise<void> {

@@ -39,6 +39,9 @@ export default function RentersLayout() {
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="[id]" options={{ headerShown: false }} />
+      {/* A transaction opened from this detail screen's Transactions tab. Pushing the
+          Transactions tab's own route instead switched tabs, so back landed on that list. */}
+      <Stack.Screen name="transaction/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }

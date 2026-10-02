@@ -85,6 +85,7 @@ export function PropertyTransactionsTab({
           transactions={transactions}
           propertyId={property.id}
           onRecorded={refreshTransactions}
+          transactionHref={(id) => `/properties/transaction/${id}`}
           layout="single-year"
           year={state.revYear}
           onYearChange={(revYear) => patch({ revYear })}
@@ -98,6 +99,7 @@ export function PropertyTransactionsTab({
           onMonthChange={(expMonth) => patch({ expMonth })}
           category={state.expCategory}
           onCategoryChange={(expCategory) => patch({ expCategory })}
+          transactionHref={(id) => `/properties/transaction/${id}`}
         />
       )}
     </View>

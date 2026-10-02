@@ -24,6 +24,7 @@ import {
 } from '@/src/shared/types';
 import { RentMonthBox } from './RentMonthBox';
 import { RentGridLegend } from './RentGridLegend';
+import { RentMonthSheet } from './RentMonthSheet';
 
 interface Props {
   /** One renter on a renter screen; every renter on the property (past ones included). */
@@ -41,6 +42,8 @@ interface Props {
   /** `single-year` only: the selected year, lifted so it survives a tab switch. */
   year?: number | null;
   onYearChange?: (year: number) => void;
+  /** Where a tapped transaction opens — a route in the host tab's own stack, so back returns here. */
+  transactionHref: (id: number) => string;
 }
 
 interface Pending {
@@ -52,6 +55,14 @@ interface GridRow {
   renter: Renter;
   cells: MonthCell[];
 }
+
+/** Which set of months the grid is picking out, if any. */
+type Highlight = 'outstanding' | 'mismatch' | 'late';
+
+const matchesHighlight = (cell: MonthCell, highlight: Highlight) => {
+  if (highlight === 'outstanding') return cell.status === 'due' || cell.status === 'overdue';
+  return highlight === 'mismatch' ? cell.hasAmountMismatch : cell.isLate;
+};
 
 /**
  * The Revenue half of the detail-screen transactions tab: a 12-month payment grid per
@@ -69,6 +80,7 @@ export function RevenuePaymentPanel({
   layout = 'single-year',
   year: yearProp,
   onYearChange,
+  transactionHref,
 }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -81,6 +93,8 @@ export function RevenuePaymentPanel({
   const [pending, setPending] = useState<Pending | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [highlight, setHighlight] = useState<Highlight | null>(null);
+  const [detail, setDetail] = useState<Pending | null>(null);
 
   // Default to the current year when the lease covers it, else the most recent year that
   // does — a lease that ended in 2024 should open on 2024, not on an empty 2026.
@@ -136,8 +150,9 @@ export function RevenuePaymentPanel({
       setPending({ renter, cell });
       return;
     }
-    // A paid box is a shortcut into the money it represents.
-    if (cell.transactions.length > 0) router.push(`/transactions/${cell.transactions[0].id}` as never);
+    // A paid box opens what the grid no longer draws: late, amount, lease changes, and the
+    // payments themselves.
+    if (cell.transactions.length > 0) setDetail({ renter, cell });
   };
 
   const handleConfirm = async () => {
@@ -173,10 +188,48 @@ export function RevenuePaymentPanel({
 
   const renderSummary = (rows: GridRow[]) => {
     const totals = summariseRentYear(rows.flatMap((r) => r.cells));
+    const flags = [
+      totals.outstandingMonths > 0
+        ? renderFlag(
+            'outstanding',
+            colors.expFg,
+            t(
+              totals.outstandingMonths === 1
+                ? 'transactions.rentGrid.outstanding'
+                : 'transactions.rentGrid.outstandingPlural',
+              { count: totals.outstandingMonths, defaultValue: '{{count}} months outstanding' },
+            ),
+          )
+        : null,
+      totals.mismatchMonths > 0
+        ? renderFlag(
+            'mismatch',
+            colors.warning,
+            t(
+              totals.mismatchMonths === 1
+                ? 'transactions.rentGrid.mismatchCount'
+                : 'transactions.rentGrid.mismatchCountPlural',
+              { count: totals.mismatchMonths, defaultValue: '{{count}} amounts differ' },
+            ),
+          )
+        : null,
+      totals.lateMonths > 0
+        ? renderFlag(
+            'late',
+            colors.warning,
+            t(
+              totals.lateMonths === 1
+                ? 'transactions.rentGrid.lateCount'
+                : 'transactions.rentGrid.lateCountPlural',
+              { count: totals.lateMonths, defaultValue: '{{count}} paid late' },
+            ),
+          )
+        : null,
+    ].filter(Boolean);
     return (
       <View style={styles.summaryBlock}>
         <LtrSection>
-          <Text style={[styles.summary, { color: colors.textSecondary }]}>
+          <Text style={[styles.summary, { color: colors.textPrimary }]}>
             {t('transactions.rentGrid.summary', {
               collected: formatMoney(totals.collected),
               expected: formatMoney(totals.expected),
@@ -184,17 +237,37 @@ export function RevenuePaymentPanel({
             })}
           </Text>
         </LtrSection>
-        {totals.outstandingMonths > 0 ? (
-          <Text style={[styles.summary, { color: colors.expFg }]}>
-            {t(
-              totals.outstandingMonths === 1
-                ? 'transactions.rentGrid.outstanding'
-                : 'transactions.rentGrid.outstandingPlural',
-              { count: totals.outstandingMonths, defaultValue: '{{count}} months outstanding' },
-            )}
-          </Text>
-        ) : null}
+        {flags.length > 0 ? <View style={styles.flagRow}>{flags}</View> : null}
       </View>
+    );
+  };
+
+  // The grid draws no per-month markers. These counts are where outstanding, late and
+  // mismatched months surface, and tapping one fades every other month so the ones it
+  // counts stand out. All three share one shape; only the dot carries the tone, so the row
+  // reads as one set rather than three differently styled lines.
+  const renderFlag = (kind: Highlight, tone: string, label: string) => {
+    const active = highlight === kind;
+    return (
+      <Pressable
+        key={kind}
+        onPress={() => setHighlight(active ? null : kind)}
+        accessibilityRole="button"
+        accessibilityState={{ selected: active }}
+        hitSlop={4}
+        style={[
+          styles.flag,
+          {
+            backgroundColor: active ? colors.primaryBg : colors.controlFill,
+            borderColor: active ? theme.colors.primary : 'transparent',
+          },
+        ]}
+      >
+        {/* Tone sits in the dot, never in the text: the light-theme amber is too faint on
+            white to read at this size. */}
+        <View style={[styles.flagDot, { backgroundColor: tone }]} />
+        <Text style={[styles.flagText, { color: colors.textPrimary }]}>{label}</Text>
+      </Pressable>
     );
   };
 
@@ -224,7 +297,8 @@ export function RevenuePaymentPanel({
         </View>
       ) : null}
       <View style={styles.grid}>
-        {cells.map((cell) => (
+        {/* Newest month first, like the years: December leads the top row. */}
+        {[...cells].reverse().map((cell) => (
           <RentMonthBox
             key={cell.monthKey}
             cell={cell}
@@ -257,6 +331,7 @@ export function RevenuePaymentPanel({
                 : undefined
             }
             onSelect={(c) => handleSelect(renter, c)}
+            dimmed={highlight != null && !matchesHighlight(cell, highlight)}
             saving={saving && pending?.renter.id === renter.id && pending?.cell.monthKey === cell.monthKey}
           />
         ))}
@@ -311,6 +386,20 @@ export function RevenuePaymentPanel({
       {error ? <Text style={[styles.error, { color: colors.expFg }]}>{error}</Text> : null}
 
       <RentGridLegend />
+
+      <RentMonthSheet
+        month={detail}
+        title={
+          detail
+            ? `${monthLabelFor(detail.cell.monthKey, locale)} ${detail.cell.monthKey.slice(0, 4)}`
+            : ''
+        }
+        onDismiss={() => setDetail(null)}
+        onOpenTransaction={(tx) => {
+          setDetail(null);
+          router.push(transactionHref(tx.id) as never);
+        }}
+      />
 
       <Portal>
         <Dialog
@@ -392,7 +481,32 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   summary: {
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  flagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: 2,
+  },
+  flag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  flagDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  flagText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   renterBlock: {
     gap: spacing.xs,
@@ -419,8 +533,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   grid: {
-    // Follows the app direction, so Hebrew reads January from the right — the same way the
-    // web grid behaves. Only the expense chart's axis is pinned LTR.
+    // Follows the app direction, so Hebrew reads December from the right. Months run newest
+    // first (see the render), which the web grid does not. Only the expense chart's axis is
+    // pinned LTR.
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,

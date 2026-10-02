@@ -71,6 +71,7 @@ export function RenterTransactionsTab({ renter, state, onStateChange }: RenterTr
           transactions={transactions}
           propertyId={renter.property_id}
           onRecorded={refreshTransactions}
+          transactionHref={(id) => `/renters/transaction/${id}`}
           layout="stacked"
         />
       ) : (
@@ -82,6 +83,7 @@ export function RenterTransactionsTab({ renter, state, onStateChange }: RenterTr
           onMonthChange={(expMonth) => patch({ expMonth })}
           category={state.expCategory}
           onCategoryChange={(expCategory) => patch({ expCategory })}
+          transactionHref={(id) => `/renters/transaction/${id}`}
         />
       )}
     </View>

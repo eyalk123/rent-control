@@ -38,6 +38,8 @@ interface Props {
   onMonthChange: (month: number | null) => void;
   category: string | null;
   onCategoryChange: (category: string | null) => void;
+  /** Where a tapped transaction opens — a route in the host tab's own stack, so back returns here. */
+  transactionHref: (id: number) => string;
 }
 
 const BAR_AREA_HEIGHT = 90;
@@ -61,6 +63,7 @@ export function ExpensePanel({
   onMonthChange,
   category: selectedCategory,
   onCategoryChange,
+  transactionHref,
 }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -277,7 +280,7 @@ export function ExpensePanel({
       {visible.map((tx) => (
         <Pressable
           key={tx.id}
-          onPress={() => router.push(`/transactions/${tx.id}` as never)}
+          onPress={() => router.push(transactionHref(tx.id) as never)}
           style={[styles.txCard, { backgroundColor: colors.expBg, borderColor: colors.outline }]}
         >
           <View style={styles.txHeader}>

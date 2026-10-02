@@ -331,6 +331,10 @@ export interface RentYearTotals {
   expected: number;
   collected: number;
   outstandingMonths: number;
+  /** Paid months whose amount differs from what was asked at the time. */
+  mismatchMonths: number;
+  /** Paid months whose earliest payment landed after the due day. */
+  lateMonths: number;
 }
 
 export function summariseRentYear(cells: MonthCell[]): RentYearTotals {
@@ -340,7 +344,9 @@ export function summariseRentYear(cells: MonthCell[]): RentYearTotals {
       collected: acc.collected + cell.paidSum,
       outstandingMonths:
         acc.outstandingMonths + (cell.status === 'overdue' || cell.status === 'due' ? 1 : 0),
+      mismatchMonths: acc.mismatchMonths + (cell.hasAmountMismatch ? 1 : 0),
+      lateMonths: acc.lateMonths + (cell.isLate ? 1 : 0),
     }),
-    { expected: 0, collected: 0, outstandingMonths: 0 },
+    { expected: 0, collected: 0, outstandingMonths: 0, mismatchMonths: 0, lateMonths: 0 },
   );
 }

@@ -21,6 +21,12 @@ interface Props {
   notDueLabel?: string;
   onSelect: (cell: MonthCell) => void;
   saving?: boolean;
+  /**
+   * Faded back while the panel highlights a set of months (late, amount differs) that this
+   * one is not part of. The grid draws no per-month markers of its own; highlighting is how
+   * those exceptions are found.
+   */
+  dimmed?: boolean;
 }
 
 /** Either theme's palette. `typeof lightColors` alone is a literal type the dark set can't satisfy. */
@@ -68,6 +74,7 @@ export function RentMonthBox({
   notDueLabel,
   onSelect,
   saving,
+  dimmed,
 }: Props) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -103,7 +110,7 @@ export function RentMonthBox({
             backgroundColor: 'transparent',
             borderColor: colors.subtleOutline,
             borderStyle: 'dashed',
-            opacity: 0.55,
+            opacity: dimmed ? 0.2 : 0.55,
           },
         ]}
       >
@@ -120,8 +127,9 @@ export function RentMonthBox({
   const amount = cell.status === 'paid' ? cell.paidSum : cell.expected;
 
   // Screen readers get the full story in one string — the visual grid conveys it through
-  // position and colour, neither of which survives linearisation. The two corner markers
-  // have no other spoken form at all, so both belong here.
+  // position and colour, neither of which survives linearisation. Late and amount notes are
+  // not drawn on the box at all (they live in the summary and the month sheet), so the
+  // spoken label is where they still belong.
   const accessibilityLabel = [
     monthLabel,
     statusLabel,
@@ -151,7 +159,7 @@ export function RentMonthBox({
           backgroundColor: s.backgroundColor,
           borderColor: s.borderColor,
           borderStyle: cell.status === 'due' ? 'dashed' : 'solid',
-          opacity: saving ? 0.5 : cell.status === 'future' ? 0.65 : 1,
+          opacity: dimmed ? 0.25 : saving ? 0.5 : cell.status === 'future' ? 0.65 : 1,
         },
         styles.filled,
       ]}
@@ -160,23 +168,6 @@ export function RentMonthBox({
         {monthLabel}
       </Text>
       {s.glyph ? <Text style={[styles.glyph, { color: s.color }]}>{s.glyph}</Text> : null}
-
-      {/* Paid, but not the amount that was being asked for at the time — a shortfall or an
-          overpayment, and something to chase. */}
-      {cell.hasAmountMismatch ? (
-        <View style={[styles.dot, { backgroundColor: colors.warning }]} />
-      ) : null}
-      {/* Paid exactly what was asked, and the lease has moved since. Deliberately *not* the
-          amber dot: nothing went wrong and nobody owes anything, so this is a note rather
-          than a warning. Still shown, because an owner who changed the base rent without
-          realising it re-priced three settled years has no other way to find out. A hollow
-          ring in the muted text colour reads as "look here" without reading as "something
-          is broken", and the two markers never coexist on one cell. */}
-      {cell.leaseChangedSince ? (
-        <View style={[styles.dot, styles.dotHollow, { borderColor: colors.textSecondary }]} />
-      ) : null}
-      {/* Paid after the due day. */}
-      {cell.isLate ? <View style={[styles.lateTick, { backgroundColor: colors.warning }]} /> : null}
     </Pressable>
   );
 }
@@ -205,26 +196,5 @@ const styles = StyleSheet.create({
   glyph: {
     fontSize: 16,
     fontWeight: '700',
-  },
-  dot: {
-    position: 'absolute',
-    top: 4,
-    insetInlineEnd: 4,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  // The neutral variant: an outline, not a fill, so it never competes with the amber dot.
-  dotHollow: {
-    borderWidth: 1,
-    opacity: 0.75,
-  },
-  lateTick: {
-    position: 'absolute',
-    bottom: 4,
-    insetInlineStart: 4,
-    width: 10,
-    height: 5,
-    borderRadius: 1,
   },
 });
