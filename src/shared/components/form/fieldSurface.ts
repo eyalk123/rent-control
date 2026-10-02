@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     // Tighter than the card/button radius (12) for a cleaner field. Radius 4 inside a radius-16
     // card read as dated; 8 sits between the two. See MOBILE-DESIGN.md §4.
-    borderRadius: 8,
+    borderRadius: 4,
     paddingHorizontal: 14,
     paddingVertical: 10,
     // Hard floor from MOBILE-DESIGN.md §5. The date fields were at 40.
