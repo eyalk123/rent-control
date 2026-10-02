@@ -160,7 +160,7 @@ export function CountryGate() {
     () =>
       currencies.map((c) => ({
         value: c.code,
-        label: `${c.code} — ${c.name}${c.symbol === c.code ? '' : ` (${c.symbol})`}`,
+        label: `${c.code}: ${c.name}${c.symbol === c.code ? '' : ` (${c.symbol})`}`,
       })),
     [currencies],
   );

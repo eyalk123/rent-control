@@ -35,7 +35,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
     ? t('renter.openEndedShort')
     : leaseEnd
       ? formatDateFull(leaseEnd, language)
-      : '—';
+      : '–';
 
   const insuranceTypeLabel = (insuranceType: string) => {
     switch (insuranceType) {
@@ -67,7 +67,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
       <View style={styles.statsRow}>
         <StatBox
           icon="wallet"
-          value={monthlyRent > 0 ? formatMoney(monthlyRent) : '—'}
+          value={monthlyRent > 0 ? formatMoney(monthlyRent) : '–'}
           label={t('renter.monthlyRent')}
           backgroundColor={colors.inputBackground}
           iconColor={colors.primary}
@@ -76,7 +76,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
         />
         <StatBox
           icon="calendar"
-          value={renter.lease_start ? formatDateFull(new Date(renter.lease_start), language) : '—'}
+          value={renter.lease_start ? formatDateFull(new Date(renter.lease_start), language) : '–'}
           label={t('renter.dateOfStart')}
           backgroundColor={colors.inputBackground}
           iconColor={colors.secondary}

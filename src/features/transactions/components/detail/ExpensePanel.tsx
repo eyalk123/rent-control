@@ -182,7 +182,7 @@ export function ExpensePanel({
         />
         <Kpi
           label={t('transactions.expenseChart.topCategory', { defaultValue: 'Biggest category' })}
-          value={categoryTotals[0]?.label ?? '—'}
+          value={categoryTotals[0]?.label ?? '–'}
           colors={colors}
         />
       </View>

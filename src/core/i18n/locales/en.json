@@ -20,7 +20,7 @@
     "gateTitle": "One more thing",
     "gateDescription": "We've updated what you need to agree to before using RentVance. Please review the documents below and confirm to continue.",
     "gateAccept": "Accept and continue",
-    "gateDecline": "Not now — sign out",
+    "gateDecline": "Not now, sign out",
     "gateError": "We couldn't record your acceptance. Please try again."
   },
   "tabs": {
@@ -242,13 +242,13 @@
     "edited": "Edited",
     "resetTitle": "Restore the default message?",
     "resetMessage": "Your edited version for this language will be replaced with the original.",
-    "emptyHint": "Empty — the default message will be used.",
+    "emptyHint": "Empty, so the default message will be used.",
     "saveError": "Could not save your message. Please try again.",
     "key": {
       "overdue": "Rent due",
       "lease_expiring": "Lease expiring",
-      "cpi_upcoming": "CPI rent change — estimate",
-      "cpi_changed": "CPI rent change — confirmed"
+      "cpi_upcoming": "CPI rent change: estimate",
+      "cpi_changed": "CPI rent change: confirmed"
     },
     "token": {
       "name": "First name",
@@ -262,7 +262,7 @@
       "change": "Change"
     },
     "defaults": {
-      "overdue": "Hi {name}, just a reminder that the rent for {address} — {amount} — is due. Could you let me know once it's on its way? Thanks!",
+      "overdue": "Hi {name}, just a reminder that the {amount} rent for {address} is due. Could you let me know once it's on its way? Thanks!",
       "lease_expiring": "Hi {name}, a heads-up that the lease for {address} ends on {date}. Let me know if you'd like to renew and we can sort out the details.",
       "cpi_upcoming": "Hi {name}, a heads-up: the rent for {address} is index-linked and updates on {date}. Based on the latest published index it should come to about {new_amount} (currently {old_amount}). I'll confirm the exact figure once the index for that month is published.",
       "cpi_changed": "Hi {name}, the index-linked rent for {address} has been updated from {old_amount} to {new_amount} ({change}), effective {date}. Happy to go through the calculation if you'd like."
@@ -407,7 +407,7 @@
     "yearRule": "How this year's rent is set",
     "yearRuleValue": "Rent change amount",
     "ruleValueRequired": "Enter an amount",
-    "cpiProjectedNote": "Amounts from the first CPI year on are estimates — they are finalized once the index for that year is published.",
+    "cpiProjectedNote": "Amounts from the first CPI year on are estimates, and are finalized once the index for that year is published.",
     "rentChangeCpiNote": "Rent is linked to the Consumer Price Index and updates automatically at the start of each contract year.",
     "yearlyIncrease": "Increase each year",
     "currentYear": "Now",
@@ -428,7 +428,7 @@
     "endLeaseTitle": "End this lease",
     "endLeaseDateLabel": "Last day of the tenancy",
     "endLeaseReasonLabel": "Reason",
-    "endLeaseNote": "The signed lease, its rent schedule and every transaction are kept — reports for past months are unchanged. Reminders stop from this date; alerts already sent are not withdrawn.",
+    "endLeaseNote": "The signed lease, its rent schedule and every transaction are kept, so reports for past months are unchanged. Reminders stop from this date; alerts already sent are not withdrawn.",
     "endLeaseConfirm": "End lease",
     "reopenLease": "Reopen",
     "previousTenants": "Previous tenants",
@@ -443,10 +443,10 @@
     "addYears": "Add years",
     "yearsToAdd": "Years to add",
     "optionYearsToAdd": "Option years to add",
-    "leaseOrderWarning": "A contract year comes after an option year. Option (renewal) years must be last — convert or remove them before saving.",
+    "leaseOrderWarning": "A contract year comes after an option year. Option (renewal) years must be last. Convert or remove them before saving.",
     "newYearIncrement": "New-year rent change",
     "newLeaseSchedule": "New lease schedule",
-    "noLeaseYears": "No lease years yet — add years above.",
+    "noLeaseYears": "No lease years yet. Add years above.",
     "newYearTag": "New",
     "tapToChangeType": "Tap to switch contract / option",
     "removeYear": "Remove year",
@@ -466,6 +466,7 @@
     "paymentTypeCash": "Cash",
     "paymentTypeWireTransfer": "Bank transfer",
     "paymentTypeBit": "Bit",
+    "paymentFrequency": "Payment frequency",
     "frequencyMonthly": "Monthly",
     "frequencyQuarterly": "Quarterly",
     "frequencyYearly": "Yearly",
@@ -488,8 +489,8 @@
     "addRenter": "Add Renter",
     "repricePast": {
       "title": "This also changes past years",
-      "message": "Rent changes for {{count}} lease year that has already started — {{detail}}. Payments already recorded against it will be marked as no longer matching the lease.",
-      "message_plural": "Rent changes for {{count}} lease years that have already started — {{detail}}. Payments already recorded against them will be marked as no longer matching the lease."
+      "message": "Rent changes for {{count}} lease year that has already started: {{detail}}. Payments already recorded against it will be marked as no longer matching the lease.",
+      "message_plural": "Rent changes for {{count}} lease years that have already started: {{detail}}. Payments already recorded against them will be marked as no longer matching the lease."
     },
     "updateRenter": "Update Renter",
     "call": "Call",
@@ -522,7 +523,7 @@
     },
     "suppressExpiryAlerts": "Don't warn me when this lease expires",
     "openEnded": "Open-ended lease",
-    "openEndedOnNote": "No agreed end date. We keep the next five years on the schedule and add another each year — correct any year's rent whenever it changes.",
+    "openEndedOnNote": "No agreed end date. We keep the next five years on the schedule and add another each year. Correct any year's rent whenever it changes.",
     "openEndedOffNote": "Tenancies here usually have no end date. Turn this on and we'll keep the schedule running instead of asking you to invent one.",
     "openEndedShort": "Open-ended",
     "leaseEndsCaption": "Lease ends",
@@ -844,7 +845,7 @@
     "addManually": "Enter manually",
     "scanLease": "Scan a lease",
     "matchedFromLease": "Property matched from the lease",
-    "couldntMatch": "Couldn't match a property — please choose one.",
+    "couldntMatch": "Couldn't match a property. Please choose one.",
     "propertyMismatchWarning": "This lease looks like it's for a different address than the selected property.",
     "createPropertyFromLease": "Create this property from the lease",
     "extractAction": "Extract details",
@@ -877,7 +878,7 @@
     "addressEvidence": "Scanned from: “{{snippet}}”",
     "addPage": "Add another page",
     "removePage": "Remove",
-    "selectedPages": "{{count}} pages — they'll be combined into one document",
+    "selectedPages": "{{count}} pages, to be combined into one document",
     "mixedFilesError": "Add either one PDF/Word file or one or more images, not a mix.",
     "cameraPermissionDenied": "Camera access is needed to photograph the lease.",
     "extracting": "Reading the document…",
@@ -970,7 +971,7 @@
       "first-run": {
         "welcome": {
           "title": "Welcome to RentVance",
-          "body": "Your properties, the people renting them, and every payment between the two. Here is where everything lives — it takes a minute."
+          "body": "Your properties, the people renting them, and every payment between the two. Here is where everything lives. It takes a minute."
         },
         "home": {
           "title": "Your dashboard",
@@ -1004,15 +1005,15 @@
       "home": {
         "overview": {
           "title": "What's on this screen",
-          "body": "Everything Home shows you, one block at a time — starting at the top."
+          "body": "Everything Home shows you, one block at a time, starting at the top."
         },
         "quickActions": {
           "title": "Quick actions",
-          "body": "Record rent, log an expense, add a property or a renter — all from here."
+          "body": "Record rent, log an expense, add a property or a renter, all from here."
         },
         "attention": {
           "title": "Needs attention",
-          "body": "Everything your reminders watch — rent that hasn't arrived, leases about to expire, and any rent changes — shown here the moment they happen. Each row can be acted on without leaving Home."
+          "body": "Everything your reminders watch (rent that hasn't arrived, leases about to expire, and any rent changes) is shown here the moment it happens. Each row can be acted on without leaving Home."
         },
         "portfolio": {
           "title": "Your numbers",
@@ -1020,7 +1021,7 @@
         },
         "reports": {
           "title": "Reports live here",
-          "body": "Not in the tab bar — this card is the way in."
+          "body": "It is not in the tab bar, so this card is the way in."
         },
         "notifications": {
           "title": "The same three, on your terms",
@@ -1028,7 +1029,7 @@
         },
         "recent": {
           "title": "Recent activity",
-          "body": "The last few transactions — the full ledger is one tap away."
+          "body": "The last few transactions. The full ledger is one tap away."
         },
         "bell": {
           "title": "The bell",
@@ -1042,7 +1043,7 @@
         },
         "persistence": {
           "title": "Your view stays put",
-          "body": "Your filters stay exactly as you left them while you move between tabs — nothing resets behind your back."
+          "body": "Your filters stay exactly as you left them while you move between tabs. Nothing resets behind your back."
         },
         "cards": {
           "title": "One card per unit",
@@ -1082,7 +1083,7 @@
         },
         "cards": {
           "title": "One card each",
-          "body": "A face, where they live and when the lease ends — enough to know who you are looking at."
+          "body": "A face, where they live and when the lease ends: enough to know who you are looking at."
         },
         "add": {
           "title": "Two ways in",
@@ -1100,19 +1101,19 @@
         },
         "extraContacts": {
           "title": "Anyone else on the lease",
-          "body": "A guarantor, a partner, a parent paying the rent — add them here with their own phone number, and they are part of the tenancy rather than a note somewhere. Optional, and you can come back to it later."
+          "body": "A guarantor, a partner, a parent paying the rent: add them here with their own phone number, and they are part of the tenancy rather than a note somewhere. Optional, and you can come back to it later."
         },
         "openEnded": {
           "title": "Tenancies with no end",
-          "body": "Some tenancies just run — month to month once a contract lapses, or by law in much of Europe. Turn this on and we keep the schedule rolling instead of asking you to invent an end date."
+          "body": "Some tenancies just run: month to month once a contract lapses, or by law in much of Europe. Turn this on and we keep the schedule rolling instead of asking you to invent an end date."
         },
         "term": {
           "title": "The term",
-          "body": "Years and months together, so a lease of 1 year and 6 months is entered as easily as one of 2 years. The end date follows from them — it is calculated, never typed."
+          "body": "Years and months together, so a lease of 1 year and 6 months is entered as easily as one of 2 years. The end date follows from them: it is calculated, never typed."
         },
         "mode": {
           "title": "How the rent moves",
-          "body": "Flat, a fixed percentage, a fixed amount, or your own schedule — whichever of these your country supports."
+          "body": "Flat, a fixed percentage, a fixed amount, or your own schedule, whichever of these your country supports."
         },
         "baseYear": {
           "title": "Year one",
@@ -1120,7 +1121,7 @@
         },
         "payment": {
           "title": "When rent is due",
-          "body": "The payment day is what 'overdue' is counted from — nothing is charged, it is only the date an alert starts from. Type and frequency just describe how it usually arrives."
+          "body": "The payment day is what 'overdue' is counted from. Nothing is charged; it is only the date an alert starts from. Type and frequency just describe how it usually arrives."
         }
       },
       "transactions-list": {
@@ -1134,11 +1135,11 @@
         },
         "suppliers": {
           "title": "Suppliers live here",
-          "body": "The plumber, the electrician, the management company — saved once, attached to any expense."
+          "body": "The plumber, the electrician, the management company: saved once, attached to any expense."
         },
         "forMonth": {
           "title": "Which month it pays for",
-          "body": "Recorded separately from the date it arrived — March rent can land in April, and the reports still count it as March."
+          "body": "Recorded separately from the date it arrived: March rent can land in April, and the reports still count it as March."
         },
         "recording": {
           "title": "Recording rent",
@@ -1156,11 +1157,11 @@
         },
         "tabs": {
           "title": "Three tabs",
-          "body": "The lease itself, the unit they live in, and their money. The tour goes through the first and the last — the middle one is a shortcut to that property."
+          "body": "The lease itself, the unit they live in, and their money. The tour goes through the first and the last. The middle one is a shortcut to that property."
         },
         "timeline": {
           "title": "The lease, year by year",
-          "body": "Every period of the lease with the rent for it, in order, including the rises still ahead — so the year that is about to get more expensive is visible now rather than a surprise later. A year whose rent is not yet fixed is marked as a projection."
+          "body": "Every period of the lease with the rent for it, in order, including the rises still ahead, so the year that is about to get more expensive is visible now rather than a surprise later. A year whose rent is not yet fixed is marked as a projection."
         },
         "payments": {
           "title": "Over on Transactions: did the rent come in?",
@@ -1168,15 +1169,15 @@
         },
         "expenses": {
           "title": "And what this tenancy cost",
-          "body": "Expenses are the other half of the same tab — the switch above the grid. They are grouped by category rather than by month, because what you spent on a tenant is a different question from whether their rent arrived."
+          "body": "Expenses are the other half of the same tab, behind the switch above the grid. They are grouped by category rather than by month, because what you spent on a tenant is a different question from whether their rent arrived."
         },
         "edit": {
           "title": "Fixing what is already there",
-          "body": "Edit reopens the renter's own form — a corrected phone number, a document you did not have at the time, a rent figure typed wrong. Use it to correct the record; use the buttons beside it to change what the lease actually says."
+          "body": "Edit reopens the renter's own form: a corrected phone number, a document you did not have at the time, a rent figure typed wrong. Use it to correct the record; use the buttons beside it to change what the lease actually says."
         },
         "extend": {
           "title": "Extending, not editing",
-          "body": "Adds years or months onto the end of the lease and leaves everything already agreed exactly as it is. A tenancy you ended by hand has to be reopened first — extending a terminated lease would quietly un-end it."
+          "body": "Adds years or months onto the end of the lease and leaves everything already agreed exactly as it is. A tenancy you ended by hand has to be reopened first, because extending a terminated lease would quietly un-end it."
         },
         "end": {
           "title": "Ending a tenancy",
@@ -1194,7 +1195,7 @@
         },
         "tabs": {
           "title": "Four tabs",
-          "body": "What you entered about the place, who lives in it, the money it has made and cost, and the paperwork — one tab each. The tour walks the last three."
+          "body": "What you entered about the place, who lives in it, the money it has made and cost, and the paperwork: one tab each. The tour walks the last three."
         },
         "renters": {
           "title": "Who is here, and who was",
@@ -1202,7 +1203,7 @@
         },
         "payments": {
           "title": "The money this unit made",
-          "body": "Rent as a month-by-month grid, one box per month, so an unpaid month is a hole you can see. Expenses sit beside it grouped by category — what a place costs you is a different question from whether the rent came in."
+          "body": "Rent as a month-by-month grid, one box per month, so an unpaid month is a hole you can see. Expenses sit beside it grouped by category, because what a place costs you is a different question from whether the rent came in."
         },
         "documents": {
           "title": "Two slots, not a folder",
@@ -1220,7 +1221,7 @@
         },
         "scope": {
           "title": "What it can see",
-          "body": "Your properties, renters and transactions — and nothing outside your account. It reads; it never changes anything."
+          "body": "Your properties, renters and transactions, and nothing outside your account. It reads; it never changes anything."
         },
         "plan": {
           "title": "Included on paid plans",
@@ -1248,7 +1249,7 @@
         },
         "forward": {
           "title": "Computed forward",
-          "body": "Each year builds on the previous year's resolved rent — so an amount you type, then +3%, then a fixed sum, then flat, is expressible exactly."
+          "body": "Each year builds on the previous year's resolved rent, so an amount you type, then +3%, then a fixed sum, then flat, is expressible exactly."
         }
       },
       "revenue-form": {
@@ -1258,7 +1259,7 @@
         },
         "scope": {
           "title": "Pick the properties",
-          "body": "Their renters appear below, each with the rent they owe — taken from that renter's own schedule, so a mid-lease rise is applied for you. Narrow by owner first if you manage for more than one."
+          "body": "Their renters appear below, each with the rent they owe, taken from that renter's own schedule, so a mid-lease rise is applied for you. Narrow by owner first if you manage for more than one."
         },
         "period": {
           "title": "Which months",
@@ -1266,17 +1267,17 @@
         },
         "perContract": {
           "title": "Overriding a row",
-          "body": "Every amount is filled in from the contract. Type over any of them for a one-off — a partial payment, a discounted month — and Auto snaps it back."
+          "body": "Every amount is filled in from the contract. Type over any of them for a one-off, such as a partial payment or a discounted month, and Auto snaps it back."
         },
         "saving": {
           "title": "One row at a time",
-          "body": "A big batch saves as many small writes. If it stops halfway, what was written stays written — re-run only the months that didn't land."
+          "body": "A big batch saves as many small writes. If it stops halfway, what was written stays written. Re-run only the months that didn't land."
         }
       },
       "expense-form": {
         "overview": {
           "title": "Money going out",
-          "body": "Anything you pay for a property — a repair, a bill, a supplier's invoice. It needs a property, an amount, a date, a payment method and at least one category. Everything else is optional."
+          "body": "Anything you pay for a property: a repair, a bill, a supplier's invoice. It needs a property, an amount, a date, a payment method and at least one category. Everything else is optional."
         },
         "split": {
           "title": "One bill, several units",
@@ -1284,13 +1285,13 @@
         },
         "required": {
           "title": "Categories",
-          "body": "At least one, and they are what the reports group by — pick the one you would want a year-end total for. The supplier list narrows to match."
+          "body": "At least one, and they are what the reports group by. Pick the one you would want a year-end total for. The supplier list narrows to match."
         }
       },
       "extend-lease": {
         "overview": {
           "title": "Extending a lease",
-          "body": "Adds years or months onto the end of the lease that is already running. Nothing agreed so far is touched — the existing years stay as they are."
+          "body": "Adds years or months onto the end of the lease that is already running. Nothing agreed so far is touched: the existing years stay as they are."
         },
         "months": {
           "title": "Years or months",
@@ -1298,7 +1299,7 @@
         },
         "optionLast": {
           "title": "Option years come last",
-          "body": "The preview badges what's new and keeps existing years editable. A contract year after an option year is blocked — a renewal option with binding years after it isn't an option."
+          "body": "The preview badges what's new and keeps existing years editable. A contract year after an option year is blocked, because a renewal option with binding years after it isn't an option."
         }
       },
       "suppliers": {
@@ -1314,7 +1315,7 @@
       "supplier-form": {
         "overview": {
           "title": "Saving a supplier",
-          "body": "A name and at least one category is all it needs — the plumber, the electrician, the management company. Save one here and it is offered on every expense from then on, instead of being retyped each time."
+          "body": "A name and at least one category is all it needs, whether it is the plumber, the electrician or the management company. Save one here and it is offered on every expense from then on, instead of being retyped each time."
         },
         "bank": {
           "title": "Their bank details, for your reference only",
@@ -1342,7 +1343,7 @@
       "notification-rules": {
         "offsets": {
           "title": "When",
-          "body": "Three days before, seven days after — whatever matches how you actually chase. Type a number and press Enter to add each one; a reminder can carry several."
+          "body": "Three days before, seven days after, whatever matches how you actually chase. Type a number and press Enter to add each one; a reminder can carry several."
         },
         "scope": {
           "title": "Who",
@@ -1360,7 +1361,7 @@
         },
         "perLanguage": {
           "title": "Per language",
-          "body": "English and Hebrew keep separate versions — editing one never touches the other. Reset restores the original."
+          "body": "English and Hebrew keep separate versions: editing one never touches the other. Reset restores the original."
         }
       },
       "reports": {
@@ -1376,7 +1377,7 @@
       "lease-scan": {
         "pick": {
           "title": "Start with the document",
-          "body": "Photograph the lease or pick a file you already have — an image, a PDF or a Word document. A lease that runs to several pages is several photos: take them one after another and they are read as one document. Then Extract, and we do the reading. Free accounts get three scans a month, and the count above the buttons shows what is left."
+          "body": "Photograph the lease or pick a file you already have: an image, a PDF or a Word document. A lease that runs to several pages is several photos: take them one after another and they are read as one document. Then Extract, and we do the reading. Free accounts get three scans a month, and the count above the buttons shows what is left."
         },
         "review": {
           "title": "Nothing saves unread",
@@ -1384,37 +1385,37 @@
         },
         "both": {
           "title": "Both at once",
-          "body": "One scan can create the property and the renter together — the fastest way in."
+          "body": "One scan can create the property and the renter together, the fastest way in."
         }
       }
     },
     "seeds": {
-      "alert-actions": "Rows here do more than warn — each one can record the payment or message the renter on WhatsApp without leaving the page.",
+      "alert-actions": "Rows here do more than warn: each one can record the payment or message the renter on WhatsApp without leaving the page.",
       "scan-lease": "Have the lease as a file? Scan it and we'll read it and create the property and the renter in one pass.",
-      "suppliers": "Suppliers lives in here too — save the plumber or the management company once, then attach them to any expense.",
+      "suppliers": "Suppliers lives in here too. Save the plumber or the management company once, then attach them to any expense.",
       "reports": "Income against expenses for any period, and a full expense log you can filter and export.",
-      "notifications": "Rent, expiring leases and rent changes each get their own reminder — change when it fires, or mute it.",
-      "property-owner": "Set this if you ever manage units for more than one person — it later filters rent recording and scopes reminders.",
+      "notifications": "Rent, expiring leases and rent changes each get their own reminder. Change when it fires, or mute it.",
+      "property-owner": "Set this if you ever manage units for more than one person. It later filters rent recording and scopes reminders.",
       "ended-tenants": "Past tenants are never deleted. They're under Ended, and search always looks in both.",
       "bulk-select": "Long-press any card to select several at once.",
       "cpi": "CPI links the rent to the Israeli consumer price index. Choose it and we'll explain what that means for your rent.",
-      "custom-schedule": "Custom gives every year its own rule — an amount you type, then +3%, then a fixed sum, then flat.",
-      "no-auto-rent": "Nothing is charged automatically. 'Overdue' only means no payment is recorded yet — record it and the alert clears itself.",
+      "custom-schedule": "Custom gives every year its own rule: an amount you type, then +3%, then a fixed sum, then flat.",
+      "no-auto-rent": "Nothing is charged automatically. 'Overdue' only means no payment is recorded yet. Record it and the alert clears itself.",
       "bulk-rent": "Recording rent handles many renters across many months at once. You won't be typing them one by one.",
       "expense-split": "Each property gets its own transaction, so a later correction touches only that one.",
-      "extend-lease": "Extend adds years or months and prices them, with a live preview — and it clears the expiring-lease alert for you.",
+      "extend-lease": "Extend adds years or months and prices them, with a live preview, and it also clears the expiring-lease alert for you.",
       "end-lease": "Tenant leaving early? End lease records the exit without rewriting past rent or reports. It's undoable.",
       "notification-rules": "Custom reminders change the reminder days and can cover just one owner, property or renter.",
-      "feedback": "Not a question about your portfolio? Settings → Send us a message reaches a person — a bug, an idea, or anything about the app itself.",
-      "whatsapp-templates": "The WhatsApp wording is yours to rewrite, in each language. We never send anything to a tenant — the message lands in your input box, unsent."
+      "feedback": "Not a question about your portfolio? Settings → Send us a message reaches a person, whether it is a bug, an idea, or anything about the app itself.",
+      "whatsapp-templates": "The WhatsApp wording is yours to rewrite, in each language. We never send anything to a tenant: the message lands in your input box, unsent."
     },
     "callbacks": {
       "suppliers": "Here's the Suppliers list we mentioned.",
       "reports": "Here are the reports we mentioned.",
       "notifications": "Here's where reminders are set up.",
       "scan-lease": "Here's the lease scanner we mentioned.",
-      "cpi": "You picked CPI — here's what it does.",
-      "custom-schedule": "You picked Custom — here's how the years work.",
+      "cpi": "You picked CPI. Here's what it does.",
+      "custom-schedule": "You picked Custom. Here's how the years work.",
       "bulk-rent": "This is the bulk rent recording we mentioned.",
       "extend-lease": "Here's the extend flow we mentioned.",
       "notification-rules": "Here's the reminder editor.",
@@ -1528,7 +1529,7 @@
     },
     "agentLocked": {
       "heading": "Ask RentVance is on paid plans",
-      "body": "Ask questions about your portfolio in plain language — which leases end soon, what a property earned last year, who is behind on rent.",
+      "body": "Ask questions about your portfolio in plain language: which leases end soon, what a property earned last year, who is behind on rent.",
       "cta": "See plans"
     },
     "plans": {

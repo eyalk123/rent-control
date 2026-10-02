@@ -228,15 +228,15 @@ export function RevenuePaymentPanel({
     ].filter(Boolean);
     return (
       <View style={styles.summaryBlock}>
-        <LtrSection>
-          <Text style={[styles.summary, { color: colors.textPrimary }]}>
-            {t('transactions.rentGrid.summary', {
-              collected: formatMoney(totals.collected),
-              expected: formatMoney(totals.expected),
-              defaultValue: '{{collected}} collected of {{expected}}',
-            })}
-          </Text>
-        </LtrSection>
+        {/* A sentence, not a bare amount: it follows the app's direction. Forcing LTR here
+            ran the Hebrew sentence backwards. */}
+        <Text style={[styles.summary, { color: colors.textPrimary }]}>
+          {t('transactions.rentGrid.summary', {
+            collected: formatMoney(totals.collected),
+            expected: formatMoney(totals.expected),
+            defaultValue: '{{collected}} collected of {{expected}}',
+          })}
+        </Text>
         {flags.length > 0 ? <View style={styles.flagRow}>{flags}</View> : null}
       </View>
     );

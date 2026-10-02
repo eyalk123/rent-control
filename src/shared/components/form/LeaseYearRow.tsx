@@ -175,7 +175,7 @@ function LeaseYearRowInner({
               { color: projected ? colors.textSecondary : colors.textPrimary },
             ]}
           >
-            {amountNum > 0 ? `${projected ? "≈ " : ""}${formatMoney(amountNum)}` : "—"}
+            {amountNum > 0 ? `${projected ? "≈ " : ""}${formatMoney(amountNum)}` : "–"}
           </Text>
           {projected ? (
             <View

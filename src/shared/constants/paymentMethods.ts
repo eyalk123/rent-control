@@ -56,11 +56,20 @@ export function normalizePaymentType(value?: string | null): PaymentMethod {
 }
 
 
+// Older renters had a frequency typed into `payment_type` (the field was free text). Still
+// shown as stored, just in the user's language rather than as the raw English word.
+const LEGACY_FREQUENCY_LABEL_KEYS: Record<string, string> = {
+  monthly: 'renter.frequencyMonthly',
+  quarterly: 'renter.frequencyQuarterly',
+  yearly: 'renter.frequencyYearly',
+};
+
 // Localized label for a stored payment value, honoring the legacy 'wire_transfer' alias.
 // Falls back to the raw value for anything unrecognized.
 export function getPaymentMethodLabel(value: string | null | undefined, t: TFunction): string {
   if (value == null || value === '') return '';
   const canonical = value === 'wire_transfer' ? 'bank_transfer' : value;
-  const key = PAYMENT_METHOD_LABEL_KEYS[canonical as PaymentMethod];
+  const key =
+    PAYMENT_METHOD_LABEL_KEYS[canonical as PaymentMethod] ?? LEGACY_FREQUENCY_LABEL_KEYS[canonical];
   return key ? t(key) : value;
 }

@@ -139,7 +139,7 @@ export function TransactionDetailScreen() {
   };
 
   const paymentMethodLabel = (method: string | null) => {
-    if (!method) return '—';
+    if (!method) return '–';
     const suffix = method.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('');
     return t(`transactions.paymentMethod${suffix}` as any, { defaultValue: method });
   };

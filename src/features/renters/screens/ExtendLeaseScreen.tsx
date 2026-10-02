@@ -513,10 +513,10 @@ export function ExtendLeaseScreen() {
             <View style={[styles.summaryRow, { flexDirection: rowDirection }]}>
               <Icon name="calendar-clock" size={ICON_SM} color={colors.textSecondary} />
               <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
-                {originalEnd ? formatDateFull(originalEnd, language) : "—"}
+                {originalEnd ? formatDateFull(originalEnd, language) : "–"}
                 {isRtl ? "  ←  " : "  →  "}
                 <Text style={{ color: colors.textPrimary, fontWeight: "700" }}>
-                  {newEnd ? formatDateFull(newEnd, language) : "—"}
+                  {newEnd ? formatDateFull(newEnd, language) : "–"}
                 </Text>
               </Text>
             </View>

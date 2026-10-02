@@ -94,14 +94,14 @@ export function PropertyInfoTab({ property, transactions, transactionsLoading }:
 
   // An em dash while the fetch is in flight: StatBox has no loading state, and a flash of
   // 0 reads as "this property earned nothing", which is a different claim from "not yet known".
-  const money = (n: number) => (transactionsLoading ? '—' : formatMoney(n));
+  const money = (n: number) => (transactionsLoading ? '–' : formatMoney(n));
   const net = revTotal - expTotal;
 
   const tiles: { key: string; icon: IconName; value: string; label: string; color?: string }[] = [
     {
       key: 'monthlyRent',
       icon: 'wallet' as IconName,
-      value: monthlyRent != null ? formatMoney(monthlyRent) : '—',
+      value: monthlyRent != null ? formatMoney(monthlyRent) : '–',
       label: t('renter.monthlyRent'),
     },
     {
