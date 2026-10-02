@@ -18,6 +18,7 @@ import ArrowDownRight from "lucide-react-native/icons/arrow-down-right";
 import ArrowRightLeft from "lucide-react-native/icons/arrow-right-left";
 import ArrowUpRight from "lucide-react-native/icons/arrow-up-right";
 import Bell from "lucide-react-native/icons/bell";
+import BellOff from "lucide-react-native/icons/bell-off";
 import Briefcase from "lucide-react-native/icons/briefcase";
 import Building2 from "lucide-react-native/icons/building-2";
 import Calendar from "lucide-react-native/icons/calendar";
@@ -98,6 +99,7 @@ const REGISTRY = {
   layers: Layers,
   "layout-dashboard": LayoutDashboard,
   bell: Bell,
+  "bell-off": BellOff,
   briefcase: Briefcase,
   building: Building2,
   calendar: Calendar,

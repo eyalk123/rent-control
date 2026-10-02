@@ -160,6 +160,13 @@ function AttentionItemRow({
   const { t, i18n } = useTranslation();
   const name = `${item.first_name} ${item.last_name}`;
   const address = item.property_address ?? '';
+  // The whole row opens the renter. The pills are touchables of their own, so a press on
+  // one is claimed by the pill and never reaches the row.
+  const rowPress = {
+    onPress: () => onNavigate(`/renters/${item.renter_id}`),
+    activeOpacity: 0.6,
+    accessibilityRole: 'button' as const,
+  };
 
   // Leftmost of the actions, and separated from the green "Mark Paid" by the neutral
   // Ignore pill so two green pills never sit side by side. Hidden outright when there is
@@ -176,23 +183,15 @@ function AttentionItemRow({
   if (item._type === 'expiring') {
     return (
       <View>
-        <View style={styles.itemRow}>
+        <TouchableOpacity style={styles.itemRow} {...rowPress}>
           <View style={[styles.iconBadge, { backgroundColor: amberBg }]}>
             <Icon name="calendar" size={ICON_MD} color={colors.warning} />
           </View>
           <View style={styles.centerContent}>
             <View style={styles.topLine}>
-              <TouchableOpacity
-                style={styles.nameTouchable}
-                onPress={() => onNavigate(`/renters/${item.renter_id}`)}
-                activeOpacity={0.6}
-                accessibilityRole="button"
-                hitSlop={{ top: 6, bottom: 6 }}
-              >
-                <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-                  {name}
-                </Text>
-              </TouchableOpacity>
+              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+                {name}
+              </Text>
               <View style={[styles.infoBadge, { backgroundColor: amberBg }]}>
                 <Text style={[styles.infoBadgeText, { color: colors.warning }]}>
                   {t(item.days_until_expiry === 1 ? 'home.expiresIn' : 'home.expiresInPlural', { count: item.days_until_expiry })}
@@ -221,7 +220,7 @@ function AttentionItemRow({
               />
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
         {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
       </View>
     );
@@ -231,23 +230,15 @@ function AttentionItemRow({
     const upcoming = item.stage === 'upcoming';
     return (
       <View>
-        <View style={styles.itemRow}>
+        <TouchableOpacity style={styles.itemRow} {...rowPress}>
           <View style={[styles.iconBadge, { backgroundColor: primaryBg }]}>
             <Icon name="trending-up" size={ICON_MD} color={colors.primary} />
           </View>
           <View style={styles.centerContent}>
             <View style={styles.topLine}>
-              <TouchableOpacity
-                style={styles.nameTouchable}
-                onPress={() => onNavigate(`/renters/${item.renter_id}`)}
-                activeOpacity={0.6}
-                accessibilityRole="button"
-                hitSlop={{ top: 6, bottom: 6 }}
-              >
-                <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-                  {name}
-                </Text>
-              </TouchableOpacity>
+              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+                {name}
+              </Text>
               <View style={[styles.infoBadge, { backgroundColor: primaryBg }]}>
                 <Text style={[styles.infoBadgeText, { color: colors.primary }]}>
                   {t(upcoming ? 'notifications.cpiBadgeUpcoming' : 'notifications.cpiBadgeChanged')}
@@ -281,7 +272,7 @@ function AttentionItemRow({
               />
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
         {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
       </View>
     );
@@ -289,23 +280,15 @@ function AttentionItemRow({
 
   return (
     <View>
-      <View style={styles.itemRow}>
+      <TouchableOpacity style={styles.itemRow} {...rowPress}>
         <View style={[styles.iconBadge, { backgroundColor: colors.expBg }]}>
           <Icon name="alert-circle" size={ICON_MD} color={colors.expFg} />
         </View>
         <View style={styles.centerContent}>
           <View style={styles.topLine}>
-            <TouchableOpacity
-              style={styles.nameTouchable}
-              onPress={() => onNavigate(`/renters/${item.renter_id}`)}
-              activeOpacity={0.6}
-              accessibilityRole="button"
-              hitSlop={{ top: 6, bottom: 6 }}
-            >
-              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-                {name}
-              </Text>
-            </TouchableOpacity>
+            <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+              {name}
+            </Text>
             <View style={[styles.infoBadge, { backgroundColor: colors.expBg }]}>
               <Text style={[styles.infoBadgeText, { color: colors.expFg }]}>
                 {t(item.days_overdue === 1 ? 'home.daysOverdue' : 'home.daysOverduePlural', { count: item.days_overdue })}
@@ -334,7 +317,7 @@ function AttentionItemRow({
             />
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
       {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
     </View>
   );
@@ -353,41 +336,38 @@ export function NeedsAttentionSection() {
   const [items, setItems] = useState<AttentionItem[]>([]);
   const [templates, setTemplates] = useState<WhatsAppTemplates>({});
   const [loading, setLoading] = useState(true);
+  const [notificationsOff, setNotificationsOff] = useState(false);
   const [markPaidLoadingIds, setMarkPaidLoadingIds] = useState<Set<number>>(new Set());
   const [modalVisible, setModalVisible] = useState(false);
   const isFirstLoad = useRef(true);
 
   const fetchData = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
-    try {
-      const feed = await getNotifications('all');
-      setItems(feed.map(toAttentionItem));
-    } catch {
-      // section stays as-is on error
-    } finally {
-      if (!silent) setLoading(false);
+    // Preferences ride alongside the feed but are settled separately, so a failure there
+    // can never blank the alerts: the WhatsApp messages fall back to the shipped defaults
+    // and the switch is assumed on. They load before the spinner ends because the feed is
+    // empty while notifications are off, and without the switch that would read as
+    // "All caught up".
+    const [feed, prefs] = await Promise.allSettled([
+      getNotifications('all'),
+      getPreferences(),
+    ]);
+    if (feed.status === 'fulfilled') setItems(feed.value.map(toAttentionItem));
+    if (prefs.status === 'fulfilled') {
+      setTemplates(prefs.value.settings.whatsapp_templates ?? {});
+      setNotificationsOff(prefs.value.settings.master_enabled === false);
     }
-  }, []);
-
-  // The owner's edited WhatsApp copy, fetched separately from the feed so a failure here
-  // can never blank the alerts: without it the messages simply fall back to the shipped
-  // defaults, which is a working button rather than a missing one.
-  const fetchTemplates = useCallback(async () => {
-    try {
-      const prefs = await getPreferences();
-      setTemplates(prefs.settings.whatsapp_templates ?? {});
-    } catch {
-      // defaults it is
-    }
+    if (!silent) setLoading(false);
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       const silent = !isFirstLoad.current;
       isFirstLoad.current = false;
+      // Refetched on focus, so coming back from settings shows the result at once — the
+      // server regenerates the feed on this read when notifications are switched back on.
       fetchData(silent);
-      fetchTemplates(); // refetched on focus so an edit in settings takes effect on return
-    }, [fetchData, fetchTemplates]),
+    }, [fetchData]),
   );
 
   const navigate = (path: string) => {
@@ -519,6 +499,34 @@ export function NeedsAttentionSection() {
           </View>
         ))}
         </View>
+      </>
+    );
+  }
+
+  // The server returns an empty feed while notifications are off. "All caught up" would
+  // claim there is nothing to chase, when the truth is that nothing is being checked.
+  if (notificationsOff) {
+    return (
+      <>
+        {header}
+        <TourAnchor id={ANCHORS.homeNeedsAttention}>
+        <View style={[styles.offCard, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
+          <Icon name="bell-off" size={ICON_SM} color={colors.textSecondary} />
+          <Text style={[styles.offText, { color: colors.textSecondary }]}>
+            {t('notifications.masterOff')}
+          </Text>
+          <TouchableOpacity
+            onPress={() => navigate('/notifications')}
+            accessibilityRole="button"
+            activeOpacity={0.7}
+            style={[styles.offButton, { borderColor: colors.primary }]}
+          >
+            <Text style={[styles.offButtonText, { color: colors.primary }]}>
+              {t('notifications.turnOn')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        </TourAnchor>
       </>
     );
   }
@@ -661,9 +669,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.xs,
   },
-  nameTouchable: {
-    flex: 1,
-  },
   name: {
     fontSize: 13,
     fontWeight: '700',
@@ -710,6 +715,28 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   seeAllText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  offCard: {
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  offText: {
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  offButton: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+  },
+  offButtonText: {
     fontSize: 12,
     fontWeight: '600',
   },

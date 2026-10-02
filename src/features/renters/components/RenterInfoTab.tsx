@@ -1,7 +1,8 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { getCurrentMonthlyRent, paymentFrequencyLabel, type Renter } from '@/src/shared/types';
+import { getCurrentMonthlyRent, getLeaseEndDate, type Renter } from '@/src/shared/types';
+import { getEffectiveLeaseEnd, isOpenEnded } from '@/src/shared/utils/renterStatus';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
 import { formatDateFull } from '@/src/shared/utils/dates';
@@ -27,10 +28,14 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
   const colors = theme.dark ? darkColors : lightColors;
 
   const monthlyRent = getCurrentMonthlyRent(renter);
-  // Named, not numbered: "4" meant nothing on a screen whose own form offers
-  // Monthly / Quarterly / Yearly. An unsupported stored value still shows itself
-  // ("6 per year") rather than rendering blank.
-  const frequency = paymentFrequencyLabel(renter.number_of_payments);
+  // Same rule as the renters list: an open-ended lease's end date is one the server keeps
+  // rolling forward, so it is named rather than printed.
+  const leaseEnd = getEffectiveLeaseEnd(renter) ?? getLeaseEndDate(renter);
+  const leaseEndValue = isOpenEnded(renter)
+    ? t('renter.openEndedShort')
+    : leaseEnd
+      ? formatDateFull(leaseEnd, language)
+      : '—';
 
   const insuranceTypeLabel = (insuranceType: string) => {
     switch (insuranceType) {
@@ -78,10 +83,12 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
           textColor={colors.textPrimary}
           secondaryColor={colors.textSecondary}
         />
+        {/* Lease end rather than payment frequency: frequency is repeated in the lease card
+            below, and the end date is the one thing an owner opens a renter to check. */}
         <StatBox
-          icon="credit-card"
-          value={frequency ? t(frequency.key, { count: frequency.count }) : renter.payment_type || '—'}
-          label={t('renter.paymentFrequency', { defaultValue: 'Payment frequency' })}
+          icon="calendar-clock"
+          value={leaseEndValue}
+          label={t('renter.leaseEndsCaption')}
           backgroundColor={colors.inputBackground}
           iconColor={colors.sectionAccent}
           textColor={colors.textPrimary}

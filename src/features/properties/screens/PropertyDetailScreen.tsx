@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
   Image,
-  Pressable,
   useWindowDimensions,
 } from 'react-native';
 import { IconButton, Text, useTheme } from 'react-native-paper';
@@ -24,6 +23,7 @@ import {
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
+  DetailTabBar,
 } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { PropertyInfoTab } from '@/src/features/properties/components/PropertyInfoTab';
@@ -38,7 +38,7 @@ import { useTransactionsList } from '@/src/features/transactions/hooks/useTransa
 import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
-import { TourAnchor, useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour, useTourStep } from '@/src/features/onboarding/TourController';
 
 type TabKey = 'info' | 'renters' | 'transactions' | 'documents';
@@ -180,10 +180,7 @@ export function PropertyDetailScreen() {
             </View>
           ) : (
             <View
-              style={[
-                styles.medallionSection,
-                { width, backgroundColor: colors.inputBackground },
-              ]}
+              style={[styles.medallionSection, { width }]}
             >
               <View style={[styles.medallion, { backgroundColor: colors.primary }]}>
                 <Icon
@@ -215,39 +212,17 @@ export function PropertyDetailScreen() {
           </View>
 
           {/* Tab bar */}
-          <TourAnchor
-            id={ANCHORS.propertyDetailTabs}
-            style={[styles.tabBar, { backgroundColor: colors.inputBackground }]}
-          >
-            {([
+          <DetailTabBar
+            anchorId={ANCHORS.propertyDetailTabs}
+            value={shownTab}
+            onChange={setActiveTab}
+            tabs={[
               { value: 'info', label: t('property.tabs.info') },
               { value: 'renters', label: t('property.tabs.renters') },
               { value: 'transactions', label: t('property.tabs.transactions') },
               { value: 'documents', label: t('property.tabs.documents') },
-            ] as const).map((tab) => {
-              const isActive = shownTab === tab.value;
-              return (
-                <Pressable
-                  key={tab.value}
-                  style={[
-                    styles.tab,
-                    isActive && { borderBottomColor: colors.primary },
-                  ]}
-                  onPress={() => setActiveTab(tab.value as TabKey)}
-                >
-                  <Text
-                    variant="labelLarge"
-                    style={[
-                      styles.tabLabel,
-                      { color: isActive ? colors.primary : colors.textSecondary },
-                    ]}
-                  >
-                    {tab.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </TourAnchor>
+            ]}
+          />
         </View>
 
         {/* Tab content */}
@@ -316,25 +291,12 @@ const styles = StyleSheet.create({
   },
   addressRow: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
   },
   addressText: {
     fontWeight: '700',
     textAlign: 'center',
-  },
-  tabBar: {
-    flexDirection: 'row',
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center' as const,
-    paddingVertical: spacing.sm + 2,
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
-  },
-  tabLabel: {
-    fontWeight: '600',
   },
   tabContent: {
     flex: 1,

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, Pressable } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Button, IconButton, Menu, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -23,6 +23,7 @@ import {
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
+  DetailTabBar,
 } from '@/src/shared/components/ui';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
@@ -221,7 +222,7 @@ export function RenterDetailScreen() {
           <View
             style={[
               styles.avatarSection,
-              { paddingTop: insets.top + spacing.sm, backgroundColor: colors.inputBackground },
+              { paddingTop: insets.top + spacing.sm },
             ]}
           >
             <RenterAvatar
@@ -401,38 +402,16 @@ export function RenterDetailScreen() {
           )}
 
           {/* Tab bar */}
-          <TourAnchor
-            id={ANCHORS.renterDetailTabs}
-            style={[styles.tabBar, { backgroundColor: colors.inputBackground }]}
-          >
-            {([
+          <DetailTabBar
+            anchorId={ANCHORS.renterDetailTabs}
+            value={shownTab}
+            onChange={setActiveTab}
+            tabs={[
               { value: 'info', label: t('renter.tabs.info') },
               { value: 'property', label: t('renter.tabs.property') },
               { value: 'transactions', label: t('renter.tabs.transactions') },
-            ] as const).map((tab) => {
-              const isActive = shownTab === tab.value;
-              return (
-                <Pressable
-                  key={tab.value}
-                  style={[
-                    styles.tab,
-                    isActive && { borderBottomColor: colors.primary },
-                  ]}
-                  onPress={() => setActiveTab(tab.value as TabKey)}
-                >
-                  <Text
-                    variant="labelLarge"
-                    style={[
-                      styles.tabLabel,
-                      { color: isActive ? colors.primary : colors.textSecondary },
-                    ]}
-                  >
-                    {tab.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </TourAnchor>
+            ]}
+          />
         </View>
 
         {/* Tab content */}
@@ -536,27 +515,14 @@ const styles = StyleSheet.create({
   },
   nameRow: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
     alignItems: 'center',
   },
   nameText: {
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: spacing.xs,
-  },
-  tabBar: {
-    flexDirection: 'row',
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center' as const,
-    paddingVertical: spacing.sm + 2,
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
-  },
-  tabLabel: {
-    fontWeight: '600',
   },
   tabContent: {
     flex: 1,

@@ -22,3 +22,4 @@ export { DocumentsCard, type DocumentItem } from './DocumentsCard';
 export { SkeletonBlock } from './SkeletonBlock';
 export { ListCard } from './ListCard';
 export { StatusPill } from './StatusPill';
+export { DetailTabBar, type DetailTab } from './DetailTabBar';

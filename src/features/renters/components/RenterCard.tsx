@@ -106,7 +106,6 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
           <Text
             variant="labelLarge"
             style={[styles.leaseEndValue, { color: leaseEndColor }]}
-            numberOfLines={1}
           >
             {leaseEndValue}
           </Text>
@@ -119,6 +118,7 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
 const styles = StyleSheet.create({
   info: {
     flex: 1,
+    minWidth: 0,
     gap: 3,
   },
   name: {
@@ -128,9 +128,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 3,
   },
+  // Never shrinks: the lease end is the point of this column, so the address beside it
+  // truncates instead. A `maxWidth: '38%'` cap here used to ellipsize the date itself on
+  // narrower phones and wider months ("15 Jun 2026" → "15 Jun 20…").
   trailing: {
     alignItems: 'flex-end',
-    maxWidth: '38%',
+    flexShrink: 0,
     gap: 2,
   },
   caption: {
