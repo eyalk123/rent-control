@@ -8,6 +8,7 @@ import { lightColors, darkColors } from '@/src/core/theme';
 import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
 import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
+import { propertyTypeLabelKey } from '@/src/features/properties/constants/propertyTypeLabel';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { LockedBadge } from '@/src/features/subscription/components/LockedBadge';
 
@@ -31,7 +32,7 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
   const isOccupied = property.hasRenters ?? currentRenters.length > 0;
   const imageSource = usePropertyImageSource(property.image_url);
   const floorApartment = formatFloorApartment(property, t, false);
-  const typeLabel = t(`property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`);
+  const typeLabel = t(propertyTypeLabelKey(property.type));
   // No ZIP code here: it is on the detail screen, and on a list row it was the part that
   // pushed the property type off the end of the line.
   // Floor/apartment gets its own line, as the card had before. Run into one line with the
@@ -138,7 +139,7 @@ export const LockedPropertyCard = React.memo(function LockedPropertyCard({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const floorApartment = formatFloorApartment(property, t, false);
-  const typeLabel = t(`property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`);
+  const typeLabel = t(propertyTypeLabelKey(property.type));
 
   return (
     <ListCard

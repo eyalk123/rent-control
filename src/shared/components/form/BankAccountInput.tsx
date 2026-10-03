@@ -63,7 +63,7 @@ export type BankAccountInputProps = {
 export function isValidBankAccount(v: BankAccountValue): boolean {
   return (
     /^\d{1,2}$/.test(v.bank) &&
-    /^\d{3}$/.test(v.branch) &&
+    /^\d{1,3}$/.test(v.branch) &&
     /^\d{4,9}$/.test(v.account)
   );
 }
@@ -260,7 +260,7 @@ export default function BankAccountInput({
 
       {error ? (
         <Text variant="bodySmall" style={[styles.errorText, { color: colors.error }]}>
-          {error}
+          {t(error, { defaultValue: error })}
         </Text>
       ) : null}
     </View>

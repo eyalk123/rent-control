@@ -358,9 +358,11 @@
     "addAPhoto": "Add a photo",
     "photoHelper": "Or pick a house illustration",
     "typeCondoTownhouse": "Condo / Townhouse",
+    "typePenthouse": "Penthouse",
     "typeRoom": "Room",
     "typeOther": "Other",
     "type_condo_townhouse": "Condo / Townhouse",
+    "type_penthouse": "Penthouse",
     "type_room": "Room",
     "type_other": "Other",
     "registry": {
@@ -720,6 +722,7 @@
     "category": "Category",
     "supplier": "Supplier",
     "noSupplier": "No supplier",
+    "newSupplier": "New supplier",
     "notes": "Notes",
     "revenueTitle": "Revenue",
     "expenseTitle": "Expense",
@@ -806,6 +809,7 @@
     "branchCode": "Branch",
     "accountNumber": "Account",
     "unknownBank": "Unknown bank",
+    "invalidBankAccount": "Invalid bank account",
     "paymentDetails": "Payment details",
     "paymentDetailsPlaceholder": "Account or transfer details"
   },

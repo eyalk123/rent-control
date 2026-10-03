@@ -358,10 +358,12 @@
     "photo": "תמונה",
     "addAPhoto": "הוסף תמונה",
     "photoHelper": "או בחר איור בית",
-    "typeCondoTownhouse": "דירת גן / בתי עיר",
+    "typeCondoTownhouse": "קונדו / בית טורי",
+    "typePenthouse": "פנטהאוז",
     "typeRoom": "חדר",
     "typeOther": "אחר",
-    "type_condo_townhouse": "דירת גן / בתי עיר",
+    "type_condo_townhouse": "קונדו / בית טורי",
+    "type_penthouse": "פנטהאוז",
     "type_room": "חדר",
     "type_other": "אחר",
     "registry": {
@@ -722,6 +724,7 @@
     "category": "קטגוריה",
     "supplier": "ספק",
     "noSupplier": "ללא ספק",
+    "newSupplier": "ספק חדש",
     "notes": "הערות",
     "revenueTitle": "הכנסה",
     "expenseTitle": "הוצאה",
@@ -811,6 +814,7 @@
     "branchCode": "סניף",
     "accountNumber": "חשבון",
     "unknownBank": "בנק לא ידוע",
+    "invalidBankAccount": "מספר חשבון בנק לא תקין",
     "paymentDetails": "פרטי תשלום",
     "paymentDetailsPlaceholder": "פרטי חשבון או העברה"
   },
@@ -1324,7 +1328,7 @@
         },
         "bank": {
           "title": "פרטי הבנק שלהם, לידיעתך בלבד",
-          "body": "שום דבר כאן לא משולם, לא נקבע לתשלום ולא נשלח. רנט קונטרול לא מעבירה כסף בכלל. זה פשוט מקום לשמור בו את מספר החשבון כדי שיהיה מולך כשאתה מבצע את ההעברה בעצמך, במקום לחפש אותו בהודעה ישנה."
+          "body": "שום דבר כאן לא משולם, לא נקבע לתשלום ולא נשלח. המערכת לא מעבירה כסף בכלל. זה פשוט מקום לשמור בו את מספר החשבון כדי שיהיה מולך כשאתה מבצע את ההעברה בעצמך, במקום לחפש אותו בהודעה ישנה."
         },
         "categories": {
           "title": "תחת מה הם מתויקים",

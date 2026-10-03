@@ -15,6 +15,7 @@ import {
 import { useRtlPlaceholder } from "@/src/core/context";
 import { PropertyHouseImageField } from "@/src/features/properties/components/PropertyHouseImageField";
 import { availablePropertyTypes } from "@/src/features/properties/validation/propertyValidation";
+import { propertyTypeLabelKey } from "@/src/features/properties/constants/propertyTypeLabel";
 import type { PropertyType } from "@/src/shared/types";
 import type { TFunction } from "i18next";
 import { usePropertyContext } from "@/src/context";
@@ -46,10 +47,7 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   useTour('property-form');
   const rtlPlaceholder = useRtlPlaceholder();
   const { properties } = usePropertyContext();
-  const translateTypeLabel = (type: PropertyType) => {
-    const key = type.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('');
-    return t(`property.type${key}`);
-  };
+  const translateTypeLabel = (type: PropertyType) => t(propertyTypeLabelKey(type));
 
   // FormCreatableDropdown applies the locale-aware ordering.
   const ownerOptions = React.useMemo(

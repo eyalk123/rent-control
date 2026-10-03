@@ -9,6 +9,7 @@ import { PropertyPicker } from '@/src/features/properties/components/PropertyPic
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
+import { propertyTypeLabelKey } from '@/src/features/properties/constants/propertyTypeLabel';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { useLanguageContext } from '@/src/context';
 
@@ -32,9 +33,7 @@ function PropertyCard({
 }) {
   const { t } = useTranslation();
   const { isRtl } = useLanguageContext();
-  const typeLabel = t(
-    `property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`,
-  );
+  const typeLabel = t(propertyTypeLabelKey(property.type));
   const imageSource = usePropertyImageSource(property.image_url);
   const floorApartment = formatFloorApartment(property, t, false);
 

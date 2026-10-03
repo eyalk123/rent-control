@@ -84,6 +84,8 @@ export function useSuppliers(categoryIds: number[] = []) {
   const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [reloadCount, setReloadCount] = React.useState(0);
+  const reload = React.useCallback(() => setReloadCount((n) => n + 1), []);
 
   // Stable key so the effect doesn't refetch on every render (the prop array is
   // a fresh reference each render, e.g. from RHF `watch`).
@@ -130,7 +132,7 @@ export function useSuppliers(categoryIds: number[] = []) {
     return () => {
       cancelled = true;
     };
-  }, [categoryKey, t]);
+  }, [categoryKey, reloadCount, t]);
 
-  return { suppliers, loading, error };
+  return { suppliers, loading, error, reload };
 }

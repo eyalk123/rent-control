@@ -12,7 +12,7 @@ const bankAccountSchema = z
   .object({ bank: z.string(), branch: z.string(), account: z.string() })
   .refine(
     (v) => v.bank === '' && v.branch === '' && v.account === '' || isValidBankAccount(v),
-    { message: 'Invalid bank account' },
+    { message: 'suppliers.invalidBankAccount' },
   );
 
 export const supplierFormSchema = z.object({

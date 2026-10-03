@@ -23,6 +23,7 @@ export const PROPERTY_TYPE_ICONS: Record<PropertyType, IconName> = {
   // condo reads as multi-dwelling, a single room as house-like, and `other` takes the
   // neutral default rather than widening the closed IconName union for one label.
   condo_townhouse: 'building',
+  penthouse: 'building',
   room: 'home',
   other: 'home',
 };

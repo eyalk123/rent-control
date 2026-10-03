@@ -12,6 +12,7 @@ import {
 import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { Controller, type Control, type UseFormSetValue, type FieldErrors } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
 import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
@@ -44,6 +45,7 @@ export function ExpenseForm({
   contentContainerStyle,
 }: ExpenseFormProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const { properties } = useAccessibleProperties();
 
   // Requested here rather than from AddTransactionScreen: the screen also renders the
@@ -153,6 +155,7 @@ export function ExpenseForm({
               onChange={onChange}
               label={t('transactions.supplier', { defaultValue: 'Supplier' })}
               allowNone
+              onAddSupplier={() => router.push('/transactions/add-supplier')}
             />
           )}
         />
