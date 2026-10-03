@@ -716,6 +716,7 @@
     "monthForPlaceholder": "Month, Year",
     "paymentMethod": "Payment method",
     "paymentMethodBit": "Bit",
+    "paymentMethodPaybox": "PayBox",
     "paymentMethodCash": "Cash",
     "paymentMethodBankTransfer": "Bank transfer",
     "paymentMethodCheck": "Check",

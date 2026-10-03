@@ -299,6 +299,7 @@ export type TransactionType = 'revenue' | 'expense';
 
 export type PaymentMethod =
   | 'bit'
+  | 'paybox'
   | 'cash'
   | 'bank_transfer'
   | 'check'

@@ -718,6 +718,7 @@
     "monthForPlaceholder": "חודש, שנה",
     "paymentMethod": "אמצעי תשלום",
     "paymentMethodBit": "ביט",
+    "paymentMethodPaybox": "פייבוקס",
     "paymentMethodCash": "מזומן",
     "paymentMethodBankTransfer": "העברה בנקאית",
     "paymentMethodCheck": "צ'ק",

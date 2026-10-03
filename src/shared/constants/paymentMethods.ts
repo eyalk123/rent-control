@@ -6,6 +6,7 @@ export const PAYMENT_METHOD_VALUES: PaymentMethod[] = [
   'cash',
   'bank_transfer',
   'bit',
+  'paybox',
   'check',
   'card',
   'mobile_payment',
@@ -13,12 +14,13 @@ export const PAYMENT_METHOD_VALUES: PaymentMethod[] = [
 ];
 
 /**
- * Bit is an Israeli payment app. The array above keeps it — a transaction already recorded
- * as `bit` must keep rendering, and `fromApi` must keep accepting it — but it is not
+ * Bit and PayBox are Israeli payment apps. The array above keeps them — a transaction already
+ * recorded as `bit` must keep rendering, and `fromApi` must keep accepting it — but it is not
  * offered where it does not exist.
  */
 export const PAYMENT_METHOD_REQUIREMENTS: Partial<Record<PaymentMethod, 'bitPayments'>> = {
   bit: 'bitPayments',
+  paybox: 'bitPayments',
 };
 
 /** The methods this country may actually pick. */
@@ -31,6 +33,7 @@ const PAYMENT_METHOD_LABEL_KEYS: Record<PaymentMethod, string> = {
   cash: 'transactions.paymentMethodCash',
   bank_transfer: 'transactions.paymentMethodBankTransfer',
   bit: 'transactions.paymentMethodBit',
+  paybox: 'transactions.paymentMethodPaybox',
   check: 'transactions.paymentMethodCheck',
   card: 'transactions.paymentMethodCard',
   mobile_payment: 'transactions.paymentMethodMobilePayment',
