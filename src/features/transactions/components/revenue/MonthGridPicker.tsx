@@ -4,6 +4,7 @@ import { Text } from 'react-native-paper';
 import type { useTranslation } from 'react-i18next';
 import { Icon } from '@/src/shared/components/ui';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { useLanguageContext } from '@/src/context';
 
 type MonthGridPickerProps = {
   gridYear: number;
@@ -26,6 +27,8 @@ export function MonthGridPicker({
   totalSelected,
   t,
 }: MonthGridPickerProps) {
+  // The row mirrors in Hebrew, so the previous year sits on the right and points right.
+  const { isRtl } = useLanguageContext();
   const monthNames = Array.from({ length: 12 }, (_, i) =>
     new Date(2000, i, 1).toLocaleDateString(locale, { month: 'short' }),
   );
@@ -37,7 +40,7 @@ export function MonthGridPicker({
           onPress={() => onYearChange(gridYear - 1)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Icon name="chevron-left" size={24} color={colors.textPrimary} />
+          <Icon name={isRtl ? "chevron-right" : "chevron-left"} size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text variant="titleSmall" style={{ color: colors.textPrimary }}>
           {gridYear}
@@ -46,7 +49,7 @@ export function MonthGridPicker({
           onPress={() => onYearChange(gridYear + 1)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Icon name="chevron-right" size={24} color={colors.textPrimary} />
+          <Icon name={isRtl ? "chevron-left" : "chevron-right"} size={24} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 

@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { spacing } from '@/src/core/theme';
 import { ScreenContainer } from '@/src/shared/components/ui';
+import { useLanguageContext } from '@/src/context';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { downloadExpenseLogReport } from '@/src/features/reports/api/reports';
 
@@ -15,6 +16,7 @@ const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
 
 export function ExpenseLogReportScreen() {
   const { t } = useTranslation();
+  const { isRtl } = useLanguageContext();
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -39,7 +41,7 @@ export function ExpenseLogReportScreen() {
   return (
     <ScreenContainer>
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-        <Button icon="arrow-left" onPress={() => router.back()} mode="text" compact>
+        <Button icon={isRtl ? "arrow-right" : "arrow-left"} onPress={() => router.back()} mode="text" compact>
           {t('common.back')}
         </Button>
       </View>

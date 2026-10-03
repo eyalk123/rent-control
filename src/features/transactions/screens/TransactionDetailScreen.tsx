@@ -72,7 +72,7 @@ export function TransactionDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { language } = useLanguageContext();
+  const { language, isRtl } = useLanguageContext();
 
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
@@ -178,7 +178,7 @@ export function TransactionDetailScreen() {
           onPress={() => router.back()}
           accessibilityLabel={t('common.back')}
         >
-          <Icon name="chevron-left" size={ICON_MD} color={theme.colors.onSurface} />
+          <Icon name={isRtl ? "chevron-right" : "chevron-left"} size={ICON_MD} color={theme.colors.onSurface} />
         </TouchableOpacity>
 
         <Text variant="titleMedium" style={[styles.headerTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>

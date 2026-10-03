@@ -4,6 +4,7 @@ import { Text, useTheme } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { isRtlLanguage } from '@/src/core/i18n';
 import { darkColors, ICON_MD, ICON_SM, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
@@ -249,7 +250,7 @@ function AttentionItemRow({
               {address}
             </Text>
             <Text style={[styles.subInfo, { color: colors.textPrimary }]}>
-              {formatMoney(item.old_amount)} → {formatMoney(item.new_amount)}
+              {formatMoney(item.old_amount)} {isRtlLanguage(i18n.language) ? '←' : '→'} {formatMoney(item.new_amount)}
             </Text>
             <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
               {t(upcoming ? 'notifications.cpiChangesOn' : 'notifications.cpiEffective', {

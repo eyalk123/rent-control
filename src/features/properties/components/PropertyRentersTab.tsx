@@ -11,6 +11,7 @@ import { EmptyState, Icon } from '@/src/shared/components/ui';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
+import { useLanguageContext } from '@/src/context';
 
 interface PropertyRentersTabProps {
   property: Property;
@@ -18,6 +19,7 @@ interface PropertyRentersTabProps {
 
 export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
   const { t } = useTranslation();
+  const { isRtl } = useLanguageContext();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
@@ -97,7 +99,7 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
                 </Text>
               </View>
               <Icon
-                name="chevron-right"
+                name={isRtl ? "chevron-left" : "chevron-right"}
                 size={24}
                 color={colors.textSecondary}
               />

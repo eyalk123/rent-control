@@ -75,7 +75,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/rent-control-icon-no-text.png",
+          "icon": "./assets/images/notification-icon.png",
           "color": "#F1E8D6"
         }
       ],

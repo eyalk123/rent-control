@@ -18,6 +18,7 @@ import { LegalConsentProvider } from "@/src/features/legal/LegalConsentContext";
 import { CountryProvider } from "@/src/features/country/CountryContext";
 import { SubscriptionProvider } from "@/src/features/subscription/SubscriptionContext";
 import { CountryGate } from "@/src/features/country/components/CountryGate";
+import { UpdatePrompt } from "@/src/features/app-update/components/UpdatePrompt";
 import { LegalConsentGate } from "@/src/features/legal/components/LegalConsentGate";
 import { AiConsentSheet } from "@/src/features/legal/components/AiConsentSheet";
 import { TourControllerProvider } from "@/src/features/onboarding/TourController";
@@ -91,6 +92,9 @@ function DirectionalContent() {
       {/* Last, so it covers the tour too. Blocks the app while the device has no
           connection, without unmounting the screen (or half-typed form) underneath. */}
       <OfflineGate />
+      {/* A Portal dialog, so it draws above all of the above. Shows nothing unless the
+          backend reports a newer store version than this build. */}
+      <UpdatePrompt />
     </View>
   );
 }

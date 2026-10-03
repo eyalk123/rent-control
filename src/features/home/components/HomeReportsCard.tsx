@@ -75,7 +75,11 @@ export function HomeReportsCard() {
           <Text style={[styles.generateLabel, { color: colors.primary }]}>
             {t('home.reportGenerateNew')}
           </Text>
-          <ChevronRight size={13} color={colors.textSecondary} style={styles.chevron} />
+          <ChevronRight
+            size={13}
+            color={colors.textSecondary}
+            style={[styles.chevron, { transform: [{ scaleX: isRtl ? -1 : 1 }] }]}
+          />
         </View>
       </View>
     );

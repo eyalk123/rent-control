@@ -10,6 +10,7 @@ import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
+import { useLanguageContext } from '@/src/context';
 
 type ThemeColors = typeof lightColors | typeof darkColors;
 
@@ -30,6 +31,7 @@ function PropertyCard({
   onPress: () => void;
 }) {
   const { t } = useTranslation();
+  const { isRtl } = useLanguageContext();
   const typeLabel = t(
     `property.type${property.type.charAt(0).toUpperCase() + property.type.slice(1)}`,
   );
@@ -79,7 +81,7 @@ function PropertyCard({
               </Text>
             </View>
             <Icon
-              name="chevron-right"
+              name={isRtl ? "chevron-left" : "chevron-right"}
               size={24}
               color={colors.textSecondary}
             />

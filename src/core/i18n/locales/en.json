@@ -1564,5 +1564,12 @@
         "google": "Payment is charged to your Google Play account when you confirm the purchase. The subscription renews automatically at the same price and period until you cancel it. You can manage or cancel it in Google Play under Payments and subscriptions."
       }
     }
+  },
+  "appUpdate": {
+    "title": "Update available",
+    "message": "A new version of RentVance is available. Update now to get the latest features and fixes.",
+    "forcedMessage": "This version of RentVance is no longer supported. Please update to keep using the app.",
+    "update": "Update",
+    "later": "Later"
   }
 }

@@ -4,7 +4,8 @@ import { useAlert } from "@/src/core/context";
 import { useAppAuth } from "@/src/core/auth/AuthContext";
 import { useForm, type DefaultValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { TFunction } from "i18next";
+import i18n, { type TFunction } from "i18next";
+import { isRtlLanguage } from "@/src/core/i18n";
 import { getApiErrorMessage } from "@/src/core/api/client";
 import {
   createRenter,
@@ -472,16 +473,18 @@ export function useRenterForm({
         // re-derives every year from the formula, settled ones included.
         const repriced = repricedElapsedPeriods(
           savedLeaseRef.current?.years,
+          savedLeaseRef.current?.start,
           lease_years,
-          leaseStartTrimmed || savedLeaseRef.current?.start,
+          leaseStartTrimmed,
         );
         if (repriced.length > 0) {
+          const arrow = isRtlLanguage(i18n.language) ? "←" : "→";
           const ok = await appConfirm(
             t("renter.repricePast.title"),
             t("renter.repricePast.message", {
               count: repriced.length,
               detail: repriced
-                .map((p) => `${p.startYear}: ${formatMoney(p.before)} → ${formatMoney(p.after)}`)
+                .map((p) => `${p.startYear}: ${formatMoney(p.before)} ${arrow} ${formatMoney(p.after)}`)
                 .join(", "),
             }),
           );
