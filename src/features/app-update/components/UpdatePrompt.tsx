@@ -90,7 +90,8 @@ export function UpdatePrompt() {
   if (!prompt) return null;
 
   const rtlTextStyle = {
-    textAlign: isRtl ? ('right' as const) : ('left' as const),
+    // "auto", not "right" — under forceRTL "right" is mirrored to the left edge (see AlertContext).
+    textAlign: isRtl ? ('auto' as const) : ('left' as const),
     writingDirection: isRtl ? ('rtl' as const) : ('ltr' as const),
   };
 

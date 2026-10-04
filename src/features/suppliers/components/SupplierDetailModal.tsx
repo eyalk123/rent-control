@@ -10,7 +10,6 @@ import {
 import { Button, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useLanguageContext } from '@/src/context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { ContactActionsRow, Icon } from '@/src/shared/components/ui';
 import type { Supplier } from '@/src/shared/types';
@@ -36,7 +35,6 @@ export function SupplierDetailModal({
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const { isRtl } = useLanguageContext();
 
   const panResponder = useRef(
     PanResponder.create({
@@ -62,8 +60,10 @@ export function SupplierDetailModal({
           .join(' · ')
       : '';
 
-  const rowDirection = isRtl ? 'row-reverse' : 'row';
-  const textAlign = isRtl ? 'right' : 'left';
+  // No isRtl flipping here: the app forces native RTL, under which "row" and "left" already
+  // mean "start". Reversing them again on top of that rendered the whole sheet LTR in Hebrew.
+  const rowDirection = 'row';
+  const textAlign = 'left';
 
   const renderInfoRow = (label: string, value?: string | null) => {
     if (!value || !value.trim()) return null;
@@ -146,7 +146,7 @@ export function SupplierDetailModal({
             <ContactActionsRow
               phone={supplier?.phone}
               email={supplier?.email}
-              contentAlign={isRtl ? 'flex-end' : 'flex-start'}
+              contentAlign="flex-start"
               style={styles.contactRow}
             />
           </ScrollView>

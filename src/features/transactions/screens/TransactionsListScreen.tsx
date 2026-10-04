@@ -50,9 +50,9 @@ const EMPTY_DEFAULT: Record<string, string> = {
 
 const LIST_ANCHOR = { flex: 1 } as const;
 
-/** Carries the gap that used to sit on top of the section header, where - because that
- *  header sticks - it padded the pinned month away from the status bar instead of
- *  separating two months. Hoisted so the list is not handed a new component each render. */
+/** Carries the gap between two months. It lives here rather than on top of the section
+ *  header so the header stays tight if headers are ever made sticky again. Hoisted so the
+ *  list is not handed a new component each render. */
 const renderSectionFooter = () => <View style={styles.sectionFooter} />;
 
 const styles = StyleSheet.create({
@@ -198,7 +198,11 @@ export function TransactionsListScreen() {
       <SectionList
         sections={filters.listSections}
         keyExtractor={(item) => item.id.toString()}
-        stickySectionHeadersEnabled
+        // Off on purpose. A sticky header is kept mounted outside the render window, which
+        // leaves the list's cached cell offsets stale; with many short months (1-2 rows) the
+        // window then flips between two ranges on every frame and the screen jumps forever
+        // with the finger off the glass. Reproduced on a real 49-row account, gone without it.
+        stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <TransactionsListHeader
             filterChips={filters.filterChips}

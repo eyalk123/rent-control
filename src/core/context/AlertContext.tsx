@@ -46,8 +46,10 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
   // which keeps an open dialog aligned with the text it is currently showing.
   const { t, i18n } = useTranslation();
   const isRtl = isRtlLanguage(i18n.language);
+  // "auto", not "right": under forceRTL React Native mirrors left/right, so "right" put every
+  // Hebrew title and message on the left edge. Same reasoning as useRtlLabelStyle.
   const rtlTextStyle = {
-    textAlign: isRtl ? ("right" as const) : ("left" as const),
+    textAlign: isRtl ? ("auto" as const) : ("left" as const),
     writingDirection: isRtl ? ("rtl" as const) : ("ltr" as const),
   };
 

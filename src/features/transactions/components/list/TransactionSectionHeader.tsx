@@ -50,10 +50,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     // Nothing above the text but this padding. The separation from the previous month is
-    // the section footer's job (`renderSectionFooter` in TransactionsListScreen) because this
-    // row *sticks* to the top of the list: anything added here is dead space between the
-    // status bar and the pinned month, and a margin is worse still - it sits outside the
-    // painted background, so list rows slid through the strip it left.
+    // the section footer's job (`renderSectionFooter` in TransactionsListScreen). Headers are
+    // not sticky (see the SectionList there for why), but if they ever are again, anything
+    // added here becomes dead space above the pinned month, and a margin is worse still - it
+    // sits outside the painted background, so list rows slide through the strip it leaves.
     paddingVertical: spacing.sm,
   },
   sectionTitle: {
