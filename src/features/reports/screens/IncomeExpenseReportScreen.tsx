@@ -14,6 +14,13 @@ import {
   downloadIncomeExpenseReport,
   type RevenueBasis,
 } from '@/src/features/reports/api/reports';
+import {
+  OwnerExportSection,
+  ownerExportOptions,
+  parseOwnersParam,
+  SplitByOwnerSection,
+  useReportOwners,
+} from '@/src/features/reports/components/OwnerExportSection';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
@@ -25,18 +32,27 @@ export function IncomeExpenseReportScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const { year: yearParam } = useLocalSearchParams<{ year?: string }>();
+  const { year: yearParam, basis: basisParam, owners: ownersParam, split: splitParam } =
+    useLocalSearchParams<{ year?: string; basis?: string; owners?: string; split?: string }>();
   const [year, setYear] = useState(yearParam ? parseInt(yearParam, 10) : CURRENT_YEAR);
   const [format, setFormat] = useState<'pdf' | 'csv'>('pdf');
   // Pre-selected from the country, never forced — the choice belongs to the report,
   // not the account, so it is made here rather than in Settings.
-  const [basis, setBasis] = useState<RevenueBasis>(defaultRevenueBasis);
+  const [basis, setBasis] = useState<RevenueBasis>(() =>
+    basisParam === 'cash' || basisParam === 'accrual' ? basisParam : defaultRevenueBasis(),
+  );
+  // Which owners go into the export. `null` is every owner; Re-export from history passes
+  // the selection that row was made with.
+  const allOwners = useReportOwners();
+  const [selectedOwners, setSelectedOwners] = useState<string[] | null>(() => parseOwnersParam(ownersParam));
+  const [split, setSplit] = useState(splitParam === '1');
+  const exportOptions = ownerExportOptions(allOwners, selectedOwners, split);
   const [loading, setLoading] = useState(false);
 
   async function handleExport() {
     setLoading(true);
     try {
-      await downloadIncomeExpenseReport(year, format, basis);
+      await downloadIncomeExpenseReport(year, format, basis, { owners: exportOptions.owners, split: exportOptions.split });
     } catch (err) {
       const msg = getApiErrorMessage(err, t('reports.exportError'));
       alert(msg);
@@ -94,6 +110,12 @@ export function IncomeExpenseReportScreen() {
           {t('reports.basisHint')}
         </Text>
 
+        <OwnerExportSection
+          owners={allOwners}
+          selected={selectedOwners}
+          onChange={setSelectedOwners}
+        />
+
         <Text variant="labelLarge" style={styles.sectionLabel}>
           {t('reports.format')}
         </Text>
@@ -106,6 +128,7 @@ export function IncomeExpenseReportScreen() {
           ]}
           style={styles.segmented}
         />
+        {exportOptions.count > 1 && <SplitByOwnerSection split={split} onChange={setSplit} />}
 
         <Button
           mode="contained"

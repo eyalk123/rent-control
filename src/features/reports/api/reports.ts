@@ -16,6 +16,13 @@ export interface ReportExport {
    * apart.
    */
   revenue_basis: RevenueBasis | null;
+  /**
+   * The property owners it was limited to, as typed on the properties (`''` is the
+   * no-owner group). `null` means every owner.
+   */
+  owners: string[] | null;
+  /** Shared as a ZIP holding one file per owner. */
+  split_by_owner: boolean;
   created_at: string;
 }
 
@@ -29,6 +36,15 @@ export async function deleteReportExport(id: number): Promise<void> {
 }
 
 type ReportFormat = 'pdf' | 'csv';
+
+/**
+ * Which owners a report covers and how it is packaged. `owners` omitted or `null` means
+ * every owner; `split` shares a ZIP with one file per owner instead of one grouped file.
+ */
+export interface OwnerExportOptions {
+  owners?: string[] | null;
+  split?: boolean;
+}
 
 /**
  * Accrual counts December's rent as December income even if it arrived in January; cash
@@ -52,15 +68,28 @@ async function downloadAndShare(
   endpoint: string,
   year: number,
   format: ReportFormat,
-  filename: string,
+  stem: string,
+  { owners, split }: OwnerExportOptions,
   basis?: RevenueBasis,
 ): Promise<void> {
-  const mimeType = format === 'pdf' ? 'application/pdf' : 'text/csv';
+  const filename = `${stem}.${split ? 'zip' : format}`;
+  const mimeType = split ? 'application/zip' : format === 'pdf' ? 'application/pdf' : 'text/csv';
 
   const response = await apiClient.get<ArrayBuffer>(endpoint, {
-    params: { year, format, lang: reportLang(), ...(basis ? { basis } : {}) },
+    params: {
+      year,
+      format,
+      lang: reportLang(),
+      ...(basis ? { basis } : {}),
+      ...(owners ? { owner: owners } : {}),
+      ...(split ? { split: true } : {}),
+    },
+    // The owner parameter repeats (`owner=Dana&owner=Avi`); axios would otherwise send
+    // `owner[]=`, which the API does not read.
+    paramsSerializer: { indexes: null },
     responseType: 'arraybuffer',
-    timeout: 30000,
+    // One file per owner is several reports generated in one request.
+    timeout: split ? 60000 : 30000,
   });
 
   const base64 = arrayBufferToBase64(response.data);
@@ -78,12 +107,14 @@ export async function downloadIncomeExpenseReport(
   year: number,
   format: ReportFormat,
   basis: RevenueBasis = 'accrual',
+  options: OwnerExportOptions = {},
 ): Promise<void> {
   await downloadAndShare(
     '/reports/income-expense',
     year,
     format,
-    `income-expense-${year}.${format}`,
+    `income-expense-${year}`,
+    options,
     basis,
   );
 }
@@ -92,12 +123,17 @@ export async function downloadIncomeExpenseReport(
  * No basis parameter: an expense log has no revenue to recognise, and expenses already
  * count on the date they were paid under both bases.
  */
-export async function downloadExpenseLogReport(year: number, format: ReportFormat): Promise<void> {
+export async function downloadExpenseLogReport(
+  year: number,
+  format: ReportFormat,
+  options: OwnerExportOptions = {},
+): Promise<void> {
   await downloadAndShare(
     '/reports/expense-log',
     year,
     format,
-    `expense-log-${year}.${format}`,
+    `expense-log-${year}`,
+    options,
   );
 }
 

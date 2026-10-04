@@ -98,6 +98,16 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
       setEnabled(false);
       setStatusFailed(false);
       setStatusLoading(false);
+      // Drop the open thread too — it belongs to the account that just signed out, and the
+      // next one would otherwise see it and send its first message into that conversation id.
+      abortRef.current?.abort();
+      convoIdRef.current = null;
+      lastSentRef.current = '';
+      setActiveConversationId(null);
+      setMessages([]);
+      setActivity(null);
+      statusRef.current = 'idle';
+      setStatus('idle');
       return;
     }
     let alive = true;

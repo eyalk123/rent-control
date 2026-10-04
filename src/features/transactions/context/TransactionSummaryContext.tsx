@@ -52,6 +52,14 @@ export function TransactionSummaryProvider({ children }: { children: React.React
     if (isLoaded && isSignedIn) load();
   }, [isLoaded, isSignedIn, load]);
 
+  // Drop the previous account's totals on sign-out, so the next account never sees them.
+  React.useEffect(() => {
+    if (!isLoaded || isSignedIn) return;
+    setSixMonthBuckets([]);
+    setSummaryLoading(true);
+    setSummaryError(null);
+  }, [isLoaded, isSignedIn]);
+
   const heroBucket = React.useMemo<MonthBucket>(() => {
     const key = currentMonthKey();
     const empty: MonthBucket = {

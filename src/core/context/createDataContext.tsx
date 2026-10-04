@@ -22,10 +22,14 @@ type State<T> = { data: T[]; loading: boolean; error: string | null };
 type Action<T> =
   | { type: 'loading' }
   | { type: 'success'; data: T[] }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  | { type: 'reset' };
+
+const INITIAL = { data: [], loading: true, error: null };
 
 function reducer<T>(state: State<T>, action: Action<T>): State<T> {
   switch (action.type) {
+    case 'reset':   return INITIAL;
     case 'loading': return { ...state, loading: true, error: null };
     case 'success': return { data: action.data, loading: false, error: null };
     // Keep whatever we already had. A failed refresh — a tunnel, a lift, a dropped packet —
@@ -47,7 +51,7 @@ export function createDataContext<T>(
     const { t } = useTranslation();
     const tRef = useRef(t);
     tRef.current = t;
-    const [state, dispatch] = useReducer(reducer<T>, { data: [], loading: true, error: null });
+    const [state, dispatch] = useReducer(reducer<T>, INITIAL);
 
     const refresh = useCallback(async () => {
       dispatch({ type: 'loading' });
@@ -64,6 +68,12 @@ export function createDataContext<T>(
         refresh();
       }
     }, [isLoaded, isSignedIn, refresh]);
+
+    // Drop the previous account's rows on sign-out. Otherwise the next account sees them
+    // until its own fetch lands, and indefinitely if that fetch fails ('error' keeps data).
+    useEffect(() => {
+      if (isLoaded && !isSignedIn) dispatch({ type: 'reset' });
+    }, [isLoaded, isSignedIn]);
 
     const value = useMemo(
       () => ({ data: state.data, loading: state.loading, error: state.error, refresh }),

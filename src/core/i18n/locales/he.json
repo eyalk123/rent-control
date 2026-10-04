@@ -978,7 +978,15 @@
     "basisAccrual": "מצטבר",
     "basisCash": "מזומן",
     "basisHint": "בשיטת המצטבר השכר נרשם לפי החודש שעבורו שולם, ובשיטת המזומן לפי מועד התקבול.",
-    "basisLabel": "הכרת הכנסה"
+    "basisLabel": "הכרת הכנסה",
+    "owners": "בעלים",
+    "ownersHint": "רק הנכסים של הבעלים שנבחרו ייכללו בדוח.",
+    "noOwner": "(ללא בעלים)",
+    "selectAllOwners": "בחר הכל",
+    "oneFile": "קובץ אחד",
+    "filePerOwner": "קובץ לכל בעלים",
+    "filePerOwnerHint": "משתף קובץ ZIP עם דוח נפרד לכל אחד מהבעלים.",
+    "splitMeta": "קובץ לכל בעלים"
   },
   "auth": {
     "signInSubtitle": "התחבר לחשבונך",

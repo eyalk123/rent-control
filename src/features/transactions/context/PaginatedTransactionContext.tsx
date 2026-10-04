@@ -67,6 +67,16 @@ export function PaginatedTransactionProvider({ children }: { children: React.Rea
     if (isLoaded && isSignedIn) initialLoad();
   }, [isLoaded, isSignedIn, initialLoad]);
 
+  // Drop the previous account's rows on sign-out, so the next account never sees them.
+  React.useEffect(() => {
+    if (!isLoaded || isSignedIn) return;
+    setTransactions([]);
+    setLoading(true); loadingRef.current = true;
+    setError(null);
+    setHasMore(true); hasMoreRef.current = true;
+    offsetRef.current = 0;
+  }, [isLoaded, isSignedIn]);
+
   const loadMore = React.useCallback(async () => {
     if (!hasMoreRef.current || loadingMoreRef.current || loadingRef.current) return;
     setLoadingMore(true); loadingMoreRef.current = true;

@@ -119,6 +119,10 @@ function HistoryRow({
           {item.revenue_basis
             ? ` · ${t(item.revenue_basis === 'cash' ? 'reports.basisCash' : 'reports.basisAccrual')}`
             : ''}
+          {/* Which owners it covered, when not all of them, and whether it was a file per
+              owner — otherwise one owner's report and the whole portfolio's look alike. */}
+          {item.owners ? ` · ${item.owners.map((o) => o || t('reports.noOwner')).join(', ')}` : ''}
+          {item.split_by_owner ? ` · ${t('reports.splitMeta')}` : ''}
         </Text>
       </View>
       <Menu
@@ -213,10 +217,12 @@ export function ReportsHubScreen() {
 
   async function handleShare(item: ReportExport) {
     try {
+      // The same report the row records: its owners and packaging, and its basis.
+      const options = { owners: item.owners, split: item.split_by_owner };
       if (item.report_type === 'income_expense') {
-        await downloadIncomeExpenseReport(item.year, item.format);
+        await downloadIncomeExpenseReport(item.year, item.format, item.revenue_basis ?? 'accrual', options);
       } else {
-        await downloadExpenseLogReport(item.year, item.format);
+        await downloadExpenseLogReport(item.year, item.format, options);
       }
     } catch (err) {
       alert(getApiErrorMessage(err, t('reports.exportError')));
@@ -224,10 +230,15 @@ export function ReportsHubScreen() {
   }
 
   function handleReexport(item: ReportExport) {
-    const route = item.report_type === 'income_expense'
-      ? `/reports/income-expense?year=${item.year}`
-      : `/reports/expense-log?year=${item.year}`;
-    router.push(route as any);
+    // Opens the export screen preset to what this row was made with, ready to adjust.
+    const params: Record<string, string> = { year: String(item.year) };
+    if (item.revenue_basis) params.basis = item.revenue_basis;
+    if (item.owners) params.owners = JSON.stringify(item.owners);
+    if (item.split_by_owner) params.split = '1';
+    router.push({
+      pathname: item.report_type === 'income_expense' ? '/reports/income-expense' : '/reports/expense-log',
+      params,
+    } as any);
   }
 
   const cards: ReportCard[] = [
