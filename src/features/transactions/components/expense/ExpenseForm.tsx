@@ -18,20 +18,39 @@ import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
 import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
+import { ReceiptCard, type ScannedReceipt } from '@/src/features/transactions/components/expense/ReceiptCard';
+import { FieldReviewNotice } from '@/src/shared/components/form/FieldReviewContext';
+import type { ReceiptFieldNote } from '@/src/features/document-scan/types';
 import type { ExpenseFormValues } from '@/src/features/transactions/screens/types';
-import type { PaymentMethod } from '@/src/shared/types';
+import type { PaymentMethod, Supplier } from '@/src/shared/types';
 import { PaymentMethodField } from '@/src/shared/components/form';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour } from '@/src/features/onboarding/TourController';
+
+/** What a receipt scan left on the form beyond the values themselves. */
+export type ExpenseScanNotes = {
+  supplierReadAs: string | null;
+  categoryNote: ReceiptFieldNote | null;
+  propertyNote: ReceiptFieldNote | null;
+};
 
 type ExpenseFormProps = {
   control: Control<ExpenseFormValues>;
   errors?: FieldErrors<ExpenseFormValues>;
   propertyIds: number[];
   categoryIds: number[];
+  receiptImageUrl: string | null;
   setValue: UseFormSetValue<ExpenseFormValues>;
   ownerId: string;
+  /** Editing keeps the plain photo field; the receipt card (and its scan) is for new expenses. */
+  isEdit: boolean;
+  suppliers: Supplier[];
+  reloadSuppliers: () => void;
+  scanNotes?: ExpenseScanNotes | null;
+  onScanned: (result: ScannedReceipt) => void;
+  /** The user changed a field the scan filled with a note shown under it. */
+  onNoteResolved: (field: 'category' | 'property') => void;
   contentContainerStyle?: ViewStyle;
 };
 
@@ -40,8 +59,15 @@ export function ExpenseForm({
   errors,
   propertyIds,
   categoryIds,
+  receiptImageUrl,
   setValue,
   ownerId,
+  isEdit,
+  suppliers,
+  reloadSuppliers,
+  scanNotes,
+  onScanned,
+  onNoteResolved,
   contentContainerStyle,
 }: ExpenseFormProps) {
   const { t } = useTranslation();
@@ -69,6 +95,15 @@ export function ExpenseForm({
       style={styles.scrollView}
       contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
     >
+      {!isEdit && (
+        <ReceiptCard
+          matchProperty={propertyIds.length === 0}
+          ownerId={ownerId}
+          receiptUrl={receiptImageUrl}
+          onReceiptUrl={(url) => setValue('receiptImageUrl', url, { shouldDirty: true })}
+          onScanned={onScanned}
+        />
+      )}
       <FormSectionCard title={t('transactions.details', { defaultValue: 'Details' })}>
         {/* Multi-select, and the expense tour seeds why: several properties split one
             bill evenly between them. */}
@@ -80,13 +115,17 @@ export function ExpenseForm({
               <MultiSelectField
                 data={propertyData}
                 value={value}
-                onChange={onChange}
+                onChange={(ids) => {
+                  onChange(ids);
+                  onNoteResolved('property');
+                }}
                 label={t('transactions.property', { defaultValue: 'Property' })}
                 error={errors?.propertyIds}
                 required
               />
             )}
           />
+          {scanNotes?.propertyNote && <FieldReviewNotice source={scanNotes.propertyNote.source_text} />}
         </TourAnchor>
         <Controller
           control={control}
@@ -124,6 +163,7 @@ export function ExpenseForm({
               onChange={onChange}
               error={errors?.paymentMethod}
               required
+              reviewName="paymentMethod"
             />
           )}
         />
@@ -135,8 +175,10 @@ export function ExpenseForm({
               <CategoryMultiPickerField
                 value={value}
                 onChange={(ids) => {
+                  // The supplier stays: the two fields are independent, and a supplier
+                  // outside the chosen categories is only warned about on save.
                   onChange(ids);
-                  setValue('supplierId', null);
+                  onNoteResolved('category');
                 }}
                 label={t('transactions.category', { defaultValue: 'Category' })}
                 error={errors?.categoryIds}
@@ -144,12 +186,17 @@ export function ExpenseForm({
               />
             )}
           />
+          {scanNotes?.categoryNote && <FieldReviewNotice source={scanNotes.categoryNote.source_text} />}
         </TourAnchor>
         <Controller
           control={control}
           name="supplierId"
           render={({ field: { value, onChange } }) => (
             <SupplierPicker
+              suppliers={suppliers}
+              onReload={reloadSuppliers}
+              reviewName="supplierId"
+              readOnReceipt={scanNotes?.supplierReadAs}
               categoryIds={categoryIds}
               value={value}
               onChange={onChange}
@@ -164,15 +211,17 @@ export function ExpenseForm({
           name="notes"
           label={t('transactions.notes', { defaultValue: 'Notes' })}
         />
-        <FormSingleFileField
-          control={control}
-          name="receiptImageUrl"
-          label={t('transactions.receiptImage', { defaultValue: 'Receipt Photo' })}
-          t={t}
-          entityType="transactions"
-          ownerId={ownerId}
-          accept="image"
-        />
+        {isEdit && (
+          <FormSingleFileField
+            control={control}
+            name="receiptImageUrl"
+            label={t('transactions.receiptImage', { defaultValue: 'Receipt Photo' })}
+            t={t}
+            entityType="transactions"
+            ownerId={ownerId}
+            accept="image"
+          />
+        )}
       </FormSectionCard>
     </FormScrollView>
   );

@@ -118,7 +118,7 @@ export function PlanScreen() {
         }
       />
       <UsageRow
-        icon="receipt"
+        icon="file-text"
         label={t('subscription.settings.leaseScans')}
         value={
           subscription.monthly_lease_scans === null
@@ -126,6 +126,18 @@ export function PlanScreen() {
             : t('subscription.settings.leaseScansUsage', {
                 used: subscription.lease_scans_used,
                 limit: subscription.monthly_lease_scans,
+              })
+        }
+      />
+      <UsageRow
+        icon="receipt"
+        label={t('subscription.settings.receiptScans')}
+        value={
+          subscription.monthly_receipt_scans === null
+            ? t('subscription.settings.leaseScansUnlimited')
+            : t('subscription.settings.leaseScansUsage', {
+                used: subscription.receipt_scans_used,
+                limit: subscription.monthly_receipt_scans,
               })
         }
       />

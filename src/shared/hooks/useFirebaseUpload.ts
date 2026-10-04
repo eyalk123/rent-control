@@ -2,7 +2,7 @@ import { useState } from 'react';
 import storage from '@react-native-firebase/storage';
 import * as Crypto from 'expo-crypto';
 
-type EntityType = 'properties' | 'renters';
+type EntityType = 'properties' | 'renters' | 'transactions';
 
 export function useFirebaseUpload(entityType: EntityType, ownerId: string) {
   const [uploading, setUploading] = useState(false);

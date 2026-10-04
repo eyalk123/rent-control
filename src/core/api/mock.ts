@@ -16,7 +16,8 @@ import type {
   PropertyFile,
 } from '@/src/shared/types';
 import { getLeaseEndDate, getRentForMonth } from '@/src/shared/types';
-import { getSubscriptionMock } from '@/src/features/subscription/api/subscriptionMock';
+import { countMockReceiptScan, getSubscriptionMock } from '@/src/features/subscription/api/subscriptionMock';
+import type { ReceiptExtraction } from '@/src/features/document-scan/types';
 
 // Set to true to use in-memory mock data when no backend is available.
 // The dev web preview (EXPO_PUBLIC_DEV_WEB_PREVIEW=1, see src/core/auth/AuthContext.tsx)
@@ -1015,3 +1016,29 @@ export const mockFeedbackApi = {
     return { id: nextFeedbackId++, type: data.type, created_at: new Date().toISOString() };
   },
 };
+
+// --- Receipt scanning ------------------------------------------------------------------
+// A canned read, so the scan flow can be walked on the emulator with no backend: amount
+// 480 flagged low-confidence (read as "48O"), cash, the first active single-category
+// supplier with its category, and — when asked to look — the first property.
+
+export async function mockExtractReceipt(
+  matchProperty: boolean,
+): Promise<{ logId: number; extraction: ReceiptExtraction }> {
+  await new Promise<void>((resolve) => setTimeout(resolve, 1500));
+  countMockReceiptScan();
+  const supplier = mockSuppliers.find((s) => s.is_active !== false && s.category_ids?.length === 1);
+  return {
+    logId: 1,
+    extraction: {
+      amount: 480,
+      date: new Date().toISOString().slice(0, 10),
+      payment_method: 'cash',
+      category_ids: supplier ? [...supplier.category_ids] : [],
+      supplier_id: supplier?.id ?? null,
+      supplier_name: supplier?.name ?? 'יוסי אינסטלציה',
+      property_id: matchProperty ? (mockProperties[0]?.id ?? null) : null,
+      notes: [{ field: 'amount', confidence: 'low', source_text: '48O' }],
+    },
+  };
+}

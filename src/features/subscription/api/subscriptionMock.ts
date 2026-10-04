@@ -20,12 +20,18 @@ const LIMITS: Record<Subscription['plan'], { limit: number | null; scans: number
 
 let plan: Subscription['plan'] = 'free';
 let scansUsed = 2;
+let receiptScansUsed = 0;
 let lockNoticeSeen = false;
 
 export function __setMockPlan(next: Subscription['plan'], used?: number) {
   plan = next;
   if (used !== undefined) scansUsed = used;
   lockNoticeSeen = false;
+}
+
+/** One receipt scan spent — the receipt mock calls this, as the server counts a success. */
+export function countMockReceiptScan() {
+  receiptScansUsed += 1;
 }
 
 export async function getSubscriptionMock(): Promise<Subscription> {
@@ -54,6 +60,8 @@ export async function getSubscriptionMock(): Promise<Subscription> {
     price_currency: plan === 'free' ? null : 'USD',
     monthly_lease_scans: limits.scans,
     lease_scans_used: scansUsed,
+    monthly_receipt_scans: limits.scans,
+    receipt_scans_used: receiptScansUsed,
     agent: limits.agent,
   };
 }

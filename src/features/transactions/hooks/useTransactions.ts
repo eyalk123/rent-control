@@ -79,7 +79,12 @@ export function useExpenseCategories() {
   return { categories, loading, error, refreshCategories: load };
 }
 
-export function useSuppliers(categoryIds: number[] = []) {
+/**
+ * Every active supplier. The expense form used to load only the suppliers of the chosen
+ * categories, so a supplier outside them could not be picked at all; now it shows all of
+ * them, the matching ones first, and warns on save instead (see SupplierPicker).
+ */
+export function useSuppliers() {
   const { t } = useTranslation();
   const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -87,36 +92,14 @@ export function useSuppliers(categoryIds: number[] = []) {
   const [reloadCount, setReloadCount] = React.useState(0);
   const reload = React.useCallback(() => setReloadCount((n) => n + 1), []);
 
-  // Stable key so the effect doesn't refetch on every render (the prop array is
-  // a fresh reference each render, e.g. from RHF `watch`).
-  const categoryKey = React.useMemo(
-    () => [...new Set(categoryIds)].sort((a, b) => a - b).join(','),
-    [categoryIds],
-  );
-
   React.useEffect(() => {
-    const ids = categoryKey ? categoryKey.split(',').map(Number) : [];
-    if (ids.length === 0) {
-      setSuppliers([]);
-      return;
-    }
-
     let cancelled = false;
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        const results = await Promise.all(
-          ids.map((id) =>
-            getSuppliers({ categoryId: id, includeInactive: false }),
-          ),
-        );
-        // Merge + dedupe by supplier id (a supplier can match several categories).
-        const merged = new Map<number, Supplier>();
-        results.flat().forEach((s) => merged.set(s.id, s));
-        if (!cancelled) {
-          setSuppliers([...merged.values()]);
-        }
+        const list = await getSuppliers({ includeInactive: false });
+        if (!cancelled) setSuppliers(list);
       } catch (err) {
         if (!cancelled) {
           setError(getApiErrorMessage(err, t('error.loadFailed')));
@@ -132,7 +115,7 @@ export function useSuppliers(categoryIds: number[] = []) {
     return () => {
       cancelled = true;
     };
-  }, [categoryKey, reloadCount, t]);
+  }, [reloadCount, t]);
 
   return { suppliers, loading, error, reload };
 }

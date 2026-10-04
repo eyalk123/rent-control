@@ -1,8 +1,8 @@
 {
   "aiConsent": {
     "title": "Allow AI processing?",
-    "intro": "Lease scanning and Ask RentVance are powered by Claude, an AI model made by Anthropic. To use them, RentVance sends Anthropic:",
-    "sendsLease": "the lease document you scan, and",
+    "intro": "Lease and receipt scanning and Ask RentVance are powered by Claude, an AI model made by Anthropic. To use them, RentVance sends Anthropic:",
+    "sendsLease": "the leases and receipts you scan, and",
     "sendsQuestions": "your questions to the assistant, with the property, renter and payment details needed to answer them.",
     "handling": "This can include personal details of your tenants, guarantors and suppliers. Anthropic uses it only to return the result to us, keeps it for up to 30 days, and does not use it to train its models. We keep assistant conversations for 90 days.",
     "optional": "Nothing is sent unless you allow it. The rest of RentVance works either way.",
@@ -764,7 +764,35 @@
     "paymentMethodOther": "Other",
     "paymentMethod_card": "Card",
     "paymentMethod_mobile_payment": "Mobile payment",
-    "paymentMethod_other": "Other"
+    "paymentMethod_other": "Other",
+    "selectPaymentMethod": "Select payment method",
+    "receiptScan": {
+      "title": "Have a receipt?",
+      "subtitle": "Scan it and we'll fill in the form — handwritten works too. You check everything before saving.",
+      "scan": "Scan & fill",
+      "attach": "Attach only",
+      "sourceTitle": "Where's the receipt?",
+      "reading": "Reading the receipt…",
+      "filled": "Filled from receipt",
+      "pdfNotKept": "The PDF was read but isn't saved with the expense.",
+      "replace": "Replace",
+      "attachPhoto": "Attach photo",
+      "remove": "Remove",
+      "removeReceipt": "Remove receipt",
+      "remaining": "{{count}} AI receipt scan left this month",
+      "remaining_plural": "{{count}} AI receipt scans left this month",
+      "used": "You have used all {{limit}} AI receipt scans this month. More on {{date}}.",
+      "failed": "Couldn't read the receipt. Try a clearer photo or fill the form manually.",
+      "unsupported": "Use a photo or a PDF of the receipt.",
+      "limitReached": "You have used all {{limit}} AI receipt scans this month.",
+      "readAs": "On the receipt: \"{{name}}\" — not one of your suppliers",
+      "photo": "Receipt photo"
+    },
+    "supplierMismatch": {
+      "title": "Supplier not in this category",
+      "message": "{{supplier}} isn't listed under {{categories}}. Save anyway?",
+      "saveAnyway": "Save anyway"
+    }
   },
   "expenseCategories": {
     "maintenance": "Maintenance",
@@ -1522,7 +1550,8 @@
       "upgrade": "See plans",
       "lockedList": "Locked properties",
       "rowLabel": "Plan & billing",
-      "rowHint": "What your plan includes and what you have used"
+      "rowHint": "What your plan includes and what you have used",
+      "receiptScans": "AI receipt scans"
     },
     "scanLimit": {
       "remaining": "{{count}} AI lease scan left this month",

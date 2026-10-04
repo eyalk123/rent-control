@@ -48,6 +48,9 @@ export interface Subscription {
   /** Lease scans allowed per calendar month. `null` is unlimited. */
   monthly_lease_scans: number | null;
   lease_scans_used: number;
+  /** Receipt scans allowed per calendar month — a separate allowance. `null` is unlimited. */
+  monthly_receipt_scans: number | null;
+  receipt_scans_used: number;
   /** Whether the plan includes the chat assistant. */
   agent: boolean;
 }
@@ -58,6 +61,7 @@ export interface PlanLimitError {
     | 'plan_limit_reached'
     | 'property_locked'
     | 'scan_limit_reached'
+    | 'receipt_scan_limit_reached'
     | 'agent_not_included';
   current_plan: PlanId;
   required_plan: PlanId;

@@ -31,7 +31,20 @@ import { revenueFormSchema } from '@/src/features/transactions/schemas/revenueFo
 import { TransactionChooseStep } from '@/src/features/transactions/components/shared/TransactionChooseStep';
 import { BulkRevenueForm } from '@/src/features/transactions/components/revenue/BulkRevenueForm';
 import { SingleRevenueForm } from '@/src/features/transactions/components/revenue/SingleRevenueForm';
-import { ExpenseForm } from '@/src/features/transactions/components/expense/ExpenseForm';
+import { ExpenseForm, type ExpenseScanNotes } from '@/src/features/transactions/components/expense/ExpenseForm';
+import type { ScannedReceipt } from '@/src/features/transactions/components/expense/ReceiptCard';
+import { useExpenseCategories, useSuppliers } from '@/src/features/transactions/hooks/useTransactions';
+import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
+import { availablePaymentMethods } from '@/src/shared/constants/paymentMethods';
+import {
+  FieldReviewProvider,
+  type FieldReviewEntry,
+} from '@/src/shared/components/form/FieldReviewContext';
+import { diffProvenance, updateExtractionLog } from '@/src/features/document-scan/api/updateExtractionLog';
+import type { ProvenanceItem } from '@/src/features/document-scan/types';
+
+/** Order-free key for a set of ids, so a reordered selection does not count as an edit. */
+const idKey = (ids: number[]) => [...ids].sort((a, b) => a - b).join(',');
 
 export function AddTransactionScreen() {
   const { t } = useTranslation();
@@ -63,7 +76,9 @@ export function AddTransactionScreen() {
       renterId: null,
       amount: '',
       dateOfPayment: new Date().toISOString().slice(0, 10),
-      paymentMethod: 'cash',
+      // Empty, as on the web: a preset Cash read as the scanner's answer when a receipt
+      // scan found no method, and was easy to save unseen without one.
+      paymentMethod: '',
       categoryIds: [],
       supplierId: null,
       notes: '',
@@ -71,6 +86,79 @@ export function AddTransactionScreen() {
     },
     mode: 'onBlur',
   });
+
+  const { suppliers, reload: reloadSuppliers } = useSuppliers();
+  const { categories } = useExpenseCategories();
+
+  // ── Receipt scan (new expenses only) ──────────────────────────────────────
+  const [scan, setScan] = useState<{
+    logId: number;
+    /** What the scan filled, to report on save which of it the user changed. */
+    provenance: ProvenanceItem[];
+    /** Fields the scanner was unsure of, flagged on the form until edited. */
+    review: FieldReviewEntry[];
+    notes: ExpenseScanNotes;
+  } | null>(null);
+
+  /**
+   * Pre-fill from a scanned receipt. Only what the scan found is written — a field it left
+   * empty keeps whatever the user had — and the property is never replaced once one is
+   * chosen, which is also why the scan is only asked to look for one when none is.
+   */
+  const applyScan = ({ logId, extraction: x }: ScannedReceipt) => {
+    const notes = new Map(x.notes.map((n) => [n.field, n]));
+    const provenance: ProvenanceItem[] = [];
+    const review: FieldReviewEntry[] = [];
+    const opts = { shouldDirty: true, shouldValidate: true } as const;
+    const track = (formKey: string, labelKey: string, field: string, value: string) => {
+      const note = notes.get(field);
+      provenance.push({ formKey, labelKey, prefilledValue: value, source: note?.source_text ?? null });
+      if (note) review.push({ formKey, source: note.source_text, confidence: note.confidence });
+    };
+
+    const property =
+      x.property_id != null && expenseForm.getValues('propertyIds').length === 0 ? x.property_id : null;
+    if (property != null) {
+      expenseForm.setValue('propertyIds', [property], opts);
+      track('propertyIds', 'transactions.property', 'property_id', idKey([property]));
+    }
+    if (x.category_ids.length > 0) {
+      expenseForm.setValue('categoryIds', x.category_ids, opts);
+      track('categoryIds', 'transactions.category', 'category_ids', idKey(x.category_ids));
+    }
+    if (x.amount != null) {
+      expenseForm.setValue('amount', String(x.amount), opts);
+      track('amount', 'transactions.amount', 'amount', String(x.amount));
+    }
+    if (x.date) {
+      expenseForm.setValue('dateOfPayment', x.date, opts);
+      track('dateOfPayment', 'transactions.dateOfPayment', 'date', x.date);
+    }
+    if (x.payment_method && availablePaymentMethods().includes(x.payment_method as PaymentMethod)) {
+      expenseForm.setValue('paymentMethod', x.payment_method, opts);
+      track('paymentMethod', 'transactions.paymentMethod', 'payment_method', x.payment_method);
+    }
+    if (x.supplier_id != null) {
+      expenseForm.setValue('supplierId', x.supplier_id, opts);
+      track('supplierId', 'transactions.supplier', 'supplier_id', String(x.supplier_id));
+    }
+    setScan({
+      logId,
+      provenance,
+      // Property and category notes are shown under their fields instead (see ExpenseForm).
+      review: review.filter((r) => r.formKey !== 'propertyIds' && r.formKey !== 'categoryIds'),
+      notes: {
+        supplierReadAs: x.supplier_id == null ? x.supplier_name : null,
+        categoryNote: x.category_ids.length > 0 ? notes.get('category_ids') ?? null : null,
+        propertyNote: property != null ? notes.get('property_id') ?? null : null,
+      },
+    });
+  };
+
+  const resolveScanNote = React.useCallback((field: 'category' | 'property') => {
+    const key = field === 'category' ? 'categoryNote' : 'propertyNote';
+    setScan((prev) => (prev && prev.notes[key] ? { ...prev, notes: { ...prev.notes, [key]: null } } : prev));
+  }, []);
 
   const revenueForm = useForm<RevenueFormValues>({
     resolver: zodResolver(revenueFormSchema) as Resolver<RevenueFormValues>,
@@ -207,7 +295,38 @@ export function AddTransactionScreen() {
     'dateOfPayment',
   ] as const;
 
+  /**
+   * A supplier outside the chosen categories is allowed, but asked about first — the same
+   * rule as the web form. The server accepts either.
+   */
   const submitExpense = expenseForm.handleSubmit(async (values) => {
+    const supplier =
+      values.supplierId != null ? suppliers.find((s) => s.id === values.supplierId) : undefined;
+    if (supplier && !supplier.category_ids?.some((id) => values.categoryIds.includes(id))) {
+      const chosen = categories
+        .filter((c) => values.categoryIds.includes(c.id))
+        .map((c) => getCategoryDisplayName(c, t))
+        .join(', ');
+      appAlert(
+        t('transactions.supplierMismatch.title'),
+        t('transactions.supplierMismatch.message', { supplier: supplier.name, categories: chosen }),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('transactions.supplierMismatch.saveAnyway'), onPress: () => void saveExpense(values) },
+        ],
+      );
+      return;
+    }
+    await saveExpense(values);
+  }, () =>
+    focusFirstInvalid(
+      EXPENSE_FIELD_ORDER,
+      expenseForm.formState.errors,
+      expenseForm.setFocus as (n: never) => void,
+    ),
+  );
+
+  async function saveExpense(values: ExpenseFormValues) {
     setSubmitting(true);
     try {
       if (isEdit && id) {
@@ -225,7 +344,7 @@ export function AddTransactionScreen() {
       } else {
         const totalAmount = Number(values.amount);
         const perPropertyAmount = Math.round((totalAmount / values.propertyIds.length) * 100) / 100;
-        await Promise.all(
+        const created = await Promise.all(
           values.propertyIds.map((propertyId: number) =>
             createExpenseTransaction({
               property_id: propertyId,
@@ -240,6 +359,17 @@ export function AddTransactionScreen() {
             }),
           ),
         );
+        if (scan && created[0]) {
+          updateExtractionLog(scan.logId, {
+            entity_type: 'transaction',
+            created_id: created[0].id,
+            ...diffProvenance(scan.provenance, {
+              ...values,
+              propertyIds: idKey(values.propertyIds),
+              categoryIds: idKey(values.categoryIds),
+            }),
+          });
+        }
       }
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await refreshTransactions();
@@ -253,13 +383,7 @@ export function AddTransactionScreen() {
     } finally {
       setSubmitting(false);
     }
-  }, () =>
-    focusFirstInvalid(
-      EXPENSE_FIELD_ORDER,
-      expenseForm.formState.errors,
-      expenseForm.setFocus as (n: never) => void,
-    ),
-  );
+  }
 
   const submitRevenue = revenueForm.handleSubmit(async (values) => {
     if (!isEdit || !id) return;
@@ -339,15 +463,24 @@ export function AddTransactionScreen() {
           />
         )}
         {mode === 'expense' && (
-          <ExpenseForm
-            control={expenseForm.control}
-            errors={expenseForm.formState.errors}
-            propertyIds={expenseForm.watch('propertyIds')}
-            categoryIds={expenseForm.watch('categoryIds')}
-            setValue={expenseForm.setValue}
-            ownerId={receiptOwnerId}
-            contentContainerStyle={formContentPadding}
-          />
+          <FieldReviewProvider items={scan?.review}>
+            <ExpenseForm
+              control={expenseForm.control}
+              errors={expenseForm.formState.errors}
+              propertyIds={expenseForm.watch('propertyIds')}
+              categoryIds={expenseForm.watch('categoryIds')}
+              receiptImageUrl={expenseForm.watch('receiptImageUrl') ?? null}
+              setValue={expenseForm.setValue}
+              ownerId={receiptOwnerId}
+              isEdit={isEdit}
+              suppliers={suppliers}
+              reloadSuppliers={reloadSuppliers}
+              scanNotes={scan?.notes}
+              onScanned={applyScan}
+              onNoteResolved={resolveScanNote}
+              contentContainerStyle={formContentPadding}
+            />
+          </FieldReviewProvider>
         )}
 
         {mode === 'expense' && (

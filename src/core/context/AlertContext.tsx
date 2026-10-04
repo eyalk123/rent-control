@@ -109,6 +109,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
         key="cancel"
         onPress={() => handleButtonPress({ text: "", style: "cancel" })}
         textColor={colors.textSecondary}
+        style={styles.button}
       >
         {t("common.cancel")}
       </Button>,
@@ -116,7 +117,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
         key="ok"
         mode="contained"
         onPress={() => handleButtonPress({ text: "", style: "default" })}
-        style={styles.confirmButton}
+        style={[styles.button, styles.confirmButton]}
       >
         {t("common.ok")}
       </Button>,
@@ -132,6 +133,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
           key="cancel"
           onPress={() => handleButtonPress(cancelBtn)}
           textColor={colors.textSecondary}
+          style={styles.button}
         >
           {cancelBtn.text}
         </Button>,
@@ -145,7 +147,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
           mode={btn.style === "destructive" ? "text" : "contained"}
           onPress={() => handleButtonPress(btn)}
           textColor={btn.style === "destructive" ? colors.error : undefined}
-          style={btn.style !== "destructive" ? styles.confirmButton : undefined}
+          style={[styles.button, btn.style !== "destructive" && styles.confirmButton]}
         >
           {btn.text}
         </Button>,
@@ -213,6 +215,11 @@ const styles = StyleSheet.create({
   actions: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
+  },
+  // Paper's MD3 button radius is 5 × theme roundness (80dp, a full pill); MOBILE-DESIGN.md §4
+  // puts buttons at 12.
+  button: {
+    borderRadius: 12,
   },
   confirmButton: {
     marginLeft: spacing.xs,
