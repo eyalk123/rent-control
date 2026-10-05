@@ -25,7 +25,7 @@ case "${1:-} ${2:-}" in
   *) usage ;;
 esac
 
-command -v xcrun >/dev/null || die "xcrun not found; install Xcode and run: sudo xcode-select -s /Applications/Xcode.app"
+command -v xcrun >/dev/null || die "xcrun not found. If Xcode is installed, run: export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer"
 xcrun simctl list devices booted | grep -q "(Booted)" || die "no simulator is booted; boot one in Simulator.app first"
 
 status_bar() {
@@ -94,7 +94,7 @@ capture_store() { # capture_store <device> <lang>
   fi
   echo "Device: $device   Language: $lang   Saving to: $dir"
   echo "Sign in with $account."
-  echo "Match the Android captures (screenshots/store/android/$lang/ on the PC)."
+  echo "Match the Android captures in screenshots/raw/android/$lang/."
   status_bar
 
   shoot "$dir" 01_home     "$device" "Home screen, scrolled to the top."

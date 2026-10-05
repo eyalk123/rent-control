@@ -1,82 +1,121 @@
 # iOS App Store screenshots — Mac steps
 
-Run in Terminal, in order. Assumes the repo is cloned at `~/rent-control`; change the path if not.
-Passwords for the demo accounts are not in the repo. Have them ready from the PC.
+For the rented MacinCloud Managed Server (macOS 14, Xcode 16.1, no admin rights, shared machine).
+Needs only Xcode, git and curl. Run the blocks in Terminal, in order.
+Have these ready from the PC: a temporary GitHub token, the demo account passwords, and the
+Sandbox Apple ID. None of them are in the repo.
 
-## 1. Get the latest repo
+## 0. Start a shell that keeps no history
 
 ```bash
-cd ~/rent-control
-git pull
+bash
+unset HISTFILE
 ```
 
-## 2. Download and extract the simulator build
+Run every later step in this same window, so nothing you type is saved to disk.
+
+## a. Clone the branch into your home folder
+
+Paste your token in place of `<TOKEN>`. `credential.helper=` stops git saving the token in the Keychain.
+
+```bash
+cd ~
+git -c credential.helper= clone -b ios-screenshots https://<TOKEN>@github.com/eyalk123/rent-control.git
+cd ~/rent-control
+git config credential.helper ""
+git config user.name "eyalk123"
+git config user.email "<your GitHub email>"
+```
+
+The `user.*` settings apply only to this clone.
+
+## b. Download and extract the simulator build
 
 ```bash
 mkdir -p ~/rv-build && cd ~/rv-build
-curl -L -o RentVance-sim.tar.gz https://expo.dev/artifacts/eas/63D7Bqzxk-zxAYaO9bawfgycQ3FFb6bzh_skdjhojCA.tar.gz
-tar -xzf RentVance-sim.tar.gz
-ls -d RentVance.app
+curl -L -o rentvance-sim.tar.gz "https://expo.dev/artifacts/eas/63D7Bqzxk-zxAYaO9bawfgycQ3FFb6bzh_skdjhojCA.tar.gz"
+tar -xzf rentvance-sim.tar.gz
+APP=$(find ~/rv-build -maxdepth 2 -name "*.app" | head -1); echo "$APP"
 ```
 
-## 3. Boot the largest Pro Max and install
+The last line should print a path ending in `.app`.
+
+## c. Boot the iPhone 16 Pro Max and install
 
 ```bash
 open -a Simulator
-xcrun simctl list devices available | grep "Pro Max"
-```
-
-Pick the newest Pro Max in that list. An iPhone 16/17 Pro Max gives 1320×2868; a 14/15 Pro Max gives 1290×2796.
-Boot it from Simulator.app (File → Open Simulator) or run:
-
-```bash
 xcrun simctl boot "iPhone 16 Pro Max"
-xcrun simctl install booted ~/rv-build/RentVance.app
+xcrun simctl install booted "$APP"
 ```
 
-## 4. Put the sample leases in Files
+If `boot` says the device is already booted, carry on.
+To see the device names on this Mac, run `xcrun simctl list devices available`.
+
+## d. Put the lease PDFs in Files
+
+`xcrun simctl addmedia` only takes photos, videos and contacts, so it can't add PDFs. Copy them straight
+into the simulator's Files storage instead:
 
 ```bash
-open ~/rent-control/demo/leases
+FILES=$(xcrun simctl get_app_container booted com.apple.DocumentsApp groups | awk '/FileProvider.LocalStorage/ {print $2}')
+mkdir -p "$FILES/File Provider Storage"
+cp ~/rent-control/demo/leases/*.pdf "$FILES/File Provider Storage/"
 ```
 
-Drag the 4 PDFs onto the simulator window and save each to Files → On My iPhone.
+Check that they show up in the simulator's Files app, under On My iPhone.
+If they don't, run `open ~/rent-control/demo/leases`, drag the 4 PDFs onto the simulator window, and save each one to Files.
+The PDFs stay in Files when you delete the app, so you only do this once.
 
-## 5. English: Michael's US account
+## e. Capture
+
+Shots are saved to `~/rent-control/screenshots/raw/ios/`, next to the Android ones.
+
+**English: Michael** (`demo.us@rentvance.app`, app language English)
 
 ```bash
 cd ~/rent-control/demo/ios
-OUT=~/rv-shots ./capture.sh iphone en
+OUT=~/rent-control/screenshots/raw ./capture.sh iphone en
 ```
 
-Sign in as `demo.us@rentvance.app`, with the app language set to English.
-
-## 6. Hebrew: Dana's Israeli account (fresh install first)
+**Hebrew: Dana** (`demo.il@rentvance.app`, app language Hebrew). Delete and reinstall the app first:
 
 ```bash
 xcrun simctl uninstall booted com.eyalk123.rentcontrol
-xcrun simctl install booted ~/rv-build/RentVance.app
-OUT=~/rv-shots ./capture.sh iphone he
+xcrun simctl install booted "$APP"
+OUT=~/rent-control/screenshots/raw ./capture.sh iphone he
 ```
 
-Sign in as `demo.il@rentvance.app`, with the app language set to Hebrew. The leases stay in Files, so you don't need to drag them again.
-
-## 7. Review shots: free account + Sandbox Apple ID
-
-Prices only appear for a free-plan account, not the demo accounts. First sign into your Sandbox Apple ID in the simulator's
-Settings → Developer → Sandbox Apple Account. On older iOS it's Settings → App Store → Sandbox Account. Then:
+**Review: a new free account.** First sign the simulator into the Sandbox Apple ID. Open the simulator's
+Settings → App Store → Sandbox Account. On iOS 18 it may be under Settings → Developer → Sandbox Apple Account.
+Then delete and reinstall the app, and sign up for a new account in it:
 
 ```bash
 xcrun simctl uninstall booted com.eyalk123.rentcontrol
-xcrun simctl install booted ~/rv-build/RentVance.app
-OUT=~/rv-shots ./capture.sh review
+xcrun simctl install booted "$APP"
+OUT=~/rent-control/screenshots/raw ./capture.sh review
 ```
 
-## 8. Clean up and zip
+## f. Commit and push the screenshots
+
+```bash
+cd ~/rent-control
+git add screenshots/raw/ios
+git commit -m "chore(screenshots): iOS App Store captures"
+git push origin ios-screenshots
+```
+
+## g. Clean up (the machine is shared)
 
 ```bash
 xcrun simctl status_bar booted clear
-cd ~/rv-shots && zip -r ~/Desktop/ios-screenshots.zip ios
+xcrun simctl uninstall booted com.eyalk123.rentcontrol
+xcrun simctl shutdown all
+xcrun simctl erase "iPhone 16 Pro Max"
+printf 'protocol=https\nhost=github.com\n\n' | git credential-osxkeychain erase 2>/dev/null
+cd ~ && rm -rf ~/rent-control ~/rv-build
+history -c
+exit
 ```
 
-Send `~/Desktop/ios-screenshots.zip` back to the PC.
+`erase` resets the simulator, which signs out the Sandbox Apple ID and removes the PDFs.
+After `exit` you're back in the normal shell. Then delete the token on GitHub (Settings → Developer settings → Tokens).
