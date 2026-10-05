@@ -1,5 +1,8 @@
 import apiClient from '@/src/core/api/client';
 import { USE_MOCK_API, mockPropertiesApi } from '@/src/core/api/mock';
+import * as FileSystem from 'expo-file-system/legacy';
+import i18n from 'i18next';
+import { arrayBufferToBase64 } from '@/src/features/reports/api/reports';
 import type { Property, PropertyCreate, PropertyUpdate } from '@/src/shared/types';
 
 export async function getProperties(): Promise<Property[]> {
@@ -115,4 +118,28 @@ export async function updateProperty(
 export async function deleteProperty(id: number): Promise<void> {
   if (USE_MOCK_API) return mockPropertiesApi.deleteProperty(id);
   await apiClient.delete(`/properties/${id}`);
+}
+
+/**
+ * The one-page PDF an owner sends to a new renter — renter-safe fields only, chosen by the
+ * backend — handed straight to the share sheet. Rendered in the language the app is in.
+ */
+export async function sharePropertySheet(property: Pick<Property, 'id' | 'address'>): Promise<void> {
+  const lang = i18n.language?.startsWith('he') ? 'he' : 'en';
+  const response = await apiClient.get<ArrayBuffer>(`/properties/${property.id}/sheet`, {
+    params: { lang },
+    responseType: 'arraybuffer',
+    timeout: 30000,
+  });
+  // Named after the address, since that is what the renter sees in the chat. Characters no
+  // file system accepts are dropped, and spaces too, to keep the cache URI plain.
+  const name = property.address.replace(/[\\/:*?"<>|]+/g, ' ').trim().replace(/\s+/g, '-')
+    || `property-${property.id}`;
+  const filename = `${name}.pdf`;
+  const uri = `${FileSystem.cacheDirectory}${filename}`;
+  await FileSystem.writeAsStringAsync(uri, arrayBufferToBase64(response.data), {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  const Sharing = await import('expo-sharing');
+  await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: filename });
 }

@@ -318,6 +318,8 @@
     "currentTenants": "שוכרים נוכחיים",
     "lease": "שכירות",
     "editProperty": "עריכת נכס",
+    "renterSheet": "דף מידע לשוכר",
+    "renterSheetFailed": "לא ניתן היה ליצור את דף המידע. נסו שוב.",
     "saveProperty": "שמירת נכס",
     "addProperty": "הוספת נכס",
     "updateProperty": "עדכון נכס",

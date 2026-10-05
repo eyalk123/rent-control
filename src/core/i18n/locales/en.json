@@ -317,6 +317,8 @@
     "currentTenants": "Current tenants",
     "lease": "Lease",
     "editProperty": "Edit Property",
+    "renterSheet": "Info sheet for renter",
+    "renterSheetFailed": "Could not create the info sheet. Please try again.",
     "saveProperty": "Save Property",
     "addProperty": "Add Property",
     "updateProperty": "Update Property",

@@ -5,12 +5,12 @@ import {
   Image,
   useWindowDimensions,
 } from 'react-native';
-import { IconButton, Text, useTheme } from 'react-native-paper';
+import { ActivityIndicator, IconButton, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { getPropertyById } from '@/src/features/properties/api/properties';
+import { getPropertyById, sharePropertySheet } from '@/src/features/properties/api/properties';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Property } from '@/src/shared/types';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
@@ -59,6 +59,7 @@ export function PropertyDetailScreen() {
   // its own, not a load failure.
   const [locked, setLocked] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('info');
+  const [sharing, setSharing] = useState(false);
   // Owned here, not in the tab: the tabs render conditionally, so leaving Transactions
   // unmounts the panel and would otherwise discard the section and its filters.
   const [txTabState, setTxTabState] = useState<TransactionsTabState>(initialTransactionsTabState);
@@ -117,6 +118,40 @@ export function PropertyDetailScreen() {
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(`/properties/edit/${property!.id}` as any);
+  };
+
+  const handleShareSheet = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSharing(true);
+    try {
+      await sharePropertySheet(property!);
+    } catch (err) {
+      alert(getApiErrorMessage(err, t('property.renterSheetFailed')));
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  // Mirrors the edit button on the opposite corner: a filled circle over a photo, where a
+  // plain glyph would be illegible, and a plain glyph otherwise.
+  const renderShareButton = (overPhoto: boolean) => {
+    const glyphColor = overPhoto ? colors.onPrimary : colors.textPrimary;
+    return (
+      <IconButton
+        icon={() =>
+          sharing ? (
+            <ActivityIndicator size={18} color={glyphColor} />
+          ) : (
+            <Icon name="share" size={22} color={glyphColor} />
+          )
+        }
+        size={22}
+        style={[styles.shareIcon, overPhoto && { backgroundColor: colors.primary }]}
+        onPress={handleShareSheet}
+        disabled={sharing}
+        accessibilityLabel={t('property.renterSheet')}
+      />
+    );
   };
 
   if (loading) {
@@ -183,6 +218,7 @@ export function PropertyDetailScreen() {
                 onPress={handleEdit}
                 accessibilityLabel={t('property.editProperty')}
               />
+              {renderShareButton(true)}
             </View>
           ) : (
             <View
@@ -208,6 +244,7 @@ export function PropertyDetailScreen() {
                 onPress={handleEdit}
                 accessibilityLabel={t('property.editProperty')}
               />
+              {renderShareButton(false)}
             </View>
           )}
 
@@ -293,6 +330,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: spacing.sm,
     left: spacing.sm,
+    margin: 0,
+  },
+  shareIcon: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    right: spacing.sm,
     margin: 0,
   },
   addressRow: {

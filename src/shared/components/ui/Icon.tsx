@@ -68,6 +68,7 @@ import Receipt from "lucide-react-native/icons/receipt";
 import Ruler from "lucide-react-native/icons/ruler";
 import Search from "lucide-react-native/icons/search";
 import Settings from "lucide-react-native/icons/settings";
+import Share2 from "lucide-react-native/icons/share-2";
 import Shield from "lucide-react-native/icons/shield";
 import ShieldCheck from "lucide-react-native/icons/shield-check";
 import Sparkles from "lucide-react-native/icons/sparkles";
@@ -145,6 +146,7 @@ const REGISTRY = {
   ruler: Ruler,
   search: Search,
   settings: Settings,
+  share: Share2,
   shield: Shield,
   "shield-check": ShieldCheck,
   sparkles: Sparkles,
