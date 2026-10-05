@@ -23,16 +23,15 @@
       }
     },
     "simulator": {
+      "extends": "production",
+      "environment": "production",
       "distribution": "internal",
-      "environment": "preview",
+      "autoIncrement": false,
       "ios": {
         "simulator": true
       },
       "env": {
-        "APP_VARIANT": "preview",
-        "EXPO_PUBLIC_API_URL": "https://api.rentvance.app",
-        "EXPO_PUBLIC_FIREBASE_WEB_CLIENT_ID": "934422884395-k9hj3hs1t4tp52c6dbf1cg9r272bqiqm.apps.googleusercontent.com",
-        "EXPO_PUBLIC_ONBOARDING_TOURS": "on"
+        "EXPO_PUBLIC_ONBOARDING_TOURS": "off"
       }
     },
     "production": {
