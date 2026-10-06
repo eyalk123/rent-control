@@ -15,7 +15,7 @@ import {
   deletePropertyFile,
 } from '@/src/features/properties/api/propertyFilesApi';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import type { Property, PropertyCreate, PropertyFile, PropertyType } from '@/src/shared/types';
+import type { Property, PropertyCreate, PropertyFile, PropertyOwner, PropertyType } from '@/src/shared/types';
 import {
   propertyFormSchema,
   type PropertyFormValues,
@@ -33,6 +33,8 @@ type UsePropertyFormParams = {
   id?: string;
   t: TFunction;
   refreshProperties: () => Promise<void>;
+  /** The account's owners, or null until they have loaded. */
+  owners: PropertyOwner[] | null;
   onSuccess: (savedProp: Property) => void;
   /** Document-scan prefill applied on a fresh (non-edit) form. */
   prefill?: Partial<PropertyFormValues>;
@@ -105,6 +107,7 @@ export function usePropertyForm({
   id,
   t,
   refreshProperties,
+  owners,
   onSuccess,
   prefill,
   logId,
@@ -201,7 +204,11 @@ export function usePropertyForm({
               .map((s) => s.trim())
               .filter(Boolean),
       electricity_meter_number: values.electricityMeterNumber || null,
-      property_owner: values.propertyOwner?.trim() || null,
+      // Omitted until the owner list has loaded: a stored owner would otherwise read as
+      // unknown and be cleared. A name that is no owner (one a lease scan read) saves as none.
+      ...(owners
+        ? { property_owner_id: owners.find((o) => o.name === values.propertyOwner?.trim())?.id ?? null }
+        : {}),
       inventory_notes: values.inventoryNotes?.trim() || null,
       basic_contract_url: values.basicContractUrl ?? null,
       land_registry_url: values.landRegistryUrl ?? null,

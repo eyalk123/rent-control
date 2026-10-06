@@ -59,6 +59,9 @@ export default function PropertiesLayout() {
       {/* A transaction opened from this detail screen's Transactions tab. Pushing the
           Transactions tab's own route instead switched tabs, so back landed on that list. */}
       <Stack.Screen name="transaction/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="owners/index" options={{ headerShown: false }} />
+      <Stack.Screen name="owners/add" options={{ headerShown: false }} />
+      <Stack.Screen name="owners/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }

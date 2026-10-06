@@ -9,6 +9,9 @@ import type {
   Supplier,
   SupplierCreate,
   SupplierUpdate,
+  PropertyOwner,
+  PropertyOwnerCreate,
+  PropertyOwnerUpdate,
   ExpenseCategory,
   ExpenseCategoryCreate,
   Transaction,
@@ -576,6 +579,34 @@ let nextPropertyId = 6;
 let nextRenterId = 7;
 let nextCategoryId = 6;
 let nextSupplierId = 4;
+
+// One owner per distinct name on the seed properties, and the properties linked to them — the
+// shape the backend migration leaves behind.
+let mockPropertyOwners: Omit<PropertyOwner, 'property_count'>[] = Array.from(
+  new Set(mockProperties.map((p) => p.property_owner).filter((n): n is string => !!n)),
+).map((name, i) => ({ id: i + 1, name, phone: null, email: null, notes: null, bank_account: null, is_active: true }));
+let nextPropertyOwnerId = mockPropertyOwners.length + 1;
+mockProperties = mockProperties.map((p) => ({
+  ...p,
+  property_owner_id: mockPropertyOwners.find((o) => o.name === p.property_owner)?.id ?? null,
+}));
+
+/** The owner fields of a property payload: the id wins, a bare name is matched or created —
+ *  what the backend does. */
+function resolveMockOwner(data: { property_owner?: string | null; property_owner_id?: number | null }) {
+  let owner = data.property_owner_id != null
+    ? mockPropertyOwners.find((o) => o.id === data.property_owner_id)
+    : undefined;
+  const name = data.property_owner?.trim();
+  if (!owner && data.property_owner_id == null && name) {
+    owner = mockPropertyOwners.find((o) => o.name === name);
+    if (!owner) {
+      owner = { id: nextPropertyOwnerId++, name, phone: null, email: null, notes: null, bank_account: null, is_active: true };
+      mockPropertyOwners.push(owner);
+    }
+  }
+  return { property_owner_id: owner?.id ?? null, property_owner: owner?.name ?? null };
+}
 let nextTransactionId = 7;
 
 /**
@@ -661,7 +692,7 @@ export const mockPropertiesApi = {
       water_account_number: data.water_account_number ?? null,
       property_tax: data.property_tax ?? null,
       house_committee: data.house_committee ?? null,
-      property_owner: data.property_owner ?? null,
+      ...resolveMockOwner(data),
       renters: [],
     };
     mockProperties.push(newProp);
@@ -671,7 +702,8 @@ export const mockPropertiesApi = {
     const idx = mockProperties.findIndex((x) => x.id === id);
     if (idx < 0) throw new Error('Property not found');
     const { renters: _r, ...rest } = data as Partial<Property> & { renters?: unknown };
-    mockProperties[idx] = { ...mockProperties[idx], ...rest };
+    const owner = 'property_owner_id' in rest || 'property_owner' in rest ? resolveMockOwner(rest) : {};
+    mockProperties[idx] = { ...mockProperties[idx], ...rest, ...owner };
     return mockPropertiesApi.getPropertyById(id);
   },
   deleteProperty: async (id: number): Promise<void> => {
@@ -999,6 +1031,63 @@ export const mockSuppliersApi = {
       category_ids: data.category_ids ?? mockSuppliers[idx].category_ids,
     };
     return { ...mockSuppliers[idx] };
+  },
+};
+
+function mockConflict(detail: string): Error {
+  return Object.assign(new Error(detail), { userMessage: detail, response: { status: 409, data: { detail } } });
+}
+
+function withPropertyCount(o: Omit<PropertyOwner, 'property_count'>): PropertyOwner {
+  return { ...o, property_count: mockProperties.filter((p) => p.property_owner_id === o.id).length };
+}
+
+export const mockPropertyOwnersApi = {
+  getPropertyOwners: async (params?: { includeInactive?: boolean }): Promise<PropertyOwner[]> =>
+    mockPropertyOwners
+      .filter((o) => params?.includeInactive || o.is_active)
+      .map(withPropertyCount),
+  getPropertyOwnerById: async (id: number): Promise<PropertyOwner> => {
+    const o = mockPropertyOwners.find((x) => x.id === id);
+    if (!o) throw new Error('Property owner not found');
+    return withPropertyCount(o);
+  },
+  createPropertyOwner: async (data: PropertyOwnerCreate): Promise<PropertyOwner> => {
+    const name = data.name.trim();
+    if (mockPropertyOwners.some((o) => o.name === name)) {
+      throw mockConflict('A property owner with this name already exists');
+    }
+    const owner = {
+      id: nextPropertyOwnerId++,
+      name,
+      phone: data.phone ?? null,
+      email: data.email ?? null,
+      notes: data.notes ?? null,
+      bank_account: data.bank_account ?? null,
+      is_active: true,
+    };
+    mockPropertyOwners.push(owner);
+    return withPropertyCount(owner);
+  },
+  updatePropertyOwner: async (id: number, data: PropertyOwnerUpdate): Promise<PropertyOwner> => {
+    const idx = mockPropertyOwners.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error('Property owner not found');
+    const name = data.name?.trim();
+    if (name && mockPropertyOwners.some((o) => o.name === name && o.id !== id)) {
+      throw mockConflict('A property owner with this name already exists');
+    }
+    mockPropertyOwners[idx] = { ...mockPropertyOwners[idx], ...data, name: name || mockPropertyOwners[idx].name };
+    // The properties show the owner's name, so a rename reaches them.
+    mockProperties = mockProperties.map((p) =>
+      p.property_owner_id === id ? { ...p, property_owner: mockPropertyOwners[idx].name } : p,
+    );
+    return withPropertyCount(mockPropertyOwners[idx]);
+  },
+  deletePropertyOwner: async (id: number): Promise<void> => {
+    if (mockProperties.some((p) => p.property_owner_id === id)) {
+      throw mockConflict('This owner still has properties. Move them to another owner first.');
+    }
+    mockPropertyOwners = mockPropertyOwners.filter((o) => o.id !== id);
   },
 };
 

@@ -2,6 +2,7 @@ import { LoadingOverlay, ScreenContainer, FormHeader } from "@/src/shared/compon
 import { usePropertyContext } from "@/src/context";
 import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm";
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
+import { usePropertyOwnersList } from "@/src/features/property-owners/hooks/usePropertyOwnersList";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
 import { PropertyCreatedPrompt } from "@/src/features/properties/components/PropertyCreatedPrompt";
 import { PropertyScanConflicts } from "@/src/features/properties/components/PropertyScanConflicts";
@@ -31,6 +32,7 @@ export function AddEditPropertyScreen() {
   const router = useRouter();
   const { refreshProperties } = usePropertyContext();
   const isEdit = Boolean(id);
+  const { owners, loaded: ownersLoaded, refreshOwners } = usePropertyOwnersList();
 
   const navigation = useNavigation();
   // Flipped to true right before an intentional (post-save / flow-pivot) navigation so the
@@ -64,6 +66,7 @@ export function AddEditPropertyScreen() {
     id,
     t,
     refreshProperties,
+    owners: ownersLoaded ? owners : null,
     prefill: scan?.property,
     logId: scan?.logId,
     provenance: scan?.propertyProvenance,
@@ -184,6 +187,12 @@ export function AddEditPropertyScreen() {
                 setImageUri={setImageUri}
                 ownerId={ownerId}
                 addressEvidence={scan?.addressEvidence}
+                owners={owners}
+                ownersLoaded={ownersLoaded}
+                onReloadOwners={refreshOwners}
+                onAddOwner={(name) =>
+                  router.push({ pathname: "/properties/add-owner", params: name ? { name } : {} } as any)
+                }
               />
             </>
           )}

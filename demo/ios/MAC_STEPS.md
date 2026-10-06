@@ -1,3 +1,5 @@
+> **Not used.** Superseded: the iOS screenshots are captured by Claude driving a NoMac cloud Mac with Maestro. Kept for reference only.
+
 # iOS App Store screenshots — Mac steps
 
 Run in Terminal, in order. Assumes the repo is cloned at `~/rent-control`; change the path if not.

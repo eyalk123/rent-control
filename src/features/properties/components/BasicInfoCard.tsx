@@ -1,7 +1,7 @@
 import React from "react";
 import { registryKey1, registryKey2 } from "@/src/shared/utils/registryLabels";
 import { areaUnitLabel } from "@/src/shared/utils/money";
-import type { Control, FieldValues } from "react-hook-form";
+import { Controller, type Control, type FieldValues } from "react-hook-form";
 import { HelperText } from "react-native-paper";
 import {
   FormSectionCard,
@@ -10,15 +10,14 @@ import {
   FormTextField,
   FormNumericField,
   FormDropdownOptions,
-  FormCreatableDropdown,
 } from "@/src/shared/components/form";
 import { useRtlPlaceholder } from "@/src/core/context";
 import { PropertyHouseImageField } from "@/src/features/properties/components/PropertyHouseImageField";
 import { availablePropertyTypes } from "@/src/features/properties/validation/propertyValidation";
 import { propertyTypeLabelKey } from "@/src/features/properties/constants/propertyTypeLabel";
-import type { PropertyType } from "@/src/shared/types";
+import type { PropertyOwner, PropertyType } from "@/src/shared/types";
 import type { TFunction } from "i18next";
-import { usePropertyContext } from "@/src/context";
+import { PropertyOwnerPicker } from "@/src/features/property-owners/components/PropertyOwnerPicker";
 import { ANCHORS } from "@/src/features/onboarding/anchors";
 import { TourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 import { useTour } from "@/src/features/onboarding/TourController";
@@ -31,6 +30,10 @@ type BasicInfoCardProps<TFieldValues extends FieldValues> = {
   ownerId: string;
   /** Debug hint: the verbatim clause a scan based the property address on (scan flow only). */
   addressEvidence?: string | null;
+  owners: PropertyOwner[];
+  ownersLoaded: boolean;
+  onReloadOwners: () => void;
+  onAddOwner: (initialName: string | null) => void;
 };
 
 function BasicInfoCardInner<TFieldValues extends FieldValues>({
@@ -40,27 +43,17 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
   setImageUri,
   ownerId,
   addressEvidence,
+  owners,
+  ownersLoaded,
+  onReloadOwners,
+  onAddOwner,
 }: BasicInfoCardProps<TFieldValues>) {
   // Asked from here, not from AddEditPropertyScreen: the owner field is one of the tour's
   // anchors and it only exists while step 1 is mounted. Asking from the screen would ask
   // again on step 2, where the anchor is gone.
   useTour('property-form');
   const rtlPlaceholder = useRtlPlaceholder();
-  const { properties } = usePropertyContext();
   const translateTypeLabel = (type: PropertyType) => t(propertyTypeLabelKey(type));
-
-  // FormCreatableDropdown applies the locale-aware ordering.
-  const ownerOptions = React.useMemo(
-    () =>
-      Array.from(
-        new Set(
-          properties
-            .map((p) => p.property_owner?.trim())
-            .filter((o): o is string => !!o),
-        ),
-      ),
-    [properties],
-  );
 
   const propertyTypeOptions = React.useMemo(
     () =>
@@ -155,15 +148,24 @@ function BasicInfoCardInner<TFieldValues extends FieldValues>({
         required
       />
       <TourAnchor id={ANCHORS.propertyFormOwnerField}>
-        <FormCreatableDropdown
+        {/* The field holds the owner's name — unique per account, and what the lease
+            scanner fills — and the save matches it to an owner record. */}
+        <Controller
           control={control}
           name={"propertyOwner" as any}
-          label={t("property.propertyOwner")}
-          options={ownerOptions}
-          placeholder={rtlPlaceholder(t("property.ownerPlaceholder"))}
-          createLabel={t("property.ownerCreate")}
-          createModalTitle={t("property.createOwnerTitle")}
-          createModalPlaceholder={t("property.ownerNamePlaceholder")}
+          render={({ field: { value, onChange } }) => (
+            <PropertyOwnerPicker
+              owners={owners}
+              ownersLoaded={ownersLoaded}
+              onReload={onReloadOwners}
+              value={(value as string) ?? ""}
+              onChange={onChange}
+              label={t("property.propertyOwner")}
+              placeholder={rtlPlaceholder(t("property.ownerPlaceholder"))}
+              onAddOwner={onAddOwner}
+              reviewName="propertyOwner"
+            />
+          )}
         />
       </TourAnchor>
       <FormNumericField

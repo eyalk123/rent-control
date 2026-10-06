@@ -34,6 +34,7 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
     property_tax,
     house_committee,
     property_owner,
+    property_owner_id,
     inventory_notes,
     basic_contract_url,
     land_registry_url,
@@ -55,6 +56,7 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
   if (property_tax !== undefined) out.property_tax = property_tax;
   if (house_committee !== undefined) out.house_committee = house_committee;
   if (property_owner !== undefined) out.property_owner = property_owner;
+  if (property_owner_id !== undefined) out.property_owner_id = property_owner_id;
   if (inventory_notes !== undefined) out.inventory_notes = inventory_notes;
   if (basic_contract_url !== undefined) out.basic_contract_url = basic_contract_url;
   if (land_registry_url !== undefined) out.land_registry_url = land_registry_url;
@@ -82,6 +84,7 @@ function sanitizePropertyUpdate(data: PropertyUpdate): Record<string, unknown> {
     'property_tax',
     'house_committee',
     'property_owner',
+    'property_owner_id',
     'inventory_notes',
     'basic_contract_url',
     'land_registry_url',

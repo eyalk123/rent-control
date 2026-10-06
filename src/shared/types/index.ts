@@ -44,7 +44,9 @@ export interface Property {
   water_account_number?: string | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  /** The owner's name, read from the owner record. Kept for display and filters. */
   property_owner?: string | null;
+  property_owner_id?: number | null;
   inventory_notes?: string | null;
   basic_contract_url?: string | null;
   land_registry_url?: string | null;
@@ -378,6 +380,29 @@ export interface ExpenseCategoryCreate {
   name: string;
 }
 
+/** The person who owns a property — a contact with bank details, like a supplier. Names are
+ *  unique per account. */
+export interface PropertyOwner {
+  id: number;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
+  bank_account?: string | null;
+  is_active: boolean;
+  property_count: number;
+}
+
+export interface PropertyOwnerCreate {
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
+  bank_account?: string | null;
+}
+
+export type PropertyOwnerUpdate = Partial<PropertyOwnerCreate> & { is_active?: boolean };
+
 export interface Supplier {
   id: number;
   category_ids: number[];
@@ -448,7 +473,9 @@ export interface PropertyCreate {
   water_account_number?: string | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  /** The owner's name, read from the owner record. Kept for display and filters. */
   property_owner?: string | null;
+  property_owner_id?: number | null;
   inventory_notes?: string | null;
   basic_contract_url?: string | null;
   land_registry_url?: string | null;
@@ -474,7 +501,9 @@ export interface PropertyUpdate {
   water_account_number?: string | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  /** The owner's name, read from the owner record. Kept for display and filters. */
   property_owner?: string | null;
+  property_owner_id?: number | null;
   inventory_notes?: string | null;
   basic_contract_url?: string | null;
   land_registry_url?: string | null;

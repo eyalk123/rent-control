@@ -27,6 +27,7 @@ import { LockedPropertyCard, PropertyCard } from '@/src/features/properties/comp
 import { useSubscription } from '@/src/features/subscription/SubscriptionContext';
 import { OverLimitNotice } from '@/src/features/subscription/components/OverLimitNotice';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
+import { PropertyOwnersHeaderButton } from '@/src/features/property-owners/components/PropertyOwnersHeaderButton';
 import { deleteProperty } from '@/src/features/properties/api/properties';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
 import { formatPropertyAddress } from '@/src/shared/utils/propertyAddress';
@@ -329,7 +330,16 @@ export function PropertiesListScreen() {
         >
               {t('screens.properties')}
             </Text>
-            <SettingsGearButton />
+            <View style={styles.titleActions}>
+              <PropertyOwnersHeaderButton
+                label={t('propertyOwners.title')}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push('/properties/owners' as any);
+                }}
+              />
+              <SettingsGearButton />
+            </View>
           </View>
         )}
         <TourAnchor id={ANCHORS.propertiesFilters}>
@@ -447,6 +457,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  titleActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   selectionHeader: {
     flexDirection: 'row',
