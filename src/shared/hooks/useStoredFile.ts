@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAlert } from '@/src/core/context';
-import {
-  canFallBack,
-  localCopyOf,
-  openStoredFile,
-  readsThroughSdk,
-  reportFallback,
-  storagePathOf,
-} from '@/src/shared/utils/storedFile';
+import { localCopyOf, openStoredFile, readsThroughSdk, storagePathOf } from '@/src/shared/utils/storedFile';
 
 /** A displayable URI for a stored file value: our files are fetched as the signed-in user
  *  and shown from a local copy; anything else passes through unchanged. Null while loading. */
@@ -22,14 +15,13 @@ export function useStoredFileUri(value: string | null | undefined): string | nul
     let live = true;
     localCopyOf(path)
       .then((uri) => live && setResult({ path, uri }))
-      .catch((error) => {
-        if (canFallBack(value)) reportFallback(error);
-        if (live) setResult({ path, uri: canFallBack(value) ? value : null });
+      .catch(() => {
+        if (live) setResult({ path, uri: null });
       });
     return () => {
       live = false;
     };
-  }, [path, value]);
+  }, [path]);
 
   if (!viaSdk) return value ?? null;
   return result?.path === path ? result.uri : null;

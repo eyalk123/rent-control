@@ -2,19 +2,14 @@ import { Linking, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as Sharing from 'expo-sharing';
-import * as Sentry from '@sentry/react-native';
 import storage from '@react-native-firebase/storage';
 import { localCachesReady } from '@/src/shared/utils/localFileCache';
 
 /**
  * Stored files are read through the Firebase SDK as the signed-in user, so `storage.rules`
- * decides who may read them.
- *
- * The values in the database are Firebase *download URLs*: they carry a token that bypasses
- * those rules, never expires, and works for anyone holding the link. Reading through the SDK
- * is the step that lets the tokens be revoked and the columns hold bare storage paths
- * (PLATFORM.md §18), so both shapes are accepted here. The web app does the same in its own
- * `storedFile.ts`.
+ * decides who may read them. The database holds each file's bare storage path — never a
+ * download URL, whose token opened the file for anyone with the link (PLATFORM.md §18).
+ * The web app does the same in its own `storedFile.ts`.
  *
  * The web build of this app (dev preview only) keeps using the value as-is: the native SDK's
  * `writeToFile` does not exist there.
@@ -22,46 +17,16 @@ import { localCachesReady } from '@/src/shared/utils/localFileCache';
 
 // Mirror of the upload path shape: `{entityType}/{ownerId}/{uuid}/{filename}`.
 const STORAGE_PATH = /^(properties|renters|transactions)\/[^/]+\/[^/]+\/.+/;
-// Parsed by pattern, not `new URL()`: React Native's URL implementation is partial.
-const DOWNLOAD_URL = /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^/]+\/o\/([^?#]+)/;
 
 /** The Storage path a stored value points at, or null when it is not one of our files
  *  (a house preset, a local `file://` preview, a mock-API URL). */
 export function storagePathOf(value: string | null | undefined): string | null {
-  if (!value) return null;
-  const match = DOWNLOAD_URL.exec(value);
-  if (match) {
-    try {
-      return decodeURIComponent(match[1]);
-    } catch {
-      return null;
-    }
-  }
-  return STORAGE_PATH.test(value) ? value : null;
+  return value && STORAGE_PATH.test(value) ? value : null;
 }
 
 /** Whether this value is read through the SDK on this platform. */
 export function readsThroughSdk(value: string | null | undefined): boolean {
   return Platform.OS !== 'web' && storagePathOf(value) !== null;
-}
-
-let fallbackReported = false;
-
-/** While download tokens still exist, a failed SDK read falls back to the stored link so the
- *  file still opens. Reported once per session, because the fallback stops working the day
- *  the tokens are revoked. */
-export function reportFallback(error: unknown): void {
-  if (fallbackReported) return;
-  fallbackReported = true;
-  Sentry.captureMessage('Stored file read failed; fell back to its download link', {
-    level: 'warning',
-    // The error's code only — its message quotes the storage path, which names a file.
-    extra: { code: (error as { code?: string })?.code ?? 'unknown' },
-  });
-}
-
-export function canFallBack(value: string | null | undefined): value is string {
-  return !!value && value.startsWith('https://');
 }
 
 const EXTENSION = /\.([a-z0-9]+)$/i;
@@ -119,15 +84,7 @@ export async function openStoredFile(value: string): Promise<void> {
     return;
   }
   const path = storagePathOf(value)!;
-  let uri: string;
-  try {
-    uri = await localCopyOf(path);
-  } catch (error) {
-    if (!canFallBack(value)) throw error;
-    reportFallback(error);
-    await Linking.openURL(value);
-    return;
-  }
+  const uri = await localCopyOf(path);
   const mimeType = mimeTypeOf(path);
   if (Platform.OS === 'android') {
     try {

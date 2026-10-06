@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAlert } from '@/src/core/context';
 import { useStoredFileUri } from '@/src/shared/hooks/useStoredFile';
-import { canFallBack, localCopyOf, readsThroughSdk, reportFallback, storagePathOf } from '@/src/shared/utils/storedFile';
+import { localCopyOf, readsThroughSdk, storagePathOf } from '@/src/shared/utils/storedFile';
 import { getTransactionById } from '@/src/features/transactions/api/transactions';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Transaction } from '@/src/shared/types';
@@ -23,16 +23,9 @@ import { formatMoney } from '@/src/shared/utils/money';
 import { monthYearLabel } from '@/src/features/transactions/utils/aggregate';
 
 /** A local copy of the receipt to share: read as the signed-in user, or — for a value that is
- *  not one of our files, or while the old download link still works — downloaded from it. */
+ *  not one of our files — downloaded from it. */
 async function receiptLocalUri(value: string, filename: string): Promise<string> {
-  if (readsThroughSdk(value)) {
-    try {
-      return await localCopyOf(storagePathOf(value)!);
-    } catch (error) {
-      if (!canFallBack(value)) throw error;
-      reportFallback(error);
-    }
-  }
+  if (readsThroughSdk(value)) return localCopyOf(storagePathOf(value)!);
   const uri = `${FileSystem.cacheDirectory}${filename}`;
   await FileSystem.downloadAsync(value, uri);
   return uri;
