@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View, type TextStyle, type ViewStyle } from "rea
 import { Text, useTheme } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
-import { Icon } from "@/src/shared/components/ui";
+import { CpiChip, Icon } from "@/src/shared/components/ui";
 import { formatMoney } from "@/src/shared/utils/money";
 import type { LeaseYearRuleMode, LeaseYearType } from "@/src/shared/types";
 import { LeaseYearAmountField } from "./LeaseYearAmountField";
@@ -177,37 +177,13 @@ function LeaseYearRowInner({
           >
             {amountNum > 0 ? `${projected ? "≈ " : ""}${formatMoney(amountNum)}` : "–"}
           </Text>
-          {projected ? (
-            <View
-              style={[
-                styles.cpiChip,
-                { backgroundColor: colors.inputFilledBackground, flexDirection: rowDirection },
-              ]}
-            >
-              <Icon name="trending-up" size={12} color={colors.textSecondary} />
-              <Text style={[styles.cpiChipText, { color: colors.textSecondary }]}>
-                {t(indexLabelKey())}
-              </Text>
-            </View>
-          ) : null}
+          {projected ? <CpiChip flexDirection={rowDirection} /> : null}
         </View>
       )}
 
       {/* An editable row shows the projection chip here — its amount lives in an input, so
           the read-only branch above (which owns the other chip) never renders. */}
-      {amountEditable && projected ? (
-        <View
-          style={[
-            styles.cpiChip,
-            { backgroundColor: colors.inputFilledBackground, flexDirection: rowDirection },
-          ]}
-        >
-          <Icon name="trending-up" size={12} color={colors.textSecondary} />
-          <Text style={[styles.cpiChipText, { color: colors.textSecondary }]}>
-            {t(indexLabelKey())}
-          </Text>
-        </View>
-      ) : null}
+      {amountEditable && projected ? <CpiChip flexDirection={rowDirection} /> : null}
 
       {onTypeToggle ? (
         <Pressable
@@ -292,14 +268,6 @@ const styles = StyleSheet.create({
   yearLabelCurrent: { fontWeight: "800" },
   amountBlock: { flex: 1, alignItems: "center", gap: spacing.xs },
   amountText: { fontSize: 15, fontWeight: "600" },
-  cpiChip: {
-    alignItems: "center",
-    gap: 3,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  cpiChipText: { fontSize: 11, fontWeight: "700" },
   typeToggle: { minWidth: 56, alignItems: "center" },
   typeText: { fontSize: 13, textAlign: "center" },
   // The indent itself is `ruleIndentStyle`, which has to know the row direction.

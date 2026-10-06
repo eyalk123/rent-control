@@ -530,7 +530,8 @@
     "leaseEndsCaption": "Lease ends",
     "openEndedTenancy": "Tenancy",
     "openEndedGenerated": "Auto",
-    "openEndedGeneratedNote": "The later years are projections that extend automatically. Edit any amount to correct it."
+    "openEndedGeneratedNote": "The later years are projections that extend automatically. Edit any amount to correct it.",
+    "cpiTimelineProjectedNote": "Amounts marked ≈ are projections based on the latest published index. Each is finalized once the index for that lease year is published."
   },
   "empty": {
     "noProperties": "No properties yet. Tap + to add one.",

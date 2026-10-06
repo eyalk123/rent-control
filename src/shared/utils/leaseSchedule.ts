@@ -184,6 +184,36 @@ export function isProjectedYear(rows: LeaseYear[], index: number): boolean {
   return cpiAt !== -1 && index >= cpiAt;
 }
 
+/**
+ * True when period `index` of a *live* lease is CPI-linked and hasn't started yet, so its
+ * amount is a projection off the latest published index, not a settled figure.
+ *
+ * Narrower than {@link isProjectedYear} on purpose. That one answers "is this amount
+ * something the client couldn't derive", which is the right question while *editing* a
+ * schedule. Here we are displaying a live lease, where a year that has already started
+ * resolved against its own known index and is frozen server-side (`is_frozen` in
+ * `cpi_indexing_service.py`) — its rent is final, and flagging it would be wrong.
+ */
+export function isUnsettledCpiYear(
+  rows: LeaseYear[],
+  index: number,
+  leaseStart: string | null | undefined,
+  mode: RentEscalationMode | null | undefined,
+  today: Date = new Date(),
+): boolean {
+  // Per-year rules win when the schedule has any, whatever `mode` claims: the structured
+  // mode is nullable in the API response, and legacy renters carry CPI rules without it.
+  // Only a lease with no rules at all falls back to the whole-lease flag, where year one is
+  // the base rent and never indexed.
+  const cpiLinked =
+    firstCpiIndex(rows) !== -1 ? isProjectedYear(rows, index) : mode === 'cpi' && index > 0;
+  if (!cpiLinked) return false;
+  // Not `!hasYearStarted`: with no lease start there is no anniversary to wait for, so
+  // nothing is called a projection.
+  const start = leaseYearStart(leaseStart, rows, index);
+  return start !== null && start > today;
+}
+
 /** Modes whose amounts can be walked forward one period at a time. */
 const CHAINABLE_MODES = new Set(['none', 'percent', 'fixed']);
 

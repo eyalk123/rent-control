@@ -3,9 +3,10 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { DetailRow, DetailSection } from '@/src/shared/components/ui';
+import { CpiChip, DetailRow, DetailSection } from '@/src/shared/components/ui';
 import { formatMoney } from '@/src/shared/utils/money';
 import { getLeaseYearLabel, isCurrentLeaseYear } from '@/src/shared/utils/leaseYear';
+import { isUnsettledCpiYear } from '@/src/shared/utils/leaseSchedule';
 import { DEFAULT_PAYMENT_DAY_NUM } from '@/src/shared/constants/paymentDay';
 import { paymentFrequencyLabel, type Renter } from '@/src/shared/types';
 import { isOpenEnded } from '@/src/shared/utils/renterStatus';
@@ -26,6 +27,13 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
 
   const hasLeaseYears = renter.lease_years && renter.lease_years.length > 0;
 
+  // CPI-linked years that haven't started yet: the index for their anniversary isn't
+  // published, so the stored amount is only a projection off the latest known index.
+  const projected = (renter.lease_years ?? []).map((_, i) =>
+    isUnsettledCpiYear(renter.lease_years, i, renter.lease_start, renter.rent_escalation_mode),
+  );
+  const hasProjected = projected.some(Boolean);
+
   return (
     <DetailSection title={t('renter.leaseInfo')}>
       {/* Said once above the list rather than per row: the tail is projection, and the one
@@ -33,6 +41,11 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
       {isOpenEnded(renter) && (
         <Text variant="bodySmall" style={[styles.generatedNote, { color: colors.textSecondary }]}>
           {t('renter.openEndedGeneratedNote')}
+        </Text>
+      )}
+      {hasProjected && (
+        <Text variant="bodySmall" style={[styles.generatedNote, { color: colors.textSecondary }]}>
+          {t('renter.cpiTimelineProjectedNote')}
         </Text>
       )}
       {hasLeaseYears && (
@@ -47,6 +60,7 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
           {[...renter.lease_years].reverse().map((year, reversedIdx) => {
             const idx = renter.lease_years.length - 1 - reversedIdx;
             const isCurrent = isCurrentLeaseYear(renter.lease_start, renter.lease_years, idx);
+            const isProjected = projected[idx];
             return (
               <View key={idx}>
                 {reversedIdx > 0 && (
@@ -73,27 +87,29 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
                   >
                     {getLeaseYearLabel(renter.lease_start, renter.lease_years, idx, language)}
                   </Text>
-                  <Text
-                    variant="bodyMedium"
-                    style={[
-                      styles.leaseYearValue,
-                      {
-                        color: colors.textPrimary,
+                  <View style={styles.leaseYearValue}>
+                    <Text
+                      variant="bodyMedium"
+                      style={{
+                        // Muted with a "≈", as in the renter form: an estimate shouldn't read
+                        // with the same weight as a rent that is already final.
+                        color: isProjected ? colors.textSecondary : colors.textPrimary,
                         fontWeight: isCurrent ? '700' : '600',
-                      },
-                    ]}
-                  >
-                    {`${formatMoney(year.amount)} (${
-                      // A generated period is neither a term the owner agreed nor an option
-                      // the tenant took — it is the horizon the server keeps ahead of today.
-                      // Saying "Contract" about it would be the one wrong word here.
-                      year.generated
-                        ? t('renter.openEndedGenerated')
-                        : year.type === 'contract'
-                          ? t('renter.leaseYearTypeContract')
-                          : t('renter.leaseYearTypeOption')
-                    })`}
-                  </Text>
+                      }}
+                    >
+                      {`${isProjected ? '≈ ' : ''}${formatMoney(year.amount)} (${
+                        // A generated period is neither a term the owner agreed nor an option
+                        // the tenant took — it is the horizon the server keeps ahead of today.
+                        // Saying "Contract" about it would be the one wrong word here.
+                        year.generated
+                          ? t('renter.openEndedGenerated')
+                          : year.type === 'contract'
+                            ? t('renter.leaseYearTypeContract')
+                            : t('renter.leaseYearTypeOption')
+                      })`}
+                    </Text>
+                    {isProjected && <CpiChip style={styles.cpiChip} />}
+                  </View>
                 </View>
               </View>
             );
@@ -159,6 +175,12 @@ const styles = StyleSheet.create({
   },
   leaseYearValue: {
     flexShrink: 1,
+    // Amount and CPI chip stack against the row's end edge; flex-end follows the layout
+    // direction, so in Hebrew they hug the left like the amount alone always did.
+    alignItems: 'flex-end',
+  },
+  cpiChip: {
+    marginTop: 2,
   },
   separator: {
     height: StyleSheet.hairlineWidth,
