@@ -59,7 +59,7 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
       onLongPress={onLongPress ? () => onLongPress(renter.id) : undefined}
     >
       {isSelectMode && (
-        <Checkbox
+        <Checkbox.Android
           status={isSelected ? 'checked' : 'unchecked'}
           onPress={() => onPress(renter.id)}
         />

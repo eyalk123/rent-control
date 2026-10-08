@@ -88,6 +88,15 @@ export function DropdownField<T extends string | number | null>({
     [colors.surface, colors.textPrimary, isRtl, rtlInputStyle],
   );
 
+  const resolvedPlaceholder =
+    placeholder ??
+    (label ? t("common.selectNamed", { name: label }) : t("common.selectItem"));
+  // The library gives the field and its list no accessible name unless it is passed one, and
+  // without it the options are not exposed to VoiceOver at all: the open list read "undefined
+  // flatlist". The label replaces the field's visible text, so the chosen value goes in too.
+  const a11yName = label ?? resolvedPlaceholder;
+  const selectedLabel = items.find((item) => item.value === value)?.label;
+
   return (
     <FormField
       label={label}
@@ -102,12 +111,9 @@ export function DropdownField<T extends string | number | null>({
         labelField="label"
         valueField="value"
         value={value}
-        placeholder={
-          placeholder ??
-          (label
-            ? t("common.selectNamed", { name: label })
-            : t("common.selectItem"))
-        }
+        placeholder={resolvedPlaceholder}
+        accessibilityLabel={selectedLabel ? `${a11yName}, ${selectedLabel}` : a11yName}
+        flatListProps={{ accessibilityLabel: a11yName }}
         disable={disabled}
         autoScroll={false}
         mode="default"

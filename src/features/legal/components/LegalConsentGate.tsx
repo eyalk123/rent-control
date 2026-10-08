@@ -119,7 +119,7 @@ export function LegalConsentGate() {
         </Text>
 
         <View style={styles.acceptRow}>
-          <Checkbox
+          <Checkbox.Android
             status={checked ? 'checked' : 'unchecked'}
             onPress={() => { setChecked((v) => !v); setError(''); }}
           />

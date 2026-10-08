@@ -32,6 +32,7 @@ function ThresholdField({
   colors: typeof lightColors | typeof darkColors;
   surface: string;
 }) {
+  const { t } = useTranslation();
   const [text, setText] = React.useState(String(value));
   const rtlLabelStyle = useRtlLabelStyle();
   const rtlInputStyle = useRtlInputStyle();
@@ -57,6 +58,7 @@ function ThresholdField({
           onChangeText={setText}
           onBlur={commit}
           keyboardType="decimal-pad"
+          inputAccessoryViewButtonLabel={t("common.keyboardDone")}
           accessibilityLabel={label}
           style={[
             styles.thresholdInput,

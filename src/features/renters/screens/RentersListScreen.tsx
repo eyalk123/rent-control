@@ -321,7 +321,7 @@ export function RentersListScreen() {
       <View style={styles.header}>
         {isSelectMode ? (
           <View style={styles.selectionHeader}>
-            <Checkbox
+            <Checkbox.Android
               status={allSelected ? 'checked' : someSelected ? 'indeterminate' : 'unchecked'}
               onPress={handleToggleAll}
             />

@@ -23,7 +23,7 @@ export function SelectionHeader({
   return (
     <View style={styles.titleRow}>
       <View style={styles.selectionHeader}>
-        <Checkbox
+        <Checkbox.Android
           status={allSelected ? 'checked' : someSelected ? 'indeterminate' : 'unchecked'}
           onPress={onToggleAll}
         />

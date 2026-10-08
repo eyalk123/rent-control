@@ -55,6 +55,7 @@ function EscalationValueFieldInner({ mode, value, onChangeText, onBlur, label, c
           onChangeText={onChangeText}
           onBlur={onBlur}
           keyboardType="decimal-pad"
+          inputAccessoryViewButtonLabel={t("common.keyboardDone")}
           placeholder="0"
           placeholderTextColor={colors.textSecondary}
           style={[styles.affixField, { color: colors.textPrimary }, rtlInputStyle]}

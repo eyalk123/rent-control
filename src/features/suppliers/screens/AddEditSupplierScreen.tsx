@@ -101,7 +101,7 @@ export function AddEditSupplierScreen() {
     return (
       <ScreenContainer>
         <View style={styles.wrapper}>
-          <View style={[styles.header, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.header, { flexDirection: 'row' }]}>
             <TouchableOpacity
               onPress={() => router.back()}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -128,10 +128,9 @@ export function AddEditSupplierScreen() {
     <ScreenContainer>
       <View style={styles.wrapper}>
         <View
-          style={[
-            styles.header,
-            { flexDirection: isRtl ? "row-reverse" : "row" },
-          ]}
+          // Plain "row": native RTL already puts the back chevron at the right edge in Hebrew
+          // (see FormHeader).
+          style={[styles.header, { flexDirection: "row" }]}
         >
           <TouchableOpacity
             onPress={handleHeaderBack}

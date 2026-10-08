@@ -70,7 +70,14 @@
           }
         }
       ],
-      "expo-localization",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["en", "he"]
+          }
+        }
+      ],
       "expo-apple-authentication",
       [
         "expo-notifications",

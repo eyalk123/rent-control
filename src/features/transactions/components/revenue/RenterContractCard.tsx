@@ -53,7 +53,7 @@ export function RenterContractCard({
     >
       {/* Top row: checkbox + name */}
       <View style={styles.topRow}>
-        <Checkbox
+        <Checkbox.Android
           status={checked ? 'checked' : 'unchecked'}
           onPress={onToggle}
         />
@@ -100,6 +100,7 @@ export function RenterContractCard({
                 value={amount}
                 onChangeText={onAmountChange}
                 keyboardType="numeric"
+                inputAccessoryViewButtonLabel={t("common.keyboardDone")}
                 selectTextOnFocus
               />
               <TouchableOpacity onPress={onToggleOverride} style={[styles.chip, { borderColor: colors.outline }]}>

@@ -572,6 +572,7 @@
   },
   "common": {
     "fileOpenFailed": "Couldn't open the file. Try again.",
+    "keyboardDone": "Done",
     "back": "Back",
     "required": "Required",
     "optional": "Optional",

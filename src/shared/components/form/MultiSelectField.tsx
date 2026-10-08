@@ -111,6 +111,12 @@ export function MultiSelectField<T extends string | number>({
     [colors.surface, colors.primary, colors.textPrimary, isRtl, rtlInputStyle],
   );
 
+  const resolvedPlaceholder =
+    placeholder ??
+    (label ? t("common.selectNamed", { name: label }) : t("common.selectItem"));
+  // Without a name the library hides the options from VoiceOver (see DropdownField).
+  const a11yName = label ?? resolvedPlaceholder;
+
   return (
     <FormField label={label} required={required} error={error} style={inputStyle}>
       <View style={{ direction: "ltr" }}>
@@ -119,12 +125,9 @@ export function MultiSelectField<T extends string | number>({
           labelField="label"
           valueField="value"
           value={[]}
-          placeholder={
-            placeholder ??
-            (label
-              ? t("common.selectNamed", { name: label })
-              : t("common.selectItem"))
-          }
+          placeholder={resolvedPlaceholder}
+          accessibilityLabel={a11yName}
+          flatListProps={{ accessibilityLabel: a11yName }}
           disable={disabled}
           renderRightIcon={isRtl ? () => null : undefined}
           renderLeftIcon={

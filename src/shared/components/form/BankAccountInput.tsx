@@ -182,6 +182,7 @@ export default function BankAccountInput({
           onFocus={handleFocus}
           onBlur={handleBlur}
           keyboardType="number-pad"
+          inputAccessoryViewButtonLabel={t("common.keyboardDone")}
           maxLength={2}
           editable={editable}
           autoFocus={autoFocus}
@@ -203,6 +204,7 @@ export default function BankAccountInput({
           onFocus={handleFocus}
           onBlur={handleBlur}
           keyboardType="number-pad"
+          inputAccessoryViewButtonLabel={t("common.keyboardDone")}
           maxLength={3}
           editable={editable}
           accessibilityLabel="Branch code"
@@ -223,6 +225,7 @@ export default function BankAccountInput({
           onFocus={handleFocus}
           onBlur={handleBlur}
           keyboardType="number-pad"
+          inputAccessoryViewButtonLabel={t("common.keyboardDone")}
           maxLength={9}
           editable={editable}
           accessibilityLabel="Account number"

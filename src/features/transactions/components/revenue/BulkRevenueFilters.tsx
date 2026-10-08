@@ -104,6 +104,15 @@ export function BulkRevenueOwnerFilter({
           value={ownerFilter}
           onChange={(item) => onOwnerChange(item.value)}
           placeholder={t('transactions.bulkRevenue.allOwners', { defaultValue: 'All owners' })}
+          // Without a name the library hides the options from VoiceOver (see DropdownField).
+          accessibilityLabel={[
+            t('transactions.bulkRevenue.ownerFilter', { defaultValue: 'Owner' }),
+            ownerOptions.find((o) => o.value === ownerFilter)?.label
+              ?? t('transactions.bulkRevenue.allOwners', { defaultValue: 'All owners' }),
+          ].join(', ')}
+          flatListProps={{
+            accessibilityLabel: t('transactions.bulkRevenue.ownerFilter', { defaultValue: 'Owner' }),
+          }}
           {...dropdownTheme}
         />
       </View>
@@ -136,6 +145,9 @@ export function BulkRevenuePeriodFilter({
         : [],
     [periodType, locale],
   );
+  const periodLabel = periodType === '1month'
+    ? t('transactions.bulkRevenue.selectMonth', { defaultValue: 'Month' })
+    : t('transactions.bulkRevenue.selectYear', { defaultValue: 'Year' });
 
   return (
     <View style={styles.filtersSection}>
@@ -180,9 +192,7 @@ export function BulkRevenuePeriodFilter({
             variant="labelMedium"
             style={[styles.fieldLabel, rtlLabelStyle, { color: colors.textSecondary }]}
           >
-            {periodType === '1month'
-              ? t('transactions.bulkRevenue.selectMonth', { defaultValue: 'Month' })
-              : t('transactions.bulkRevenue.selectYear', { defaultValue: 'Year' })}
+            {periodLabel}
           </Text>
           <View style={{ direction: 'ltr' }}>
             <Dropdown
@@ -191,6 +201,11 @@ export function BulkRevenuePeriodFilter({
               valueField="value"
               value={periodValue}
               onChange={(item) => onPeriodValueChange(item.value)}
+              accessibilityLabel={[
+                periodLabel,
+                periodValueOptions.find((o) => o.value === periodValue)?.label,
+              ].filter(Boolean).join(', ')}
+              flatListProps={{ accessibilityLabel: periodLabel }}
               {...dropdownTheme}
             />
           </View>

@@ -53,7 +53,7 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
       onLongPress={onLongPress ? () => onLongPress(property.id) : undefined}
     >
       {isSelectMode && (
-        <Checkbox
+        <Checkbox.Android
           status={isSelected ? 'checked' : 'unchecked'}
           onPress={() => onPress(property.id)}
         />
@@ -147,7 +147,7 @@ export const LockedPropertyCard = React.memo(function LockedPropertyCard({
       onLongPress={onLongPress ? () => onLongPress(property.id) : undefined}
     >
       {isSelectMode && (
-        <Checkbox
+        <Checkbox.Android
           status={isSelected ? 'checked' : 'unchecked'}
           onPress={() => onPress(property.id)}
         />

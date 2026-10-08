@@ -15,7 +15,8 @@ export default function ChatLayout() {
         headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="index" options={{ headerShown: false }} />
+      {/* `title` labels the iOS back button on History; without it the button read "index". */}
+      <Stack.Screen name="index" options={{ headerShown: false, title: t('agent.title') }} />
       <Stack.Screen name="history" options={{ headerTitle: t('agent.history') }} />
     </Stack>
   );

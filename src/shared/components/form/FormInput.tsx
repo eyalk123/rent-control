@@ -17,6 +17,7 @@ import {
   TextInput as RNTextInput,
 } from "react-native";
 import { useTheme } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import { FormField } from "./FormField";
 import { useFieldFocusShadow, useFieldSurface } from "./fieldSurface";
 import { useDismissFieldReview, useFieldReview } from "./FieldReviewContext";
@@ -121,6 +122,7 @@ function FieldBox({
   isRtl: boolean;
   rtlInputStyle: object;
 } & React.ComponentProps<typeof RNTextInput>) {
+  const { t } = useTranslation();
   const surface = useFieldSurface({ focused, error: hasError });
   const focusShadow = useFieldFocusShadow();
 
@@ -139,6 +141,10 @@ function FieldBox({
       autoCorrect={false}
       importantForAutofill="no"
       textContentType="none"
+      // iOS number pads have no return key, so nothing closed them and the keyboard sat over
+      // Save. RN draws a native Done bar above any number pad given this label; other
+      // keyboards ignore it.
+      inputAccessoryViewButtonLabel={t("common.keyboardDone")}
       {...rest}
       style={[
         surface,

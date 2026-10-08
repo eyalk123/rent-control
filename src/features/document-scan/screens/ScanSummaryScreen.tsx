@@ -234,7 +234,7 @@ export function ScanSummaryScreen() {
               >
                 <View style={styles.rowLeft}>
                   {isDuplicate && (
-                    <Checkbox
+                    <Checkbox.Android
                       status={isExcluded ? 'unchecked' : 'checked'}
                       onPress={() => toggleExcluded(i)}
                     />
@@ -283,6 +283,7 @@ export function ScanSummaryScreen() {
                         mode="outlined"
                         dense
                         keyboardType="numeric"
+                        inputAccessoryViewButtonLabel={t("common.keyboardDone")}
                         style={styles.shareInput}
                         value={customShares[pos] ?? ''}
                         onChangeText={(text) =>

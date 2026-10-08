@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, TextInput as RNTextInput, type TextStyle } from "react-native";
 import { useTheme } from "react-native-paper";
 import { darkColors, lightColors } from "@/src/core/theme";
@@ -24,6 +25,7 @@ type LeaseYearAmountFieldProps = {
  * missed.
  */
 function LeaseYearAmountFieldInner({ value, onChangeText, onBlur, placeholder = "0" }: LeaseYearAmountFieldProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
@@ -37,6 +39,7 @@ function LeaseYearAmountFieldInner({ value, onChangeText, onBlur, placeholder = 
       onChangeText={onChangeText}
       onBlur={onBlur}
       keyboardType="decimal-pad"
+      inputAccessoryViewButtonLabel={t("common.keyboardDone")}
       placeholder={placeholder}
       placeholderTextColor={colors.placeholder}
       style={[

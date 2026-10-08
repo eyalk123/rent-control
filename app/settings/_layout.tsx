@@ -22,9 +22,11 @@ export default function SettingsLayout() {
         headerShadowVisible: false,
       }}
     >
+      {/* `title` though the header is hidden: iOS labels the next screen's back button with
+          it, and without one that button read "index". */}
       <Stack.Screen
         name="index"
-        options={{ headerShown: false }}
+        options={{ headerShown: false, title: t('settings.title') }}
       />
       <Stack.Screen
         name="delete-account"

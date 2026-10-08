@@ -85,7 +85,7 @@ export const TransactionRow = React.memo(function TransactionRow({
         style={[styles.card, { backgroundColor: colors.surface }]}
       >
         {isSelectMode ? (
-          <Checkbox
+          <Checkbox.Android
             status={isSelected ? 'checked' : 'unchecked'}
             onPress={() => onPress(transaction.id)}
           />

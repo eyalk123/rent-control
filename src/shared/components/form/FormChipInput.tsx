@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, StyleSheet } from 'react-native';
 import { Chip, TextInput, useTheme } from 'react-native-paper';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
@@ -27,6 +28,7 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
   sort,
   required,
 }: FormChipInputProps<TFieldValues>) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
@@ -123,6 +125,7 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
               dense
               error={!!error}
               keyboardType={numeric ? 'numeric' : undefined}
+              inputAccessoryViewButtonLabel={t('common.keyboardDone')}
               placeholder={placeholder}
               autoComplete="off"
               autoCorrect={false}

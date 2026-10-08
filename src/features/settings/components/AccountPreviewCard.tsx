@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { spacing } from '@/src/core/theme';
 import { useCountry } from '@/src/features/country/CountryContext';
+import { countryDisplayName } from '@/src/features/country/countryName';
 import { flagEmoji } from '@/src/features/country/flagEmoji';
 
 function getInitials(displayName: string | null, email: string | null): string {
@@ -60,7 +61,7 @@ export function AccountPreviewCard() {
             {config ? (
               <View
                 style={[styles.countryPill, { backgroundColor: theme.colors.surfaceVariant }]}
-                accessibilityLabel={`${t('country.label')}: ${config.name}`}
+                accessibilityLabel={`${t('country.label')}: ${countryDisplayName(t, config)}`}
               >
                 <Text style={styles.flag} maxFontSizeMultiplier={1.2}>
                   {flagEmoji(config.countryCode)}
@@ -70,7 +71,7 @@ export function AccountPreviewCard() {
                   numberOfLines={1}
                   style={{ color: theme.colors.onSurfaceVariant }}
                 >
-                  {config.name}
+                  {countryDisplayName(t, config)}
                 </Text>
               </View>
             ) : null}

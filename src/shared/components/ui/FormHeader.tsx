@@ -47,10 +47,12 @@ export function FormHeader({
 
   return (
     <View style={styles.container}>
-      <View style={[styles.row, { flexDirection: isRtl ? "row-reverse" : "row" }]}>
+      {/* A plain "row": Hebrew runs with native RTL, which already puts the chevron at the
+          right edge. The `row-reverse` that used to be here flipped it back to the left. */}
+      <View style={styles.row}>
         <TouchableOpacity
           onPress={onBack}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          style={styles.backButton}
           accessibilityLabel={t("common.back")}
           accessibilityRole="button"
         >
@@ -61,7 +63,7 @@ export function FormHeader({
           />
         </TouchableOpacity>
 
-        <View style={[styles.textBlock, isRtl ? styles.textBlockRtl : styles.textBlockLtr]}>
+        <View style={styles.textBlock}>
           {eyebrow ? (
             <Text
               maxFontSizeMultiplier={MAX_CHROME_FONT_SCALE}
@@ -112,17 +114,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   row: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
+  // 44pt, Apple's minimum. hitSlop widened the tap area but not the element, so VoiceOver
+  // and UI tests still saw a 24pt target. No negative margin to pull the glyph back to the
+  // edge: the part outside the parent would not receive touches.
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   textBlock: {
     flex: 1,
-  },
-  textBlockLtr: {
-    marginStart: 8,
-  },
-  textBlockRtl: {
-    marginEnd: 8,
   },
   eyebrow: {
     fontSize: 11,

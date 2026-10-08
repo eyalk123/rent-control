@@ -209,6 +209,9 @@ export function CategoryMultiPickerField({
                 ? t('common.selectNamed', { name: label })
                 : t('common.selectItem')
           }
+          // Without a name the library hides the options from VoiceOver (see DropdownField).
+          accessibilityLabel={label ?? t('common.selectItem')}
+          flatListProps={{ accessibilityLabel: label ?? t('common.selectItem') }}
           renderRightIcon={isRtl ? () => null : undefined}
           renderLeftIcon={
             isRtl

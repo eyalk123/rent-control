@@ -44,14 +44,29 @@ export async function loadSavedLanguage() {
     await i18n.changeLanguage(stored);
   }
   const lang = (stored === 'he' || stored === 'en' ? stored : i18n.language) as SupportedLanguage;
-  I18nManager.allowRTL(true);
-  I18nManager.forceRTL(lang === 'he');
+  applyNativeDirection(lang);
   return lang;
 }
 
+/**
+ * Native direction follows the app's language, never the device's. Both flags matter:
+ * `allowRTL(true)` alone lets React Native go RTL whenever the *device* is Hebrew, so English
+ * chosen in the app on a Hebrew phone still came up mirrored. Takes effect on the next launch.
+ *
+ * The first launch has no stored flags, so React Native falls back to the device language.
+ * That matches `getDeviceLanguage()` above as long as iOS knows the app speaks Hebrew, which
+ * is what `supportedLocales` in app.json declares. (`extra.supportsRTL`, which used to be in
+ * app.config.js, made expo-localization rewrite these flags from the device language on every
+ * iOS launch, so the in-app language choice never reached the native layout there.)
+ */
+function applyNativeDirection(lang: SupportedLanguage) {
+  const rtl = lang === 'he';
+  I18nManager.allowRTL(rtl);
+  I18nManager.forceRTL(rtl);
+}
+
 export async function setLanguage(lang: SupportedLanguage) {
-  I18nManager.allowRTL(true);
-  I18nManager.forceRTL(lang === 'he');
+  applyNativeDirection(lang);
   await i18n.changeLanguage(lang);
   await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
 }

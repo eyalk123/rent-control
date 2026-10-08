@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Image, TouchableOpacity, Platform, type TextInput as RNTextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Text, TextInput, Button, useTheme, Divider, Checkbox } from 'react-native-paper';
 import { useRouter } from 'expo-router';
@@ -85,6 +85,7 @@ export default function SignInScreen() {
 
   const [step, setStep] = useState<Step>('login');
   const [loading, setLoading] = useState(false);
+  const passwordRef = useRef<RNTextInput>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
@@ -317,6 +318,9 @@ export default function SignInScreen() {
                     autoCapitalize="none"
                     autoComplete="email"
                     returnKeyType="next"
+                    // Without this "next" did nothing: the key needs somewhere to send focus.
+                    onSubmitEditing={() => passwordRef.current?.focus()}
+                    submitBehavior="submit"
                     style={styles.input}
                     contentStyle={rtlInputStyle}
                     error={!!errors.email}
@@ -336,6 +340,7 @@ export default function SignInScreen() {
               render={({ field: { value, onChange, onBlur } }) => (
                 <>
                   <TextInput
+                    ref={passwordRef}
                     mode="outlined"
                     label={rtlPlaceholder(t('auth.password'))}
                     value={value}
@@ -362,7 +367,7 @@ export default function SignInScreen() {
                 auth guard, precisely so a signed-out person can read what they are accepting. */}
             {!isLogin ? (
               <View style={styles.acceptRow}>
-                <Checkbox
+                <Checkbox.Android
                   status={accepted ? 'checked' : 'unchecked'}
                   onPress={() => { setAccepted((v) => !v); setError(''); }}
                 />

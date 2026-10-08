@@ -77,7 +77,7 @@ export function RenterSelectionSection({
         <>
           {allRenters.length > 0 && (
             <View style={styles.selectAllRow}>
-              <Checkbox
+              <Checkbox.Android
                 status={allChecked ? 'checked' : someChecked ? 'indeterminate' : 'unchecked'}
                 onPress={onToggleAll}
               />
