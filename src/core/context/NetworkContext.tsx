@@ -22,6 +22,15 @@
  *    `isConnected` is `null`, and treating that as offline flashes the gate on every cold
  *    start.
  *
+ * 4. The debounce is for *losing* a connection, not for the first answer. Launching with no
+ *    connection is not a flicker, and debouncing it left the unloaded app on screen — and
+ *    navigable — for the whole window before the gate came up.
+ *
+ * Coming back is also a signal of its own: `reconnects` counts offline-to-online transitions,
+ * and `useOnReconnect` lets anything that fetched once — a data provider, a focused screen —
+ * fetch again. Without it, lifting the gate showed the same screens that had failed
+ * underneath it, each needing its own pull-to-refresh.
+ *
  * The client (src/core/api/client.ts) is not a component and cannot read this context, so
  * the provider pushes the current value down to it through `setOfflineChecker`, the same
  * shape as the existing `setAuthTokenGetter`.
@@ -51,12 +60,15 @@ export interface NetworkContextType {
    * always has a way out that does not involve restarting the app.
    */
   recheck: () => Promise<void>;
+  /** Times the device has gone from no connection back to connected. Starts at 0. */
+  reconnects: number;
 }
 
 const NetworkContext = createContext<NetworkContextType | undefined>(undefined);
 
 export function NetworkProvider({ children }: { children: React.ReactNode }) {
   const [isOffline, setIsOffline] = useState(false);
+  const [reconnects, setReconnects] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /**
    * The undebounced truth, for the API client only.
@@ -81,12 +93,16 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
       clearTimer();
       // `null` means NetInfo has not decided yet — say nothing rather than guess offline.
       if (connected === null) return;
+      // No earlier answer means this is launch, not a drop — see note 4 above.
+      const isFirstAnswer = rawConnectedRef.current === null;
+      const wasOffline = rawConnectedRef.current === false;
       rawConnectedRef.current = connected;
       if (connected) {
+        if (wasOffline) setReconnects((n) => n + 1);
         setIsOffline(false);
         return;
       }
-      if (immediate) {
+      if (immediate || isFirstAnswer) {
         setIsOffline(true);
         return;
       }
@@ -118,7 +134,10 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
     setOfflineChecker(() => rawConnectedRef.current === false);
   }, []);
 
-  const value = useMemo(() => ({ isOffline, recheck }), [isOffline, recheck]);
+  const value = useMemo(
+    () => ({ isOffline, recheck, reconnects }),
+    [isOffline, recheck, reconnects],
+  );
 
   return <NetworkContext.Provider value={value}>{children}</NetworkContext.Provider>;
 }
@@ -129,4 +148,20 @@ export function useNetwork(): NetworkContextType {
     throw new Error('useNetwork must be used within a NetworkProvider');
   }
   return ctx;
+}
+
+/**
+ * Calls `onReconnect` each time the connection comes back after being lost — never on mount.
+ * The latest `onReconnect` is used, so it can read current state without being memoised.
+ */
+export function useOnReconnect(onReconnect: () => void) {
+  const { reconnects } = useNetwork();
+  const callbackRef = useRef(onReconnect);
+  callbackRef.current = onReconnect;
+  const seenRef = useRef(reconnects);
+  useEffect(() => {
+    if (reconnects === seenRef.current) return;
+    seenRef.current = reconnects;
+    callbackRef.current();
+  }, [reconnects]);
 }

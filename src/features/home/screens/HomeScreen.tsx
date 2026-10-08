@@ -19,6 +19,7 @@ import type { Transaction } from '@/src/shared/types';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { TourScrollView } from '@/src/features/onboarding/TourScrollView';
+import { useOnReconnect } from '@/src/core/context';
 
 function getGreetingKey(): 'home.greetingMorning' | 'home.greetingAfternoon' | 'home.greetingEvening' {
   const hour = new Date().getHours();
@@ -118,6 +119,7 @@ export function HomeScreen() {
       fetchRecentTransactions(silent);
     }, [fetchRecentTransactions]),
   );
+  useOnReconnect(() => fetchRecentTransactions(true));
 
   const txShimmer = useShimmer(transactionsLoading);
 

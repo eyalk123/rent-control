@@ -33,7 +33,7 @@ import { useTour } from '@/src/features/onboarding/TourController';
 import { updateSupplier } from '@/src/features/suppliers/api/suppliers';
 import { SupplierDetailModal } from '@/src/features/suppliers/components/SupplierDetailModal';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import { useAlert } from '@/src/core/context';
+import { useAlert, useOnReconnect } from '@/src/core/context';
 import type { Supplier } from '@/src/shared/types';
 import { spacing } from '@/src/core/theme';
 
@@ -68,6 +68,7 @@ export function SuppliersListScreen() {
       refreshSuppliers();
     }, [refreshSuppliers]),
   );
+  useOnReconnect(() => refreshSuppliers());
 
   const nameOptions = useMemo<FilterOption[]>(
     () => suppliers.map((s) => ({ id: s.id, label: s.name })),

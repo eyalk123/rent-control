@@ -41,6 +41,7 @@ import { getPropertyTypeIcon } from '@/src/features/properties/constants/propert
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour, useTourStep } from '@/src/features/onboarding/TourController';
+import { useOnReconnect } from '@/src/core/context';
 
 type TabKey = 'info' | 'renters' | 'transactions' | 'documents';
 
@@ -86,8 +87,7 @@ export function PropertyDetailScreen() {
     : tourStep === null ? activeTab
     : 'info';
 
-  useFocusEffect(
-    useCallback(() => {
+  const loadProperty = useCallback(() => {
       async function fetchProperty() {
         const numericId = Number(id);
         if (isNaN(numericId)) {
@@ -109,8 +109,10 @@ export function PropertyDetailScreen() {
         }
       }
       fetchProperty();
-    }, [id, t])
-  );
+    }, [id, t]);
+  useFocusEffect(loadProperty);
+  // The gate keeps this screen mounted, so lifting it would otherwise leave the failed load.
+  useOnReconnect(loadProperty);
 
   // Above the early returns: it is a hook.
   const imageSource = usePropertyImageSource(property?.image_url);

@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useOnReconnect } from './NetworkContext';
 import { useTranslation } from 'react-i18next';
 
 export interface DataContextValue<T> {
@@ -68,6 +69,10 @@ export function createDataContext<T>(
         refresh();
       }
     }, [isLoaded, isSignedIn, refresh]);
+
+    useOnReconnect(() => {
+      if (isLoaded && isSignedIn) refresh();
+    });
 
     // Drop the previous account's rows on sign-out. Otherwise the next account sees them
     // until its own fetch lands, and indefinitely if that fetch fails ('error' keeps data).

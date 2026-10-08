@@ -41,6 +41,7 @@ import {
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor, useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour, useTourStep } from '@/src/features/onboarding/TourController';
+import { useOnReconnect } from '@/src/core/context';
 
 type TabKey = 'info' | 'property' | 'transactions';
 
@@ -98,8 +99,7 @@ export function RenterDetailScreen() {
   const [lifecyclePending, setLifecyclePending] = useState(false);
   const [linkPending, setLinkPending] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
+  const loadRenter = useCallback(() => {
       async function fetchRenter() {
         const numericId = Number(id);
         if (isNaN(numericId)) {
@@ -121,8 +121,10 @@ export function RenterDetailScreen() {
         }
       }
       fetchRenter();
-    }, [id, t])
-  );
+    }, [id, t]);
+  useFocusEffect(loadRenter);
+  // The gate keeps this screen mounted, so lifting it would otherwise leave the failed load.
+  useOnReconnect(loadRenter);
 
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

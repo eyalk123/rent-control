@@ -2,6 +2,7 @@ import React from 'react';
 import { useFocusEffect } from 'expo-router';
 import { getPreferences, updateRule, updateSettings } from '../api/preferences';
 import type { NotificationEvent, NotificationPreferences, NotificationRule } from '../types';
+import { useOnReconnect } from '@/src/core/context';
 
 // One copy shared by the overview and the per-event screen. With a copy per screen, a
 // change made on the event screen was only in *its* state: going back showed the
@@ -71,6 +72,9 @@ export function useNotificationPreferences() {
       refetch().finally(() => setLoading(false));
     }, []),
   );
+  useOnReconnect(() => {
+    refetch().finally(() => setLoading(false));
+  });
 
   const settings = prefs?.settings;
 

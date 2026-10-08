@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ScreenContainer } from '@/src/shared/components/ui';
 import { Icon } from '@/src/shared/components/ui/Icon';
-import { useAlert } from '@/src/core/context';
+import { useAlert, useOnReconnect } from '@/src/core/context';
 import { useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
 import { getPreferences, updateSettings } from '../api/preferences';
@@ -241,6 +241,7 @@ export function WhatsAppTemplatesScreen() {
       load();
     }, [load]),
   );
+  useOnReconnect(() => load());
 
   const save = async (next: WhatsAppTemplates) => {
     const previous = templates;

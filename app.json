@@ -62,11 +62,12 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/rent-control-icon-no-text.png",
-          "imageWidth": 200,
+          "imageWidth": 150,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#F1E8D6",
           "dark": {
-            "backgroundColor": "#0F1B2D"
+            "image": "./assets/images/rent-control-icon-no-text-cream.png",
+            "backgroundColor": "#141921"
           }
         }
       ],

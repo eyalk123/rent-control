@@ -9,7 +9,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAlert } from '@/src/core/context';
+import { useAlert, useOnReconnect } from '@/src/core/context';
 import { useStoredFileUri } from '@/src/shared/hooks/useStoredFile';
 import { localCopyOf, readsThroughSdk, storagePathOf } from '@/src/shared/utils/storedFile';
 import { getTransactionById } from '@/src/features/transactions/api/transactions';
@@ -73,8 +73,7 @@ export function TransactionDetailScreen() {
   const [receiptFullscreen, setReceiptFullscreen] = useState(false);
   const receiptUri = useStoredFileUri(transaction?.receipt_image_url);
 
-  useFocusEffect(
-    useCallback(() => {
+  const loadTransaction = useCallback(() => {
       async function fetchTransaction() {
         const numericId = Number(id);
         if (isNaN(numericId)) {
@@ -94,8 +93,10 @@ export function TransactionDetailScreen() {
         }
       }
       fetchTransaction();
-    }, [id, t])
-  );
+    }, [id, t]);
+  useFocusEffect(loadTransaction);
+  // The gate keeps this screen mounted, so lifting it would otherwise leave the failed load.
+  useOnReconnect(loadTransaction);
 
   const handleShareReceipt = useCallback(async () => {
     if (!transaction?.receipt_image_url) return;

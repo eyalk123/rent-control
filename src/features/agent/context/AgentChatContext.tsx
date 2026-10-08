@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useOnReconnect } from '@/src/core/context';
 import { useLegalConsent } from '@/src/features/legal/LegalConsentContext';
 import { getAgentStatus, getConversation, streamAgentChat } from '../api/agentApi';
 import { AgentHttpError, AgentStreamTimeoutError } from '../api/agentStream';
@@ -134,6 +135,11 @@ export function AgentChatProvider({ children }: { children: ReactNode }) {
   }, [isSignedIn, statusAttempt]);
 
   const refreshStatus = useCallback(() => setStatusAttempt((n) => n + 1), []);
+
+  // Only a check that failed — re-checking one that worked would flash the tab's loader.
+  useOnReconnect(() => {
+    if (statusFailed) refreshStatus();
+  });
 
   const patchMessage = useCallback((id: string, patch: Partial<ChatDisplayMessage>) => {
     setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));

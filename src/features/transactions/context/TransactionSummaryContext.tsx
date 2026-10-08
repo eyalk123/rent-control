@@ -2,6 +2,7 @@ import React from 'react';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { getTransactionsSummary } from '@/src/features/transactions/api/transactions';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useOnReconnect } from '@/src/core/context';
 import { type MonthBucket, currentMonthKey } from '@/src/features/transactions/utils/aggregate';
 
 interface TransactionSummaryContextValue {
@@ -51,6 +52,10 @@ export function TransactionSummaryProvider({ children }: { children: React.React
   React.useEffect(() => {
     if (isLoaded && isSignedIn) load();
   }, [isLoaded, isSignedIn, load]);
+
+  useOnReconnect(() => {
+    if (isLoaded && isSignedIn) load();
+  });
 
   // Drop the previous account's totals on sign-out, so the next account never sees them.
   React.useEffect(() => {

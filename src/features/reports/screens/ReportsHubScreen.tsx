@@ -28,6 +28,7 @@ import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { TourScrollView } from '@/src/features/onboarding/TourScrollView';
 import { useTour } from '@/src/features/onboarding/TourController';
+import { useOnReconnect } from '@/src/core/context';
 
 interface ReportCard {
   key: string;
@@ -194,17 +195,17 @@ export function ReportsHubScreen() {
   const [history, setHistory] = useState<ReportExport[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      getReportHistory()
-        .then((data) => { if (active) setHistory(data); })
-        .catch(() => {})
-        .finally(() => { if (active) setLoading(false); });
-      return () => { active = false; };
-    }, [])
-  );
+  const loadHistory = useCallback(() => {
+    let active = true;
+    setLoading(true);
+    getReportHistory()
+      .then((data) => { if (active) setHistory(data); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+  useFocusEffect(loadHistory);
+  useOnReconnect(loadHistory);
 
   async function handleDelete(id: number) {
     try {

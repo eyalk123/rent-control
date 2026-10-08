@@ -22,7 +22,7 @@ import { usePropertyOwnersList } from '@/src/features/property-owners/hooks/useP
 import { deletePropertyOwner, isPropertyOwnerConflict, propertyCountLabel } from '@/src/features/property-owners/api/propertyOwners';
 import { PropertyOwnerDetailModal } from '@/src/features/property-owners/components/PropertyOwnerDetailModal';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import { useAlert } from '@/src/core/context';
+import { useAlert, useOnReconnect } from '@/src/core/context';
 import type { PropertyOwner } from '@/src/shared/types';
 import { spacing } from '@/src/core/theme';
 
@@ -50,6 +50,7 @@ export function PropertyOwnersListScreen() {
       refreshOwners();
     }, [refreshOwners]),
   );
+  useOnReconnect(() => refreshOwners());
 
   const nameOptions = useMemo<FilterOption[]>(
     () => owners.map((o) => ({ id: o.id, label: o.name })),

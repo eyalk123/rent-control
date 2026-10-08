@@ -20,6 +20,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useNetwork } from '@/src/core/context';
 import {
   EMPTY_LEGAL_STATUS,
   getLegalStatus,
@@ -59,6 +60,8 @@ const LegalConsentContext = createContext<LegalConsentValue | null>(null);
 
 export function LegalConsentProvider({ children }: PropsWithChildren) {
   const { isSignedIn, isLoaded } = useAppAuth();
+  // A dependency of the fetches below, so they run again when the connection comes back.
+  const { reconnects } = useNetwork();
   const [status, setStatus] = useState<LegalStatus>(EMPTY_LEGAL_STATUS);
   // Nothing blocks until the server has actually said so. This is the fail-open switch:
   // a slow or broken endpoint leaves `checked` false and the app usable, and the question
@@ -112,7 +115,7 @@ export function LegalConsentProvider({ children }: PropsWithChildren) {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn]);
+  }, [isSignedIn, reconnects]);
 
   const outstanding = useMemo(() => outstandingDocuments(status), [status]);
 

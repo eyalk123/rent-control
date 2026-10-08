@@ -21,6 +21,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useNetwork } from '@/src/core/context';
 import { TOURS_ENABLED } from './flags';
 import {
   EMPTY_TOUR_STATE,
@@ -54,6 +55,8 @@ const TourStateContext = createContext<TourStateValue | null>(null);
 
 export function TourStateProvider({ children }: PropsWithChildren) {
   const { isSignedIn, isLoaded } = useAppAuth();
+  // A dependency of the fetches below, so they run again when the connection comes back.
+  const { reconnects } = useNetwork();
   const [state, setState] = useState<TourState>(EMPTY_TOUR_STATE);
   const [ready, setReady] = useState(false);
   // Coalesces the burst of marks a finishing tour produces into one request.
@@ -121,7 +124,7 @@ export function TourStateProvider({ children }: PropsWithChildren) {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn]);
+  }, [isSignedIn, reconnects]);
 
   const flush = useCallback(() => {
     const tours = [...pending.current.tours];

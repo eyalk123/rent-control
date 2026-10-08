@@ -22,7 +22,7 @@ import { openWhatsApp, toWhatsAppNumber } from '@/src/shared/utils/whatsapp';
 import type { CpiChangeStage, NotificationItem } from '@/src/features/notifications/types';
 import { useTransactionSummaryContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
-import { useAlert } from '@/src/core/context';
+import { useAlert, useOnReconnect } from '@/src/core/context';
 import { currentMonthKey, markRentPaid } from '@/src/features/transactions/utils/markRentPaid';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
@@ -370,6 +370,7 @@ export function NeedsAttentionSection() {
       fetchData(silent);
     }, [fetchData]),
   );
+  useOnReconnect(() => fetchData(true));
 
   const navigate = (path: string) => {
     setModalVisible(false);

@@ -21,6 +21,7 @@ import React, {
   type PropsWithChildren,
 } from 'react';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useOnReconnect } from '@/src/core/context';
 import { acknowledgeLockNotice, getSubscription } from './api/subscriptionApi';
 import { forgetPurchaser, identifyPurchaser } from './purchases';
 import type { Subscription } from './types';
@@ -66,6 +67,10 @@ export function SubscriptionProvider({ children }: PropsWithChildren) {
     if (!isLoaded) return;
     void refresh();
   }, [isLoaded, refresh]);
+
+  useOnReconnect(() => {
+    if (isLoaded) void refresh();
+  });
 
   // The store SDK buys for whoever is signed in, identified by Firebase UID — see
   // purchases.ts for why an anonymous id would lose the purchase.

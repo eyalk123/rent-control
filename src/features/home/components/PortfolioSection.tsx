@@ -97,7 +97,10 @@ export function PortfolioSection() {
             <SkeletonBlock opacity={shimmer} width="70%" height={11} borderRadius={4} style={{ marginTop: 4 }} />
           </View>
         ))}
-        <View style={[styles.card, styles.thisMonthCard]}>
+        {/* Needs a fill like the loaded card: without one the shadow has no surface to sit under,
+            and the cream bars are made for the coloured card, not the page. Sign is unknown yet,
+            so use the break-even navy. */}
+        <View style={[styles.card, styles.thisMonthCard, { backgroundColor: colors.plNeutralBg }]}>
           <SkeletonBlock opacity={shimmer} width="80%" height={22} borderRadius={5} style={{ backgroundColor: 'rgba(250,247,240,0.35)' }} />
           <SkeletonBlock opacity={shimmer} width="65%" height={11} borderRadius={4} style={{ marginTop: 6, backgroundColor: 'rgba(250,247,240,0.35)' }} />
         </View>

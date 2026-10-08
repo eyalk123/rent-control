@@ -3,6 +3,7 @@ import type { Transaction } from '@/src/shared/types';
 import { getTransactions } from '@/src/features/transactions/api/transactions';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useOnReconnect } from '@/src/core/context';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -66,6 +67,10 @@ export function PaginatedTransactionProvider({ children }: { children: React.Rea
   React.useEffect(() => {
     if (isLoaded && isSignedIn) initialLoad();
   }, [isLoaded, isSignedIn, initialLoad]);
+
+  useOnReconnect(() => {
+    if (isLoaded && isSignedIn) initialLoad();
+  });
 
   // Drop the previous account's rows on sign-out, so the next account never sees them.
   React.useEffect(() => {

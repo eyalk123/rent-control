@@ -20,6 +20,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
+import { useNetwork } from '@/src/core/context';
 import { setActiveFormat, setKnownCurrencies } from '@/src/shared/utils/money';
 import {
   setActiveCapabilities,
@@ -80,6 +81,8 @@ const CountryContext = createContext<CountryValue | null>(null);
 
 export function CountryProvider({ children }: PropsWithChildren) {
   const { isSignedIn, isLoaded } = useAppAuth();
+  // A dependency of the fetches below, so they run again when the connection comes back.
+  const { reconnects } = useNetwork();
   const [country, setCountry] = useState<string | null>(null);
   const [countries, setCountries] = useState<Country[]>([]);
   // Nothing blocks until the server has actually answered. This is the fail-open switch: a
@@ -151,7 +154,7 @@ export function CountryProvider({ children }: PropsWithChildren) {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn]);
+  }, [isSignedIn, reconnects]);
 
   // The table is public reference data, so it is fetched regardless of sign-in state.
   useEffect(() => {
@@ -171,7 +174,7 @@ export function CountryProvider({ children }: PropsWithChildren) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reconnects]);
 
   const choose = useCallback(async (countryCode: string) => {
     await setMyCountry(countryCode);
