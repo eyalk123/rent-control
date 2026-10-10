@@ -165,7 +165,7 @@ function LeaseYearRowInner({
           value={amount}
           onChangeText={onAmountChange}
           onBlur={onAmountBlur}
-          placeholder={t("renter.amount")}
+          placeholder={t("renter.leaseYearAmount")}
         />
       ) : (
         <View style={[styles.amountBlock, { flexDirection: rowDirection }]}>
