@@ -14,6 +14,7 @@ import { darkColors, lightColors } from "@/src/core/theme";
 import { sortOptions } from "@/src/shared/utils/sortOptions";
 import { useDismissFieldReview } from "./FieldReviewContext";
 import { FormField } from "./FormField";
+import { dropdownListStyle, dropdownPlacement } from "./dropdownPlacement";
 import { useFieldSurface } from "./fieldSurface";
 
 export type DropdownItem<T extends string | number | null = string> = {
@@ -116,7 +117,7 @@ export function DropdownField<T extends string | number | null>({
         flatListProps={{ accessibilityLabel: a11yName }}
         disable={disabled}
         autoScroll={false}
-        mode="default"
+        {...dropdownPlacement}
         renderRightIcon={isRtl ? () => null : undefined}
         renderLeftIcon={
           isRtl
@@ -153,6 +154,7 @@ export function DropdownField<T extends string | number | null>({
             backgroundColor: colors.surface,
             borderColor: colors.outline,
           },
+          dropdownListStyle,
         ]}
         onChange={(item: DropdownItem<T>) => {
           onChange(item.value);

@@ -4,6 +4,7 @@ import { SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Icon } from '@/src/shared/components/ui';
+import { dropdownListStyle, dropdownPlacement } from '@/src/shared/components/form/dropdownPlacement';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useLanguageContext, useRtlInputStyle, useRtlLabelStyle } from '@/src/context';
 import type { TimePeriodType } from '@/src/features/transactions/screens/types';
@@ -43,6 +44,7 @@ function useDropdownTheme() {
   const rtlInputStyle = useRtlInputStyle();
 
   return {
+    ...dropdownPlacement,
     style: [
       styles.dropdown,
       { backgroundColor: 'transparent', borderColor: colors.inputBorder },
@@ -50,6 +52,7 @@ function useDropdownTheme() {
     containerStyle: [
       styles.dropdownContainer,
       { backgroundColor: colors.surface, borderColor: colors.outline },
+      dropdownListStyle,
     ],
     selectedTextStyle: [
       styles.dropdownText,

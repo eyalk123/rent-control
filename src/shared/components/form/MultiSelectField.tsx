@@ -15,6 +15,7 @@ import { darkColors, lightColors } from "@/src/core/theme";
 import { sortOptions } from "@/src/shared/utils/sortOptions";
 import type { DropdownItem } from "./DropdownField";
 import { FormField } from "./FormField";
+import { dropdownListStyle, dropdownPlacement } from "./dropdownPlacement";
 import { useFieldSurface } from "./fieldSurface";
 
 const SELECT_ALL_VALUE = "__select_all__";
@@ -129,6 +130,7 @@ export function MultiSelectField<T extends string | number>({
           accessibilityLabel={a11yName}
           flatListProps={{ accessibilityLabel: a11yName }}
           disable={disabled}
+          {...dropdownPlacement}
           renderRightIcon={isRtl ? () => null : undefined}
           renderLeftIcon={
             isRtl
@@ -165,6 +167,7 @@ export function MultiSelectField<T extends string | number>({
               backgroundColor: colors.surface,
               borderColor: colors.outline,
             },
+            dropdownListStyle,
           ]}
           activeColor={colors.inputFilledBackground}
           onChange={handleChange}

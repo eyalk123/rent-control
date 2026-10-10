@@ -7,6 +7,7 @@ import { useExpenseCategories } from '@/src/features/transactions/hooks/useTrans
 import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
 import { sortOptions } from '@/src/shared/utils/sortOptions';
 import { FormField } from './FormField';
+import { dropdownListStyle, dropdownPlacement } from './dropdownPlacement';
 import { useFieldSurface } from './fieldSurface';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -212,6 +213,7 @@ export function CategoryMultiPickerField({
           // Without a name the library hides the options from VoiceOver (see DropdownField).
           accessibilityLabel={label ?? t('common.selectItem')}
           flatListProps={{ accessibilityLabel: label ?? t('common.selectItem') }}
+          {...dropdownPlacement}
           renderRightIcon={isRtl ? () => null : undefined}
           renderLeftIcon={
             isRtl
@@ -248,6 +250,7 @@ export function CategoryMultiPickerField({
               backgroundColor: colors.surface,
               borderColor: colors.outline,
             },
+            dropdownListStyle,
           ]}
           activeColor={colors.inputFilledBackground}
           onChange={handleChange}
