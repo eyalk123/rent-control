@@ -46,7 +46,7 @@ import { useTranslation } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { useRtlInputStyle, useRtlLabelStyle } from '@/src/core/context';
+import { useAlert, useRtlInputStyle, useRtlLabelStyle } from '@/src/core/context';
 import { Icon } from '@/src/shared/components/ui';
 import { DropdownField } from '@/src/shared/components/form/DropdownField';
 import { FormField } from '@/src/shared/components/form/FormField';
@@ -54,7 +54,7 @@ import { useFieldSurface } from '@/src/shared/components/form/fieldSurface';
 import { useCountry } from '../CountryContext';
 import { flagEmoji } from '../flagEmoji';
 import { useLanguageContext } from '@/src/core/context/LanguageContext';
-import type { SupportedLanguage } from '@/src/core/i18n';
+import { restartAppForRTL, type SupportedLanguage } from '@/src/core/i18n';
 import type { Country } from '../api/countries';
 
 /** Best guess from the device, always confirmable. Never a silent decision. */
@@ -99,6 +99,7 @@ export function CountryGate() {
   const { blocked, countries, currencies, choose, finish, savePreferences } = useCountry();
   const { language, setLanguage } = useLanguageContext();
   const { t } = useTranslation();
+  const { appAlert } = useAlert();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const rtlInputStyle = useRtlInputStyle();
@@ -208,8 +209,17 @@ export function CountryGate() {
       // Country first because it is the one that gates the screen, then the two that
       // depend on it. One `finish` at the end, so the gate still lifts in one place.
       await savePreferences({ currency: currencyValue, language: languageValue });
-      if (languageValue !== language) await setLanguage(languageValue);
+      const directionChanged =
+        languageValue !== language && (await setLanguage(languageValue));
       finish(chosen.countryCode);
+      // Native views (headers, icon placement) only read the writing direction at launch, so
+      // English → Hebrew here would leave the app half-mirrored until the next cold start.
+      // No "restart?" prompt, unlike Settings: they just chose the language and have nothing
+      // on screen to lose. Falls back to asking for a manual restart where reload is
+      // unavailable (always, in a dev client).
+      if (directionChanged && !(await restartAppForRTL())) {
+        appAlert(t('restart.title'), t('restart.manualMessage'));
+      }
     } catch {
       // Only advance on a confirmed write: the country drives currency and formats, so
       // landing in the app without it stored would silently render as Israel.
@@ -217,7 +227,7 @@ export function CountryGate() {
     } finally {
       setSaving(false);
     }
-  }, [chosen, choose, finish, savePreferences, currencyValue, languageValue, language, setLanguage, t]);
+  }, [chosen, choose, finish, savePreferences, currencyValue, languageValue, language, setLanguage, appAlert, t]);
 
   if (!blocked) return null;
 
