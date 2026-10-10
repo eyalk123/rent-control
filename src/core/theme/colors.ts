@@ -143,11 +143,11 @@ export const darkColors = {
   warning: "#E8BD73", // 8.24:1
   error: "#F4A590",
 
-  // 0.28, not the 0.15/0.18 these sites hardcoded. That alpha was tuned against a 50%%-
-  // saturated navy, where the blue ground did most of the work; over the charcoal the
-  // mustard and the ground cancel to a flat grey (measured hue 60, sat 2.7%%). 0.28
-  // reproduces the 16.2%% chroma the old pairing gave, warm this time.
-  accentBg: "rgba(194,149,67,0.28)",
+  // Neutral, not mustard. Any mustard wash over this charcoal is mud: at 0.15 it cancelled
+  // to a flat grey (hue 60, sat 2.7%%), at 0.28 it went khaki-brown - yellow has no dark
+  // shade. So in dark the badge/row lifts neutrally (surfaceElevated) and the mustard lives
+  // in the icon or text on top of it. Mustard fills in light, mustard lines in dark.
+  accentBg: "#2F3846",
   primaryBg: "rgba(101,172,226,0.18)",
   controlFill: "rgba(239,238,235,0.07)",
   controlThumb: "#3A4454",

@@ -62,7 +62,10 @@ export const darkTheme: MD3Theme = {
     // Solid, not rgba: this is the fill of `contained-tonal` buttons and the selected
     // SegmentedButton, and as an alpha it composited against whatever surface was behind
     // it - the "Scan a lease" button landed at sat 6.7%, the Settings segment at 18%.
-    secondaryContainer: "#544526",
+    // Blue, not mustard: #544526 read as a khaki block, and every other selected state in
+    // dark (rent-mode switcher, tab bar) is already blue. This is primaryBg flattened onto
+    // the card surface.
+    secondaryContainer: "#2E4154",
     onSecondaryContainer: darkColors.textPrimary,
     background: darkColors.background,
     onBackground: darkColors.textPrimary,

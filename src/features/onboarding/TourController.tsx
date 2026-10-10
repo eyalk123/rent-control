@@ -28,6 +28,7 @@ import React, {
   type PropsWithChildren,
 } from 'react';
 import { InteractionManager } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { useAnchorRegistry } from './AnchorRegistry';
 import { TOURS } from './registry';
 import {
@@ -334,9 +335,14 @@ export function useTour(id: TourId, inputs: GateInputs = {}) {
   const controller = useTourController();
   const request = controller?.requestTour;
   const rentMode = inputs.rentMode ?? null;
+  // Tabs stay mounted behind whichever one is showing, so a screen's gate can flip while
+  // it is out of sight — adding the first property from the first-run CTA lands on the
+  // Properties tab, and the `home` tour, now passing `hasProperties`, opened over it. Only
+  // the screen in front may ask; a background one asks again when it is returned to.
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (!request) return;
+    if (!request || !isFocused) return;
     request(id, { rentMode });
-  }, [request, id, rentMode]);
+  }, [request, id, rentMode, isFocused]);
 }

@@ -147,7 +147,15 @@ function LeaseYearRowInner({
   }));
 
   return (
-    <View style={isCurrent ? { backgroundColor: colors.accent + "14", borderRadius: 8 } : undefined}>
+    <View
+      style={
+        isCurrent
+          ? [styles.currentRow, theme.dark
+              ? { backgroundColor: colors.surfaceElevated, borderColor: colors.accent }
+              : { backgroundColor: colors.accent + "14", borderColor: "transparent" }]
+          : undefined
+      }
+    >
     <View
       style={[
         styles.row,
@@ -200,8 +208,8 @@ function LeaseYearRowInner({
       )}
 
       {isCurrent ? (
-        <View style={[styles.chip, { backgroundColor: colors.accent }]}>
-          <Text style={[styles.chipText, { color: colors.accentFg }]}>{t("renter.currentYear")}</Text>
+        <View style={[styles.chip, styles.chipOutlined, { borderColor: colors.accent }]}>
+          <Text style={[styles.chipText, { color: colors.textPrimary }]}>{t("renter.currentYear")}</Text>
         </View>
       ) : null}
 
@@ -258,6 +266,11 @@ function LeaseYearRowInner({
 export const LeaseYearRow = React.memo(LeaseYearRowInner);
 
 const styles = StyleSheet.create({
+  // Mustard fills in light, mustard lines in dark: any mustard wash over the dark ground
+  // reads as grey (low alpha) or khaki (high alpha), so dark lifts the row neutrally and
+  // keeps the accent to the border. The border is always present so the row does not
+  // shift by a pixel between themes.
+  currentRow: { borderRadius: 8, borderWidth: 1 },
   row: {
     alignItems: "center",
     gap: spacing.sm,
@@ -292,6 +305,9 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 999,
   },
+  // Outlined, not filled: the `currentRow` treatment already marks the current year, so a
+  // solid mustard block on top was the loudest thing in a dark form.
+  chipOutlined: { borderWidth: 1, paddingVertical: 1 },
   chipText: { fontSize: 11, fontWeight: "700" },
   deleteButton: { padding: 4 },
 });
