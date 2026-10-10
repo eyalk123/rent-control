@@ -18,9 +18,34 @@ function formatPaymentDate(iso: string, locale: string): string {
 }
 
 export function RecentTransactionsSection({ items }: RecentTransactionsSectionProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+
+  if (items.length === 0) {
+    return (
+      <View style={[styles.card, styles.emptyCard, { backgroundColor: theme.colors.surface }]}>
+        <View style={styles.emptyRow}>
+          <View
+            style={[
+              styles.emptyIconWrap,
+              { backgroundColor: theme.dark ? 'rgba(62,111,168,0.12)' : 'rgba(22,41,74,0.07)' },
+            ]}
+          >
+            <Icon name="receipt" size={18} color={colors.primary} />
+          </View>
+          <View style={styles.info}>
+            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+              {t('home.recentTransactionsEmptyTitle')}
+            </Text>
+            <Text style={[styles.emptyMeta, { color: colors.placeholder }]}>
+              {t('home.recentTransactionsEmptyMeta')}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
@@ -114,6 +139,32 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 11,
     marginTop: 1,
+  },
+  emptyCard: {
+    paddingVertical: spacing.md,
+  },
+  emptyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  emptyIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  emptyTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 17,
+  },
+  emptyMeta: {
+    fontSize: 11,
+    lineHeight: 15,
+    marginTop: 2,
   },
   divider: {
     height: StyleSheet.hairlineWidth,

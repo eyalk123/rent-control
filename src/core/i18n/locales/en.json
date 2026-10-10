@@ -85,6 +85,8 @@
     "overdueRents": "Overdue Rents",
     "reports": "Reports",
     "recentTransactions": "Recent Transactions",
+    "recentTransactionsEmptyTitle": "No transactions yet",
+    "recentTransactionsEmptyMeta": "Rent and expenses you record will show up here.",
     "seeAll": "See all",
     "viewAll": "View all",
     "daysOverdue": "{{count}}d overdue",

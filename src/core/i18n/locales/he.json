@@ -85,6 +85,8 @@
     "overdueRents": "שכירות באיחור",
     "reports": "דוחות",
     "recentTransactions": "תנועות אחרונות",
+    "recentTransactionsEmptyTitle": "אין תנועות עדיין",
+    "recentTransactionsEmptyMeta": "שכר דירה והוצאות שתרשום יופיעו כאן.",
     "seeAll": "הצג הכל",
     "viewAll": "הצג הכל",
     "daysOverdue": "{{count}} יום באיחור",
