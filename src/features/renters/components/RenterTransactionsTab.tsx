@@ -7,6 +7,7 @@ import { useTransactionsList } from '@/src/features/transactions/hooks/useTransa
 import { RevenuePaymentPanel } from '@/src/features/transactions/components/detail/RevenuePaymentPanel';
 import { ExpensePanel } from '@/src/features/transactions/components/detail/ExpensePanel';
 import type { TransactionsTabState } from '@/src/features/transactions/components/detail/tabState';
+import { useAddExpense } from '@/src/features/transactions/hooks/useAddExpense';
 import { spacing } from '@/src/core/theme';
 import type { Renter } from '@/src/shared/types';
 
@@ -29,6 +30,14 @@ export function RenterTransactionsTab({ renter, state, onStateChange }: RenterTr
   const { transactions, loading, error, refreshTransactions, retryLoad } = useTransactionsList({
     renterId: renter.id,
   });
+  // The renter only pre-fills alongside their property: the form ignores a renter until one
+  // property is chosen.
+  const addExpense = useAddExpense(
+    renter.property_id != null
+      ? `/transactions/add?type=expense&propertyId=${renter.property_id}&renterId=${renter.id}`
+      : '/transactions/add?type=expense',
+    refreshTransactions,
+  );
 
   if (loading && transactions.length === 0) {
     return (
@@ -84,6 +93,7 @@ export function RenterTransactionsTab({ renter, state, onStateChange }: RenterTr
           category={state.expCategory}
           onCategoryChange={(expCategory) => patch({ expCategory })}
           transactionHref={(id) => `/renters/transaction/${id}`}
+          onAddExpense={addExpense}
         />
       )}
     </View>

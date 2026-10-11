@@ -6,6 +6,7 @@ import { EmptyState, LoadingOverlay, SegmentedControl } from '@/src/shared/compo
 import { RevenuePaymentPanel } from '@/src/features/transactions/components/detail/RevenuePaymentPanel';
 import { ExpensePanel } from '@/src/features/transactions/components/detail/ExpensePanel';
 import type { TransactionsTabState } from '@/src/features/transactions/components/detail/tabState';
+import { useAddExpense } from '@/src/features/transactions/hooks/useAddExpense';
 import { spacing } from '@/src/core/theme';
 import type { Property, Transaction } from '@/src/shared/types';
 
@@ -44,6 +45,7 @@ export function PropertyTransactionsTab({
 }: PropertyTransactionsTabProps) {
   const { t } = useTranslation();
   const patch = (next: Partial<TransactionsTabState>) => onStateChange({ ...state, ...next });
+  const addExpense = useAddExpense(`/transactions/add?type=expense&propertyId=${property.id}`, refreshTransactions);
 
   if (loading && transactions.length === 0) {
     return (
@@ -100,6 +102,7 @@ export function PropertyTransactionsTab({
           category={state.expCategory}
           onCategoryChange={(expCategory) => patch({ expCategory })}
           transactionHref={(id) => `/properties/transaction/${id}`}
+          onAddExpense={addExpense}
         />
       )}
     </View>

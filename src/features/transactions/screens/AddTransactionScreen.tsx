@@ -52,7 +52,13 @@ export function AddTransactionScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { id, type } = useLocalSearchParams<{ id?: string; type?: string }>();
+  const { id, type, propertyId, renterId } = useLocalSearchParams<{
+    id?: string;
+    type?: string;
+    /** Pre-selected when opened from a property or renter detail screen. */
+    propertyId?: string;
+    renterId?: string;
+  }>();
   const isEdit = Boolean(id);
 
   const { refresh: refreshTransactions } = usePaginatedTransactionContext();
@@ -72,8 +78,8 @@ export function AddTransactionScreen() {
   const expenseForm = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema) as Resolver<ExpenseFormValues>,
     defaultValues: {
-      propertyIds: [],
-      renterId: null,
+      propertyIds: propertyId ? [Number(propertyId)] : [],
+      renterId: renterId ? Number(renterId) : null,
       amount: '',
       dateOfPayment: new Date().toISOString().slice(0, 10),
       // Empty, as on the web: a preset Cash read as the scanner's answer when a receipt

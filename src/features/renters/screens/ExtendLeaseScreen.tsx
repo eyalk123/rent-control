@@ -8,10 +8,9 @@ import {
   LoadingOverlay,
   ScreenContainer,
   FormHeader,
-  Stepper,
   Icon,
 } from "@/src/shared/components/ui";
-import { FormScrollView, RentChangeField, LeaseYearRow } from "@/src/shared/components/form";
+import { FormScrollView, RentChangeField, LeaseYearRow, LeaseTermRow } from "@/src/shared/components/form";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
 import { useLanguageContext, useAlert } from "@/src/core/context";
 import { useRenterContext } from "@/src/context";
@@ -363,46 +362,26 @@ export function ExtendLeaseScreen() {
           {/* Add years — the number inputs drive the schedule; no button */}
           <View style={[styles.card, { borderColor: colors.outline, backgroundColor: colors.surface }]}>
             {/* Two rows on purpose: the option steppers extend the renewal options, not the
-                contract term, and one wrapping row let them sit beside the years to add. */}
+                contract term. Each row is one period — years beside its extra months; a few
+                months is the common holdover, and extending by a whole year is often not
+                what was agreed. */}
             <TourAnchor id={ANCHORS.extendYearsStepper}>
-              <View style={[styles.stepperRow, { flexDirection: rowDirection, justifyContent: isRtl ? "flex-end" : "flex-start" }]}>
-                <Stepper
-                  label={t("renter.yearsToAdd")}
-                  unitLabel={t("renter.yearsUnit")}
-                  min={0}
-                  max={10}
-                  value={addCount}
-                  onChange={setAddCount}
-                />
-                {/* A few months is the common holdover, and the reason this stepper
-                    exists: extending by a whole year is often not what was agreed. */}
-                <Stepper
-                  label={t("renter.extraMonths")}
-                  unitLabel={t("renter.monthsUnit")}
-                  min={0}
-                  max={11}
-                  value={addMonths}
-                  onChange={setAddMonths}
-                />
-              </View>
-              <View style={[styles.stepperRow, { flexDirection: rowDirection, justifyContent: isRtl ? "flex-end" : "flex-start" }]}>
-                <Stepper
-                  label={t("renter.optionYearsToAdd")}
-                  unitLabel={t("renter.yearsUnit")}
-                  min={0}
-                  max={10}
-                  value={addOptionCount}
-                  onChange={setAddOptionCount}
-                />
-                <Stepper
-                  label={t("renter.extraOptionMonths")}
-                  unitLabel={t("renter.monthsUnit")}
-                  min={0}
-                  max={11}
-                  value={addOptionMonths}
-                  onChange={setAddOptionMonths}
-                />
-              </View>
+              <LeaseTermRow
+                label={t("renter.yearsToAdd")}
+                years={addCount}
+                onYearsChange={setAddCount}
+                maxYears={10}
+                months={addMonths}
+                onMonthsChange={setAddMonths}
+              />
+              <LeaseTermRow
+                label={t("renter.optionYearsToAdd")}
+                years={addOptionCount}
+                onYearsChange={setAddOptionCount}
+                maxYears={10}
+                months={addOptionMonths}
+                onMonthsChange={setAddOptionMonths}
+              />
             </TourAnchor>
 
             {/* Increment for new years */}
@@ -439,6 +418,13 @@ export function ExtendLeaseScreen() {
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t("renter.noLeaseYears")}</Text>
           ) : (
             <>
+              {/* The type chip is the only place a year switches between contract and option,
+                  and nothing else on the screen says so. */}
+              {existingRows.length > 0 ? (
+                <Text style={[styles.typeHint, { color: colors.textSecondary }]}>
+                  {t("renter.typeSwitchHint")}
+                </Text>
+              ) : null}
               {/* Existing years — editable amount, deletable, type convertible. In custom
                   mode each year past the first also carries its own rule. */}
               {existingRows.map((row, index) => (
@@ -565,8 +551,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.sm,
   },
-  stepperRow: { gap: spacing.lg, flexWrap: "wrap" },
   incrementBlock: { marginTop: spacing.sm },
+  typeHint: { fontSize: 13, lineHeight: 18 },
   warning: {
     alignItems: "flex-start",
     gap: spacing.sm,

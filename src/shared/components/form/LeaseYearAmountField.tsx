@@ -15,7 +15,7 @@ type LeaseYearAmountFieldProps = {
 
 /**
  * The per-year editable rent amount input shared by the renter form (LeaseTermBuilder's
- * custom mode) and the lease-extension screen. A flex-filling numeric field; the renter
+ * custom mode) and the lease-extension screen. A numeric field that fills its column; the renter
  * form drives it through an RHF Controller, the extension screen through useState.
  *
  * Drawn by `useFieldSurface` like every other input. It used to carry its own box —
@@ -55,8 +55,9 @@ function LeaseYearAmountFieldInner({ value, onChangeText, onBlur, placeholder = 
 export const LeaseYearAmountField = React.memo(LeaseYearAmountFieldInner);
 
 const styles = StyleSheet.create({
+  // Fills the lease row's middle column, which stacks it over the custom-mode rule.
   input: {
-    flex: 1,
+    alignSelf: "stretch",
     fontSize: 16,
   },
 });

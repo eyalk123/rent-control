@@ -11,6 +11,12 @@ type FormScrollViewProps = {
   contentContainerStyle?: StyleProp<ViewStyle>;
   showsVerticalScrollIndicator?: boolean;
   bounces?: boolean;
+  /**
+   * Jumps back to the top whenever this changes. Multi-page forms pass their page, because
+   * every page renders inside this one scroll view and would otherwise open at whatever
+   * offset the previous page was left at.
+   */
+  resetScrollKey?: unknown;
 };
 
 /**
@@ -27,8 +33,17 @@ export function FormScrollView({
   contentContainerStyle,
   showsVerticalScrollIndicator = false,
   bounces = false,
+  resetScrollKey,
 }: FormScrollViewProps) {
-  const { scroller, scrollProps } = useTourScrollHost();
+  const { scroller, ref, scrollProps } = useTourScrollHost();
+
+  React.useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    if (typeof node.scrollToPosition === "function") node.scrollToPosition(0, 0, false);
+    else node.scrollTo?.({ x: 0, y: 0, animated: false });
+  }, [resetScrollKey, ref]);
+
   return (
     <KeyboardAwareScrollView
       {...scrollProps}

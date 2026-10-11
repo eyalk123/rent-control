@@ -233,6 +233,7 @@ export function AddEditRenterScreen() {
         <FormScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
+          resetScrollKey={step}
         >
           <FieldReviewProvider items={current?.review}>
           <FormHeader

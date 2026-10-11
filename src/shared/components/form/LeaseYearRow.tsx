@@ -1,7 +1,7 @@
 import React from "react";
 import { allowedModes } from "@/src/shared/utils/capabilities";
 import { indexLabelKey } from "@/src/shared/utils/indexLabels";
-import { Pressable, StyleSheet, View, type TextStyle, type ViewStyle } from "react-native";
+import { Pressable, StyleSheet, View, type ViewStyle } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 import { darkColors, lightColors, spacing, ICON_SM } from "@/src/core/theme";
@@ -35,25 +35,6 @@ export const LEASE_YEAR_RULE_MODES: LeaseYearRuleMode[] = [
 const RULE_MODE_REQUIREMENTS: Partial<Record<LeaseYearRuleMode, "cpiLinkage">> = {
   cpi: "cpiLinkage",
 };
-
-/**
- * How far the rule line is pushed in so it starts under the amount field: the row's own
- * `paddingHorizontal`, the year label's `minWidth`, and the gap that follows it.
- */
-const RULE_INDENT = spacing.xs + 52 + spacing.sm;
-
-/**
- * Which physical side that indent goes on. It has to follow `rowDirection`, not the writing
- * direction: `row-reverse` lays the row out against the writing direction, so `paddingStart`
- * would land the indent on the side the content *ends*. That is what happened on the
- * lease-extension screen in Hebrew — it passes `row-reverse` there, and the rule dropdown sat
- * flush against the edge while the amount above it was indented.
- */
-function ruleIndentStyle(rowDirection: ViewStyle["flexDirection"]): ViewStyle {
-  return rowDirection === "row-reverse"
-    ? { paddingEnd: RULE_INDENT }
-    : { paddingStart: RULE_INDENT };
-}
 
 export const LEASE_YEAR_RULE_LABEL_KEYS: Record<LeaseYearRuleMode, string> = {
   manual: "renter.rentChangeManual",
@@ -135,10 +116,14 @@ function LeaseYearRowInner({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const amountNum = Number(amount) || 0;
-  const showRuleValue = ruleMode === "percent" || ruleMode === "fixed";
   // A CPI year's rent is index-linked and priced server-side, so the figure here is only an
   // estimate — and typing over it would silently drop the rule. Show it, don't let it be edited.
-  const amountEditable = Boolean(onAmountChange) && ruleMode !== "cpi";
+  //
+  // Any other ruled year (custom mode) is worked out from the year before it, so it reads as
+  // a figure too, not a box to fill in. Picking "Manual" in its rule is how it gets typed over.
+  const showRuleValue = ruleMode === "percent" || ruleMode === "fixed";
+  const ruled = Boolean(onRuleChange) && ruleMode !== "manual";
+  const amountEditable = Boolean(onAmountChange) && ruleMode !== "cpi" && !ruled;
 
   const ruleOptions = allowedModes(LEASE_YEAR_RULE_MODES, RULE_MODE_REQUIREMENTS).map((m) => ({
     value: m,
@@ -156,157 +141,188 @@ function LeaseYearRowInner({
           : undefined
       }
     >
-    <View
-      style={[
-        styles.row,
-        { flexDirection: rowDirection },
-      ]}
-    >
-      <Text
-        style={[styles.yearLabel, { color: colors.textPrimary }, isCurrent && styles.yearLabelCurrent]}
-      >
-        {label}
-      </Text>
-
-      {amountEditable && onAmountChange ? (
-        <LeaseYearAmountField
-          value={amount}
-          onChangeText={onAmountChange}
-          onBlur={onAmountBlur}
-          placeholder={t("renter.leaseYearAmount")}
-        />
-      ) : (
-        <View style={[styles.amountBlock, { flexDirection: rowDirection }]}>
-          <Text
-            style={[
-              styles.amountText,
-              { color: projected ? colors.textSecondary : colors.textPrimary },
-            ]}
-          >
-            {amountNum > 0 ? `${projected ? "≈ " : ""}${formatMoney(amountNum)}` : "–"}
-          </Text>
-          {projected ? <CpiChip flexDirection={rowDirection} /> : null}
-        </View>
-      )}
-
-      {/* An editable row shows the projection chip here — its amount lives in an input, so
-          the read-only branch above (which owns the other chip) never renders. */}
-      {amountEditable && projected ? <CpiChip flexDirection={rowDirection} /> : null}
-
-      {onTypeToggle ? (
-        <Pressable
-          onPress={onTypeToggle}
-          hitSlop={6}
-          accessibilityRole="button"
-          accessibilityLabel={t("renter.tapToChangeType")}
-          style={styles.typeToggle}
+    {/* Three columns: the year (with its Now / New tag under it), the money, and the row's
+        actions. The amount and the custom-mode rule stack in the middle column, so they are
+        always the same width and start at the same edge — whatever tags and buttons a given
+        row carries only ever narrow the column, never knock the two out of line. */}
+    <View style={[styles.row, { flexDirection: rowDirection }]}>
+      <View style={styles.yearCol}>
+        <Text
+          style={[styles.yearLabel, { color: colors.textPrimary }, isCurrent && styles.yearLabelCurrent]}
         >
-          <LeaseYearTypeText type={type} style={styles.typeText} />
-        </Pressable>
-      ) : (
-        <LeaseYearTypeText type={type} style={[styles.typeText, styles.typeToggle]} />
-      )}
+          {label}
+        </Text>
+        {isCurrent ? (
+          <View style={[styles.chip, styles.chipOutlined, { borderColor: colors.accent }]}>
+            <Text style={[styles.chipText, { color: colors.textPrimary }]}>{t("renter.currentYear")}</Text>
+          </View>
+        ) : null}
+        {badge}
+      </View>
 
-      {isCurrent ? (
-        <View style={[styles.chip, styles.chipOutlined, { borderColor: colors.accent }]}>
-          <Text style={[styles.chipText, { color: colors.textPrimary }]}>{t("renter.currentYear")}</Text>
-        </View>
-      ) : null}
-
-      {badge}
-
-      {onRemove ? (
-        <Pressable
-          onPress={onRemove}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={t("renter.removeYear")}
-          style={styles.deleteButton}
-        >
-          <Icon name="trash" size={ICON_SM} color={colors.error} />
-        </Pressable>
-      ) : null}
-    </View>
-
-    {/* The rule sits on its own line: a phone row has no space for year + amount + rule +
-        value + type side by side. It starts under the amount field, not under the year
-        label — see `ruleIndentStyle`. */}
-    {onRuleChange ? (
-      <View style={[styles.ruleRow, ruleIndentStyle(rowDirection), { flexDirection: rowDirection }]}>
-        <DropdownField
-          data={ruleOptions}
-          sorted={false}
-          value={ruleMode}
-          onChange={(m) => onRuleChange(m as LeaseYearRuleMode)}
-          inputStyle={styles.ruleDropdown}
-        />
-        {showRuleValue && onRuleValueChange ? (
-          <EscalationValueField
-            mode={ruleMode as "percent" | "fixed"}
-            value={ruleValue}
-            onChangeText={onRuleValueChange}
-            onBlur={onRuleValueBlur}
-            label=""
-            containerStyle={styles.ruleValue}
-            boxStyle={styles.ruleValueBox}
+      <View style={styles.moneyCol}>
+        {amountEditable && onAmountChange ? (
+          <LeaseYearAmountField
+            value={amount}
+            onChangeText={onAmountChange}
+            onBlur={onAmountBlur}
+            placeholder={t("renter.leaseYearAmount")}
           />
+        ) : (
+          // Plain "row" and the field's own inset, so a worked-out amount sits exactly where
+          // a typed one does in the input above or below it — whatever `rowDirection` says.
+          <View style={styles.amountBlock}>
+            <Text
+              style={[
+                styles.amountText,
+                { color: projected ? colors.textSecondary : colors.textPrimary },
+              ]}
+            >
+              {amountNum > 0 ? `${projected ? "≈ " : ""}${formatMoney(amountNum)}` : "–"}
+            </Text>
+            {projected ? <CpiChip flexDirection={rowDirection} /> : null}
+          </View>
+        )}
+
+        {/* The rule, and for percent / fixed its step under it. Stacked, not side by side: the
+            column is ~145dp on a phone, and the two together left the rule ~50dp, too narrow
+            for its own label. Every box in the column is the same width and height. */}
+        {onRuleChange ? (
+          <>
+            <DropdownField
+              data={ruleOptions}
+              sorted={false}
+              value={ruleMode}
+              onChange={(m) => onRuleChange(m as LeaseYearRuleMode)}
+              placeholder={t("renter.yearRule")}
+              error={error ? {} : undefined}
+              inputStyle={styles.ruleDropdown}
+            />
+            {showRuleValue && onRuleValueChange ? (
+              <EscalationValueField
+                mode={ruleMode as "percent" | "fixed"}
+                value={ruleValue}
+                onChangeText={onRuleValueChange}
+                onBlur={onRuleValueBlur}
+                label=""
+                containerStyle={styles.ruleValue}
+                boxStyle={styles.ruleValueBox}
+              />
+            ) : null}
+          </>
+        ) : null}
+
+        {error ? (
+          <Text style={[styles.errorText, { color: colors.error }]}>
+            {t(error, { defaultValue: error })}
+          </Text>
         ) : null}
       </View>
-    ) : null}
 
-    {error ? (
-      <Text style={[styles.errorText, ruleIndentStyle(rowDirection) as TextStyle, { color: colors.error }]}>
-        {t(error, { defaultValue: error })}
-      </Text>
-    ) : null}
+      <View style={[styles.actionsCol, { flexDirection: rowDirection }]}>
+        {/* An editable row shows the projection chip here — its amount lives in an input, so
+            the read-only branch (which owns the other chip) never renders. */}
+        {amountEditable && projected ? <CpiChip flexDirection={rowDirection} /> : null}
+
+        {/* Outlined with a swap icon so it reads as a control. It used to be plain text with
+            nothing to say it could be tapped. The read-only label below stays bare, so the
+            difference between the two is visible at a glance. */}
+        {onTypeToggle ? (
+          <Pressable
+            onPress={onTypeToggle}
+            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+            accessibilityRole="button"
+            accessibilityLabel={t("renter.tapToChangeType")}
+            style={({ pressed }) => [
+              styles.typeChip,
+              {
+                flexDirection: rowDirection,
+                borderColor: type === "option" ? colors.accent : colors.inputBorder,
+              },
+              pressed && styles.pressed,
+            ]}
+          >
+            <LeaseYearTypeText type={type} style={styles.typeText} />
+            <Icon
+              name="arrow-right-left"
+              size={12}
+              color={type === "option" ? colors.accent : colors.textSecondary}
+            />
+          </Pressable>
+        ) : (
+          <LeaseYearTypeText type={type} style={[styles.typeText, styles.typeToggle]} />
+        )}
+
+        {onRemove ? (
+          <Pressable
+            onPress={onRemove}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("renter.removeYear")}
+            style={styles.deleteButton}
+          >
+            <Icon name="trash" size={ICON_SM} color={colors.error} />
+          </Pressable>
+        ) : null}
+      </View>
+    </View>
     </View>
   );
 }
 
 export const LeaseYearRow = React.memo(LeaseYearRowInner);
 
+/** Every control in a row is this tall, so the side columns centre on the amount line. */
+const LINE_HEIGHT = 48;
+
 const styles = StyleSheet.create({
-  // Mustard fills in light, mustard lines in dark: any mustard wash over the dark ground
-  // reads as grey (low alpha) or khaki (high alpha), so dark lifts the row neutrally and
-  // keeps the accent to the border. The border is always present so the row does not
-  // shift by a pixel between themes.
   currentRow: { borderRadius: 8, borderWidth: 1 },
   row: {
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: spacing.sm,
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.xs,
   },
-  yearLabel: { fontSize: 15, fontWeight: "600", minWidth: 52 },
+  yearCol: {
+    width: 52,
+    minHeight: LINE_HEIGHT,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    gap: 4,
+  },
+  yearLabel: { fontSize: 15, fontWeight: "600" },
   yearLabelCurrent: { fontWeight: "800" },
-  amountBlock: { flex: 1, alignItems: "center", gap: spacing.xs },
-  amountText: { fontSize: 15, fontWeight: "600" },
-  typeToggle: { minWidth: 56, alignItems: "center" },
-  typeText: { fontSize: 13, textAlign: "center" },
-  // The indent itself is `ruleIndentStyle`, which has to know the row direction.
-  ruleRow: {
+  moneyCol: { flex: 1, minWidth: 0, gap: spacing.sm },
+  amountBlock: {
+    flexDirection: "row",
+    minHeight: LINE_HEIGHT,
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.xs,
-    paddingBottom: spacing.xs,
+    gap: spacing.xs,
+    // The field surface's horizontal padding plus its 1px border.
+    paddingHorizontal: 15,
   },
-  // No height here — the box is `fieldSurface`'s, same as the amount field above. The
-  // `marginBottom` is FormField's, which only earns its keep on a stacked form.
-  ruleDropdown: { minWidth: 120, marginBottom: 0 },
+  amountText: { fontSize: 16, fontWeight: "600" },
+  actionsCol: { height: LINE_HEIGHT, alignItems: "center", gap: spacing.sm },
+  typeToggle: { minWidth: 56, alignItems: "center" },
+  typeChip: {
+    alignItems: "center",
+    gap: 4,
+    minHeight: 28,
+    paddingHorizontal: spacing.sm,
+    borderWidth: 1,
+    borderRadius: 999,
+  },
+  pressed: { opacity: 0.5 },
+  typeText: { fontSize: 13, textAlign: "center" },
+  ruleDropdown: { marginBottom: 0 },
   ruleValue: { marginBottom: 0 },
-  ruleValueBox: { width: 116 },
-  errorText: {
-    fontSize: 12,
-    paddingHorizontal: spacing.xs,
-    paddingBottom: spacing.xs,
-  },
+  ruleValueBox: { flex: 1 },
+  errorText: { fontSize: 12 },
   chip: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: 999,
   },
-  // Outlined, not filled: the `currentRow` treatment already marks the current year, so a
-  // solid mustard block on top was the loudest thing in a dark form.
   chipOutlined: { borderWidth: 1, paddingVertical: 1 },
   chipText: { fontSize: 11, fontWeight: "700" },
   deleteButton: { padding: 4 },

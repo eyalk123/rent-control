@@ -21,7 +21,7 @@ export function DeleteAccountScreen() {
   const { appAlert } = useAlert();
   const router = useRouter();
   const theme = useTheme();
-  const { deleteFirebaseAccount } = useAppAuth();
+  const { signOut } = useAppAuth();
   const [confirmText, setConfirmText] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -32,16 +32,18 @@ export function DeleteAccountScreen() {
 
     setLoading(true);
     try {
-      // 0. Apple accounts only: the Apple sheet, before anything is deleted, so cancelling
-      //    it leaves the account whole. Yields the code Apple needs to revoke our tokens.
+      // 0. Apple accounts on iOS only: the Apple sheet, before anything is deleted, so
+      //    cancelling it leaves the account whole. Yields the code Apple needs to revoke our
+      //    tokens, and the revocation runs now because it needs the Firebase user to exist.
       const appleAuthorizationCode = await reauthenticateAppleForDeletion(i18n.language);
+      await revokeAppleToken(appleAuthorizationCode);
 
-      // 1. Delete all backend data
+      // 1. The backend deletes all data and then the Firebase sign-in itself — with the
+      //    Admin SDK, which has no recent-login rule, so no fresh sign-in is asked for.
       await deleteMyAccount();
 
-      // 2. Revoke Apple's tokens (Apple accounts only), then delete the Firebase Auth account
-      await revokeAppleToken(appleAuthorizationCode);
-      await deleteFirebaseAccount();
+      // 2. The user is gone server-side; drop the local session that still holds it.
+      await signOut();
 
       // 3. Clear local storage — what belongs to the account, not what belongs to the
       //    device. The tour and consent caches are copies of this owner's server
@@ -60,11 +62,7 @@ export function DeleteAccountScreen() {
       setLoading(false);
 
       if (isAppleCancel(err)) return;
-      if (err?.code === 'auth/requires-recent-login') {
-        appAlert(t('error.title'), t('settings.deleteAccountRequiresReauth'));
-      } else {
-        appAlert(t('error.title'), t('settings.deleteAccountFailed'));
-      }
+      appAlert(t('error.title'), t('settings.deleteAccountFailed'));
     }
   };
 

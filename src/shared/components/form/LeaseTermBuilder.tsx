@@ -28,10 +28,11 @@ import {
 } from "@/src/shared/utils/leaseSchedule";
 import { addMonths, periodMonths } from "@/src/shared/types";
 import { formatDateFull } from "@/src/shared/utils/dates";
-import { Stepper, Icon } from "@/src/shared/components/ui";
+import { Icon } from "@/src/shared/components/ui";
 import { FormNumericField } from "./FormFields";
 import { RentChangeField } from "./RentChangeField";
 import { LeaseYearRow } from "./LeaseYearRow";
+import { LeaseTermRow } from "./LeaseTermRow";
 import { ANCHORS } from "@/src/features/onboarding/anchors";
 import { TourAnchor, useTourAnchor } from "@/src/features/onboarding/AnchorRegistry";
 
@@ -232,72 +233,50 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
           </TourAnchor>
         )}
       />
+      {/* One line per period, years beside their extra months — see LeaseTermRow. */}
       {openEnded ? null : (
-      <Controller
-        control={control}
-        name={"contractTermYears" as Path<TFieldValues>}
-        render={({ field }) => (
-          <Stepper
-            label={t("renter.contractTerm")}
-            unitLabel={t("renter.yearsUnit")}
-            min={0}
-            max={20}
-            value={Number(field.value) || 0}
-            onChange={(v) => field.onChange(String(v))}
+        <>
+          <Controller
+            control={control}
+            name={"contractTermYears" as Path<TFieldValues>}
+            render={({ field: yearsField }) => (
+              <Controller
+                control={control}
+                name={"contractTermMonths" as Path<TFieldValues>}
+                render={({ field: monthsField }) => (
+                  <LeaseTermRow
+                    label={t("renter.contractTerm")}
+                    years={Number(yearsField.value) || 0}
+                    onYearsChange={(v) => yearsField.onChange(String(v))}
+                    maxYears={20}
+                    months={Number(monthsField.value) || 0}
+                    onMonthsChange={(v) => monthsField.onChange(String(v))}
+                  />
+                )}
+              />
+            )}
           />
-        )}
-      />
-      )}
-
-      {openEnded ? null : (
-      <Controller
-        control={control}
-        name={"contractTermMonths" as Path<TFieldValues>}
-        render={({ field }) => (
-          <Stepper
-            label={t("renter.extraMonths")}
-            unitLabel={t("renter.monthsUnit")}
-            min={0}
-            max={11}
-            value={Number(field.value) || 0}
-            onChange={(v) => field.onChange(String(v))}
+          <Controller
+            control={control}
+            name={"optionYears" as Path<TFieldValues>}
+            render={({ field: yearsField }) => (
+              <Controller
+                control={control}
+                name={"optionTermMonths" as Path<TFieldValues>}
+                render={({ field: monthsField }) => (
+                  <LeaseTermRow
+                    label={t("renter.renewalOptions")}
+                    years={Number(yearsField.value) || 0}
+                    onYearsChange={(v) => yearsField.onChange(String(v))}
+                    maxYears={10}
+                    months={Number(monthsField.value) || 0}
+                    onMonthsChange={(v) => monthsField.onChange(String(v))}
+                  />
+                )}
+              />
+            )}
           />
-        )}
-      />
-      )}
-
-      {openEnded ? null : (
-      <Controller
-        control={control}
-        name={"optionYears" as Path<TFieldValues>}
-        render={({ field }) => (
-          <Stepper
-            label={t("renter.renewalOptions")}
-            unitLabel={t("renter.yearsUnit")}
-            min={0}
-            max={10}
-            value={Number(field.value) || 0}
-            onChange={(v) => field.onChange(String(v))}
-          />
-        )}
-      />
-      )}
-
-      {openEnded ? null : (
-      <Controller
-        control={control}
-        name={"optionTermMonths" as Path<TFieldValues>}
-        render={({ field }) => (
-          <Stepper
-            label={t("renter.extraOptionMonths")}
-            unitLabel={t("renter.monthsUnit")}
-            min={0}
-            max={11}
-            value={Number(field.value) || 0}
-            onChange={(v) => field.onChange(String(v))}
-          />
-        )}
-      />
+        </>
       )}
 
       <TourAnchor id={ANCHORS.leaseBaseRent}>

@@ -154,7 +154,7 @@ export async function createExpenseTransaction(
   payload: TransactionCreateExpense,
 ): Promise<Transaction> {
   if (USE_MOCK_API) {
-    return {
+    const created: Transaction = {
       id: Date.now(),
       type: 'expense',
       property_id: payload.property_id,
@@ -175,6 +175,9 @@ export async function createExpenseTransaction(
       category_name: null,
       supplier_name: null,
     };
+    // Persisted for the same reason as revenue above: a detail tab refetches after saving.
+    mockTransactionsApi.addTransaction(created);
+    return created;
   }
 
   const response = await apiClient.post<Transaction>(

@@ -63,6 +63,7 @@ export function useTourScrollHost() {
 
   return {
     scroller,
+    ref,
     scrollProps: {
       ref: ref as React.Ref<never>,
       onScroll,

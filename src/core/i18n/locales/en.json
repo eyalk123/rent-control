@@ -139,7 +139,6 @@
     "deleteAccountConfirmPlaceholder": "DELETE",
     "deleteAccountConfirmButton": "Delete Account Permanently",
     "deleteAccountSuccess": "Account deleted successfully",
-    "deleteAccountRequiresReauth": "For security, please sign out and sign back in before deleting your account.",
     "deleteAccountFailed": "Failed to delete account. Please try again."
   },
   "restart": {
@@ -452,6 +451,7 @@
     "noLeaseYears": "No lease years yet. Add years above.",
     "newYearTag": "New",
     "tapToChangeType": "Tap to switch contract / option",
+    "typeSwitchHint": "Tap Contract or Option on a year to switch it.",
     "removeYear": "Remove year",
     "yearsAdded": "{{count}} year added",
     "yearsAdded_plural": "{{count}} years added",

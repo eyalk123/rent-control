@@ -4,10 +4,11 @@ import { Text, useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
-import { EmptyState, LtrSection } from '@/src/shared/components/ui';
+import { AppFab, EmptyState, LtrSection } from '@/src/shared/components/ui';
 import { formatMoney } from '@/src/shared/utils/money';
 import { fmtTxDate } from '@/src/features/transactions/utils/aggregate';
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
@@ -40,10 +41,14 @@ interface Props {
   onCategoryChange: (category: string | null) => void;
   /** Where a tapped transaction opens — a route in the host tab's own stack, so back returns here. */
   transactionHref: (id: number) => string;
+  /** Opens the add-expense form for this property / renter; shown as a FAB and on the empty state. */
+  onAddExpense?: () => void;
 }
 
 const BAR_AREA_HEIGHT = 90;
 const MIN_SEGMENT = 2;
+/** Keeps the last row's amount clear of the FAB. */
+const FAB_CLEARANCE = 80;
 
 /**
  * The Expenses half of the detail-screen transactions tab.
@@ -64,6 +69,7 @@ export function ExpensePanel({
   category: selectedCategory,
   onCategoryChange,
   transactionHref,
+  onAddExpense,
 }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -72,6 +78,7 @@ export function ExpensePanel({
   const locale = language === 'he' ? 'he-IL' : 'en-US';
   const router = useRouter();
   const { categories } = useExpenseCategories();
+  const insets = useSafeAreaInsets();
 
   const monthLabels = useMemo(
     () =>
@@ -126,6 +133,8 @@ export function ExpensePanel({
       <EmptyState
         icon="receipt"
         message={t('transactions.expenseChart.noExpenses', { defaultValue: 'No expenses recorded yet.' })}
+        actionLabel={onAddExpense ? t('transactions.addExpense') : undefined}
+        onAction={onAddExpense}
       />
     );
   }
@@ -136,163 +145,175 @@ export function ExpensePanel({
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
-      {years.length > 1 ? (
-        <View style={styles.yearRow}>
-          {years.map((y) => {
-            const active = y === year;
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={[styles.content, onAddExpense && { paddingBottom: FAB_CLEARANCE + insets.bottom }]}
+      >
+        {years.length > 1 ? (
+          <View style={styles.yearRow}>
+            {years.map((y) => {
+              const active = y === year;
+              return (
+                <Pressable
+                  key={y}
+                  onPress={() => {
+                    onYearChange(y);
+                    onMonthChange(null);
+                    onCategoryChange(null);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  style={[
+                    styles.yearChip,
+                    {
+                      backgroundColor: active ? theme.colors.primary : colors.subtleOutline,
+                      borderColor: active ? theme.colors.primary : colors.outline,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.yearText, { color: active ? '#fff' : colors.textSecondary }]}>{y}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
+
+        {/* KPI strip */}
+        <View style={styles.kpiRow}>
+          <Kpi
+            label={t('transactions.expenseChart.total', { defaultValue: 'Total' })}
+            value={formatMoney(total)}
+            colors={colors}
+            ltr
+          />
+          <Kpi
+            label={t('transactions.expenseChart.avgPerMonth', { defaultValue: 'Average / month' })}
+            value={formatMoney(monthsWithSpend > 0 ? total / monthsWithSpend : 0)}
+            colors={colors}
+            ltr
+          />
+          <Kpi
+            label={t('transactions.expenseChart.topCategory', { defaultValue: 'Biggest category' })}
+            value={categoryTotals[0]?.label ?? '–'}
+            colors={colors}
+          />
+        </View>
+
+        {/* Stacked months. The axis is a temporal scale, so it stays LTR even in Hebrew. */}
+        <LtrSection>
+          <View style={[styles.chart, { borderColor: colors.outline }]}>
+            {stacks.map((stack) => {
+              const selected = selectedMonth === stack.monthIndex;
+              const dimmed = selectedMonth != null && !selected;
+              return (
+                <Pressable
+                  key={stack.monthIndex}
+                  onPress={() => toggleMonth(stack.monthIndex)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={`${monthLabels[stack.monthIndex]}, ${formatMoney(stack.total)}`}
+                  style={[styles.column, selected && { backgroundColor: colors.subtleOutline }]}
+                >
+                  <View style={styles.barArea}>
+                    <View style={styles.stack}>
+                      {stackCategories.map((cat, index) => {
+                        const value = stack.byCategory[cat.id] ?? 0;
+                        if (value <= 0) return null;
+                        return (
+                          <View
+                            key={cat.id}
+                            style={{
+                              height: Math.max(MIN_SEGMENT, (value / maxMonth) * BAR_AREA_HEIGHT),
+                              backgroundColor: categoryColor(index, cat.id, colors.textSecondary),
+                              opacity: dimmed ? 0.25 : 0.9,
+                            }}
+                          />
+                        );
+                      })}
+                    </View>
+                  </View>
+                  <Text style={[styles.monthLabel, { color: selected ? colors.textPrimary : colors.textSecondary }]}>
+                    {monthLabels[stack.monthIndex]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </LtrSection>
+
+        {/* Category breakdown */}
+        <View style={{ gap: spacing.xs }}>
+          {categoryTotals.map((cat, index) => {
+            const active = selectedCategory === cat.id;
             return (
               <Pressable
-                key={y}
-                onPress={() => {
-                  onYearChange(y);
-                  onMonthChange(null);
-                  onCategoryChange(null);
-                }}
+                key={cat.id}
+                onPress={() => onCategoryChange(active ? null : cat.id)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
-                style={[
-                  styles.yearChip,
-                  {
-                    backgroundColor: active ? theme.colors.primary : colors.subtleOutline,
-                    borderColor: active ? theme.colors.primary : colors.outline,
-                  },
-                ]}
+                style={[styles.catRow, active && { backgroundColor: colors.subtleOutline }]}
               >
-                <Text style={[styles.yearText, { color: active ? '#fff' : colors.textSecondary }]}>{y}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : null}
-
-      {/* KPI strip */}
-      <View style={styles.kpiRow}>
-        <Kpi
-          label={t('transactions.expenseChart.total', { defaultValue: 'Total' })}
-          value={formatMoney(total)}
-          colors={colors}
-          ltr
-        />
-        <Kpi
-          label={t('transactions.expenseChart.avgPerMonth', { defaultValue: 'Average / month' })}
-          value={formatMoney(monthsWithSpend > 0 ? total / monthsWithSpend : 0)}
-          colors={colors}
-          ltr
-        />
-        <Kpi
-          label={t('transactions.expenseChart.topCategory', { defaultValue: 'Biggest category' })}
-          value={categoryTotals[0]?.label ?? '–'}
-          colors={colors}
-        />
-      </View>
-
-      {/* Stacked months. The axis is a temporal scale, so it stays LTR even in Hebrew. */}
-      <LtrSection>
-        <View style={[styles.chart, { borderColor: colors.outline }]}>
-          {stacks.map((stack) => {
-            const selected = selectedMonth === stack.monthIndex;
-            const dimmed = selectedMonth != null && !selected;
-            return (
-              <Pressable
-                key={stack.monthIndex}
-                onPress={() => toggleMonth(stack.monthIndex)}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                accessibilityLabel={`${monthLabels[stack.monthIndex]}, ${formatMoney(stack.total)}`}
-                style={[styles.column, selected && { backgroundColor: colors.subtleOutline }]}
-              >
-                <View style={styles.barArea}>
-                  <View style={styles.stack}>
-                    {stackCategories.map((cat, index) => {
-                      const value = stack.byCategory[cat.id] ?? 0;
-                      if (value <= 0) return null;
-                      return (
-                        <View
-                          key={cat.id}
-                          style={{
-                            height: Math.max(MIN_SEGMENT, (value / maxMonth) * BAR_AREA_HEIGHT),
-                            backgroundColor: categoryColor(index, cat.id, colors.textSecondary),
-                            opacity: dimmed ? 0.25 : 0.9,
-                          }}
-                        />
-                      );
-                    })}
-                  </View>
-                </View>
-                <Text style={[styles.monthLabel, { color: selected ? colors.textPrimary : colors.textSecondary }]}>
-                  {monthLabels[stack.monthIndex]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </LtrSection>
-
-      {/* Category breakdown */}
-      <View style={{ gap: spacing.xs }}>
-        {categoryTotals.map((cat, index) => {
-          const active = selectedCategory === cat.id;
-          return (
-            <Pressable
-              key={cat.id}
-              onPress={() => onCategoryChange(active ? null : cat.id)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              style={[styles.catRow, active && { backgroundColor: colors.subtleOutline }]}
-            >
-              <View
-                style={[styles.swatch, { backgroundColor: categoryColor(index, cat.id, colors.textSecondary) }]}
-              />
-              <Text style={[styles.catLabel, { color: colors.textPrimary }]} numberOfLines={1}>
-                {cat.label}
-              </Text>
-              <View style={[styles.shareTrack, { backgroundColor: colors.subtleOutline }]}>
                 <View
-                  style={{
-                    width: `${Math.max(cat.share * 100, 2)}%`,
-                    height: '100%',
-                    backgroundColor: categoryColor(index, cat.id, colors.textSecondary),
-                    borderRadius: 999,
-                  }}
+                  style={[styles.swatch, { backgroundColor: categoryColor(index, cat.id, colors.textSecondary) }]}
                 />
-              </View>
-              <Text style={[styles.catAmount, { color: colors.textPrimary }]}>{formatMoney(cat.total)}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+                <Text style={[styles.catLabel, { color: colors.textPrimary }]} numberOfLines={1}>
+                  {cat.label}
+                </Text>
+                <View style={[styles.shareTrack, { backgroundColor: colors.subtleOutline }]}>
+                  <View
+                    style={{
+                      width: `${Math.max(cat.share * 100, 2)}%`,
+                      height: '100%',
+                      backgroundColor: categoryColor(index, cat.id, colors.textSecondary),
+                      borderRadius: 999,
+                    }}
+                  />
+                </View>
+                <Text style={[styles.catAmount, { color: colors.textPrimary }]}>{formatMoney(cat.total)}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
-      {selectedMonth != null || selectedCategory != null ? (
-        <Pressable
-          onPress={() => {
-            onMonthChange(null);
-            onCategoryChange(null);
-          }}
-          accessibilityRole="button"
-        >
-          <Text style={[styles.clear, { color: theme.colors.primary }]}>
-            {t('transactions.expenseChart.clearFilter', { defaultValue: 'Clear filter' })}
-          </Text>
-        </Pressable>
-      ) : null}
-
-      {visible.map((tx) => (
-        <Pressable
-          key={tx.id}
-          onPress={() => router.push(transactionHref(tx.id) as never)}
-          style={[styles.txCard, { backgroundColor: colors.expBg, borderColor: colors.outline }]}
-        >
-          <View style={styles.txHeader}>
-            <Text style={[styles.txTitle, { color: colors.textPrimary }]} numberOfLines={1}>
-              {tx.supplier_name || expenseCategoryLabel(tx, categories, t)}
+        {selectedMonth != null || selectedCategory != null ? (
+          <Pressable
+            onPress={() => {
+              onMonthChange(null);
+              onCategoryChange(null);
+            }}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.clear, { color: theme.colors.primary }]}>
+              {t('transactions.expenseChart.clearFilter', { defaultValue: 'Clear filter' })}
             </Text>
-            <Text style={[styles.txAmount, { color: colors.expFg }]}>{formatMoney(tx.amount)}</Text>
-          </View>
-          <Text style={[styles.txMeta, { color: colors.textSecondary }]}>{fmtTxDate(tx, locale)}</Text>
-        </Pressable>
-      ))}
-    </ScrollView>
+          </Pressable>
+        ) : null}
+
+        {visible.map((tx) => (
+          <Pressable
+            key={tx.id}
+            onPress={() => router.push(transactionHref(tx.id) as never)}
+            style={[styles.txCard, { backgroundColor: colors.expBg, borderColor: colors.outline }]}
+          >
+            <View style={styles.txHeader}>
+              <Text style={[styles.txTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                {tx.supplier_name || expenseCategoryLabel(tx, categories, t)}
+              </Text>
+              <Text style={[styles.txAmount, { color: colors.expFg }]}>{formatMoney(tx.amount)}</Text>
+            </View>
+            <Text style={[styles.txMeta, { color: colors.textSecondary }]}>{fmtTxDate(tx, locale)}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+      {onAddExpense ? (
+        <AppFab
+          icon="plus"
+          onPress={onAddExpense}
+          accessibilityLabel={t('transactions.addExpense')}
+          bottomInset={insets.bottom}
+        />
+      ) : null}
+    </View>
   );
 }
 
@@ -323,6 +344,9 @@ function Kpi({
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   content: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,

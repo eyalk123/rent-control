@@ -14,6 +14,11 @@ type StepperProps = {
   quickValues?: number[];
   /** Short unit shown next to the value, e.g. "yrs". */
   unitLabel?: string;
+  /**
+   * Narrower control with no bottom margin, for two steppers side by side on one line (the
+   * lease term's years + months). Buttons stay at the 44pt touch floor.
+   */
+  compact?: boolean;
 };
 
 function StepperInner({
@@ -24,6 +29,7 @@ function StepperInner({
   max = 99,
   quickValues,
   unitLabel,
+  compact = false,
 }: StepperProps) {
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -36,7 +42,7 @@ function StepperInner({
   const rowDirection = isRtl ? "row-reverse" : "row";
 
   return (
-    <View style={styles.container}>
+    <View style={compact ? undefined : styles.container}>
       {label ? (
         <Text
           variant="bodyMedium"
@@ -64,7 +70,7 @@ function StepperInner({
             onPress={() => onChange(clamp(value - 1))}
             disabled={atMin}
             hitSlop={6}
-            style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.btn, compact && styles.btnCompact, pressed && styles.pressed]}
             accessibilityRole="button"
           >
             <Text
@@ -74,8 +80,10 @@ function StepperInner({
             </Text>
           </Pressable>
 
-          <View style={styles.valueWrap}>
-            <Text style={[styles.value, { color: colors.textPrimary }]}>{value}</Text>
+          <View style={[styles.valueWrap, compact && styles.valueWrapCompact]}>
+            <Text style={[styles.value, compact && styles.valueCompact, { color: colors.textPrimary }]}>
+              {value}
+            </Text>
             {unitLabel ? (
               <Text style={[styles.unit, { color: colors.textSecondary }]}>{unitLabel}</Text>
             ) : null}
@@ -85,7 +93,7 @@ function StepperInner({
             onPress={() => onChange(clamp(value + 1))}
             disabled={atMax}
             hitSlop={6}
-            style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.btn, compact && styles.btnCompact, pressed && styles.pressed]}
             accessibilityRole="button"
           >
             <Text
@@ -158,6 +166,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  btnCompact: {
+    width: 44,
+    height: 44,
+  },
   pressed: {
     opacity: 0.5,
   },
@@ -172,9 +184,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: spacing.xs,
   },
+  valueWrapCompact: {
+    minWidth: 44,
+  },
   value: {
     fontSize: 20,
     fontWeight: "700",
+  },
+  valueCompact: {
+    fontSize: 18,
   },
   unit: {
     fontSize: 11,

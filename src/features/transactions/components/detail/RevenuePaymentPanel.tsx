@@ -297,8 +297,9 @@ export function RevenuePaymentPanel({
         </View>
       ) : null}
       <View style={styles.grid}>
-        {/* Newest month first, like the years: December leads the top row. */}
-        {[...cells].reverse().map((cell) => (
+        {/* Calendar order, January first. The row follows the app direction, so January
+            sits top-left in English and top-right in Hebrew. */}
+        {cells.map((cell) => (
           <RentMonthBox
             key={cell.monthKey}
             cell={cell}
@@ -533,9 +534,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   grid: {
-    // Follows the app direction, so Hebrew reads December from the right. Months run newest
-    // first (see the render), which the web grid does not. Only the expense chart's axis is
-    // pinned LTR.
+    // Follows the app direction, so Hebrew reads January from the right. Only the expense
+    // chart's axis is pinned LTR.
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,

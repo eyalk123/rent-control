@@ -160,6 +160,7 @@ export function AddEditPropertyScreen() {
         <FormScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
+          resetScrollKey={step}
         >
           <FieldReviewProvider items={scan?.propertyReview}>
           {/* Anchored here rather than inside FormHeader: the header is shared with the

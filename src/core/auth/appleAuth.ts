@@ -8,7 +8,6 @@ import {
   reauthenticateWithCredential,
   updateProfile,
   signInWithPopup,
-  reauthenticateWithPopup,
   AppleAuthProvider,
   OAuthProvider,
 } from '@react-native-firebase/auth';
@@ -115,22 +114,19 @@ export async function signInWithApple(language: string): Promise<boolean> {
 /**
  * Account deletion, step one, for an account that signs in with Apple. Apple requires the
  * app to revoke its tokens when the account is deleted (Guideline 5.1.1(v)), and revoking
- * needs a fresh authorization code, which only the Apple sheet can give. The same sheet also
- * satisfies Firebase's recent-login check for `user.delete()`.
+ * needs a fresh authorization code, which only the Apple sheet can give. The Firebase user
+ * itself is deleted by the backend, which needs no fresh sign-in.
  *
  * Runs before anything is deleted, so dismissing the sheet leaves the account intact.
- * Returns the code to pass to `revokeAppleToken`, null for accounts that don't use Apple, and
- * throws `{ code: 'ERR_REQUEST_CANCELED' }` when the user cancels.
+ * Returns the code to pass to `revokeAppleToken`, null for accounts that don't use Apple and
+ * on Android, and throws `{ code: 'ERR_REQUEST_CANCELED' }` when the user cancels.
  */
 export async function reauthenticateAppleForDeletion(language: string): Promise<string | null> {
   const user = getAuth().currentUser;
   if (!user || !user.providerData.some((p) => p.providerId === APPLE_PROVIDER_ID)) return null;
-  if (Platform.OS === 'android') {
-    // Satisfies Firebase's recent-login check only. Firebase's Android SDK has no Apple token
-    // revocation; Apple's revocation rule is an App Store one, and iOS and web both revoke.
-    await reauthenticateWithPopup(user, androidAppleProvider(language));
-    return null;
-  }
+  // Firebase's Android SDK has no Apple token revocation, so there is nothing to ask for;
+  // Apple's revocation rule is an App Store one, and iOS and web both revoke.
+  if (Platform.OS === 'android') return null;
   const apple = await requestAppleCredential();
   if (!apple) throw Object.assign(new Error('cancelled'), { code: 'ERR_REQUEST_CANCELED' });
   await reauthenticateWithCredential(user, apple.credential);
@@ -138,9 +134,10 @@ export async function reauthenticateAppleForDeletion(language: string): Promise<
 }
 
 /**
- * Best-effort: the account's data is already gone by the time this runs, and a failed
- * revocation must not stop the Firebase account from being deleted too. Reported to Sentry
- * so a misconfigured Apple provider in Firebase does not fail silently.
+ * Runs before the backend deletes the account: Firebase revokes on behalf of the signed-in
+ * user, so it must still exist. Best-effort — a failed revocation must not stop the account
+ * from being deleted. Reported to Sentry so a misconfigured Apple provider in Firebase does
+ * not fail silently.
  */
 export async function revokeAppleToken(authorizationCode: string | null): Promise<void> {
   if (!authorizationCode) return;

@@ -22,6 +22,7 @@ export { FormChipInput } from "./FormChipInput";
 export { LeaseTermBuilder } from "./LeaseTermBuilder";
 export { RentChangeField, RENT_ESCALATION_MODES } from "./RentChangeField";
 export { LeaseYearRow } from "./LeaseYearRow";
+export { LeaseTermRow } from "./LeaseTermRow";
 export { EscalationValueField } from "./EscalationValueField";
 export { LeaseYearAmountField } from "./LeaseYearAmountField";
 export { LeaseYearTypeText } from "./LeaseYearTypeText";

@@ -37,7 +37,6 @@ type AuthContextValue = {
   isLoaded: boolean;
   getToken: () => Promise<string | null>;
   signOut: () => Promise<void>;
-  deleteFirebaseAccount: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue>({
@@ -46,7 +45,6 @@ const AuthContext = createContext<AuthContextValue>({
   isLoaded: false,
   getToken: async () => null,
   signOut: async () => {},
-  deleteFirebaseAccount: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -81,10 +79,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     await signOut(getAuth());
   }, []);
-  const handleDeleteFirebaseAccount = useCallback(async () => {
-    if (!user) throw new Error('No authenticated user');
-    await user.delete();
-  }, [user]);
 
   const value = useMemo(
     () => ({
@@ -93,9 +87,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoaded,
       getToken,
       signOut: handleSignOut,
-      deleteFirebaseAccount: handleDeleteFirebaseAccount,
     }),
-    [user, isLoaded, getToken, handleSignOut, handleDeleteFirebaseAccount],
+    [user, isLoaded, getToken, handleSignOut],
   );
 
   return (

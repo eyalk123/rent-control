@@ -1,6 +1,9 @@
 import { Icon } from "@/src/shared/components/ui";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
+  Dimensions,
+  I18nManager,
+  Platform,
   StyleSheet,
   View,
   type StyleProp,
@@ -68,6 +71,21 @@ export function DropdownField<T extends string | number | null>({
   const dismissReview = useDismissFieldReview();
   const surface = useFieldSurface({ error: !!error, disabled });
 
+  // Under forced RTL the library mirrors the list's `left` (W - width - x), but the layer the
+  // list renders in is not mirrored, so the list opens at the field's mirror-image position.
+  // A full-width field is symmetric and never showed it; a narrower one (a lease year's rule)
+  // opened visibly off to the side. Measure the field when it opens and shift the list back.
+  // iOS uses the centred modal, which takes no `left`.
+  const anchorRef = useRef<View>(null);
+  const [listShift, setListShift] = useState(0);
+  const correctRtlShift = Platform.OS === "android" && I18nManager.isRTL;
+  const measureListShift = useCallback(() => {
+    anchorRef.current?.measureInWindow((x, _y, width) => {
+      const W = Dimensions.get("window").width;
+      setListShift(Math.round(2 * x + width - W));
+    });
+  }, []);
+
   const renderItem = useCallback(
     (item: DropdownItem<T>) => (
       <View style={[styles.itemContainer, { backgroundColor: colors.surface }]}>
@@ -106,7 +124,7 @@ export function DropdownField<T extends string | number | null>({
       reviewName={reviewName}
       style={inputStyle}
     >
-      <View style={{ direction: "ltr" }}>
+      <View ref={anchorRef} style={{ direction: "ltr" }} collapsable={false}>
       <Dropdown
         data={items}
         labelField="label"
@@ -116,6 +134,7 @@ export function DropdownField<T extends string | number | null>({
         accessibilityLabel={selectedLabel ? `${a11yName}, ${selectedLabel}` : a11yName}
         flatListProps={{ accessibilityLabel: a11yName }}
         disable={disabled}
+        onFocus={correctRtlShift ? measureListShift : undefined}
         autoScroll={false}
         {...dropdownPlacement}
         renderRightIcon={isRtl ? () => null : undefined}
@@ -155,6 +174,7 @@ export function DropdownField<T extends string | number | null>({
             borderColor: colors.outline,
           },
           dropdownListStyle,
+          listShift !== 0 ? { transform: [{ translateX: listShift }] } : null,
         ]}
         onChange={(item: DropdownItem<T>) => {
           onChange(item.value);
