@@ -106,6 +106,37 @@ export async function purchase(rcPackage: PurchasesPackage): Promise<PurchaseOut
   }
 }
 
+/**
+ * Move an existing store subscriber up to a bigger plan.
+ *
+ * iOS: buying another product in the same subscription group *is* the upgrade — Apple
+ * switches immediately and refunds the unused part of the old plan. Android: Play needs
+ * to be told which subscription is being replaced, or it sells a second one alongside;
+ * the difference is charged now (CHARGE_PRORATED_PRICE) so the new plan starts today.
+ *
+ * As with `purchase`, the plan changes only when the webhook reaches the server.
+ */
+export async function upgrade(rcPackage: PurchasesPackage): Promise<PurchaseOutcome> {
+  if (Platform.OS !== 'android') return purchase(rcPackage);
+
+  const info = await Purchases.getCustomerInfo();
+  // Play ids arrive as `subscriptionId:basePlanId`; the replacement names the subscription.
+  const current = info.activeSubscriptions[0]?.split(':')[0];
+  if (!current) return purchase(rcPackage);
+  try {
+    await Purchases.purchasePackage(rcPackage, null, {
+      oldProductIdentifier: current,
+      replacementMode: Purchases.STORE_REPLACEMENT_MODE.CHARGE_PRORATED_PRICE,
+    });
+    return 'purchased';
+  } catch (error: any) {
+    if (error?.userCancelled || error?.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+      return 'cancelled';
+    }
+    throw error;
+  }
+}
+
 // The stores' own subscription pages. Only the store can cancel a store subscription; the
 // most the app can do is open the place where the landlord does it.
 const APPLE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';

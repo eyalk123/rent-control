@@ -14,6 +14,7 @@ import {
   packageFor,
   purchase,
   restore,
+  upgrade,
   type BillingPeriod,
 } from '../purchases';
 import type { PlanId, Subscription } from '../types';
@@ -22,10 +23,13 @@ import type { PlanId, Subscription } from '../types';
  * The plan picker (mobile): where a signed-in landlord chooses a band and a billing period.
  *
  * Same rules as the web picker (`rent-control-web/.../PlansPage.tsx`), and for the same
- * reasons. **Only an account on the free plan is offered a purchase.** A paid plan came from
- * an app store, the web, or a permanent grant, and each gets an explanation instead of a
- * second checkout. Buying in-app on top of an active web subscription would bill the
- * landlord twice through two systems that know nothing about each other.
+ * reasons. **An account on the free plan is offered a purchase; an active subscriber from
+ * this device's own store is offered an upgrade** to a bigger plan, which the store treats
+ * as a change to the existing subscription rather than a second one (`upgrade` in
+ * purchases.ts). Every other paid plan — the other store, the web, a permanent grant — gets
+ * an explanation instead: buying in-app on top of it would bill the landlord twice through
+ * two systems that know nothing about each other. Downgrades and billing-period changes
+ * are left to the store's own manage screen, which handles their timing.
  *
  * **Prices come only from the store.** Apple and Google each set their own per-storefront
  * price (matched to Paddle's USD / EUR / ILS prices in the consoles), and the SDK hands them
@@ -64,9 +68,18 @@ export function PlansScreen() {
   const [restoring, setRestoring] = useState(false);
   const [activation, setActivation] = useState<Activation>('idle');
   const pollStarted = useRef<number | null>(null);
+  /** The plan an upgrade is waiting for; null when any paid plan ends the wait. */
+  const awaitedPlan = useRef<PlanId | null>(null);
 
   const canBuy = subscription?.plan === 'free';
-  const selling = PURCHASES_AVAILABLE && canBuy;
+  const storeOnThisDevice =
+    (subscription?.source === 'apple' && Platform.OS === 'ios') ||
+    (subscription?.source === 'google' && Platform.OS === 'android');
+  const canUpgrade =
+    !canBuy &&
+    storeOnThisDevice &&
+    (subscription?.status === 'active' || subscription?.status === 'trialing');
+  const selling = PURCHASES_AVAILABLE && (canBuy || canUpgrade);
 
   useEffect(() => {
     if (!selling) return;
@@ -87,7 +100,11 @@ export function PlansScreen() {
   // webhook reaches the server. Poll until it does, like the web picker's pending state.
   useEffect(() => {
     if (activation === 'idle') return;
-    if (subscription && subscription.plan !== 'free') {
+    const arrived = awaitedPlan.current
+      ? subscription?.plan === awaitedPlan.current
+      : Boolean(subscription && subscription.plan !== 'free');
+    if (subscription && arrived) {
+      awaitedPlan.current = null;
       setActivation('idle');
       pollStarted.current = null;
       appAlert('', t('subscription.plans.activated', { plan: t(`subscription.plan.${subscription.plan}`) }));
@@ -104,7 +121,8 @@ export function PlansScreen() {
     return () => clearTimeout(timer);
   }, [activation, subscription, refresh, appAlert, t]);
 
-  const startActivation = useCallback(() => {
+  const startActivation = useCallback((plan: PlanId | null = null) => {
+    awaitedPlan.current = plan;
     pollStarted.current = Date.now();
     setActivation('pending');
     void refresh();
@@ -116,14 +134,15 @@ export function PlansScreen() {
       if (!pkg) return;
       setBuying(plan);
       try {
-        if ((await purchase(pkg)) === 'purchased') startActivation();
+        const outcome = canUpgrade ? await upgrade(pkg) : await purchase(pkg);
+        if (outcome === 'purchased') startActivation(canUpgrade ? plan : null);
       } catch {
         appAlert(t('error.title'), t('subscription.plans.purchaseFailed'));
       } finally {
         setBuying(null);
       }
     },
-    [offering, period, startActivation, appAlert, t],
+    [offering, period, canUpgrade, startActivation, appAlert, t],
   );
 
   const onRestore = useCallback(async () => {
@@ -161,7 +180,7 @@ export function PlansScreen() {
         {t('subscription.plans.subtitle')}
       </Text>
 
-      <AccountBanner subscription={subscription} />
+      <AccountBanner subscription={subscription} canUpgrade={canUpgrade} />
 
       {activation !== 'idle' && (
         <View style={[styles.banner, { backgroundColor: colors.primaryBg }]} accessibilityLiveRegion="polite">
@@ -197,6 +216,7 @@ export function PlansScreen() {
             plan={plan}
             subscription={subscription}
             canBuy={canBuy}
+            canUpgrade={canUpgrade}
             price={pkg ? t(`subscription.plans.per_${period}`, { price: pkg.product.priceString }) : null}
             purchasable={Boolean(pkg) && activation === 'idle'}
             buying={buying === plan}
@@ -234,7 +254,7 @@ export function PlansScreen() {
 }
 
 /** The one sentence that frames the cards: why one is highlighted, or why nothing is for sale. */
-function AccountBanner({ subscription }: { subscription: Subscription }) {
+function AccountBanner({ subscription, canUpgrade }: { subscription: Subscription; canUpgrade: boolean }) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -250,6 +270,8 @@ function AccountBanner({ subscription }: { subscription: Subscription }) {
         : `${portfolio} ${t('subscription.plans.recommendedHint', {
             plan: t(`subscription.plan.${subscription.required_plan}`),
           })}`;
+  } else if (canUpgrade && (subscription.source === 'apple' || subscription.source === 'google')) {
+    text = t(`subscription.plans.upgradeStore.${subscription.source}`);
   } else if (subscription.source === 'apple' || subscription.source === 'google') {
     icon = 'lock';
     text = t(`subscription.settings.managedBy.${subscription.source}`);
@@ -277,6 +299,7 @@ function PlanCard({
   plan,
   subscription,
   canBuy,
+  canUpgrade,
   price,
   purchasable,
   buying,
@@ -285,6 +308,8 @@ function PlanCard({
   plan: Exclude<PlanId, 'free'>;
   subscription: Subscription;
   canBuy: boolean;
+  /** An active subscriber from this device's store; only bigger plans get a button. */
+  canUpgrade: boolean;
   /** The store's localized price for the chosen period, or null when not for sale here. */
   price: string | null;
   purchasable: boolean;
@@ -342,7 +367,7 @@ function PlanCard({
           </Text>
         )}
 
-        {canBuy && (
+        {(canBuy || (canUpgrade && RANK[plan] > RANK[subscription.plan])) && (
           <Button
             mode={purchasable ? 'contained' : 'outlined'}
             disabled={!purchasable || buying}
@@ -350,7 +375,11 @@ function PlanCard({
             onPress={onBuy}
             style={styles.buy}
           >
-            {PURCHASES_AVAILABLE ? t('subscription.plans.choose') : t('subscription.plans.storeSoon')}
+            {!PURCHASES_AVAILABLE
+              ? t('subscription.plans.storeSoon')
+              : canUpgrade
+                ? t('subscription.plans.upgrade')
+                : t('subscription.plans.choose')}
           </Button>
         )}
       </Card.Content>

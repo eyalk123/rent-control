@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Text, TextInput, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -13,8 +13,34 @@ import { ScreenContainer } from '@/src/shared/components/ui';
 import { Icon } from '@/src/shared/components/ui';
 import { spacing } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
+import { useSubscription } from '@/src/features/subscription/SubscriptionContext';
+import { manageSubscriptions } from '@/src/features/subscription/purchases';
+import type { Subscription } from '@/src/features/subscription/types';
 
 const CONFIRM_WORD = 'DELETE';
+
+/**
+ * What deleting the account does to a subscription still running. A web subscription is
+ * cancelled by the server as part of the deletion. An App Store or Play subscription cannot
+ * be cancelled by us and keeps charging unless the landlord cancels it in the store — so on
+ * that store's own device the store's manage screen is one tap away.
+ */
+function subscriptionNotice(
+  subscription: Subscription | null | undefined,
+): { key: string; canOpenStore: boolean } | null {
+  if (!subscription?.source || !subscription.status) return null;
+  if (subscription.status === 'expired' || subscription.status === 'canceled') return null;
+  if (subscription.source === 'paddle') return { key: 'settings.deleteAccountSubscriptionWeb', canOpenStore: false };
+  if (subscription.source === 'apple' || subscription.source === 'google') {
+    return {
+      key: `settings.deleteAccountSubscriptionStore.${subscription.source}`,
+      canOpenStore:
+        (subscription.source === 'apple' && Platform.OS === 'ios') ||
+        (subscription.source === 'google' && Platform.OS === 'android'),
+    };
+  }
+  return null;
+}
 
 export function DeleteAccountScreen() {
   const { t, i18n } = useTranslation();
@@ -26,6 +52,8 @@ export function DeleteAccountScreen() {
   const [loading, setLoading] = useState(false);
 
   const isConfirmed = confirmText === CONFIRM_WORD;
+  const { subscription } = useSubscription();
+  const notice = subscriptionNotice(subscription);
 
   const handleDelete = async () => {
     if (!isConfirmed) return;
@@ -62,7 +90,13 @@ export function DeleteAccountScreen() {
       setLoading(false);
 
       if (isAppleCancel(err)) return;
-      appAlert(t('error.title'), t('settings.deleteAccountFailed'));
+      // The one refusal with its own message: the web subscription could not be
+      // cancelled, so nothing was deleted and trying again is the right next step.
+      const cancelFailed = err?.response?.data?.detail === 'subscription_cancel_failed';
+      appAlert(
+        t('error.title'),
+        t(cancelFailed ? 'settings.deleteAccountCancelFailed' : 'settings.deleteAccountFailed'),
+      );
     }
   };
 
@@ -83,6 +117,19 @@ export function DeleteAccountScreen() {
         <Text variant="bodyMedium" style={styles.warningItems}>
           {t('settings.deleteAccountWarningItems')}
         </Text>
+
+        {notice && (
+          <View style={[styles.notice, { borderColor: theme.colors.outline }]} accessibilityRole="text">
+            <Text variant="bodyMedium" style={styles.noticeText}>
+              {t(notice.key)}
+            </Text>
+            {notice.canOpenStore && (
+              <Button mode="outlined" onPress={() => void manageSubscriptions()} style={styles.noticeButton}>
+                {t('subscription.settings.manage')}
+              </Button>
+            )}
+          </View>
+        )}
 
         <View style={styles.divider} />
 
@@ -142,6 +189,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     lineHeight: 24,
   },
+  notice: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: spacing.md,
+  },
+  noticeText: { lineHeight: 21 },
+  noticeButton: { marginTop: spacing.sm, alignSelf: 'flex-start' },
   divider: {
     height: 1,
     backgroundColor: '#e0e0e0',

@@ -53,6 +53,8 @@ export function PlanScreen() {
         })
       : '';
 
+  const periodLine = periodLineKey(subscription.status, subscription.current_period_end);
+
   const locked = properties.filter((p) => subscription.locked_property_ids.includes(p.id));
   const storeOnThisDevice =
     (subscription.source === 'apple' && Platform.OS === 'ios') ||
@@ -68,11 +70,9 @@ export function PlanScreen() {
           <Text variant="headlineSmall" style={styles.planName}>
             {t(`subscription.plan.${subscription.plan}`)}
           </Text>
-          {subscription.current_period_end ? (
+          {periodLine ? (
             <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
-              {t('subscription.settings.renews', {
-                date: formatDate(subscription.current_period_end),
-              })}
+              {t(periodLine, { date: formatDate(subscription.current_period_end) })}
             </Text>
           ) : null}
 
@@ -194,6 +194,21 @@ export function PlanScreen() {
       ) : null}
     </ScrollView>
   );
+}
+
+/**
+ * The line under the plan name. The date alone does not say what happens on it: a
+ * cancelled subscription keeps its plan until then and does not renew, and saying
+ * "Renews" there tells someone who cancelled that they will be charged again.
+ */
+function periodLineKey(status: string | null, end: string | null): string | null {
+  if (status === 'past_due') return 'subscription.settings.paymentIssue';
+  if (!end || status === 'paused') return null;
+  if (status === 'expired') return 'subscription.settings.ended';
+  if (status === 'canceled') {
+    return new Date(end) > new Date() ? 'subscription.settings.ends' : 'subscription.settings.ended';
+  }
+  return 'subscription.settings.renews';
 }
 
 function UsageRow({ icon, label, value }: { icon: IconName; label: string; value: string }) {
