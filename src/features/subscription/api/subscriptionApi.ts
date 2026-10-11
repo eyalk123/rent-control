@@ -14,3 +14,13 @@ export async function acknowledgeLockNotice(): Promise<void> {
   if (USE_MOCK_API) return acknowledgeLockNoticeMock();
   await apiClient.post('/subscription/lock-notice/ack');
 }
+
+/**
+ * Have the server read this account's subscription from RevenueCat now. Called after a
+ * purchase or restore: a restore of a purchase the account already owns sends no webhook,
+ * so without this the server would never hear of it.
+ */
+export async function syncSubscription(): Promise<void> {
+  if (USE_MOCK_API) return;
+  await apiClient.post('/subscription/sync');
+}

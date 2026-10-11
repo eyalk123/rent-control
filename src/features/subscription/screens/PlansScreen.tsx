@@ -8,6 +8,7 @@ import { Icon, type IconName } from '@/src/shared/components/ui';
 import { darkColors, lightColors } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { useSubscription } from '../SubscriptionContext';
+import { syncSubscription } from '@/src/features/subscription/api/subscriptionApi';
 import {
   PURCHASES_AVAILABLE,
   loadOffering,
@@ -125,7 +126,11 @@ export function PlansScreen() {
     awaitedPlan.current = plan;
     pollStarted.current = Date.now();
     setActivation('pending');
-    void refresh();
+    // Don't rely on the webhook alone: a restore that changes nothing in RevenueCat sends
+    // none. A failed sync is fine — the polling below still waits for the webhook.
+    void syncSubscription()
+      .catch(() => undefined)
+      .finally(() => void refresh());
   }, [refresh]);
 
   const buy = useCallback(

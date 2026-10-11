@@ -20,6 +20,7 @@ import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { TourScrollView } from '@/src/features/onboarding/TourScrollView';
 import { useOnReconnect } from '@/src/core/context';
+import { useTransactionSummaryContext } from '@/src/context';
 
 function getGreetingKey(): 'home.greetingMorning' | 'home.greetingAfternoon' | 'home.greetingEvening' {
   const hour = new Date().getHours();
@@ -99,6 +100,7 @@ export function HomeScreen() {
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(true);
   const isFirstLoad = useRef(true);
+  const { refresh: refreshSummary } = useTransactionSummaryContext();
 
   const fetchRecentTransactions = useCallback(async (silent = false) => {
     if (!silent) setTransactionsLoading(true);
@@ -117,7 +119,11 @@ export function HomeScreen() {
       const silent = !isFirstLoad.current;
       isFirstLoad.current = false;
       fetchRecentTransactions(silent);
-    }, [fetchRecentTransactions]),
+      // The summary provider only loads at sign-in, and saving, editing or deleting a
+      // transaction refreshes the list but not the totals, so the net profit card went stale
+      // until a pull-to-refresh. The provider already covers the first load.
+      if (silent) refreshSummary({ silent: true });
+    }, [fetchRecentTransactions, refreshSummary]),
   );
   useOnReconnect(() => fetchRecentTransactions(true));
 

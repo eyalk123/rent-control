@@ -11,7 +11,8 @@ interface TransactionSummaryContextValue {
   summaryLoading: boolean;
   /** Set when the summary request failed, so the chart can say so instead of going blank. */
   summaryError: string | null;
-  refresh: () => Promise<void>;
+  /** `silent` keeps the current totals on screen (no skeleton, no error) while it refetches. */
+  refresh: (opts?: { silent?: boolean }) => Promise<void>;
 }
 
 const TransactionSummaryContext = React.createContext<TransactionSummaryContextValue | null>(null);
@@ -23,9 +24,12 @@ export function TransactionSummaryProvider({ children }: { children: React.React
   const [summaryLoading, setSummaryLoading] = React.useState(true);
   const [summaryError, setSummaryError] = React.useState<string | null>(null);
 
-  const load = React.useCallback(async () => {
-    setSummaryLoading(true);
-    setSummaryError(null);
+  const load = React.useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent === true;
+    if (!silent) {
+      setSummaryLoading(true);
+      setSummaryError(null);
+    }
     try {
       const response = await getTransactionsSummary();
       setSixMonthBuckets(
@@ -43,9 +47,11 @@ export function TransactionSummaryProvider({ children }: { children: React.React
       // Was swallowed entirely, with the chart left blank and nothing to say why - which is
       // indistinguishable from "this month has no transactions". Keep the chart area, but
       // let it report the failure and offer a retry.
-      setSummaryError(getApiErrorMessage(err, 'error.loadSummaryFailed'));
+      // A silent refetch keeps the totals already on screen rather than swapping them for
+      // an error.
+      if (!silent) setSummaryError(getApiErrorMessage(err, 'error.loadSummaryFailed'));
     } finally {
-      setSummaryLoading(false);
+      if (!silent) setSummaryLoading(false);
     }
   }, []);
 
