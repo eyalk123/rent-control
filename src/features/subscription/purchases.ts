@@ -18,7 +18,7 @@
  * code. Without the one for this platform, purchasing is unavailable and the plans screen says
  * so — which is the state of any build made before the store apps existed in RevenueCat.
  */
-import { Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import Purchases, {
   PURCHASES_ERROR_CODE,
   type PurchasesOffering,
@@ -104,6 +104,33 @@ export async function purchase(rcPackage: PurchasesPackage): Promise<PurchaseOut
     }
     throw error;
   }
+}
+
+// The stores' own subscription pages. Only the store can cancel a store subscription; the
+// most the app can do is open the place where the landlord does it.
+const APPLE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
+const PLAY_SUBSCRIPTIONS_URL =
+  'https://play.google.com/store/account/subscriptions?package=com.eyalk123.rentcontrol';
+
+/**
+ * Open the store's manage-subscription screen. On iOS that is Apple's sheet over the app,
+ * which needs the SDK configured; without it, or if the sheet fails, the App Store's
+ * subscriptions page opens instead.
+ */
+export async function manageSubscriptions(): Promise<void> {
+  if (Platform.OS === 'ios') {
+    if (configuredFor !== null) {
+      try {
+        await Purchases.showManageSubscriptions();
+        return;
+      } catch {
+        // Fall through to the App Store page.
+      }
+    }
+    await Linking.openURL(APPLE_SUBSCRIPTIONS_URL).catch(() => {});
+    return;
+  }
+  await Linking.openURL(PLAY_SUBSCRIPTIONS_URL).catch(() => {});
 }
 
 /**

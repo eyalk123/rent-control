@@ -1579,6 +1579,7 @@
         "paddle": "Billed on the web. Manage or cancel from here, or email us.",
         "unknown": "Contact us to manage this subscription."
       },
+      "manage": "Manage subscription",
       "notEnforced": "Plan limits are not being applied yet. Nothing is restricted.",
       "upgrade": "See plans",
       "lockedList": "Locked properties",

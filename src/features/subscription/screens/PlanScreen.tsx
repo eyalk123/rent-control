@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Card, Divider, List, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -7,6 +7,7 @@ import { Icon, type IconName } from '@/src/shared/components/ui';
 import { darkColors, lightColors } from '@/src/core/theme';
 import { usePropertyContext } from '@/src/features/properties/context/PropertyContext';
 import { useSubscription } from '../SubscriptionContext';
+import { manageSubscriptions } from '../purchases';
 
 /**
  * What this account's plan is, and what of it has been used.
@@ -53,6 +54,9 @@ export function PlanScreen() {
       : '';
 
   const locked = properties.filter((p) => subscription.locked_property_ids.includes(p.id));
+  const storeOnThisDevice =
+    (subscription.source === 'apple' && Platform.OS === 'ios') ||
+    (subscription.source === 'google' && Platform.OS === 'android');
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -72,15 +76,26 @@ export function PlanScreen() {
             </Text>
           ) : null}
 
-          {/* Where the money is taken decides where cancelling happens. An App Store
-              subscription cannot be cancelled by us, so a cancel button here would be a
-              dead end — the sentence sends people to the right place instead. */}
+          {/* Where the money is taken decides where cancelling happens. A store
+              subscription cannot be cancelled by us, so the sentence says where, and on
+              the device of the store that bills it a button opens that store's own
+              manage screen. A subscription from the other store gets the sentence only. */}
           {subscription.source ? (
             <>
               <Divider style={styles.divider} />
               <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
                 {t(`subscription.settings.managedBy.${subscription.source}`)}
               </Text>
+              {storeOnThisDevice ? (
+                <Button
+                  mode="text"
+                  compact
+                  onPress={() => void manageSubscriptions()}
+                  style={styles.manage}
+                >
+                  {t('subscription.settings.manage')}
+                </Button>
+              ) : null}
             </>
           ) : null}
 
@@ -212,6 +227,7 @@ const styles = StyleSheet.create({
   divider: { marginVertical: 12 },
   note: { marginTop: 10, fontStyle: 'italic' },
   seePlans: { marginTop: 14, alignSelf: 'flex-start' },
+  manage: { marginTop: 6, alignSelf: 'flex-start', marginStart: -8 },
   usageRow: {
     flexDirection: 'row',
     alignItems: 'center',
