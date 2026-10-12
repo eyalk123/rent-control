@@ -16,6 +16,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   View,
   type StyleProp,
   type ViewStyle,
@@ -30,8 +31,6 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { MultiSelect } from 'react-native-element-dropdown';
-
-const CREATE_NEW_VALUE = '__create_new__';
 
 interface CategoryMultiPickerFieldProps {
   value: number[];
@@ -66,29 +65,19 @@ export function CategoryMultiPickerField({
 
   const stringValue = useMemo(() => value.map((v) => String(v)), [value]);
 
-  // Only show unselected categories, alphabetically by their translated name (the backend's
-  // `sort_order` is a curated order over keys, unrelated to what is displayed here); always
-  // append the "Create new" action row.
-  const availableData = useMemo(() => {
-    const unselected = sortOptions(
-      categories
-        .filter((cat) => !stringValue.includes(String(cat.id)))
-        .map((cat) => ({
-          label: getCategoryDisplayName(cat, t),
-          value: String(cat.id),
-        })),
+  // Every category, alphabetically by its translated name (the backend's `sort_order` is a
+  // curated order over keys, unrelated to what is displayed here). Selected ones stay in the
+  // list with a check, so the open list shows what is already chosen.
+  const options = useMemo(
+    () => sortOptions(
+      categories.map((cat) => ({
+        label: getCategoryDisplayName(cat, t),
+        value: String(cat.id),
+      })),
       language,
-    );
-    return [
-      ...unselected,
-      {
-        label: t('suppliers.createNewCategory', {
-          defaultValue: 'Create new category...',
-        }),
-        value: CREATE_NEW_VALUE,
-      },
-    ];
-  }, [categories, stringValue, t, language]);
+    ),
+    [categories, t, language],
+  );
 
   // Chips follow the same alphabetical order as the list, not selection order.
   const selectedCategories = useMemo(
@@ -101,15 +90,13 @@ export function CategoryMultiPickerField({
     [categories, stringValue, t, language],
   );
 
+  // The library hands back the whole selection with the tapped row toggled.
   const handleChange = (strings: string[]) => {
-    if (strings.includes(CREATE_NEW_VALUE)) {
-      setCreateModalVisible(true);
-      return;
-    }
-    const newIds = categories
-      .filter((cat) => strings.includes(String(cat.id)))
-      .map((cat) => cat.id);
-    onChange([...value, ...newIds]);
+    onChange(
+      categories
+        .filter((cat) => strings.includes(String(cat.id)))
+        .map((cat) => cat.id),
+    );
   };
 
   const handleUnselect = (id: number) => {
@@ -141,57 +128,33 @@ export function CategoryMultiPickerField({
   };
 
   const renderItem = useCallback(
-    (item: { label: string; value: string }) => {
-      const isCreate = item.value === CREATE_NEW_VALUE;
-      return (
-        <View
+    (item: { label: string; value: string }, selected?: boolean) => (
+      <View
+        accessibilityState={{ selected: !!selected }}
+        style={[
+          styles.itemContainer,
+          // The wrapper is forced LTR for the library, so RTL is laid out by hand here.
+          { flexDirection: isRtl ? 'row-reverse' : 'row' },
+          // A selected row shows the library's `activeColor` behind it.
+          { backgroundColor: selected ? 'transparent' : colors.surface },
+        ]}
+      >
+        <Text
           style={[
-            styles.itemContainer,
-            isCreate && styles.createItem,
-            { backgroundColor: colors.surface },
+            styles.itemText,
+            rtlInputStyle,
+            {
+              textAlign: isRtl ? 'right' : 'left',
+              color: colors.textPrimary,
+              fontWeight: selected ? '600' : '400',
+            },
           ]}
         >
-          {isCreate ? (
-            <View
-              style={[
-                styles.itemRow,
-                { flexDirection: isRtl ? 'row-reverse' : 'row' },
-              ]}
-            >
-              <Icon name="plus" size={16} color={colors.primary} />
-              <Text
-                style={[
-                  styles.itemText,
-                  rtlInputStyle,
-                  {
-                    textAlign: isRtl ? 'right' : 'left',
-                    color: colors.primary,
-                    fontWeight: '600',
-                    marginHorizontal: 8,
-                  },
-                ]}
-              >
-                {item.label}
-              </Text>
-            </View>
-          ) : (
-            <Text
-              style={[
-                styles.itemText,
-                rtlInputStyle,
-                {
-                  textAlign: isRtl ? 'right' : 'left',
-                  width: '100%',
-                  color: colors.textPrimary,
-                },
-              ]}
-            >
-              {item.label}
-            </Text>
-          )}
-        </View>
-      );
-    },
+          {item.label}
+        </Text>
+        {selected ? <Icon name="check" size={18} color={colors.primary} /> : null}
+      </View>
+    ),
     [colors.surface, colors.primary, colors.textPrimary, isRtl, rtlInputStyle],
   );
 
@@ -199,10 +162,10 @@ export function CategoryMultiPickerField({
     <FormField label={label} required={required} error={error} style={inputStyle}>
       <View style={{ direction: 'ltr' }}>
         <MultiSelect
-          data={availableData}
+          data={options}
           labelField="label"
           valueField="value"
-          value={[]}
+          value={stringValue}
           placeholder={
             loading
               ? t('common.loading', { defaultValue: 'Loading…' })
@@ -280,6 +243,20 @@ export function CategoryMultiPickerField({
           ))}
         </ScrollView>
       ) : null}
+
+      {/* Same "+ New …" link as the supplier and owner pickers, but it opens a small dialog:
+          a category is only a name, so it does not need a screen of its own. */}
+      <TouchableOpacity
+        style={styles.addLink}
+        onPress={() => setCreateModalVisible(true)}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        accessibilityRole="button"
+      >
+        <Icon name="plus" size={16} color={colors.primary} />
+        <Text variant="labelLarge" style={{ color: colors.primary }}>
+          {t('suppliers.newCategory')}
+        </Text>
+      </TouchableOpacity>
 
       <Portal>
         <KeyboardAvoidingView
@@ -377,18 +354,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   itemContainer: {
+    alignItems: 'center',
+    gap: 8,
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
-  itemRow: {
-    alignItems: 'center',
-  },
-  createItem: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0,0,0,0.08)',
-  },
   itemText: {
+    flex: 1,
     fontSize: 16,
+  },
+  addLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: 4,
+    paddingTop: 6,
   },
   chipsScroll: {
     maxHeight: CHIP_ROW_HEIGHT * MAX_CHIP_ROWS + CHIP_GAP * (MAX_CHIP_ROWS - 1),

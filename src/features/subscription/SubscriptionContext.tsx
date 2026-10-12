@@ -20,6 +20,7 @@ import React, {
   useState,
   type PropsWithChildren,
 } from 'react';
+import { AppState } from 'react-native';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useOnReconnect } from '@/src/core/context';
 import { acknowledgeLockNotice, getSubscription } from './api/subscriptionApi';
@@ -71,6 +72,17 @@ export function SubscriptionProvider({ children }: PropsWithChildren) {
   useOnReconnect(() => {
     if (isLoaded) void refresh();
   });
+
+  // The plan changes on the server while the app sits in the background — a renewal, a
+  // cancellation made in the store's settings, an expiry. Without this, an app left open
+  // across one shows yesterday's plan until it is restarted.
+  useEffect(() => {
+    if (!isLoaded) return;
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refresh();
+    });
+    return () => sub.remove();
+  }, [isLoaded, refresh]);
 
   // The store SDK buys for whoever is signed in, identified by Firebase UID — see
   // purchases.ts for why an anonymous id would lose the purchase.

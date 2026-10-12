@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Card, Divider, List, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Icon, type IconName } from '@/src/shared/components/ui';
 import { darkColors, lightColors } from '@/src/core/theme';
 import { usePropertyContext } from '@/src/features/properties/context/PropertyContext';
@@ -25,7 +25,16 @@ export function PlanScreen() {
   const theme = useTheme();
   const router = useRouter();
   const colors = theme.dark ? darkColors : lightColors;
-  const { subscription, loading } = useSubscription();
+  const { subscription, loading, refresh } = useSubscription();
+
+  // Opening this screen is asking "what is my plan now"; answer from the server, not from
+  // whatever was fetched when the app started.
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
+
   const { properties } = usePropertyContext();
 
   if (loading) {

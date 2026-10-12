@@ -857,7 +857,7 @@
     "addCategory": "Add category",
     "createCategory": "Category name",
     "createCategoryTitle": "Create new category",
-    "createNewCategory": "Create new category...",
+    "newCategory": "New category",
     "details": "Supplier details",
     "updateSupplier": "Update Supplier",
     "saveSupplier": "Save Supplier",
