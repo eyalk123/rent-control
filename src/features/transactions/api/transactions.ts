@@ -51,6 +51,8 @@ export type TransactionsListParams = {
   type?: 'revenue' | 'expense';
   propertyId?: number;
   renterId?: number;
+  categoryId?: number;
+  supplierId?: number;
   search?: string;
   limit?: number;
   offset?: number;
@@ -81,6 +83,8 @@ export async function getTransactions(
       type: params.type,
       property_id: params.propertyId,
       renter_id: params.renterId,
+      category_id: params.categoryId,
+      supplier_id: params.supplierId,
       q: params.search,
       limit: params.limit,
       offset: params.offset,

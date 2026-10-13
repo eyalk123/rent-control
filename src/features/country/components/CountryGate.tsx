@@ -407,6 +407,7 @@ export function CountryGate() {
             the same control the rest of the forms use.
           */}
           <DropdownField
+            searchable
             label={t('country.currencyLabel')}
             data={currencyItems}
             value={currencyValue || null}

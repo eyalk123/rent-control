@@ -76,6 +76,7 @@ export function PropertyOwnerPicker({
   return (
     <View>
       <DropdownField
+        searchable
         data={data}
         value={record ? record.name : null}
         onChange={(v) => onChange(v ?? '')}

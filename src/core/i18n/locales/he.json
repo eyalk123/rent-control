@@ -581,6 +581,8 @@
     "clearOne": "נקה סינון {{name}}"
   },
   "common": {
+    "search": "חיפוש",
+    "selectAll": "בחר הכל",
     "fileOpenFailed": "לא ניתן לפתוח את הקובץ. נסו שוב.",
     "keyboardDone": "סיום",
     "back": "חזרה",

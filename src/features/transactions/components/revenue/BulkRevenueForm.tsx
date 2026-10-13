@@ -78,7 +78,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   const dateOfPayment = dateForm.watch('dateOfPayment');
 
   // This filter renders a raw Dropdown rather than DropdownField, so it sorts its own owners.
-  const ownerOptions = useMemo<{ label: string; value: string | null }[]>(() => {
+  const ownerOptions = useMemo<{ label: string; value: string | null; pinned?: boolean }[]>(() => {
     const owners = sortLabels(
       Array.from(
         new Set(
@@ -93,6 +93,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
       {
         label: t('transactions.bulkRevenue.allOwners', { defaultValue: 'All owners' }),
         value: null,
+        pinned: true,
       },
       ...owners.map((o) => ({ label: o, value: o })),
     ];

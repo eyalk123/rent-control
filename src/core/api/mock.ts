@@ -868,6 +868,8 @@ export const mockTransactionsApi = {
     type?: 'revenue' | 'expense';
     propertyId?: number;
     renterId?: number;
+    categoryId?: number;
+    supplierId?: number;
     search?: string;
     limit?: number;
     offset?: number;
@@ -881,6 +883,13 @@ export const mockTransactionsApi = {
     }
     if (params.renterId != null) {
       list = list.filter((t) => t.renter_id === params.renterId);
+    }
+    if (params.categoryId != null) {
+      const id = params.categoryId;
+      list = list.filter((t) => t.category_id === id || t.category_ids?.includes(id));
+    }
+    if (params.supplierId != null) {
+      list = list.filter((t) => t.supplier_id === params.supplierId);
     }
     if (params.search?.trim()) {
       const q = params.search.toLowerCase().trim();

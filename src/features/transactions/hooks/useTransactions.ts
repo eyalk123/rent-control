@@ -83,8 +83,11 @@ export function useExpenseCategories() {
  * Every active supplier. The expense form used to load only the suppliers of the chosen
  * categories, so a supplier outside them could not be picked at all; now it shows all of
  * them, the matching ones first, and warns on save instead (see SupplierPicker).
+ *
+ * `includeInactive` adds deactivated ones too - for filtering, where a supplier no longer
+ * in use still has past expenses to find.
  */
-export function useSuppliers() {
+export function useSuppliers({ includeInactive = false }: { includeInactive?: boolean } = {}) {
   const { t } = useTranslation();
   const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -98,7 +101,7 @@ export function useSuppliers() {
       setLoading(true);
       setError(null);
       try {
-        const list = await getSuppliers({ includeInactive: false });
+        const list = await getSuppliers({ includeInactive });
         if (!cancelled) setSuppliers(list);
       } catch (err) {
         if (!cancelled) {
@@ -115,7 +118,7 @@ export function useSuppliers() {
     return () => {
       cancelled = true;
     };
-  }, [reloadCount, t]);
+  }, [reloadCount, includeInactive, t]);
 
   return { suppliers, loading, error, reload };
 }

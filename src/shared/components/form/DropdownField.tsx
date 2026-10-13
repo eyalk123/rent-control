@@ -18,6 +18,7 @@ import { sortOptions } from "@/src/shared/utils/sortOptions";
 import { useDismissFieldReview } from "./FieldReviewContext";
 import { FormField } from "./FormField";
 import { dropdownListStyle, dropdownPlacement } from "./dropdownPlacement";
+import { useDropdownSearch } from "./dropdownSearch";
 import { useFieldSurface } from "./fieldSurface";
 
 export type DropdownItem<T extends string | number | null = string> = {
@@ -44,6 +45,11 @@ interface DropdownFieldProps<T extends string | number | null> {
    * given order carries meaning (payment method/frequency, lease rule modes, periods).
    */
   sorted?: boolean;
+  /**
+   * Open as a centred list with a search box (see useDropdownSearch). For options that come
+   * from the user's own data, which can grow long; fixed short lists leave it off.
+   */
+  searchable?: boolean;
 }
 
 export function DropdownField<T extends string | number | null>({
@@ -58,6 +64,7 @@ export function DropdownField<T extends string | number | null>({
   required,
   reviewName,
   sorted = true,
+  searchable = false,
 }: DropdownFieldProps<T>) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -70,15 +77,16 @@ export function DropdownField<T extends string | number | null>({
   );
   const dismissReview = useDismissFieldReview();
   const surface = useFieldSurface({ error: !!error, disabled });
+  const search = useDropdownSearch(items, searchable);
 
   // Under forced RTL the library mirrors the list's `left` (W - width - x), but the layer the
   // list renders in is not mirrored, so the list opens at the field's mirror-image position.
   // A full-width field is symmetric and never showed it; a narrower one (a lease year's rule)
   // opened visibly off to the side. Measure the field when it opens and shift the list back.
-  // iOS uses the centred modal, which takes no `left`.
+  // iOS and searchable lists use the centred modal, which takes no `left`.
   const anchorRef = useRef<View>(null);
   const [listShift, setListShift] = useState(0);
-  const correctRtlShift = Platform.OS === "android" && I18nManager.isRTL;
+  const correctRtlShift = Platform.OS === "android" && I18nManager.isRTL && !searchable;
   const measureListShift = useCallback(() => {
     anchorRef.current?.measureInWindow((x, _y, width) => {
       const W = Dimensions.get("window").width;
@@ -86,25 +94,36 @@ export function DropdownField<T extends string | number | null>({
     });
   }, []);
 
+  // The chosen option is marked with a check, and its row is left transparent so the
+  // library's `activeColor` shows behind it.
   const renderItem = useCallback(
-    (item: DropdownItem<T>) => (
-      <View style={[styles.itemContainer, { backgroundColor: colors.surface }]}>
+    (item: DropdownItem<T>, selected?: boolean) => (
+      <View
+        accessibilityState={{ selected: !!selected }}
+        style={[
+          styles.itemContainer,
+          // The wrapper is forced LTR for the library, so RTL is laid out by hand here.
+          { flexDirection: isRtl ? "row-reverse" : "row" },
+          { backgroundColor: selected ? "transparent" : colors.surface },
+        ]}
+      >
         <Text
           style={[
             styles.itemText,
             rtlInputStyle,
             {
               textAlign: isRtl ? "right" : "left",
-              width: "100%",
               color: colors.textPrimary,
+              fontWeight: selected ? "600" : "400",
             },
           ]}
         >
           {item.label}
         </Text>
+        {selected ? <Icon name="check" size={18} color={colors.primary} /> : null}
       </View>
     ),
-    [colors.surface, colors.textPrimary, isRtl, rtlInputStyle],
+    [colors.surface, colors.primary, colors.textPrimary, isRtl, rtlInputStyle],
   );
 
   const resolvedPlaceholder =
@@ -137,6 +156,8 @@ export function DropdownField<T extends string | number | null>({
         onFocus={correctRtlShift ? measureListShift : undefined}
         autoScroll={false}
         {...dropdownPlacement}
+        {...search.props}
+        activeColor={colors.inputFilledBackground}
         renderRightIcon={isRtl ? () => null : undefined}
         renderLeftIcon={
           isRtl
@@ -174,6 +195,7 @@ export function DropdownField<T extends string | number | null>({
             borderColor: colors.outline,
           },
           dropdownListStyle,
+          search.listStyle,
           listShift !== 0 ? { transform: [{ translateX: listShift }] } : null,
         ]}
         onChange={(item: DropdownItem<T>) => {
@@ -200,10 +222,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   itemContainer: {
+    alignItems: "center",
+    gap: 8,
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
   itemText: {
+    flex: 1,
     fontSize: 16,
   },
 });

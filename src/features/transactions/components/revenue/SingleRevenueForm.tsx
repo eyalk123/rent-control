@@ -55,6 +55,7 @@ export function SingleRevenueForm({
           name="propertyId"
           render={({ field: { value, onChange } }) => (
             <DropdownField
+              searchable
               data={propertyData}
               value={value}
               onChange={onChange}

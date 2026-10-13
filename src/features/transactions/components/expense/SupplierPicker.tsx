@@ -80,6 +80,7 @@ export function SupplierPicker({
   return (
     <View>
       <DropdownField
+        searchable
         required={required}
         data={data}
         value={value}

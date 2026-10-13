@@ -5,13 +5,15 @@ import { useTranslation } from 'react-i18next';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Icon } from '@/src/shared/components/ui';
 import { dropdownListStyle, dropdownPlacement } from '@/src/shared/components/form/dropdownPlacement';
+import { useDropdownSearch } from '@/src/shared/components/form/dropdownSearch';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { useLanguageContext, useRtlInputStyle, useRtlLabelStyle } from '@/src/context';
 import type { TimePeriodType } from '@/src/features/transactions/screens/types';
 import { MonthGridPicker } from './MonthGridPicker';
 import { generatePeriodOptions } from './periodHelpers';
 
-type OwnerOption = { label: string; value: string | null };
+/** `pinned` keeps "All owners" in the list whatever is searched. */
+type OwnerOption = { label: string; value: string | null; pinned?: boolean };
 
 type BulkRevenueOwnerFilterProps = {
   ownerOptions: OwnerOption[];
@@ -96,6 +98,8 @@ export function BulkRevenueOwnerFilter({
   const colors = theme.dark ? darkColors : lightColors;
   const rtlLabelStyle = useRtlLabelStyle();
   const dropdownTheme = useDropdownTheme();
+  // Owners are the user's own data, so this one searches; the period filter beside it does not.
+  const search = useDropdownSearch(ownerOptions);
 
   if (ownerOptions.length <= 1) return null;
 
@@ -125,6 +129,8 @@ export function BulkRevenueOwnerFilter({
             accessibilityLabel: t('transactions.bulkRevenue.ownerFilter', { defaultValue: 'Owner' }),
           }}
           {...dropdownTheme}
+          {...search.props}
+          containerStyle={[...dropdownTheme.containerStyle, search.listStyle]}
         />
       </View>
     </View>

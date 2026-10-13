@@ -16,6 +16,7 @@ import { sortOptions } from "@/src/shared/utils/sortOptions";
 import type { DropdownItem } from "./DropdownField";
 import { FormField } from "./FormField";
 import { dropdownListStyle, dropdownPlacement } from "./dropdownPlacement";
+import { useDropdownSearch } from "./dropdownSearch";
 import { useFieldSurface } from "./fieldSurface";
 
 const SELECT_ALL_VALUE = "__select_all__";
@@ -30,6 +31,8 @@ interface MultiSelectFieldProps<T extends string | number> {
   disabled?: boolean;
   inputStyle?: StyleProp<ViewStyle>;
   required?: boolean;
+  /** Open as a centred list with a search box (see useDropdownSearch). */
+  searchable?: boolean;
 }
 
 export function MultiSelectField<T extends string | number>({
@@ -42,6 +45,7 @@ export function MultiSelectField<T extends string | number>({
   disabled = false,
   inputStyle,
   required,
+  searchable = false,
 }: MultiSelectFieldProps<T>) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -52,35 +56,41 @@ export function MultiSelectField<T extends string | number>({
 
   const stringValue = useMemo(() => value.map((v) => String(v)), [value]);
 
-  // Only show unselected items, alphabetically; prepend Select All when there are items to add
-  const availableData = useMemo(() => {
-    const unselected = sortOptions(
-      data
-        .filter((item) => !stringValue.includes(String(item.value)))
-        .map((item) => ({ label: item.label, value: String(item.value) })),
+  // Every item, alphabetically, the selected ones marked with a check so the open list shows
+  // what is already chosen. Select All goes on top while anything is left to add. It is not
+  // `pinned`, so a search hides it: it would select everything, not just the matches.
+  const options = useMemo(() => {
+    const all = sortOptions(
+      data.map((item) => ({ label: item.label, value: String(item.value) })),
       language,
     );
-    if (unselected.length === 0) return [];
+    if (all.every((item) => stringValue.includes(item.value))) return all;
     return [
-      { label: t("common.selectAll", { defaultValue: "Select All" }), value: SELECT_ALL_VALUE },
-      ...unselected,
+      {
+        label: t("common.selectAll", { defaultValue: "Select All" }),
+        value: SELECT_ALL_VALUE,
+      },
+      ...all,
     ];
   }, [data, stringValue, t, language]);
+  const search = useDropdownSearch(options, searchable);
 
   const selectedItems = useMemo(
     () => sortOptions(data.filter((item) => stringValue.includes(String(item.value))), language),
     [data, stringValue, language],
   );
 
+  // The library hands back the whole selection with the tapped row toggled.
   const handleChange = (strings: string[]) => {
     if (strings.includes(SELECT_ALL_VALUE)) {
       onChange(data.map((d) => d.value));
       return;
     }
-    const newValues = data
-      .filter((item) => strings.includes(String(item.value)))
-      .map((item) => item.value);
-    onChange([...value, ...newValues]);
+    onChange(
+      data
+        .filter((item) => strings.includes(String(item.value)))
+        .map((item) => item.value),
+    );
   };
 
   const handleUnselect = (strVal: string) => {
@@ -88,27 +98,36 @@ export function MultiSelectField<T extends string | number>({
   };
 
   const renderItem = useCallback(
-    (item: { label: string; value: string }) => (
-      <View style={[styles.itemContainer, { backgroundColor: colors.surface }]}>
-        <Text
+    (item: { label: string; value: string }, selected?: boolean) => {
+      const isSelectAll = item.value === SELECT_ALL_VALUE;
+      return (
+        <View
+          accessibilityState={isSelectAll ? undefined : { selected: !!selected }}
           style={[
-            styles.itemText,
-            rtlInputStyle,
-            {
-              textAlign: isRtl ? "right" : "left",
-              width: "100%",
-              color:
-                item.value === SELECT_ALL_VALUE
-                  ? colors.primary
-                  : colors.textPrimary,
-              fontWeight: item.value === SELECT_ALL_VALUE ? "600" : "400",
-            },
+            styles.itemContainer,
+            // The wrapper is forced LTR for the library, so RTL is laid out by hand here.
+            { flexDirection: isRtl ? "row-reverse" : "row" },
+            // A selected row shows the library's `activeColor` behind it.
+            { backgroundColor: selected ? "transparent" : colors.surface },
           ]}
         >
-          {item.label}
-        </Text>
-      </View>
-    ),
+          <Text
+            style={[
+              styles.itemText,
+              rtlInputStyle,
+              {
+                textAlign: isRtl ? "right" : "left",
+                color: isSelectAll ? colors.primary : colors.textPrimary,
+                fontWeight: isSelectAll || selected ? "600" : "400",
+              },
+            ]}
+          >
+            {item.label}
+          </Text>
+          {selected ? <Icon name="check" size={18} color={colors.primary} /> : null}
+        </View>
+      );
+    },
     [colors.surface, colors.primary, colors.textPrimary, isRtl, rtlInputStyle],
   );
 
@@ -122,15 +141,16 @@ export function MultiSelectField<T extends string | number>({
     <FormField label={label} required={required} error={error} style={inputStyle}>
       <View style={{ direction: "ltr" }}>
         <MultiSelect
-          data={availableData}
+          data={options}
           labelField="label"
           valueField="value"
-          value={[]}
+          value={stringValue}
           placeholder={resolvedPlaceholder}
           accessibilityLabel={a11yName}
           flatListProps={{ accessibilityLabel: a11yName }}
           disable={disabled}
           {...dropdownPlacement}
+          {...search.props}
           renderRightIcon={isRtl ? () => null : undefined}
           renderLeftIcon={
             isRtl
@@ -168,6 +188,7 @@ export function MultiSelectField<T extends string | number>({
               borderColor: colors.outline,
             },
             dropdownListStyle,
+            search.listStyle,
           ]}
           activeColor={colors.inputFilledBackground}
           onChange={handleChange}
@@ -220,10 +241,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   itemContainer: {
+    alignItems: "center",
+    gap: 8,
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
   itemText: {
+    flex: 1,
     fontSize: 16,
   },
   chipsScroll: {

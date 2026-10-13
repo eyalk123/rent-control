@@ -8,6 +8,7 @@ import { getCategoryDisplayName } from '@/src/features/transactions/utils/catego
 import { sortOptions } from '@/src/shared/utils/sortOptions';
 import { FormField } from './FormField';
 import { dropdownListStyle, dropdownPlacement } from './dropdownPlacement';
+import { useDropdownSearch } from './dropdownSearch';
 import { useFieldSurface } from './fieldSurface';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -78,6 +79,7 @@ export function CategoryMultiPickerField({
     ),
     [categories, t, language],
   );
+  const search = useDropdownSearch(options);
 
   // Chips follow the same alphabetical order as the list, not selection order.
   const selectedCategories = useMemo(
@@ -177,6 +179,7 @@ export function CategoryMultiPickerField({
           accessibilityLabel={label ?? t('common.selectItem')}
           flatListProps={{ accessibilityLabel: label ?? t('common.selectItem') }}
           {...dropdownPlacement}
+          {...search.props}
           renderRightIcon={isRtl ? () => null : undefined}
           renderLeftIcon={
             isRtl
@@ -214,6 +217,7 @@ export function CategoryMultiPickerField({
               borderColor: colors.outline,
             },
             dropdownListStyle,
+            search.listStyle,
           ]}
           activeColor={colors.inputFilledBackground}
           onChange={handleChange}

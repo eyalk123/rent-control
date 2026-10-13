@@ -90,6 +90,7 @@ export function TransactionsListScreen() {
     error,
     loadMore,
     refresh,
+    serverFilters,
   } = usePaginatedTransactionContext();
 
   const { sixMonthBuckets, heroBucket, summaryLoading, summaryError, refresh: refreshSummary } =
@@ -155,7 +156,11 @@ export function TransactionsListScreen() {
     );
   }
 
-  if (transactions.length === 0) {
+  // Under a server filter an empty list means "nothing matches", not "no transactions yet" -
+  // and this screen has no filter bar, so it would leave no way to clear the filter.
+  const serverFiltered = serverFilters.categoryId !== null || serverFilters.supplierId !== null;
+
+  if (transactions.length === 0 && !serverFiltered) {
     return (
       <ScreenContainer edges={['top', 'left', 'right']}>
         <View style={styles.emptyTitleRow}>

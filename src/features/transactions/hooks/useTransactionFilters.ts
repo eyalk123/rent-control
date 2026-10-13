@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePropertyContext, useLanguageContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
+import { useExpenseCategories, useSuppliers } from '@/src/features/transactions/hooks/useTransactions';
+import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
 import {
   bucketByMonth,
   currentMonthKey,
@@ -17,14 +19,23 @@ export function useTransactionFilters() {
   const { t } = useTranslation();
   const { language } = useLanguageContext();
   const locale = language === 'he' ? 'he-IL' : 'en-US';
-  const { transactions, hasMore } = usePaginatedTransactionContext();
+  const {
+    transactions,
+    hasMore,
+    serverFilters,
+    setCategoryFilter,
+    setSupplierFilter,
+  } = usePaginatedTransactionContext();
   const { properties } = usePropertyContext();
+  const { categories } = useExpenseCategories();
+  const { suppliers } = useSuppliers({ includeInactive: true });
 
   const [propertyFilter, setPropertyFilter] = useState<number | null>(null);
   const [renterFilter, setRenterFilter] = useState<number | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<number | null>(null);
-  const [supplierFilter, setSupplierFilter] = useState<number | null>(null);
+  // Category and supplier are filtered by the server (see PaginatedTransactionContext), so
+  // they live there rather than here.
+  const { categoryId: categoryFilter, supplierId: supplierFilter } = serverFilters;
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
 
@@ -55,28 +66,33 @@ export function useTransactionFilters() {
     return [...seen].map((o) => ({ id: o, label: o }));
   }, [properties]);
 
+  // Every category and supplier the account has, not only those on the pages loaded so
+  // far - the server does the filtering, so a match need not be on screen yet. Ones seen
+  // on loaded rows are added too, which covers a category that has since been deactivated.
   const categoryOptions = useMemo<FilterOption[]>(() => {
     const seen = new Map<number, string>();
+    for (const c of categories) seen.set(c.id, getCategoryDisplayName(c, t));
     for (const tx of transactions) {
       if (tx.category_id !== null && tx.category_name && !seen.has(tx.category_id)) {
-        seen.set(tx.category_id, tx.category_name);
+        seen.set(
+          tx.category_id,
+          t(`expenseCategories.${tx.category_name}`, { defaultValue: tx.category_name }),
+        );
       }
     }
-    return [...seen.entries()].map(([id, rawName]) => ({
-      id,
-      label: t(`expenseCategories.${rawName}`, { defaultValue: rawName }),
-    }));
-  }, [transactions, t]);
+    return [...seen.entries()].map(([id, label]) => ({ id, label }));
+  }, [categories, transactions, t]);
 
   const supplierOptions = useMemo<FilterOption[]>(() => {
     const seen = new Map<number, string>();
+    for (const s of suppliers) seen.set(s.id, s.name);
     for (const tx of transactions) {
       if (tx.supplier_id !== null && tx.supplier_name && !seen.has(tx.supplier_id)) {
         seen.set(tx.supplier_id, tx.supplier_name);
       }
     }
     return [...seen.entries()].map(([id, label]) => ({ id, label }));
-  }, [transactions]);
+  }, [suppliers, transactions]);
 
   const ownerByPropertyId = useMemo(() => {
     const m = new Map<number, string>();
@@ -92,7 +108,13 @@ export function useTransactionFilters() {
       if (propertyFilter !== null && tx.property_id !== propertyFilter) return false;
       if (renterFilter !== null && tx.renter_id !== renterFilter) return false;
       if (ownerFilter !== null && ownerByPropertyId.get(tx.property_id) !== ownerFilter) return false;
-      if (categoryFilter !== null && tx.category_id !== categoryFilter) return false;
+      // The server already applied these two; repeating them here narrows the rows still
+      // on screen from before the filter changed, until the filtered page arrives.
+      if (
+        categoryFilter !== null &&
+        tx.category_id !== categoryFilter &&
+        !tx.category_ids?.includes(categoryFilter)
+      ) return false;
       if (supplierFilter !== null && tx.supplier_id !== supplierFilter) return false;
       return true;
     });
@@ -162,7 +184,8 @@ export function useTransactionFilters() {
       onClear: () => setSupplierFilter(null),
     },
   ], [t, propertyOptions, renterOptions, categoryOptions, supplierOptions,
-      propertyFilter, renterFilter, ownerFilter, categoryFilter, supplierFilter]);
+      propertyFilter, renterFilter, ownerFilter, categoryFilter, supplierFilter,
+      setCategoryFilter, setSupplierFilter]);
 
   return {
     propertyFilter,

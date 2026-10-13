@@ -30,7 +30,7 @@ export function RenterPicker({
   const { t } = useTranslation();
   const { renters } = useRenterContext();
 
-  const data = useMemo<{ label: string; value: number | null }[]>(() => {
+  const data = useMemo<{ label: string; value: number | null; pinned?: boolean }[]>(() => {
     const filtered = renters.filter(
       (r) => propertyId == null || r.property_id === propertyId,
     );
@@ -39,12 +39,13 @@ export function RenterPicker({
       value: r.id as number,
     }));
     return allowNone
-      ? [{ label: t("renter.unassigned"), value: null }, ...items]
+      ? [{ label: t("renter.unassigned"), value: null, pinned: true }, ...items]
       : items;
   }, [allowNone, propertyId, renters, t]);
 
   return (
     <DropdownField
+      searchable
       required={required}
       data={data}
       value={value}

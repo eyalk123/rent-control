@@ -113,6 +113,7 @@ export function ExpenseForm({
             name="propertyIds"
             render={({ field: { value, onChange } }) => (
               <MultiSelectField
+                searchable
                 data={propertyData}
                 value={value}
                 onChange={(ids) => {

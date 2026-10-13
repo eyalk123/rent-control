@@ -209,6 +209,7 @@ export function ScanSummaryScreen() {
 
           <View style={{ marginTop: spacing.sm }}>
             <DropdownField
+              searchable
               data={propertyData}
               value={targetPropertyId}
               onChange={onPickProperty}

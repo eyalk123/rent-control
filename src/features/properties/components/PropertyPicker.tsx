@@ -38,6 +38,7 @@ export function PropertyPicker({
 
   return (
     <DropdownField
+      searchable
       required={required}
       data={data}
       value={value}
