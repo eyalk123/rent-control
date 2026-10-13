@@ -22,6 +22,9 @@ import {
 } from '@/src/shared/types';
 import {
   dueMonthsWithin,
+  isWithinLease,
+  leaseContractYearsForRenters,
+  leaseMonthsForRenters,
   paymentIntervalMonths,
 } from '@/src/features/transactions/utils/rentSchedule';
 import { PAYMENT_METHOD_VALUES } from '@/src/shared/constants/paymentMethods';
@@ -144,19 +147,64 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
     });
   };
 
-  /**
-   * The months the chosen period covers for one renter, before cadence is applied.
-   * Shared by the submit path and the per-renter note so the two cannot drift apart.
-   */
-  const periodMonthsFor = (r: Renter): string[] =>
-    periodType === 'year'
+  // The period pickers offer only what the leases cover: the checked renters' leases, or every
+  // listed renter's before any is checked. Union, not intersection — a renter whose lease
+  // misses the chosen month is skipped and says so on its card. Null means some lease has no
+  // range to go by, and the pickers fall back to their default rolling range.
+  const periodRenters = useMemo(() => {
+    const checked = allRenters.filter((r) => selection.checkedIds.has(r.id));
+    return checked.length > 0 ? checked : allRenters;
+  }, [allRenters, selection.checkedIds]);
+  const leaseMonths = useMemo(() => leaseMonthsForRenters(periodRenters), [periodRenters]);
+  const contractYears = useMemo(() => leaseContractYearsForRenters(periodRenters), [periodRenters]);
+
+  // When the renters change and the chosen month / contract year / custom months are no longer
+  // covered by any lease, clear them rather than pick a replacement — the user chooses again.
+  useEffect(() => {
+    if (periodType === '1month' && periodValue && leaseMonths && !leaseMonths.includes(periodValue)) {
+      setPeriodValue('');
+    }
+    if (periodType === 'year' && periodValue && contractYears && !contractYears.includes(Number(periodValue))) {
+      setPeriodValue('');
+    }
+    if (periodType === 'custom' && leaseMonths) {
+      setCustomMonths((prev) => {
+        const kept = [...prev].filter((m) => leaseMonths.includes(m.slice(0, 7)));
+        return kept.length === prev.size ? prev : new Set(kept);
+      });
+      const first = Number(leaseMonths[0].slice(0, 4));
+      const last = Number(leaseMonths[leaseMonths.length - 1].slice(0, 4));
+      setGridYear((y) => Math.min(Math.max(y, first), last));
+    }
+  }, [periodType, periodValue, leaseMonths, contractYears]);
+
+  /** The months the chosen period covers, before the lease and cadence are applied. */
+  const rawPeriodMonthsFor = (r: Renter): string[] =>
+    periodType !== 'custom' && !periodValue
+      ? []
+      : periodType === 'year'
       ? getContractYearMonths(Number(periodValue), r.lease_start)
       : periodType === 'custom'
         ? [...customMonths].sort()
         : getMonthsForPeriod(periodType, periodValue);
 
-  /** One line saying what this period will actually write for a non-monthly lease. */
+  /**
+   * The months the chosen period covers that fall inside this renter's lease, before cadence
+   * is applied. Shared by the submit path and the per-renter note so the two cannot drift apart.
+   */
+  const periodMonthsFor = (r: Renter): string[] =>
+    rawPeriodMonthsFor(r).filter((m) => isWithinLease(r, m));
+
+  /**
+   * One line saying what this period will actually write, when that is not simply "the chosen
+   * months": none of them inside the lease, or a non-monthly lease.
+   */
   const cadenceNoteFor = (r: Renter): string | null => {
+    if (rawPeriodMonthsFor(r).length > 0 && periodMonthsFor(r).length === 0) {
+      return t('transactions.bulkRevenue.outsideLease', {
+        defaultValue: 'Lease does not cover this period',
+      });
+    }
     if (!isNonMonthlyCadence(r.number_of_payments)) return null;
     const cadence = paymentFrequencyLabel(r.number_of_payments);
     if (!cadence) return null;
@@ -195,6 +243,14 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
         t('transactions.bulkRevenue.noMonthsError', {
           defaultValue: 'Please select at least one month.',
         }),
+      );
+      return;
+    }
+
+    if (periodType !== 'custom' && !periodValue) {
+      appAlert(
+        t('validation.title'),
+        t('transactions.bulkRevenue.noPeriodError', { defaultValue: 'Please choose a period.' }),
       );
       return;
     }
@@ -333,6 +389,8 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
             onToggleCustomMonth={handleToggleCustomMonth}
             gridYear={gridYear}
             onGridYearChange={setGridYear}
+            leaseMonths={leaseMonths}
+            contractYears={contractYears}
           />
           </TourAnchor>
 

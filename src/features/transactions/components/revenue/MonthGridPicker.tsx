@@ -15,6 +15,11 @@ type MonthGridPickerProps = {
   colors: typeof lightColors | typeof darkColors;
   totalSelected: number;
   t: ReturnType<typeof useTranslation>['t'];
+  /** Months ("YYYY-MM") that can be picked; every other month is drawn disabled. Omit for no limit. */
+  enabledMonths?: Set<string>;
+  /** Year navigation stops here. */
+  minYear?: number;
+  maxYear?: number;
 };
 
 export function MonthGridPicker({
@@ -26,18 +31,25 @@ export function MonthGridPicker({
   colors,
   totalSelected,
   t,
+  enabledMonths,
+  minYear,
+  maxYear,
 }: MonthGridPickerProps) {
   // The row mirrors in Hebrew, so the previous year sits on the right and points right.
   const { isRtl } = useLanguageContext();
   const monthNames = Array.from({ length: 12 }, (_, i) =>
     new Date(2000, i, 1).toLocaleDateString(locale, { month: 'short' }),
   );
+  const atMinYear = minYear != null && gridYear <= minYear;
+  const atMaxYear = maxYear != null && gridYear >= maxYear;
 
   return (
     <View style={styles.container}>
       <View style={styles.yearRow}>
         <TouchableOpacity
           onPress={() => onYearChange(gridYear - 1)}
+          disabled={atMinYear}
+          style={atMinYear && styles.disabled}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Icon name={isRtl ? "chevron-right" : "chevron-left"} size={24} color={colors.textPrimary} />
@@ -47,6 +59,8 @@ export function MonthGridPicker({
         </Text>
         <TouchableOpacity
           onPress={() => onYearChange(gridYear + 1)}
+          disabled={atMaxYear}
+          style={atMaxYear && styles.disabled}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Icon name={isRtl ? "chevron-left" : "chevron-right"} size={24} color={colors.textPrimary} />
@@ -57,16 +71,20 @@ export function MonthGridPicker({
         {monthNames.map((name, i) => {
           const monthStr = `${gridYear}-${String(i + 1).padStart(2, '0')}-01`;
           const selected = selectedMonths.has(monthStr);
+          const disabled = !!enabledMonths && !selected && !enabledMonths.has(monthStr.slice(0, 7));
           return (
             <TouchableOpacity
               key={i}
               onPress={() => onToggle(monthStr)}
+              disabled={disabled}
+              accessibilityState={{ selected, disabled }}
               style={[
                 styles.chip,
                 {
                   backgroundColor: selected ? colors.primary : colors.inputFilledBackground,
                   borderColor: selected ? colors.primary : colors.outline,
                 },
+                disabled && styles.disabled,
               ]}
             >
               <Text
@@ -113,6 +131,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.xs,
+  },
+  disabled: {
+    opacity: 0.3,
   },
   chip: {
     width: '23%',

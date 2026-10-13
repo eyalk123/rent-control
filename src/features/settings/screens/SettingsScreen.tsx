@@ -3,6 +3,7 @@ import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { IconButton, List, SegmentedButtons, Switch, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useAppAuth } from '@/src/core/auth/AuthContext';
 import { useNotifications } from '@/src/features/notifications/context/NotificationContext';
 import { useThemeContext, useLanguageContext, useRtlLabelStyle } from '@/src/context';
@@ -20,6 +21,12 @@ import { useTourState } from '@/src/features/onboarding/TourStateContext';
 // Generated from the notices file at web build time, so the app links to it rather than
 // shipping its own copy.
 const LICENSES_URL = 'https://rentvance.app/licenses';
+
+// In-app browser first; if the system refuses (seen on an iOS review device), fall back
+// to the default browser and swallow a second refusal rather than leave it unhandled.
+function openLicenses() {
+  WebBrowser.openBrowserAsync(LICENSES_URL).catch(() => Linking.openURL(LICENSES_URL).catch(() => {}));
+}
 
 export const SettingsScreen = React.memo(function SettingsScreen() {
   const { t } = useTranslation();
@@ -267,7 +274,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
             title={t('legal.openSourceLicenses')}
             left={(props) => <Icon name="file-text" size={20} color={props.color} />}
             right={(props) => <Icon name="external-link" size={16} color={props.color} />}
-            onPress={() => Linking.openURL(LICENSES_URL)}
+            onPress={openLicenses}
             style={styles.listItem}
           />
         </List.Section>

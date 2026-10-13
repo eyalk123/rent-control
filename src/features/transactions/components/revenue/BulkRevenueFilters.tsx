@@ -30,6 +30,14 @@ type BulkRevenuePeriodFilterProps = {
   onToggleCustomMonth: (monthStr: string) => void;
   gridYear: number;
   onGridYearChange: (year: number) => void;
+
+  /**
+   * What the leases cover ("YYYY-MM" ascending / contract-year start years descending), from
+   * `leaseMonthsForRenters` / `leaseContractYearsForRenters`. Null or omitted: no limit, and
+   * the pickers offer the default rolling range.
+   */
+  leaseMonths?: string[] | null;
+  contractYears?: number[] | null;
 };
 
 /**
@@ -132,6 +140,8 @@ export function BulkRevenuePeriodFilter({
   onToggleCustomMonth,
   gridYear,
   onGridYearChange,
+  leaseMonths,
+  contractYears,
 }: BulkRevenuePeriodFilterProps) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -141,13 +151,25 @@ export function BulkRevenuePeriodFilter({
   const rtlLabelStyle = useRtlLabelStyle();
   const dropdownTheme = useDropdownTheme();
 
-  const periodValueOptions = useMemo(
-    () =>
-      periodType !== 'custom'
-        ? generatePeriodOptions(periodType, locale)
-        : [],
-    [periodType, locale],
-  );
+  const periodValueOptions = useMemo(() => {
+    if (periodType === '1month' && leaseMonths) {
+      return leaseMonths.slice().reverse().map((m) => {
+        const [y, mo] = m.split('-').map(Number);
+        return {
+          label: new Date(y, mo - 1, 1).toLocaleDateString(locale, { month: 'long', year: 'numeric' }),
+          value: m,
+        };
+      });
+    }
+    if (periodType === 'year' && contractYears) {
+      return contractYears.map((y) => ({
+        label: `${String(y).slice(2)}/${String(y + 1).slice(2)}`,
+        value: String(y),
+      }));
+    }
+    return periodType !== 'custom' ? generatePeriodOptions(periodType, locale) : [];
+  }, [periodType, locale, leaseMonths, contractYears]);
+  const leaseMonthSet = useMemo(() => (leaseMonths ? new Set(leaseMonths) : undefined), [leaseMonths]);
   const periodLabel = periodType === '1month'
     ? t('transactions.bulkRevenue.selectMonth', { defaultValue: 'Month' })
     : t('transactions.bulkRevenue.selectYear', { defaultValue: 'Year' });
@@ -204,6 +226,9 @@ export function BulkRevenuePeriodFilter({
               valueField="value"
               value={periodValue}
               onChange={(item) => onPeriodValueChange(item.value)}
+              placeholder={periodType === 'year'
+                ? t('transactions.bulkRevenue.selectContractYear', { defaultValue: 'Choose a contract year' })
+                : periodLabel}
               accessibilityLabel={[
                 periodLabel,
                 periodValueOptions.find((o) => o.value === periodValue)?.label,
@@ -225,6 +250,9 @@ export function BulkRevenuePeriodFilter({
           colors={colors}
           totalSelected={customMonths.size}
           t={t}
+          enabledMonths={leaseMonthSet}
+          minYear={leaseMonths ? Number(leaseMonths[0].slice(0, 4)) : undefined}
+          maxYear={leaseMonths ? Number(leaseMonths[leaseMonths.length - 1].slice(0, 4)) : undefined}
         />
       )}
     </View>
