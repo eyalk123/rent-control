@@ -3,6 +3,7 @@ import { allowedModes } from '@/src/shared/utils/capabilities';
 import {
   ScrollView,
   StyleSheet,
+  Text as RNText,
   TextInput,
   TouchableOpacity,
   View,
@@ -13,7 +14,7 @@ import { ActivityIndicator, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ScreenContainer } from '@/src/shared/components/ui';
-import { Icon } from '@/src/shared/components/ui/Icon';
+import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
 import { useAlert, useOnReconnect } from '@/src/core/context';
 import { useLanguageContext, useRtlLabelStyle } from '@/src/context';
 import { darkColors, ICON_SM, lightColors, spacing } from '@/src/core/theme';
@@ -28,15 +29,33 @@ import {
   type WhatsAppTemplateKey,
   type WhatsAppTemplates,
 } from '../templates';
+import { EVENT_ICONS } from '../summary';
+import {
+  displayToken,
+  editorSegments,
+  fromEditorText,
+  reconcileEdit,
+  toEditorText,
+  type TokenLabels,
+} from '../editorTokens';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour } from '@/src/features/onboarding/TourController';
 
 type Colors = typeof lightColors | typeof darkColors;
 
+/** Each message wears its alert's icon; both CPI stages belong to the one CPI alert. */
+const TEMPLATE_ICONS: Record<WhatsAppTemplateKey, IconName> = {
+  overdue: EVENT_ICONS.overdue,
+  lease_expiring: EVENT_ICONS.lease_expiring,
+  cpi_upcoming: EVENT_ICONS.cpi_rent_change,
+  cpi_changed: EVENT_ICONS.cpi_rent_change,
+};
+
 /**
  * Asks for the tour from inside the loaded tree — the screen shows a spinner until the
- * saved templates arrive, and both anchors live inside the first section's open body.
+ * saved templates arrive. The language anchor is the note above the list; the placeholder
+ * anchor lives inside the first section's open body.
  */
 function TemplatesTourRequest() {
   useTour('whatsapp-templates');
@@ -76,14 +95,23 @@ function TemplateSection({
   surface: string;
   language: string;
   rtlLabelStyle: object;
-  /** Only the first section carries the tour anchors — every section renders the same body. */
+  /** Only the first section carries the placeholder anchor — every section renders the same body. */
   anchored?: boolean;
 }) {
   const { t } = useTranslation();
-  const [draft, setDraft] = React.useState(effective);
+  // The draft is editor text: placeholders appear as translated tags, and are turned back
+  // into `{token}` only for the preview and on save. See editorTokens.ts.
+  const labels = React.useMemo<TokenLabels>(
+    () =>
+      Object.fromEntries(
+        TEMPLATE_TOKENS[templateKey].map((token) => [token, t(`whatsappTemplates.token.${token}`)]),
+      ),
+    [templateKey, t],
+  );
+  const [draft, setDraft] = React.useState(() => toEditorText(effective, labels));
   const [selection, setSelection] = React.useState({
-    start: effective.length,
-    end: effective.length,
+    start: draft.length,
+    end: draft.length,
   });
   // Only set on the TextInput right after an insert, to move the caret past the token;
   // released immediately afterwards so the native selection is otherwise left alone.
@@ -94,16 +122,29 @@ function TemplateSection({
   // Re-sync when the stored value changes under us — a reset, or a failed save rolling
   // back. Guarded on the field being collapsed or unchanged so it can't clobber typing.
   React.useEffect(() => {
-    setDraft(effective);
-  }, [effective]);
+    setDraft(toEditorText(effective, labels));
+  }, [effective, labels]);
+
+  // Moves the caret after a programmatic change to the text. Deferred a frame because, in a
+  // field rendered from styled children, Android applies a selection that arrives with new
+  // text *before* the text, then shifts it by the inserted length — a tag inserted at 102
+  // left the caret at 118, not 110, and the next Backspace ate a letter of the next word.
+  const placeCaret = (caret: number) => {
+    setSelection({ start: caret, end: caret });
+    requestAnimationFrame(() => setForcedSelection({ start: caret, end: caret }));
+  };
+
+  // Keeps each tag whole: an edit that clips one removes it entirely (see reconcileEdit).
+  const handleChangeText = (next: string) => {
+    const { text, caret } = reconcileEdit(draft, next);
+    setDraft(text);
+    if (caret !== null) placeCaret(caret);
+  };
 
   const insertToken = (token: string) => {
-    const snippet = `{${token}}`;
-    const next = draft.slice(0, selection.start) + snippet + draft.slice(selection.end);
-    const caret = selection.start + snippet.length;
-    setDraft(next);
-    setSelection({ start: caret, end: caret });
-    setForcedSelection({ start: caret, end: caret });
+    const snippet = displayToken(labels[token]);
+    setDraft(draft.slice(0, selection.start) + snippet + draft.slice(selection.end));
+    placeCaret(selection.start + snippet.length);
   };
 
   const handleSelectionChange = (
@@ -113,19 +154,32 @@ function TemplateSection({
     if (forcedSelection) setForcedSelection(null);
   };
 
-  const preview = renderTemplate(draft, sampleValues(templateKey, language));
+  const stored = fromEditorText(draft, labels);
+  const preview = renderTemplate(stored, sampleValues(templateKey, language));
+  const title = t(`whatsappTemplates.key.${templateKey}`);
 
   return (
     <View style={[styles.card, { backgroundColor: surface, borderColor: colors.outline }]}>
-      <TouchableOpacity style={styles.sectionHeader} onPress={onToggle} accessibilityRole="button">
-        <Icon
-          name={expanded ? 'chevron-up' : 'chevron-down'}
-          size={ICON_SM}
-          color={colors.textSecondary}
-        />
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]} numberOfLines={1}>
-          {t(`whatsappTemplates.key.${templateKey}`)}
-        </Text>
+      {/* Same shape as an alert row on the notifications screen — icon, bold name, the
+          line saying when it is used — so each message reads as belonging to its alert. */}
+      <TouchableOpacity
+        style={styles.sectionHeader}
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        accessibilityLabel={title}
+      >
+        <View style={[styles.iconBubble, { backgroundColor: colors.primaryBg }]}>
+          <Icon name={TEMPLATE_ICONS[templateKey]} size={ICON_SM} color={colors.primary} />
+        </View>
+        <View style={styles.headerText}>
+          <Text style={[styles.sectionTitle, rtlLabelStyle, { color: colors.textPrimary }]} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text style={[styles.usedWhen, rtlLabelStyle, { color: colors.textSecondary }]}>
+            {t(`whatsappTemplates.usedWhen.${templateKey}`)}
+          </Text>
+        </View>
         {isEdited ? (
           <View style={[styles.editedBadge, { backgroundColor: colors.revBg }]}>
             <Text style={[styles.editedText, { color: colors.revFg }]}>
@@ -133,14 +187,22 @@ function TemplateSection({
             </Text>
           </View>
         ) : null}
+        <Icon
+          name={expanded ? 'chevron-up' : 'chevron-down'}
+          size={ICON_SM}
+          color={colors.textSecondary}
+        />
       </TouchableOpacity>
 
       {expanded ? (
-        <View style={styles.sectionBody}>
+        <View style={[styles.sectionBody, { borderTopColor: colors.outline }]}>
+          <Text style={[styles.label, rtlLabelStyle, { color: colors.textSecondary }]}>
+            {t('whatsappTemplates.messageLabel')}
+          </Text>
           <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            onBlur={() => onCommit(draft)}
+            accessibilityLabel={t('whatsappTemplates.messageLabel')}
+            onChangeText={handleChangeText}
+            onBlur={() => onCommit(stored)}
             onSelectionChange={handleSelectionChange}
             selection={forcedSelection ?? undefined}
             multiline
@@ -150,7 +212,18 @@ function TemplateSection({
               rtlLabelStyle,
               { borderColor: colors.outline, color: colors.textPrimary, backgroundColor: surface },
             ]}
-          />
+          >
+            {/* Children instead of `value`, so the tags can be styled inside the field. */}
+            {editorSegments(draft).map((segment, i) =>
+              segment.token ? (
+                <RNText key={i} style={[styles.tokenTag, { backgroundColor: colors.primaryBg, color: colors.primary }]}>
+                  {segment.text}
+                </RNText>
+              ) : (
+                <RNText key={i}>{segment.text}</RNText>
+              ),
+            )}
+          </TextInput>
 
           <Text style={[styles.label, rtlLabelStyle, { color: colors.textSecondary }]}>
             {t('whatsappTemplates.insertLabel')}
@@ -173,10 +246,6 @@ function TemplateSection({
             ))}
           </TourAnchor>
 
-          {/* The preview renders the message in the app's current language, and Reset puts
-              that language's default back — which is what the per-language step explains.
-              There is no language switch on this screen: the slot follows the app. */}
-          <TourAnchor id={anchored ? ANCHORS.templateLanguage : undefined}>
           <Text style={[styles.label, rtlLabelStyle, { color: colors.textSecondary }]}>
             {t('whatsappTemplates.previewLabel')}
           </Text>
@@ -193,7 +262,6 @@ function TemplateSection({
               </Text>
             </TouchableOpacity>
           ) : null}
-          </TourAnchor>
         </View>
       ) : null}
     </View>
@@ -324,8 +392,34 @@ export function WhatsAppTemplatesScreen() {
       {header}
       <TemplatesTourRequest />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={[styles.subtitle, rtlLabelStyle, { color: colors.textSecondary }]}>
-          {t('whatsappTemplates.subtitle')}
+        {/* What this text is, then the reassurance, then the one rule people trip on:
+            each language keeps its own copy, and the slot follows the app's language. */}
+        <View style={styles.intro}>
+          <Text style={[styles.lead, rtlLabelStyle, { alignSelf: 'stretch', color: colors.textPrimary }]}>
+            {t('whatsappTemplates.subtitle')}
+          </Text>
+          <Text style={[styles.subtitle, rtlLabelStyle, { alignSelf: 'stretch', color: colors.textSecondary }]}>
+            {t('whatsappTemplates.subtitleSafe')}
+          </Text>
+        </View>
+        <TourAnchor id={ANCHORS.templateLanguage}>
+          <View style={[styles.note, { backgroundColor: colors.primaryBg }]}>
+            <Icon name="languages" size={ICON_SM} color={colors.primary} />
+            <Text style={[styles.noteText, rtlLabelStyle, { color: colors.textPrimary }]}>
+              {t('whatsappTemplates.languageNote')}
+            </Text>
+          </View>
+        </TourAnchor>
+
+        <Text
+          style={[
+            styles.groupLabel,
+            rtlLabelStyle,
+            { alignSelf: 'stretch', color: colors.textSecondary },
+            isRtl && { letterSpacing: 0 },
+          ]}
+        >
+          {t('whatsappTemplates.sectionLabel')}
         </Text>
 
         {availableTemplateKeys().map((key, index) => {
@@ -374,7 +468,27 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
     gap: spacing.md,
   },
-  subtitle: { fontSize: 13, marginBottom: spacing.xs, lineHeight: 19 },
+  intro: { gap: spacing.xs },
+  lead: { fontSize: 15, lineHeight: 21 },
+  subtitle: { fontSize: 13, lineHeight: 19 },
+  note: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    borderRadius: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  noteText: { flex: 1, fontSize: 13, lineHeight: 19 },
+  groupLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    paddingHorizontal: spacing.xs,
+    marginTop: spacing.sm,
+    marginBottom: -spacing.xs,
+  },
   card: {
     borderRadius: 12,
     borderWidth: 1,
@@ -382,11 +496,21 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
   },
-  sectionTitle: { fontSize: 14, fontWeight: '600', flex: 1 },
+  iconBubble: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: { flex: 1, gap: 2 },
+  // Card title > field labels > content: the alert name is the only bold-and-large text.
+  sectionTitle: { fontSize: 15, fontWeight: '700' },
+  usedWhen: { fontSize: 12, lineHeight: 17 },
   editedBadge: {
     borderRadius: 6,
     paddingHorizontal: 7,
@@ -395,8 +519,10 @@ const styles = StyleSheet.create({
   editedText: { fontSize: 11, fontWeight: '700' },
   sectionBody: {
     paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.md,
     gap: spacing.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   input: {
     minHeight: 120,
@@ -407,7 +533,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  label: { fontSize: 12, fontWeight: '600', marginTop: spacing.xs },
+  label: { fontSize: 12, fontWeight: '600', marginTop: spacing.sm },
+  tokenTag: { fontWeight: '600' },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

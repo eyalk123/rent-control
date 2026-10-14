@@ -455,8 +455,9 @@ export const TOURS = {
     kind: 'elaboration',
     arrivesFrom: 'whatsapp-templates',
     steps: [
-      { id: 'placeholders', anchor: ANCHORS.templatePlaceholders, placement: 'bottom' },
+      // Top-down, in screen order: the language note sits above the list, the chips inside it.
       { id: 'perLanguage', anchor: ANCHORS.templateLanguage, placement: 'bottom' },
+      { id: 'placeholders', anchor: ANCHORS.templatePlaceholders, placement: 'bottom' },
     ],
   },
 

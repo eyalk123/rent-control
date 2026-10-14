@@ -85,6 +85,10 @@ export function NotificationsSettingsScreen() {
     </Text>
   );
 
+  const sectionHint = (text: string) => (
+    <Text style={[styles.sectionHint, rtlLabelStyle, { alignSelf: 'stretch', color: colors.textSecondary }]}>{text}</Text>
+  );
+
   const iconBubble = (name: IconName, dim = false) => (
     <View style={[styles.iconBubble, { backgroundColor: colors.primaryBg, opacity: dim ? 0.5 : 1 }]}>
       <Icon name={name} size={ICON_SM} color={colors.primary} />
@@ -99,6 +103,12 @@ export function NotificationsSettingsScreen() {
       {header}
       <NotificationsTourRequest />
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Names all three layers up front — the switch, the alerts, the messages — since the
+            header alone doesn't say the messages live here too. */}
+        <Text style={[styles.intro, rtlLabelStyle, { alignSelf: 'stretch', color: colors.textSecondary }]}>
+          {t('notifications.subtitle')}
+        </Text>
+
         {/* Master switch — the page's one top-level control, set larger than the rows under it. */}
         <View style={[...cardStyle, styles.masterRow]}>
           <View style={styles.rowText}>
@@ -115,6 +125,7 @@ export function NotificationsSettingsScreen() {
         {masterOn ? (
           <View style={styles.section}>
             {sectionLabel(t('notifications.sectionAlerts'))}
+            {sectionHint(t('notifications.sectionAlertsHint'))}
             <TourAnchor id={ANCHORS.notificationsEventList} style={cardStyle}>
               {availableEvents.map((event, i) => {
                 const muted = isMuted(event);
@@ -216,7 +227,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   masterTitle: { fontSize: 17, fontWeight: '700' },
+  intro: { fontSize: 14, lineHeight: 20, paddingHorizontal: spacing.xs },
   section: { gap: spacing.sm },
+  sectionHint: { fontSize: 13, lineHeight: 18, paddingHorizontal: spacing.xs, marginTop: -spacing.xs },
   sectionLabel: {
     fontSize: 12,
     fontWeight: '600',

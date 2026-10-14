@@ -74,7 +74,8 @@ function ThresholdField({
 
 /**
  * One event's settings: its on/off switch, then either its reminder list (with the
- * built-in default shown when no custom reminder is active) or, for CPI, the threshold.
+ * built-in default above it, marked replaced once a custom reminder is on) or, for CPI,
+ * the threshold.
  */
 export function NotificationEventScreen() {
   const { t } = useTranslation();
@@ -131,19 +132,31 @@ export function NotificationEventScreen() {
       params: rule ? { event, id: String(rule.id) } : { event },
     } as never);
 
-  // Shown whenever no custom reminder is active — which is exactly when the backend
-  // falls back to it, including when every custom reminder has been switched off.
+  // Always shown, so "yours replace the default" is something you can see rather than a
+  // sentence to remember. The label names its state — the backend falls back to it whenever
+  // no custom reminder is enabled, including when every one is switched off — and once it
+  // has been replaced the schedule is dimmed and struck through.
+  const defaultState = hasActiveRule ? 'defaultReplaced' : rules.length > 0 ? 'defaultPaused' : 'defaultInUse';
   const defaultCard = (
-    <View style={[...cardStyle, styles.block]}>
-      <Text style={[styles.badge, rtlLabelStyle, { color: colors.textSecondary }]}>{t('notifications.defaultLabel')}</Text>
-      <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>{t(`notifications.default.${event}`)}</Text>
+    <View style={[...cardStyle, styles.block, hasActiveRule && styles.replaced]}>
+      <Text style={[styles.badge, rtlLabelStyle, { color: colors.textSecondary }]}>{t(`notifications.${defaultState}`)}</Text>
+      <Text
+        style={[
+          styles.description,
+          rtlLabelStyle,
+          { color: colors.textPrimary },
+          hasActiveRule && styles.struck,
+        ]}
+      >
+        {t(`notifications.default.${event}`)}
+      </Text>
     </View>
   );
 
   const reminders = (
     <View style={styles.section}>
       {sectionLabel(t('notifications.whenTitle'))}
-      {!hasActiveRule && defaultCard}
+      {defaultCard}
       {rules.length > 0 && (
         <View style={cardStyle}>
           {rules.map((rule, i) => (
@@ -171,10 +184,8 @@ export function NotificationEventScreen() {
           ))}
         </View>
       )}
-      {!hasActiveRule && (
-        <Text style={[styles.hint, rtlLabelStyle, { color: colors.textSecondary }]}>
-          {rules.length > 0 ? t('notifications.allPaused') : t('notifications.defaultHint')}
-        </Text>
+      {rules.length === 0 && (
+        <Text style={[styles.hint, rtlLabelStyle, { color: colors.textSecondary }]}>{t('notifications.defaultHint')}</Text>
       )}
       <TouchableOpacity onPress={() => openEditor()} style={styles.addRow} accessibilityRole="button">
         <Icon name="plus" size={ICON_SM} color={colors.primary} />
@@ -188,7 +199,7 @@ export function NotificationEventScreen() {
       <View style={styles.section}>
         {sectionLabel(t('notifications.cpiWhenTitle'))}
         <View style={[...cardStyle, styles.block]}>
-          <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>{t(`notifications.default.${event}`)}</Text>
+          <Text style={[styles.description, rtlLabelStyle, { color: colors.textPrimary }]}>{t(`notifications.default.${event}`)}</Text>
         </View>
       </View>
       <View style={styles.section}>
@@ -297,7 +308,11 @@ const styles = StyleSheet.create({
   },
   divider: { borderTopWidth: StyleSheet.hairlineWidth },
   rowText: { flex: 1, gap: 2 },
+  // Bold marks what you act on (switches, reminders); schedules and explanations stay regular.
   rowTitle: { fontSize: 15, fontWeight: '600' },
+  description: { fontSize: 15, lineHeight: 21 },
+  replaced: { opacity: 0.6 },
+  struck: { textDecorationLine: 'line-through' },
   rowHint: { fontSize: 13 },
   hint: { fontSize: 13, lineHeight: 18, paddingHorizontal: spacing.xs },
   addRow: {
