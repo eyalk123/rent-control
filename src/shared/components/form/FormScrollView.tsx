@@ -52,6 +52,11 @@ export function FormScrollView({
       showsVerticalScrollIndicator={showsVerticalScrollIndicator}
       bounces={bounces}
       enableOnAndroid
+      // Leave the page where it is when the keyboard closes. The library's default scrolls
+      // back to where it was when the keyboard opened, and to the very top when it has no
+      // such position — which a number pad's Done bar triggers on iOS, so dismissing a
+      // numeric field low on the form (Size) threw the user back to the first field.
+      enableResetScrollToCoords={false}
       keyboardShouldPersistTaps="handled"
       extraScrollHeight={spacing.keyboardExtraScrollHeight}
     >

@@ -1,11 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet } from 'react-native';
-import { Chip, TextInput, useTheme } from 'react-native-paper';
+import { View, StyleSheet, TextInput as RNTextInput } from 'react-native';
+import { Chip, useTheme } from 'react-native-paper';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
 import { useRtlInputStyle, useLanguageContext } from '@/src/context';
 import { spacing, lightColors, darkColors } from '@/src/core/theme';
 import { FormField } from './FormField';
+import { useFieldFocusShadow, useFieldSurface } from './fieldSurface';
 
 type FormChipInputProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>;
@@ -70,6 +71,7 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
   );
 
   const [inputValue, setInputValue] = React.useState('');
+  const [isFocused, setIsFocused] = React.useState(false);
 
   const handleAddChipFromInput = (
     currentFieldValue: unknown,
@@ -117,27 +119,26 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
 
         return (
           <FormField label={label} required={required} error={error}>
-            <TextInput
+            <ChipTextBox
               value={inputValue}
               onChangeText={(text) => handleChangeText(text, value, onChange)}
-              onBlur={onBlur}
-              mode="outlined"
-              dense
-              error={!!error}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => {
+                setIsFocused(false);
+                onBlur();
+              }}
+              focused={isFocused}
+              hasError={!!error}
               keyboardType={numeric ? 'numeric' : undefined}
               inputAccessoryViewButtonLabel={t('common.keyboardDone')}
               placeholder={placeholder}
+              placeholderTextColor={colors.placeholder}
               autoComplete="off"
               autoCorrect={false}
               importantForAutofill="no"
               textContentType="none"
-              style={[
-                styles.input,
-                { backgroundColor: colors.inputFilledBackground },
-                rtlInputStyle,
-              ]}
-              outlineStyle={styles.inputOutline}
-              contentStyle={rtlInputStyle}
+              textColor={colors.textPrimary}
+              rtlInputStyle={rtlInputStyle}
               textAlign={isRtl ? 'right' : 'left'}
               returnKeyType="done"
               onSubmitEditing={() => handleAddChipFromInput(value, onChange)}
@@ -163,6 +164,35 @@ function FormChipInputInner<TFieldValues extends FieldValues>({
   );
 }
 
+/** Split out so the surface hooks are not called inside a render prop. Same box as FormInput. */
+function ChipTextBox({
+  focused,
+  hasError,
+  textColor,
+  rtlInputStyle,
+  ...rest
+}: {
+  focused: boolean;
+  hasError: boolean;
+  textColor: string;
+  rtlInputStyle: object;
+} & React.ComponentProps<typeof RNTextInput>) {
+  const surface = useFieldSurface({ focused, error: hasError });
+  const focusShadow = useFieldFocusShadow();
+  return (
+    <RNTextInput
+      {...rest}
+      style={[
+        surface,
+        styles.input,
+        { color: textColor },
+        focused && focusShadow,
+        rtlInputStyle,
+      ]}
+    />
+  );
+}
+
 export const FormChipInput = React.memo(FormChipInputInner) as typeof FormChipInputInner;
 
 const styles = StyleSheet.create({
@@ -183,9 +213,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   input: {
-    marginBottom: 4,
-  },
-  inputOutline: {
-    borderRadius: 8,
+    fontSize: 16,
+    marginBottom: spacing.xs,
   },
 });

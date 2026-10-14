@@ -62,7 +62,6 @@ import { callbackKey, seedKey, tourStepKey } from './types';
 
 /** Breathing room around the highlighted element. */
 const SPOTLIGHT_PAD = 8;
-const SPOTLIGHT_RADIUS = 14;
 const CARD_GAP = 14;
 const CARD_MAX_WIDTH = 360;
 /** Minimum breathing room between the card and any screen edge. */
@@ -309,7 +308,9 @@ export function TourOverlay() {
                 },
               ]}
             />
-            {/* Ring around the cutout so the target reads as chosen, not merely unshaded. */}
+            {/* Ring around the cutout so the target reads as chosen, not merely unshaded.
+                Square, because the hole is: the four scrim rects leave sharp corners, and a
+                rounded ring left a lit sliver outside each of its curves. */}
             <View
               pointerEvents="none"
               style={{
@@ -318,7 +319,6 @@ export function TourOverlay() {
                 left: physicalLeft(box.x, box.width),
                 width: box.width,
                 height: box.height,
-                borderRadius: SPOTLIGHT_RADIUS,
                 borderWidth: 2,
                 borderColor: colors.accent,
               }}
