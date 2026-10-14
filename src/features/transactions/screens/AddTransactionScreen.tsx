@@ -42,6 +42,7 @@ import {
 } from '@/src/shared/components/form/FieldReviewContext';
 import { diffProvenance, updateExtractionLog } from '@/src/features/document-scan/api/updateExtractionLog';
 import type { ProvenanceItem } from '@/src/features/document-scan/types';
+import { todayISO } from '@/src/shared/utils/dates';
 
 /** Order-free key for a set of ids, so a reordered selection does not count as an edit. */
 const idKey = (ids: number[]) => [...ids].sort((a, b) => a - b).join(',');
@@ -81,7 +82,7 @@ export function AddTransactionScreen() {
       propertyIds: propertyId ? [Number(propertyId)] : [],
       renterId: renterId ? Number(renterId) : null,
       amount: '',
-      dateOfPayment: new Date().toISOString().slice(0, 10),
+      dateOfPayment: todayISO(),
       // Empty, as on the web: a preset Cash read as the scanner's answer when a receipt
       // scan found no method, and was easy to save unseen without one.
       paymentMethod: '',
@@ -173,7 +174,7 @@ export function AddTransactionScreen() {
       renterId: null,
       amount: '',
       monthFor: '',
-      dateOfPayment: new Date().toISOString().slice(0, 10),
+      dateOfPayment: todayISO(),
       paymentMethod: '',
       notes: '',
     },

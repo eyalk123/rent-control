@@ -30,7 +30,7 @@ import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { EndLeaseDialog } from '@/src/features/renters/components/EndLeaseDialog';
 import { getRenterLifecycle, isOpenEnded, isTerminated } from '@/src/shared/utils/renterStatus';
-import { formatDateFull } from '@/src/shared/utils/dates';
+import { formatDateFull, parseISODate } from '@/src/shared/utils/dates';
 import { RenterInfoTab } from '@/src/features/renters/components/RenterInfoTab';
 import { RenterPropertyTab } from '@/src/features/renters/components/RenterPropertyTab';
 import { RenterTransactionsTab } from '@/src/features/renters/components/RenterTransactionsTab';
@@ -388,7 +388,7 @@ export function RenterDetailScreen() {
                 <Text variant="labelLarge" style={{ color: colors.textPrimary }}>
                   {renter.terminated_on
                     ? t('renter.terminatedLease', {
-                        date: formatDateFull(new Date(renter.terminated_on), language),
+                        date: formatDateFull(parseISODate(renter.terminated_on)!, language),
                       })
                     : t('renter.endedLeaseShort')}
                 </Text>

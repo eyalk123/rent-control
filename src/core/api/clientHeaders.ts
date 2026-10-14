@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { getCalendars } from 'expo-localization';
 
 /**
  * Telemetry headers identifying this client to the backend.
@@ -25,6 +26,23 @@ import Constants from 'expo-constants';
  * Axios cannot stream. Sending an agent message is counted as real work, so the streaming
  * call has to carry these too or that work is attributed to no client at all.
  */
+/**
+ * The device's IANA timezone (`Asia/Jerusalem`). The backend stores it on the account and
+ * reads every business "today" on it — overdue rent, expiring leases, reminders — because
+ * the server itself runs on UTC, which is a different day for hours of every day almost
+ * everywhere. Read once at startup; an unknown or missing value is simply not sent, and the
+ * backend ignores anything it does not recognise.
+ */
+function deviceTimeZone(): string {
+  try {
+    return getCalendars()[0]?.timeZone ?? '';
+  } catch {
+    return '';
+  }
+}
+
+const timeZone = deviceTimeZone();
+
 export const CLIENT_HEADERS: Record<string, string> = {
   'X-Client-App': 'mobile',
   // ios | android | web. Any other value the backend does not know becomes "unknown".
@@ -33,4 +51,5 @@ export const CLIENT_HEADERS: Record<string, string> = {
   // identified by, so "who is still on the old build?" is answerable without a second
   // version mechanism.
   ...(Constants.expoConfig?.version ? { 'X-Client-Version': Constants.expoConfig.version } : {}),
+  ...(timeZone ? { 'X-Client-Timezone': timeZone } : {}),
 };

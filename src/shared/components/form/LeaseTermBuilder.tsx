@@ -27,7 +27,7 @@ import {
   isProjectedYear,
 } from "@/src/shared/utils/leaseSchedule";
 import { addMonths, periodMonths } from "@/src/shared/types";
-import { formatDateFull } from "@/src/shared/utils/dates";
+import { formatDateFull, parseISODate } from "@/src/shared/utils/dates";
 import { Icon } from "@/src/shared/components/ui";
 import { FormNumericField } from "./FormFields";
 import { RentChangeField } from "./RentChangeField";
@@ -194,8 +194,8 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
   // so the option periods do too, which the old arithmetic silently dropped.
   let endDate: Date | null = null;
   if (leaseStart && modelRows.length > 0) {
-    const s = new Date(leaseStart);
-    if (!isNaN(s.getTime())) {
+    const s = parseISODate(leaseStart);
+    if (s) {
       endDate = addMonths(s, modelRows.reduce((sum, y) => sum + periodMonths(y), 0));
     }
   }

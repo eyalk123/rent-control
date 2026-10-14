@@ -39,6 +39,7 @@ import { getContractYearMonths, getDefaultPeriodValue, getMonthsForPeriod } from
 import { useTour } from '@/src/features/onboarding/TourController';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
+import { todayISO } from '@/src/shared/utils/dates';
 
 type PropertyGroup = {
   property: Property;
@@ -73,7 +74,7 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | ''>('');
 
   const dateForm = useForm<DateFormValues>({
-    defaultValues: { dateOfPayment: new Date().toISOString().slice(0, 10) },
+    defaultValues: { dateOfPayment: todayISO() },
   });
   const dateOfPayment = dateForm.watch('dateOfPayment');
 

@@ -3,7 +3,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button, Dialog, Portal, Text, TextInput, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { formatDateFull } from '@/src/shared/utils/dates';
+import { formatDateFull, parseISODate } from '@/src/shared/utils/dates';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { getLeaseEndDate, type Renter } from '@/src/shared/types';
 
@@ -48,7 +48,7 @@ export function EndLeaseDialog({ visible, renter, loading, onConfirm, onDismiss 
 
   // The same bounds the server enforces, so an invalid date is caught before the round
   // trip rather than coming back as a 400.
-  const minDate = renter.lease_start ? new Date(renter.lease_start) : undefined;
+  const minDate = parseISODate(renter.lease_start) ?? undefined;
   const maxDate = getLeaseEndDate(renter) ?? undefined;
 
   return (

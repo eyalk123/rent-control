@@ -5,7 +5,7 @@ import { getCurrentMonthlyRent, getLeaseEndDate, type Renter } from '@/src/share
 import { getEffectiveLeaseEnd, isOpenEnded } from '@/src/shared/utils/renterStatus';
 import { darkColors, lightColors, spacing } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
-import { formatDateFull } from '@/src/shared/utils/dates';
+import { formatDateFull, parseISODate } from '@/src/shared/utils/dates';
 import { getPaymentMethodLabel } from '@/src/shared/constants/paymentMethods';
 import {
   ContactActionsRow,
@@ -76,7 +76,7 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
         />
         <StatBox
           icon="calendar"
-          value={renter.lease_start ? formatDateFull(new Date(renter.lease_start), language) : '–'}
+          value={renter.lease_start ? formatDateFull(parseISODate(renter.lease_start)!, language) : '–'}
           label={t('renter.dateOfStart')}
           backgroundColor={colors.inputBackground}
           iconColor={colors.secondary}

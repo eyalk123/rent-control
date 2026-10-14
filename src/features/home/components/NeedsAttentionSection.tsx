@@ -10,7 +10,7 @@ import { Icon } from '@/src/shared/components/ui/Icon';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { formatMoney } from '@/src/shared/utils/money';
-import { formatDateShort } from '@/src/shared/utils/dates';
+import { formatDateShort, toISODate } from '@/src/shared/utils/dates';
 import { getNotifications, dismissNotification } from '@/src/features/notifications/api/feed';
 import { getPreferences } from '@/src/features/notifications/api/preferences';
 import {
@@ -33,7 +33,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 function isoFromDaysOut(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return toISODate(d);
 }
 
 /** A feed item flattened into the shape the rows render. `notifId` keys the

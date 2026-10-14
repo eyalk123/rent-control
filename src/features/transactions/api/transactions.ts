@@ -10,6 +10,7 @@ import type {
   PaymentMethod,
 } from '@/src/shared/types';
 import { bucketByMonth, lastNMonths } from '@/src/features/transactions/utils/aggregate';
+import { todayISO } from '@/src/shared/utils/dates';
 
 export interface TransactionUpdateRevenue {
   property_id?: number;
@@ -125,7 +126,7 @@ export async function createRevenueTransaction(
       property_id: payload.property_id,
       renter_id: payload.renter_id ?? null,
       payment_method: payload.payment_method ?? null,
-      date_of_payment: payload.date_of_payment ?? new Date().toISOString().slice(0, 10),
+      date_of_payment: payload.date_of_payment ?? todayISO(),
       month_for: payload.month_for,
       amount: payload.amount,
       expected_amount: mockTransactionsApi.expectedRent(payload.renter_id, payload.month_for),

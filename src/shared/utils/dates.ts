@@ -8,6 +8,40 @@ function shortMonth(locale: string, monthIndex: number): string {
   return MONTHS_SHORT[key][monthIndex];
 }
 
+/**
+ * A local date as `YYYY-MM-DD`. Not `toISOString().slice(0, 10)`, which converts to UTC
+ * first and so reports the wrong day for part of every day in any timezone but UTC.
+ */
+export function toISODate(d: Date): string {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+/** Today on the user's own calendar as `YYYY-MM-DD`, the wire format every date field uses. */
+export function todayISO(): string {
+  return toISODate(new Date());
+}
+
+/** This month on the user's own calendar as `YYYY-MM`. */
+export function thisMonthISO(): string {
+  return todayISO().slice(0, 7);
+}
+
+/**
+ * A `YYYY-MM-DD` (or `YYYY-MM`) string as local midnight on that day. Null when unparseable.
+ *
+ * Not `new Date(s)`: JS reads a bare date as *UTC* midnight, which west of Greenwich is the
+ * evening before — a lease starting 1 Jan would sit in December, and every date would
+ * render a day early. A full timestamp (`…T…Z`) is a real instant and is parsed as one.
+ */
+export function parseISODate(s: string | null | undefined): Date | null {
+  if (!s) return null;
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(s);
+  const d = m ? new Date(Number(m[1]), Number(m[2]) - 1, m[3] ? Number(m[3]) : 1) : new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 /** "15 Apr 2026" — no Intl API, uses static lookup. */
 export function formatDateFull(date: Date, locale: string): string {
   return `${date.getDate()} ${shortMonth(locale, date.getMonth())} ${date.getFullYear()}`;

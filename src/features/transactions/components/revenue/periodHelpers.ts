@@ -1,5 +1,5 @@
 import type { TimePeriodType } from '@/src/features/transactions/screens/types';
-import { formatDateFull } from '@/src/shared/utils/dates';
+import { formatDateFull, parseISODate } from '@/src/shared/utils/dates';
 
 export function getDefaultPeriodValue(type: Exclude<TimePeriodType, 'custom'>): string {
   const now = new Date();
@@ -91,8 +91,8 @@ export function generatePeriodOptions(
  * anchored to the month of `leaseStart`. Falls back to January if leaseStart is missing.
  */
 export function getContractYearMonths(startYear: number, leaseStart: string): string[] {
-  const parsed = leaseStart ? new Date(leaseStart) : null;
-  const startMonth = parsed && !isNaN(parsed.getTime()) ? parsed.getMonth() + 1 : 1;
+  const parsed = parseISODate(leaseStart);
+  const startMonth = parsed ? parsed.getMonth() + 1 : 1;
   return Array.from({ length: 12 }, (_, i) => {
     let m = startMonth + i;
     let y = startYear;

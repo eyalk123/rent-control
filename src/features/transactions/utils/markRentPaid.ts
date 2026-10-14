@@ -1,5 +1,6 @@
 import { createRevenueTransaction } from '@/src/features/transactions/api/transactions';
 import { normalizePaymentType } from '@/src/shared/constants/paymentMethods';
+import { todayISO, thisMonthISO } from '@/src/shared/utils/dates';
 
 export interface MarkRentPaidInput {
   property_id: number;
@@ -26,7 +27,7 @@ export function markRentPaid(input: MarkRentPaidInput) {
     property_id: input.property_id,
     renter_id: input.renter_id,
     amount: input.amount,
-    date_of_payment: new Date().toISOString().slice(0, 10),
+    date_of_payment: todayISO(),
     month_for: `${input.monthFor}-01`,
     payment_method: normalizePaymentType(input.paymentType),
   });
@@ -34,5 +35,5 @@ export function markRentPaid(input: MarkRentPaidInput) {
 
 /** "YYYY-MM" for today — what the overdue alerts always mean. */
 export function currentMonthKey(): string {
-  return new Date().toISOString().slice(0, 7);
+  return thisMonthISO();
 }
