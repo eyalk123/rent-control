@@ -9,6 +9,7 @@ export default function ChatLayout() {
   return (
     <Stack
       screenOptions={{
+        gestureEnabled: false,
         headerTintColor: theme.colors.primary,
         headerTitleStyle: { fontWeight: '600', color: theme.colors.onSurface },
         headerStyle: { backgroundColor: theme.colors.background },

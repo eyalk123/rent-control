@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'react-native-paper';
+import { headerExitLeft } from '@/src/shared/components/ui';
 
 /**
  * The legal documents, reachable WITHOUT being signed in.
@@ -20,6 +21,8 @@ export default function LegalLayout() {
   return (
     <Stack
       screenOptions={{
+        gestureEnabled: false,
+        headerLeft: headerExitLeft,
         headerTintColor: theme.colors.primary,
         headerTitleStyle: { fontWeight: '600', color: theme.colors.onSurface },
         headerStyle: { backgroundColor: theme.colors.surface },

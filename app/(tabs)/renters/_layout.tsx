@@ -30,6 +30,7 @@ export default function RentersLayout() {
   return (
     <Stack
       screenOptions={{
+        gestureEnabled: false,
         headerTintColor: theme.colors.primary,
         headerTitleStyle: { fontWeight: "600", color: theme.colors.onSurface },
         headerTitleContainerStyle: { paddingHorizontal: 48 },

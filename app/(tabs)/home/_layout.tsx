@@ -6,6 +6,7 @@ export default function HomeLayout() {
   return (
     <Stack
       screenOptions={{
+        gestureEnabled: false,
         headerShown: false,
         contentStyle: { backgroundColor: theme.colors.background },
       }}

@@ -75,7 +75,17 @@ function DirectionalContent() {
   const { theme } = useThemeContext();
   return (
     <View style={{ direction: isRtl ? "rtl" : "ltr", flex: 1, backgroundColor: theme.colors.background }}>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }} />
+      {/* iOS swipe-back is off in this stack and in every nested one: it fired on sideways
+          swipes near the screen edge and left people somewhere they did not mean to go. Each
+          screen has its own back button instead — nested stacks set this themselves, since
+          screenOptions do not inherit. */}
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          gestureEnabled: false,
+          contentStyle: { backgroundColor: theme.colors.background },
+        }}
+      />
       {/* Sibling of the navigator, not a Modal: the tour overlay measures anchors in this
           window and must draw in the same coordinate space. */}
       <TourOverlay />

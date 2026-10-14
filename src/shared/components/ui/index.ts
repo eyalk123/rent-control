@@ -25,3 +25,4 @@ export { StatusPill } from './StatusPill';
 export { CpiChip } from './CpiChip';
 export { DetailTabBar, type DetailTab } from './DetailTabBar';
 export { DetailBackButton } from './DetailBackButton';
+export { headerExitLeft } from './HeaderExitButton';

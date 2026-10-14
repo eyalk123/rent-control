@@ -7,7 +7,7 @@ export const unstable_settings = { initialRouteName: 'index' };
 
 export default function TransactionsLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="[id]" />
       <Stack.Screen name="suppliers/index" />
