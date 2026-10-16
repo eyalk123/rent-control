@@ -19,8 +19,10 @@ import { getApiErrorMessage } from '@/src/core/api/client';
 import { createPropertyValuation, getPropertyById } from '@/src/features/properties/api/properties';
 import { PropertyValueDialog } from '@/src/features/properties/components/PropertyValueDialog';
 import { PropertyValueHistoryDialog } from '@/src/features/properties/components/PropertyValueHistoryDialog';
-import { formatPercent } from '@/src/features/properties/utils/propertyReturns';
+import { formatPercent, formatWholeMoney } from '@/src/features/properties/utils/propertyReturns';
 import { Icon, StatBox, DetailRow, DetailSection, type IconName } from '@/src/shared/components/ui';
+import { MortgageSection } from '@/src/features/properties/components/MortgageSection';
+import { capabilities } from '@/src/shared/utils/capabilities';
 
 interface PropertyInfoTabProps {
   property: Property;
@@ -144,6 +146,18 @@ export function PropertyInfoTab({
       color: transactionsLoading ? undefined : colors.expFg,
     },
   ];
+  // Beside the yearly net, never instead of it. The server sends it only for a property
+  // with a mortgage and a tenant. A computed average, so whole units.
+  const monthlyLeft = property.returns?.monthly_left ?? null;
+  if (monthlyLeft != null) {
+    tiles.push({
+      key: 'left',
+      icon: 'wallet' as IconName,
+      value: formatWholeMoney(monthlyLeft),
+      label: t('mortgage.left'),
+      color: monthlyLeft >= 0 ? colors.revFg : colors.expFg,
+    });
+  }
 
   const tileRows = tiles.reduce<(typeof tiles)[]>((rows, tile, i) => {
     if (i % 2 === 0) rows.push([tile]);
@@ -197,6 +211,10 @@ export function PropertyInfoTab({
       </DetailSection>
 
       <PurchaseAndValueSection property={property} onPropertyChange={onPropertyChange} />
+
+      {capabilities().mortgage && (
+        <MortgageSection property={property} onPropertyChange={onPropertyChange} />
+      )}
 
       <DetailSection title={t('property.details')}>
         {Array.isArray(property.parking_numbers) && property.parking_numbers.length > 0 && (
