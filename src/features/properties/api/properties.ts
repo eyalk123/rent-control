@@ -1,9 +1,15 @@
 import apiClient from '@/src/core/api/client';
-import { USE_MOCK_API, mockPropertiesApi } from '@/src/core/api/mock';
+import { USE_MOCK_API, mockPropertiesApi, mockPropertyValuationsApi } from '@/src/core/api/mock';
 import * as FileSystem from 'expo-file-system/legacy';
 import i18n from 'i18next';
 import { arrayBufferToBase64 } from '@/src/features/reports/api/reports';
-import type { Property, PropertyCreate, PropertyUpdate } from '@/src/shared/types';
+import type {
+  Property,
+  PropertyCreate,
+  PropertyUpdate,
+  PropertyValuation,
+  PropertyValuationInput,
+} from '@/src/shared/types';
 
 export async function getProperties(): Promise<Property[]> {
   if (USE_MOCK_API) return mockPropertiesApi.getProperties();
@@ -64,6 +70,9 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
   if (data.apartment !== undefined) out.apartment = data.apartment;
   if (data.block !== undefined) out.block = data.block;
   if (data.plot !== undefined) out.plot = data.plot;
+  if (data.purchase_price !== undefined) out.purchase_price = data.purchase_price;
+  if (data.purchase_date !== undefined) out.purchase_date = data.purchase_date;
+  if (data.valuation !== undefined) out.valuation = data.valuation;
   return out;
 }
 
@@ -92,6 +101,9 @@ function sanitizePropertyUpdate(data: PropertyUpdate): Record<string, unknown> {
     'apartment',
     'block',
     'plot',
+    'purchase_price',
+    'purchase_date',
+    'valuation',
   ];
   const out: Record<string, unknown> = {};
   for (const key of allowed) {
@@ -145,4 +157,25 @@ export async function sharePropertySheet(property: Pick<Property, 'id' | 'addres
   });
   const Sharing = await import('expo-sharing');
   await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: filename });
+}
+
+/** The property's value history, newest first. The first entry is `current_value`. */
+export async function getPropertyValuations(propertyId: number): Promise<PropertyValuation[]> {
+  if (USE_MOCK_API) return mockPropertyValuationsApi.list(propertyId);
+  const response = await apiClient.get<PropertyValuation[]>(`/properties/${propertyId}/valuations`);
+  return response.data;
+}
+
+export async function createPropertyValuation(
+  propertyId: number,
+  data: PropertyValuationInput,
+): Promise<PropertyValuation> {
+  if (USE_MOCK_API) return mockPropertyValuationsApi.create(propertyId, data);
+  const response = await apiClient.post<PropertyValuation>(`/properties/${propertyId}/valuations`, data);
+  return response.data;
+}
+
+export async function deletePropertyValuation(propertyId: number, valuationId: number): Promise<void> {
+  if (USE_MOCK_API) return mockPropertyValuationsApi.delete(propertyId, valuationId);
+  await apiClient.delete(`/properties/${propertyId}/valuations/${valuationId}`);
 }

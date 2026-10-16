@@ -4,6 +4,8 @@ import { usePropertyForm } from "@/src/features/properties/hooks/usePropertyForm
 import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCard";
 import { usePropertyOwnersList } from "@/src/features/property-owners/hooks/usePropertyOwnersList";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
+import { PurchaseValueCard } from "@/src/features/properties/components/PurchaseValueCard";
+import { PropertyValueDialog } from "@/src/features/properties/components/PropertyValueDialog";
 import { PropertyCreatedPrompt } from "@/src/features/properties/components/PropertyCreatedPrompt";
 import { PropertyScanConflicts } from "@/src/features/properties/components/PropertyScanConflicts";
 import { consumePropertyPrefill } from "@/src/features/document-scan/handoff";
@@ -62,6 +64,9 @@ export function AddEditPropertyScreen() {
     conflicts,
     conflictChoices,
     resolveConflict,
+    storedValue,
+    pendingValuation,
+    setPendingValuation,
   } = usePropertyForm({
     id,
     t,
@@ -87,6 +92,7 @@ export function AddEditPropertyScreen() {
 
   const { formState, control, trigger, setFocus } = formMethods;
   const [step, setStep] = React.useState<"basic" | "lease">("basic");
+  const [valueDialogOpen, setValueDialogOpen] = React.useState(false);
   // Derived, never written: `useTourStep` goes null the moment the tour ends and the form is
   // back on whichever page the user was actually filling in, with nothing to restore. It also
   // means the page-one validation that `onPressNext` runs is never triggered behind the tour.
@@ -98,7 +104,7 @@ export function AddEditPropertyScreen() {
       if (allowRemoveRef.current) return;
       // Prompt when the user has edited the form OR arrived via the scan flow with prefilled
       // data (which RHF treats as pristine because it lives in defaultValues).
-      if (!formState.isDirty && !scan) return;
+      if (!formState.isDirty && !scan && !pendingValuation) return;
       e.preventDefault();
       appAlert(
         t("common.discardChanges"),
@@ -114,7 +120,7 @@ export function AddEditPropertyScreen() {
       );
     });
     return unsub;
-  }, [navigation, formState.isDirty, scan, t, appAlert]);
+  }, [navigation, formState.isDirty, scan, pendingValuation, t, appAlert]);
 
   const handleHeaderBack = () => {
     if (step === "lease") {
@@ -198,6 +204,16 @@ export function AddEditPropertyScreen() {
             </>
           )}
           {shownStep === "lease" && (
+            <PurchaseValueCard
+              control={control}
+              t={t}
+              currentValue={pendingValuation?.value ?? storedValue?.value ?? null}
+              currentValueDate={pendingValuation?.valued_on ?? storedValue?.date ?? null}
+              pending={!!pendingValuation}
+              onAddValue={() => setValueDialogOpen(true)}
+            />
+          )}
+          {shownStep === "lease" && (
             <LeaseInfoCard
               control={control}
               t={t}
@@ -246,6 +262,14 @@ export function AddEditPropertyScreen() {
           )}
         </View>
       </View>
+      <PropertyValueDialog
+        visible={valueDialogOpen}
+        onConfirm={(valuation) => {
+          setPendingValuation(valuation);
+          setValueDialogOpen(false);
+        }}
+        onDismiss={() => setValueDialogOpen(false)}
+      />
       <PropertyCreatedPrompt
         visible={!!createdProperty}
         onAddRenter={() => {

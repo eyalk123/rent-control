@@ -2,13 +2,24 @@ import React from 'react';
 import { formatArea } from '@/src/shared/utils/money';
 import { registryKey1, registryKey2 } from '@/src/shared/utils/registryLabels';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { Button, IconButton, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { getCurrentMonthlyRent, type Property, type Transaction } from '@/src/shared/types';
+import {
+  getCurrentMonthlyRent,
+  type Property,
+  type PropertyValuationInput,
+  type Transaction,
+} from '@/src/shared/types';
 import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
 import { effectiveDate } from '@/src/features/transactions/utils/aggregate';
 import { lightColors, darkColors, spacing, ICON_SM } from '@/src/core/theme';
-import { formatMoney } from '@/src/shared/utils/money';
+import { formatDate, formatMoney } from '@/src/shared/utils/money';
+import { useAlert } from '@/src/core/context';
+import { getApiErrorMessage } from '@/src/core/api/client';
+import { createPropertyValuation, getPropertyById } from '@/src/features/properties/api/properties';
+import { PropertyValueDialog } from '@/src/features/properties/components/PropertyValueDialog';
+import { PropertyValueHistoryDialog } from '@/src/features/properties/components/PropertyValueHistoryDialog';
+import { formatPercent } from '@/src/features/properties/utils/propertyReturns';
 import { Icon, StatBox, DetailRow, DetailSection, type IconName } from '@/src/shared/components/ui';
 
 interface PropertyInfoTabProps {
@@ -16,6 +27,8 @@ interface PropertyInfoTabProps {
   /** Held by the screen so the Info and Transactions tabs share one fetch. */
   transactions: Transaction[];
   transactionsLoading: boolean;
+  /** Replaces the screen's copy after a value is added or removed. */
+  onPropertyChange: (property: Property) => void;
 }
 
 function ExpandableNotesRow({
@@ -55,7 +68,12 @@ function ExpandableNotesRow({
   );
 }
 
-export function PropertyInfoTab({ property, transactions, transactionsLoading }: PropertyInfoTabProps) {
+export function PropertyInfoTab({
+  property,
+  transactions,
+  transactionsLoading,
+  onPropertyChange,
+}: PropertyInfoTabProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -178,6 +196,8 @@ export function PropertyInfoTab({ property, transactions, transactionsLoading }:
         )}
       </DetailSection>
 
+      <PurchaseAndValueSection property={property} onPropertyChange={onPropertyChange} />
+
       <DetailSection title={t('property.details')}>
         {Array.isArray(property.parking_numbers) && property.parking_numbers.length > 0 && (
           <DetailRow
@@ -234,7 +254,149 @@ export function PropertyInfoTab({ property, transactions, transactionsLoading }:
   );
 }
 
+/**
+ * What was paid and what it is worth now. The current value is the latest entry of the value
+ * history: "+" adds one straight away (the same dialog as the form's), History lists them.
+ */
+function PurchaseAndValueSection({
+  property,
+  onPropertyChange,
+}: Pick<PropertyInfoTabProps, 'property' | 'onPropertyChange'>) {
+  const { t } = useTranslation();
+  const { appAlert } = useAlert();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const [addOpen, setAddOpen] = React.useState(false);
+  const [historyOpen, setHistoryOpen] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+  // Computed by the server — the same figures the assistant quotes.
+  const returns = property.returns;
+
+  // Re-read rather than patched locally: the server decides which entry is current (the
+  // latest by date, which a backdated entry is not).
+  const refresh = React.useCallback(async () => {
+    try {
+      onPropertyChange(await getPropertyById(property.id));
+    } catch {
+      // The value was saved; the screen catches up on its next focus.
+    }
+  }, [property.id, onPropertyChange]);
+
+  const add = async (valuation: PropertyValuationInput) => {
+    setSaving(true);
+    try {
+      await createPropertyValuation(property.id, valuation);
+      setAddOpen(false);
+      await refresh();
+    } catch (err) {
+      appAlert(t('error.title'), getApiErrorMessage(err, t('property.valueSaveFailed')));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <DetailSection
+        title={t('property.valueSection')}
+        action={
+          <IconButton
+            mode="contained"
+            size={18}
+            containerColor={colors.primary}
+            icon={() => <Icon name="plus" size={ICON_SM} color={colors.onPrimary} />}
+            onPress={() => setAddOpen(true)}
+            accessibilityLabel={t('property.addValue')}
+            style={styles.addButton}
+          />
+        }
+      >
+        {property.purchase_price != null && (
+          <DetailRow label={t('property.purchasePrice')} value={formatMoney(property.purchase_price)} />
+        )}
+        {property.purchase_date ? (
+          <DetailRow label={t('property.purchaseDate')} value={formatDate(property.purchase_date)} />
+        ) : null}
+        <DetailRow label={t('property.currentValue')}>
+          <View style={styles.valueCell}>
+            <Text variant="bodyMedium" style={[styles.valueAmount, { color: colors.textPrimary }]}>
+              {property.current_value != null ? formatMoney(property.current_value) : '–'}
+            </Text>
+            {property.current_value_date ? (
+              <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                {t('property.valueAsOf', { date: formatDate(property.current_value_date) })}
+              </Text>
+            ) : null}
+          </View>
+        </DetailRow>
+        {/* Neutral ink throughout: a yield or a change in value is a fact, not an alarm. */}
+        {returns?.gross_yield != null && (
+          <DetailRow label={t('property.grossYield')} value={formatPercent(returns.gross_yield)} />
+        )}
+        {returns?.net_yield != null && (
+          <DetailRow label={t('property.netYield')} value={formatPercent(returns.net_yield)} />
+        )}
+        {returns?.appreciation != null && returns.appreciation_pct != null && (
+          <DetailRow label={t('property.appreciation')}>
+            <View style={styles.valueCell}>
+              <Text variant="bodyMedium" style={[styles.valueAmount, { color: colors.textPrimary }]}>
+                {/* Isolated left-to-right, or a Hebrew line moves the sign and brackets to the far end. */}
+                {`⁦${returns.appreciation > 0 ? '+' : ''}${formatMoney(returns.appreciation)} (${formatPercent(returns.appreciation_pct, true)})⁩`}
+              </Text>
+              {returns.appreciation_per_year != null ? (
+                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
+                  {t('property.appreciationPerYear', { pct: formatPercent(returns.appreciation_per_year, true) })}
+                </Text>
+              ) : null}
+            </View>
+          </DetailRow>
+        )}
+        {property.current_value != null && (
+          <Button
+            mode="text"
+            compact
+            icon={() => <Icon name="clock" size={ICON_SM} color={colors.primary} />}
+            onPress={() => setHistoryOpen(true)}
+            style={styles.historyButton}
+          >
+            {t('property.valueHistory')}
+          </Button>
+        )}
+      </DetailSection>
+      <PropertyValueDialog
+        visible={addOpen}
+        loading={saving}
+        onConfirm={add}
+        onDismiss={() => setAddOpen(false)}
+      />
+      <PropertyValueHistoryDialog
+        visible={historyOpen}
+        propertyId={property.id}
+        purchasePrice={property.purchase_price}
+        purchaseDate={property.purchase_date}
+        onDismiss={() => setHistoryOpen(false)}
+        onChanged={refresh}
+      />
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
+  addButton: {
+    margin: 0,
+  },
+  valueCell: {
+    alignItems: 'flex-end',
+  },
+  valueAmount: {
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  historyButton: {
+    alignSelf: 'flex-start',
+    marginHorizontal: spacing.sm,
+    marginVertical: spacing.xs,
+  },
   content: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,

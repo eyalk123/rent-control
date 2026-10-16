@@ -46,6 +46,9 @@ export interface Property {
   water_account_number?: string | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  purchase_price?: number | null;
+  /** `YYYY-MM-DD`. */
+  purchase_date?: string | null;
   /** The owner's name, read from the owner record. Kept for display and filters. */
   property_owner?: string | null;
   property_owner_id?: number | null;
@@ -57,6 +60,11 @@ export interface Property {
   block?: string | null;
   plot?: string | null;
   renters: Renter[] | null;
+  /** The latest entry of the value history (`/properties/{id}/valuations`), and its date. */
+  current_value?: number | null;
+  current_value_date?: string | null;
+  /** Yields and appreciation, computed by the server. Null on a locked stub. */
+  returns?: PropertyReturns | null;
   /** Enriched on list when renters are fetched; used for occupancy display */
   hasRenters?: boolean;
   /**
@@ -475,6 +483,9 @@ export interface PropertyCreate {
   water_account_number?: string | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  purchase_price?: number | null;
+  /** `YYYY-MM-DD`. */
+  purchase_date?: string | null;
   /** The owner's name, read from the owner record. Kept for display and filters. */
   property_owner?: string | null;
   property_owner_id?: number | null;
@@ -485,6 +496,8 @@ export interface PropertyCreate {
   apartment?: string | null;
   block?: string | null;
   plot?: string | null;
+  /** A new value-history entry, saved with the property. Appended, never a replacement. */
+  valuation?: PropertyValuationInput;
 }
 
 // Update payload (PATCH /properties/{id}) - all fields optional
@@ -503,6 +516,9 @@ export interface PropertyUpdate {
   water_account_number?: string | null;
   property_tax?: number | null;
   house_committee?: number | null;
+  purchase_price?: number | null;
+  /** `YYYY-MM-DD`. */
+  purchase_date?: string | null;
   /** The owner's name, read from the owner record. Kept for display and filters. */
   property_owner?: string | null;
   property_owner_id?: number | null;
@@ -513,6 +529,8 @@ export interface PropertyUpdate {
   apartment?: string | null;
   block?: string | null;
   plot?: string | null;
+  /** A new value-history entry, saved with the property. Appended, never a replacement. */
+  valuation?: PropertyValuationInput;
 }
 
 // Create payload (POST /renters)
@@ -567,4 +585,36 @@ export interface RenterUpdate extends LeaseTermIntent {
 export interface APIResponse<T> {
   data: T;
   message?: string;
+}
+
+/** What the owner thinks a property is worth, as of a date (`YYYY-MM-DD`). */
+export interface PropertyValuationInput {
+  value: number;
+  valued_on: string;
+}
+
+export interface PropertyValuation extends PropertyValuationInput {
+  id: number;
+  property_id: number;
+  created_at: string;
+}
+
+/**
+ * What a property returns, computed by the backend (`app/services/property_returns.py`) — the
+ * one place it is calculated, so the apps and the assistant quote the same figures. Ratios are
+ * fractions (0.042 is 4.2%). A figure is null when an input is missing; `unavailable` maps its
+ * name to why ("no_current_value", "vacant", "no_recent_rent", "no_purchase_price",
+ * "no_purchase_date", "held_under_a_year", "no_rent_amount").
+ */
+export interface PropertyReturns {
+  gross_yield: number | null;
+  net_yield: number | null;
+  appreciation: number | null;
+  appreciation_pct: number | null;
+  appreciation_per_year: number | null;
+  annual_rent: number | null;
+  net_income_12m: number | null;
+  window_start: string | null;
+  window_end: string | null;
+  unavailable: Record<string, string>;
 }

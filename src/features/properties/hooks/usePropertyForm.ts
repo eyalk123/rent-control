@@ -15,7 +15,14 @@ import {
   deletePropertyFile,
 } from '@/src/features/properties/api/propertyFilesApi';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import type { Property, PropertyCreate, PropertyFile, PropertyOwner, PropertyType } from '@/src/shared/types';
+import type {
+  Property,
+  PropertyCreate,
+  PropertyFile,
+  PropertyOwner,
+  PropertyType,
+  PropertyValuationInput,
+} from '@/src/shared/types';
 import {
   propertyFormSchema,
   type PropertyFormValues,
@@ -61,6 +68,8 @@ const EMPTY_PROPERTY_FORM: PropertyFormValues = {
   waterAccountNumber: '',
   propertyTax: '',
   houseCommittee: '',
+  purchasePrice: '',
+  purchaseDate: '',
   basicContractUrl: null,
   landRegistryUrl: null,
   floor: '',
@@ -96,6 +105,8 @@ function propertyToFormValues(prop: Property): PropertyFormValues {
     waterAccountNumber: prop.water_account_number ?? '',
     propertyTax: prop.property_tax != null ? String(prop.property_tax) : '',
     houseCommittee: prop.house_committee != null ? String(prop.house_committee) : '',
+    purchasePrice: prop.purchase_price != null ? String(prop.purchase_price) : '',
+    purchaseDate: prop.purchase_date ?? '',
     basicContractUrl: prop.basic_contract_url ?? null,
     landRegistryUrl: prop.land_registry_url ?? null,
     floor: prop.floor != null ? String(prop.floor) : '',
@@ -125,6 +136,11 @@ export function usePropertyForm({
   const [conflicts, setConflicts] = React.useState<PropertyFormFieldConflict[]>([]);
   const [conflictChoices, setConflictChoices] = React.useState<Record<string, 'keep' | 'update'>>({});
   const { uploadFile } = useFirebaseUpload('properties', user?.uid ?? '');
+  // The stored current value, and a new one added with the "+". The latter is not a form
+  // field — it is a new history entry, not an edit — so it is sent with the save, and leaving
+  // the form drops it.
+  const [storedValue, setStoredValue] = React.useState<{ value: number; date: string | null } | null>(null);
+  const [pendingValuation, setPendingValuation] = React.useState<PropertyValuationInput | null>(null);
 
   const formMethods = useForm<PropertyFormValues>({
     resolver: zodResolver(propertyFormSchema),
@@ -170,6 +186,11 @@ export function usePropertyForm({
         }
         setConflictChoices({});
         setImageUri(prop.image_url ?? null);
+        setStoredValue(
+          prop.current_value != null
+            ? { value: prop.current_value, date: prop.current_value_date ?? null }
+            : null,
+        );
         setExistingFiles(files);
         setDeletedFileIds([]);
       })
@@ -214,6 +235,9 @@ export function usePropertyForm({
       land_registry_url: values.landRegistryUrl ?? null,
       floor: toOptionalNumber(values.floor),
       apartment: values.apartment || null,
+      purchase_price: toOptionalNumber(values.purchasePrice),
+      purchase_date: values.purchaseDate || null,
+      ...(pendingValuation ? { valuation: pendingValuation } : {}),
     };
 
     try {
@@ -247,6 +271,7 @@ export function usePropertyForm({
       setImageUri(savedProp.image_url ?? null);
       setExistingFiles([]);
       setDeletedFileIds([]);
+      setPendingValuation(null);
       onSuccess(savedProp);
     } catch (err) {
       appAlert(
@@ -285,5 +310,8 @@ export function usePropertyForm({
     conflicts,
     conflictChoices,
     resolveConflict,
+    storedValue,
+    pendingValuation,
+    setPendingValuation,
   };
 }

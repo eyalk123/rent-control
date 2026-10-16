@@ -277,6 +277,7 @@ export function PropertyDetailScreen() {
               property={property}
               transactions={propertyTransactions.transactions}
               transactionsLoading={propertyTransactions.loading}
+              onPropertyChange={setProperty}
             />
           )}
           {shownTab === 'renters' && <PropertyRentersTab property={property} />}
