@@ -15,6 +15,7 @@ import {
   deletePropertyFile,
 } from '@/src/features/properties/api/propertyFilesApi';
 import { getApiErrorMessage } from '@/src/core/api/client';
+import { capabilities } from '@/src/shared/utils/capabilities';
 import type {
   Property,
   PropertyCreate,
@@ -75,6 +76,10 @@ const EMPTY_PROPERTY_FORM: PropertyFormValues = {
   floor: '',
   apartment: '',
   pendingFiles: [],
+  hasMortgage: false,
+  mortgagePayment: '',
+  mortgageChargeDay: '',
+  mortgageEndDate: '',
 };
 
 function toOptionalNumber(s: string | undefined): number | null {
@@ -111,7 +116,38 @@ function propertyToFormValues(prop: Property): PropertyFormValues {
     landRegistryUrl: prop.land_registry_url ?? null,
     floor: prop.floor != null ? String(prop.floor) : '',
     apartment: prop.apartment ?? '',
+    // The switch is simply "this property has a mortgage" — no separate flag to fall out
+    // of step with the data. The amount shown is the one in force today, else the newest.
+    hasMortgage: !!prop.mortgage,
+    mortgagePayment:
+      prop.mortgage != null
+        ? String(prop.mortgage.current_payment ?? prop.mortgage.payments[0]?.amount ?? '')
+        : '',
+    mortgageChargeDay: prop.mortgage != null ? String(prop.mortgage.charge_day) : '',
+    mortgageEndDate: prop.mortgage?.end_date ?? '',
   };
+}
+
+/**
+ * The `mortgage` field of a save. Switch on: the mortgage — the server creates it, or
+ * corrects today's amount (a dated change is the property screen's job). Switch off: `null`
+ * deletes it, sent only when there is one to delete. Nothing where the country has none.
+ */
+function mortgagePayload(
+  values: PropertyFormValues,
+  hadMortgage: boolean,
+): Pick<PropertyCreate, 'mortgage'> {
+  if (!capabilities().mortgage) return {};
+  if (values.hasMortgage) {
+    return {
+      mortgage: {
+        monthly_payment: Number(values.mortgagePayment),
+        charge_day: Number(values.mortgageChargeDay),
+        end_date: values.mortgageEndDate || null,
+      },
+    };
+  }
+  return hadMortgage ? { mortgage: null } : {};
 }
 
 export function usePropertyForm({
@@ -141,6 +177,8 @@ export function usePropertyForm({
   // the form drops it.
   const [storedValue, setStoredValue] = React.useState<{ value: number; date: string | null } | null>(null);
   const [pendingValuation, setPendingValuation] = React.useState<PropertyValuationInput | null>(null);
+  // Whether the stored property has a mortgage: the switch turned off then means "delete it".
+  const [hadMortgage, setHadMortgage] = React.useState(false);
 
   const formMethods = useForm<PropertyFormValues>({
     resolver: zodResolver(propertyFormSchema),
@@ -186,6 +224,7 @@ export function usePropertyForm({
         }
         setConflictChoices({});
         setImageUri(prop.image_url ?? null);
+        setHadMortgage(!!prop.mortgage);
         setStoredValue(
           prop.current_value != null
             ? { value: prop.current_value, date: prop.current_value_date ?? null }
@@ -238,6 +277,7 @@ export function usePropertyForm({
       purchase_price: toOptionalNumber(values.purchasePrice),
       purchase_date: values.purchaseDate || null,
       ...(pendingValuation ? { valuation: pendingValuation } : {}),
+      ...mortgagePayload(values, hadMortgage),
     };
 
     try {
@@ -272,6 +312,7 @@ export function usePropertyForm({
       setExistingFiles([]);
       setDeletedFileIds([]);
       setPendingValuation(null);
+      setHadMortgage(!!savedProp.mortgage);
       onSuccess(savedProp);
     } catch (err) {
       appAlert(
@@ -313,5 +354,6 @@ export function usePropertyForm({
     storedValue,
     pendingValuation,
     setPendingValuation,
+    hadMortgage,
   };
 }

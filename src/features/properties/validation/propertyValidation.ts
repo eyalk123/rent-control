@@ -100,6 +100,22 @@ export const propertyFormSchema = z.object({
     )
     .max(10)
     .optional(),
+  // The mortgage switch and its fields (Israel only). Required only while the switch is on,
+  // so a property without a mortgage never trips over them.
+  hasMortgage: z.boolean(),
+  mortgagePayment: z.string().transform((val) => (val ?? '').trim()),
+  mortgageChargeDay: z.string().transform((val) => (val ?? '').trim()),
+  mortgageEndDate: z.string().transform((val) => val ?? ''),
+}).superRefine((data, ctx) => {
+  if (!data.hasMortgage) return;
+  const payment = Number(data.mortgagePayment);
+  if (data.mortgagePayment === '' || Number.isNaN(payment) || payment <= 0) {
+    ctx.addIssue({ code: 'custom', path: ['mortgagePayment'], message: 'mortgage.amountInvalid' });
+  }
+  const day = Number(data.mortgageChargeDay);
+  if (!/^\d+$/.test(data.mortgageChargeDay) || day < 1 || day > 31) {
+    ctx.addIssue({ code: 'custom', path: ['mortgageChargeDay'], message: 'mortgage.chargeDayInvalid' });
+  }
 });
 
 export type PropertyFormValues = z.infer<typeof propertyFormSchema>;

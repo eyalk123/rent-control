@@ -212,8 +212,12 @@ export function PropertyInfoTab({
 
       <PurchaseAndValueSection property={property} onPropertyChange={onPropertyChange} />
 
-      {capabilities().mortgage && (
-        <MortgageSection property={property} onPropertyChange={onPropertyChange} />
+      {capabilities().mortgage && property.mortgage && (
+        <MortgageSection
+          property={property}
+          mortgage={property.mortgage}
+          onPropertyChange={onPropertyChange}
+        />
       )}
 
       <DetailSection title={t('property.details')}>

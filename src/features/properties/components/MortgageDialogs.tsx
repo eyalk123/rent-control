@@ -7,34 +7,25 @@ import { formatDateFull, toISODate } from '@/src/shared/utils/dates';
 import { currencySymbol, formatDate, formatMoney } from '@/src/shared/utils/money';
 import { darkColors, lightColors, spacing, ICON_SM } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui';
-import type { Mortgage, MortgageCreate, MortgagePaymentInput, MortgageUpdate } from '@/src/shared/types';
+import type { Mortgage, MortgagePaymentInput } from '@/src/shared/types';
 
 const amountValid = (raw: string) => raw.trim() !== '' && !Number.isNaN(Number(raw.trim())) && Number(raw.trim()) > 0;
-const dayValid = (raw: string) => /^\d+$/.test(raw.trim()) && Number(raw) >= 1 && Number(raw) <= 31;
-
-/** "YYYY-MM-DD" → a local Date at midnight, so the picker shows the same day. */
-function fromISO(iso: string): Date {
-  const [y, m, d] = iso.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
 
 /** A tappable date box that opens the platform picker — the value dialog's control. */
 function DateField({
   label,
   value,
   onChange,
-  onClear,
 }: {
   label: string;
-  value: Date | null;
+  value: Date;
   onChange: (d: Date) => void;
-  onClear?: () => void;
 }) {
-  const { t, i18n: { language } } = useTranslation();
+  const { i18n: { language } } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const [open, setOpen] = useState(false);
-  const shown = value ? formatDateFull(value, language) : '–';
+  const shown = formatDateFull(value, language);
   return (
     <View>
       <Text variant="labelMedium" style={{ color: colors.textPrimary }}>{label}</Text>
@@ -44,16 +35,11 @@ function DateField({
         accessibilityLabel={`${label}: ${shown}`}
         style={[styles.dateBox, { borderColor: colors.inputBorder, backgroundColor: colors.inputBackground }]}
       >
-        <Text style={{ color: value ? colors.textPrimary : colors.textSecondary }}>{shown}</Text>
+        <Text style={{ color: colors.textPrimary }}>{shown}</Text>
       </Pressable>
-      {value && onClear ? (
-        <Button mode="text" compact onPress={onClear} style={styles.clear}>
-          {t('mortgage.clearEndDate')}
-        </Button>
-      ) : null}
       {open && (
         <DateTimePicker
-          value={value ?? new Date()}
+          value={value}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={(_event, selected) => {
@@ -64,106 +50,6 @@ function DateField({
         />
       )}
     </View>
-  );
-}
-
-interface MortgageDialogProps {
-  visible: boolean;
-  /** Editing this mortgage; omitted to add one. The payment changes through its own dialog. */
-  mortgage?: Mortgage | null;
-  loading?: boolean;
-  onCreate: (data: MortgageCreate) => void;
-  onUpdate: (data: MortgageUpdate) => void;
-  onDismiss: () => void;
-}
-
-/** Add a mortgage (payment, charge day, optional end date), or edit the day and end date. */
-export function MortgageDialog({ visible, mortgage, loading, onCreate, onUpdate, onDismiss }: MortgageDialogProps) {
-  const { t } = useTranslation();
-  const theme = useTheme();
-  const colors = theme.dark ? darkColors : lightColors;
-  const editing = !!mortgage;
-  const [amount, setAmount] = useState('');
-  const [day, setDay] = useState('');
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [touched, setTouched] = useState(false);
-
-  useEffect(() => {
-    if (!visible) return;
-    setAmount('');
-    setDay(mortgage ? String(mortgage.charge_day) : '');
-    setEndDate(mortgage?.end_date ? fromISO(mortgage.end_date) : null);
-    setTouched(false);
-  }, [visible, mortgage]);
-
-  const amountInvalid = !editing && !amountValid(amount);
-  const dayInvalid = !dayValid(day);
-
-  const submit = () => {
-    setTouched(true);
-    if (amountInvalid || dayInvalid) return;
-    const end = endDate ? toISODate(endDate) : null;
-    if (editing) onUpdate({ charge_day: Number(day), end_date: end });
-    else onCreate({ monthly_payment: Number(amount.trim()), charge_day: Number(day), end_date: end });
-  };
-
-  return (
-    <Portal>
-      <Dialog
-        visible={visible}
-        onDismiss={loading ? undefined : onDismiss}
-        style={[styles.dialog, { backgroundColor: colors.inputFilledBackground }]}
-      >
-        <Dialog.Title style={{ color: colors.textPrimary }}>
-          {editing ? t('mortgage.edit') : t('mortgage.add')}
-        </Dialog.Title>
-        <Dialog.Content style={styles.content}>
-          {!editing && (
-            <View>
-              <TextInput
-                mode="outlined"
-                label={`${t('mortgage.monthlyPayment')} (${currencySymbol()})`}
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="decimal-pad"
-                error={touched && amountInvalid}
-                autoFocus
-              />
-              <HelperText type={touched && amountInvalid ? 'error' : 'info'} visible>
-                {touched && amountInvalid ? t('mortgage.amountInvalid') : t('mortgage.monthlyPaymentHint')}
-              </HelperText>
-            </View>
-          )}
-          <View>
-            <TextInput
-              mode="outlined"
-              label={t('mortgage.chargeDay')}
-              value={day}
-              onChangeText={setDay}
-              keyboardType="number-pad"
-              maxLength={2}
-              error={touched && dayInvalid}
-              autoFocus={editing}
-            />
-            <HelperText type={touched && dayInvalid ? 'error' : 'info'} visible>
-              {touched && dayInvalid ? t('mortgage.chargeDayInvalid') : t('mortgage.chargeDayHint')}
-            </HelperText>
-          </View>
-          <DateField
-            label={t('mortgage.endDateOptional')}
-            value={endDate}
-            onChange={setEndDate}
-            onClear={() => setEndDate(null)}
-          />
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={onDismiss} disabled={loading}>{t('common.cancel')}</Button>
-          <Button mode="contained" loading={loading} disabled={loading} onPress={submit}>
-            {editing ? t('common.save') : t('mortgage.add')}
-          </Button>
-        </Dialog.Actions>
-      </Dialog>
-    </Portal>
   );
 }
 
@@ -317,9 +203,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-  },
-  clear: {
-    alignSelf: 'flex-end',
   },
   scrollArea: {
     paddingHorizontal: 0,

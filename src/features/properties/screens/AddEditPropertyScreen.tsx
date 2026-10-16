@@ -5,6 +5,8 @@ import { BasicInfoCard } from "@/src/features/properties/components/BasicInfoCar
 import { usePropertyOwnersList } from "@/src/features/property-owners/hooks/usePropertyOwnersList";
 import { LeaseInfoCard } from "@/src/features/properties/components/LeaseInfoCard";
 import { PurchaseValueCard } from "@/src/features/properties/components/PurchaseValueCard";
+import { MortgageFormCard } from "@/src/features/properties/components/MortgageFormCard";
+import { capabilities } from "@/src/shared/utils/capabilities";
 import { PropertyValueDialog } from "@/src/features/properties/components/PropertyValueDialog";
 import { PropertyCreatedPrompt } from "@/src/features/properties/components/PropertyCreatedPrompt";
 import { PropertyScanConflicts } from "@/src/features/properties/components/PropertyScanConflicts";
@@ -67,6 +69,7 @@ export function AddEditPropertyScreen() {
     storedValue,
     pendingValuation,
     setPendingValuation,
+    hadMortgage,
   } = usePropertyForm({
     id,
     t,
@@ -212,6 +215,9 @@ export function AddEditPropertyScreen() {
               pending={!!pendingValuation}
               onAddValue={() => setValueDialogOpen(true)}
             />
+          )}
+          {shownStep === "lease" && capabilities().mortgage && (
+            <MortgageFormCard control={control} t={t} hadMortgage={hadMortgage} />
           )}
           {shownStep === "lease" && (
             <LeaseInfoCard
