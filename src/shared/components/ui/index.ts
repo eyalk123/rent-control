@@ -18,6 +18,7 @@ export { SegmentedControl, type Segment } from './SegmentedControl';
 export { StatBox } from './StatBox';
 export { DetailSection, SectionLabel } from './DetailSection';
 export { DetailRow } from './DetailRow';
+export { InfoTip, InfoTipText } from './InfoTip';
 export { DocumentsCard, type DocumentItem } from './DocumentsCard';
 export { SkeletonBlock } from './SkeletonBlock';
 export { ListCard } from './ListCard';

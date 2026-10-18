@@ -165,12 +165,14 @@
     "event": {
       "overdue": "Rent due",
       "lease_expiring": "Lease expiring",
-      "cpi_rent_change": "CPI rent change"
+      "cpi_rent_change": "CPI rent change",
+      "mortgage_rate_change": "Prime rate change"
     },
     "default": {
       "overdue": "On the due date, and 3 days after if unpaid · all properties",
       "lease_expiring": "90 and 30 days before the lease ends · all properties",
-      "cpi_rent_change": "30 days before the lease anniversary, and again once the amount is set"
+      "cpi_rent_change": "30 days before the lease anniversary, and again once the amount is set",
+      "mortgage_rate_change": "When the Bank of Israel changes the rate, if one of your mortgages has a prime track"
     },
     "cpiThresholdTitle": "Only tell me when rent changes by more than",
     "cpiThresholdHint": "Whichever of the two is larger.",
@@ -178,9 +180,23 @@
     "cpiMinPercent": "Percent",
     "cpiChangesOn": "Changes on {{date}}",
     "cpiEffective": "Effective {{date}}",
-    "cpiBadgeUpcoming": "Estimate",
-    "cpiBadgeChanged": "Confirmed",
+    "cpiBadgeUpcoming": "Estimated amount",
+    "cpiBadgeChanged": "Final amount",
     "cpiViewRenter": "View renter",
+    "cpiConfirm": "Confirm",
+    "cpiEditAmount": "Edit amount",
+    "cpiSheetTitle": "New rent for {{name}}",
+    "cpiSheetCalculated": "By the index: {{amount}} (now {{old}}) · from {{date}}",
+    "cpiSheetAmountLabel": "Agreed rent",
+    "cpiSheetHelper": "Applies from this lease year. Later years are calculated from this amount by the index.",
+    "cpiSheetWarnBelowCurrent": "This is less than the current rent ({{amount}}).",
+    "cpiSheetWarnFarFromIndex": "This is more than 5% away from the index figure.",
+    "rateSummary": "When the Bank of Israel changes the rate",
+    "rateUp": "Prime went up to {{rate}}%",
+    "rateDown": "Prime went down to {{rate}}%",
+    "rateWas": "Was {{rate}}% · from {{date}}",
+    "rateNote": "If part of your mortgage is on prime, the monthly payment changes too. Update it when you see the new amount.",
+    "rateUpdate": "Update payment",
     "addRule": "Add reminder",
     "newRule": "New reminder",
     "editRule": "Edit reminder",
@@ -310,6 +326,14 @@
     "valueChartLabel": "Value over time",
     "valueChartPurchase": "Purchase",
     "valueSection": "Purchase & value",
+    "info": {
+      "currentValue": "What the property is worth today, as of the date shown. Each value you add is kept with its date, and History shows how it moved. The yields and appreciation below are measured against it.",
+      "grossYield": "Current monthly rent × 12, divided by the current value. Before any expenses.",
+      "grossYieldExample": "Example: rent of 5,000 a month on a property worth 2,000,000 is 60,000 ÷ 2,000,000 = 3%.",
+      "netYield": "Rent received minus expenses paid over the last 12 months, divided by the current value. Based on the transactions you recorded, so it reflects what actually came in and went out.",
+      "appreciation": "Current value minus the purchase price, as an amount and as a percentage of the price.",
+      "appreciationPerYear": "The yearly figure is the average compound growth from the purchase date to the date of the current value. It appears once the property has been held for a year."
+    },
     "purchasePrice": "Purchase price",
     "purchaseDate": "Purchase date",
     "currentValue": "Current value",
@@ -469,6 +493,12 @@
     "leaseYearTypeOption": "Option",
     "leaseYearTypeContract": "Contract",
     "extendLease": "Extend lease",
+    "exerciseOption": "Exercise option",
+    "exerciseOptionTitle": "Exercise the option year for {{name}}?",
+    "exerciseOptionBody": "The option year starting {{start}} becomes a binding contract year at {{amount}}/month. The contract will now end on {{date}}.",
+    "exerciseOptionChangeTerms": "Change terms instead",
+    "optionYearAvailable": "Option year available",
+    "optionYearAvailableDetail": "Starts {{start}} · {{amount}}/month",
     "ended": "Ended",
     "endedLeaseShort": "This lease has ended",
     "terminatedLease": "Lease terminated {{date}}",
@@ -487,8 +517,8 @@
     "filterAllLeases": "All",
     "extendLeaseTitle": "Extend lease",
     "extendBackdatedTitle": "This lease ended on {{date}}",
-    "extendBackdatedBody_one": "Added time continues from that date, so the first month is already in the past and will show as rent due. If the tenant moved out and is now returning under a fresh agreement, add them as a new renter instead.",
-    "extendBackdatedBody_other": "Added time continues from that date, so the first {{count}} months are already in the past and will show as rent due. If the tenant moved out and is now returning under a fresh agreement, add them as a new renter instead.",
+    "extendBackdatedBody": "Added time continues from that date, so the first month is already in the past and will show as rent due. If the tenant moved out and is now returning under a fresh agreement, add them as a new renter instead.",
+    "extendBackdatedBody_plural": "Added time continues from that date, so the first {{count}} months are already in the past and will show as rent due. If the tenant moved out and is now returning under a fresh agreement, add them as a new renter instead.",
     "addYears": "Add years",
     "yearsToAdd": "Years to add",
     "optionYearsToAdd": "Option years to add",
@@ -580,7 +610,8 @@
     "openEndedTenancy": "Tenancy",
     "openEndedGenerated": "Auto",
     "openEndedGeneratedNote": "The later years are projections that extend automatically. Edit any amount to correct it.",
-    "cpiTimelineProjectedNote": "Amounts marked ≈ are projections based on the latest published index. Each is finalized once the index for that lease year is published."
+    "cpiTimelineProjectedNote": "Amounts marked ≈ are projections based on the latest published index. Each is finalized once the index for that lease year is published.",
+    "leaseYearSetByOwner": "Set by you"
   },
   "empty": {
     "noProperties": "No properties yet. Tap + to add one.",
@@ -620,6 +651,7 @@
     "clearOne": "Clear {{name}} filter"
   },
   "common": {
+    "aboutField": "About {{label}}",
     "search": "Search",
     "selectAll": "Select all",
     "fileOpenFailed": "Couldn't open the file. Try again.",
@@ -765,6 +797,7 @@
     "amount": "Amount",
     "dateOfPayment": "Date of payment",
     "monthForLabel": "Month",
+    "monthForInfo": "The month this rent is for, which can differ from the day it was paid. Overdue alerts and accrual reports count it in this month; cash reports count it on the payment date.",
     "monthForPlaceholder": "Month, Year",
     "paymentMethod": "Payment method",
     "paymentMethodBit": "Bit",
@@ -1446,8 +1479,8 @@
       },
       "notifications": {
         "events": {
-          "title": "Three kinds of alert",
-          "body": "Late rent, leases about to end, and CPI rent changes. The switch above turns them all off at once, and each one can also be turned off on its own."
+          "title": "Your alerts",
+          "body": "Late rent, leases about to end, CPI rent changes and prime rate changes. The switch above turns them all off at once, and each one can also be turned off on its own."
         },
         "rules": {
           "title": "Your own reminder days",
@@ -1727,8 +1760,16 @@
     "leftSub": "Rent − mortgage − average expenses",
     "averageExpenses": "Average expenses (12 months)",
     "coverage": "Rent coverage",
+    "info": {
+      "averageExpenses": "Every expense recorded on this property over the last 12 months, divided by 12. Running costs vary from month to month, so an average is used.",
+      "left": "This month's rent, minus the mortgage payment in force today, minus the average monthly expenses. What the property leaves you each month after the bank and running costs.",
+      "coverage": "Rent divided by the mortgage payment. Above 100% the rent covers the payment; under 100% part of the payment comes from your own pocket every month."
+    },
     "coverageSub": "Rent covers {{pct}} of the mortgage",
     "switchLabel": "This property has a mortgage",
+    "primeLabel": "Part of the mortgage is on the prime track",
+    "primeInfoLabel": "Why we ask about the prime track",
+    "primeInfo": "So we can let you know when the prime rate changes, since your monthly payment changes with it. Prime is the track whose rate follows the Bank of Israel. Not sure? Leave it on.",
     "formAmountNote": "This amount is used for every month from now on, until you update it (for example after a rate change).",
     "formEditNote": "Correcting a mistake? Change it here. If the payment itself changed, use \"Update payment\" (+) in the property's Mortgage section, so earlier months keep the old amount.",
     "turnOffTitle": "Remove the mortgage?",

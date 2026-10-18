@@ -80,6 +80,7 @@ const EMPTY_PROPERTY_FORM: PropertyFormValues = {
   mortgagePayment: '',
   mortgageChargeDay: '',
   mortgageEndDate: '',
+  hasPrimeTrack: true,
 };
 
 function toOptionalNumber(s: string | undefined): number | null {
@@ -125,6 +126,7 @@ function propertyToFormValues(prop: Property): PropertyFormValues {
         : '',
     mortgageChargeDay: prop.mortgage != null ? String(prop.mortgage.charge_day) : '',
     mortgageEndDate: prop.mortgage?.end_date ?? '',
+    hasPrimeTrack: prop.mortgage?.has_prime_track ?? true,
   };
 }
 
@@ -144,6 +146,7 @@ function mortgagePayload(
         monthly_payment: Number(values.mortgagePayment),
         charge_day: Number(values.mortgageChargeDay),
         end_date: values.mortgageEndDate || null,
+        has_prime_track: values.hasPrimeTrack,
       },
     };
   }

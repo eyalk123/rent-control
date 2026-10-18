@@ -733,6 +733,108 @@ function mockCashFlow(r: PropertyReturns, propertyId: number, monthly: number | 
 
 // Mortgages, each carrying its payments newest first — the shape the API returns.
 let mockMortgages: Mortgage[] = [];
+
+// The mortgage rate-change alert, as a fixed sample: the only feed item mock mode has,
+// shown once a mortgage with a prime track exists. The Bank of Israel cut by 0.25 two
+// days ago.
+const MOCK_RATE_ALERT_ID = 999001;
+let mockRateAlertDismissed = false;
+
+export function mockRateAlerts() {
+  const ids = [...new Set(mockMortgages.filter((m) => m.has_prime_track).map((m) => m.property_id))];
+  if (ids.length === 0 || mockRateAlertDismissed) return [];
+  const changed = new Date();
+  changed.setDate(changed.getDate() - 2);
+  return [{
+    id: MOCK_RATE_ALERT_ID,
+    type: 'mortgage_rate_change' as const,
+    renter_id: 0,
+    first_name: null,
+    last_name: null,
+    phone: null,
+    property_id: ids.length === 1 ? ids[0] : null,
+    property_address: null,
+    payment_type: null,
+    offset: 0,
+    data: {
+      old_rate: 3.5,
+      new_rate: 3.25,
+      old_prime: 5,
+      new_prime: 4.75,
+      effective_date: changed.toISOString().slice(0, 10),
+      property_ids: ids,
+    },
+    read: false,
+    dismissed: false,
+    created_at: new Date().toISOString(),
+  }];
+}
+
+export async function dismissMockRateAlert(id: number): Promise<void> {
+  if (id === MOCK_RATE_ALERT_ID) mockRateAlertDismissed = true;
+  mockDismissedAlertIds.add(id);
+}
+
+// A fixed sample of the renter alerts — overdue, lease expiring, and both CPI stages — so
+// the Home "Needs attention" list has every row type to look at in preview mode.
+const mockDismissedAlertIds = new Set<number>();
+
+function isoDaysFromToday(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function mockRenterAlert(
+  id: number,
+  type: 'overdue' | 'lease_expiring' | 'cpi_rent_change',
+  renterId: number,
+  data: Record<string, unknown>,
+) {
+  const renter = mockRenters.find((r) => r.id === renterId);
+  if (!renter) return null;
+  const prop = mockProperties.find((p) => p.id === renter.property_id);
+  return {
+    id,
+    type,
+    renter_id: renter.id,
+    first_name: renter.first_name,
+    last_name: renter.last_name,
+    phone: renter.phone ?? null,
+    property_id: renter.property_id ?? null,
+    property_address: prop?.address ?? null,
+    payment_type: renter.payment_type ?? null,
+    offset: 0,
+    data,
+    read: false,
+    dismissed: false,
+    created_at: new Date().toISOString(),
+  };
+}
+
+export function mockFeedAlerts() {
+  const samples = [
+    // All on renters whose property is unlocked in preview, so tapping a row opens it. The
+    // confirmed CPI sample is Michael Chen's because his is the multi-year lease among them:
+    // Confirm / Edit amount write to a year that exists.
+    mockRenterAlert(999101, 'overdue', 1, { days_overdue: 5, amount: 2200 }),
+    mockRenterAlert(999102, 'lease_expiring', 3, { days_until_expiry: 24 }),
+    mockRenterAlert(999103, 'cpi_rent_change', 1, {
+      stage: 'upcoming', year_index: 1, old_amount: 2200, new_amount: 2246,
+      effective_date: isoDaysFromToday(18),
+    }),
+    mockRenterAlert(999104, 'cpi_rent_change', 2, {
+      stage: 'changed', year_index: 1, old_amount: 1900, new_amount: 1951,
+      effective_date: isoDaysFromToday(12),
+    }),
+  ];
+  return [
+    ...samples.filter(
+      (a): a is NonNullable<typeof a> => a != null && !mockDismissedAlertIds.has(a.id),
+    ),
+    ...mockRateAlerts(),
+  ];
+}
 let nextMortgageId = 1;
 
 function mockPaymentOn(m: Mortgage, day: string): number | null {
@@ -771,6 +873,7 @@ function setMockMortgage(propertyId: number, data: MortgageCreate | null) {
       property_id: propertyId,
       charge_day: data.charge_day,
       end_date: data.end_date ?? null,
+      has_prime_track: data.has_prime_track ?? true,
       current_payment: null,
       payments: [{ id: nextMortgageId++, amount: data.monthly_payment, effective_from: today, created_at: now }],
       created_at: now,
@@ -782,6 +885,7 @@ function setMockMortgage(propertyId: number, data: MortgageCreate | null) {
   entry.amount = data.monthly_payment;
   existing.charge_day = data.charge_day;
   existing.end_date = data.end_date ?? null;
+  existing.has_prime_track = data.has_prime_track ?? true;
 }
 
 export const mockMortgagesApi = {
@@ -1021,6 +1125,31 @@ export const mockRentersApi = {
     const idx = mockRenters.findIndex((x) => x.id === id);
     if (idx < 0) throw new Error('Renter not found');
     mockRenters[idx] = { ...mockRenters[idx], terminated_on: null, termination_reason: null };
+    return mockRentersApi.getRenterById(id);
+  },
+  /**
+   * Mirrors `PUT /renters/{id}/lease-years/{n}/amount` closely enough to look at: the year
+   * keeps the typed amount and is marked owner-set, and later years move by the same ratio
+   * (the server re-derives them from the index; mock mode has no index). Dismisses the
+   * sample alert for that year.
+   */
+  setLeaseYearAmount: async (id: number, yearIndex: number, amount: number): Promise<Renter> => {
+    const idx = mockRenters.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error('Renter not found');
+    const years = [...(mockRenters[idx].lease_years ?? [])];
+    if (yearIndex < 1 || yearIndex >= years.length) throw new Error('No such lease year');
+    const ratio = years[yearIndex].amount ? amount / years[yearIndex].amount : 1;
+    years[yearIndex] = { ...years[yearIndex], amount, set_by_owner: true };
+    for (let i = yearIndex + 1; i < years.length; i++) {
+      if (!years[i].set_by_owner) years[i] = { ...years[i], amount: Math.round(years[i].amount * ratio) };
+    }
+    mockRenters[idx] = { ...mockRenters[idx], lease_years: years };
+    for (const alert of mockFeedAlerts()) {
+      const alertYear = (alert.data as { year_index?: number }).year_index;
+      if (alert.type === 'cpi_rent_change' && alert.renter_id === id && alertYear === yearIndex) {
+        mockDismissedAlertIds.add(alert.id);
+      }
+    }
     return mockRentersApi.getRenterById(id);
   },
   deleteRenter: async (id: number): Promise<void> => {

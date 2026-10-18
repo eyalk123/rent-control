@@ -117,13 +117,13 @@ export function MortgageSection({ property, mortgage, onPropertyChange }: Props)
             anyone typed. Separate children, not a fragment: DetailSection draws a divider
             per child. */}
         {r?.monthly_left != null ? (
-          <DetailRow label={t('mortgage.averageExpenses')} value={formatWholeMoney(r.monthly_expenses ?? 0)} />
+          <DetailRow label={t('mortgage.averageExpenses')} info={t('mortgage.info.averageExpenses')} value={formatWholeMoney(r.monthly_expenses ?? 0)} />
         ) : null}
         {r?.monthly_left != null ? (
-          <DetailRow label={t('mortgage.left')} value={formatWholeMoney(r.monthly_left)} />
+          <DetailRow label={t('mortgage.left')} info={t('mortgage.info.left')} value={formatWholeMoney(r.monthly_left)} />
         ) : null}
         {r?.mortgage_coverage != null ? (
-          <DetailRow label={t('mortgage.coverage')} value={formatCoverage(r.mortgage_coverage)} />
+          <DetailRow label={t('mortgage.coverage')} info={t('mortgage.info.coverage')} value={formatCoverage(r.mortgage_coverage)} />
         ) : null}
         <Button
           mode="text"

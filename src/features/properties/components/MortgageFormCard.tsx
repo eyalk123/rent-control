@@ -10,6 +10,7 @@ import {
 } from "@/src/shared/components/form";
 import { currencySymbol } from "@/src/shared/utils/money";
 import { useAlert } from "@/src/core/context";
+import { InfoTip } from "@/src/shared/components/ui/InfoTip";
 import { darkColors, lightColors, spacing } from "@/src/core/theme";
 
 type MortgageFormCardProps<TFieldValues extends FieldValues> = {
@@ -36,6 +37,7 @@ function MortgageFormCardInner<TFieldValues extends FieldValues>({
   const { appAlert } = useAlert();
   const { field: hasMortgage } = useController({ control, name: "hasMortgage" as any });
   const { field: endDate } = useController({ control, name: "mortgageEndDate" as any });
+  const { field: prime } = useController({ control, name: "hasPrimeTrack" as any });
   const on = !!useWatch({ control, name: "hasMortgage" as any });
 
   const toggle = (next: boolean) => {
@@ -101,6 +103,19 @@ function MortgageFormCardInner<TFieldValues extends FieldValues>({
               {t("mortgage.clearEndDate")}
             </Text>
           ) : null}
+          <View style={styles.switchRow}>
+            <View style={styles.primeLabel}>
+              <Text variant="bodyLarge" style={[styles.primeText, { color: colors.textPrimary }]}>
+                {t("mortgage.primeLabel")}
+              </Text>
+              <InfoTip label={t("mortgage.primeInfoLabel")}>{t("mortgage.primeInfo")}</InfoTip>
+            </View>
+            <Switch
+              value={!!prime.value}
+              onValueChange={prime.onChange}
+              accessibilityLabel={t("mortgage.primeLabel")}
+            />
+          </View>
         </>
       ) : null}
     </FormSectionCard>
@@ -116,6 +131,15 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     flex: 1,
+  },
+  primeLabel: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  primeText: {
+    flexShrink: 1,
   },
   note: {
     marginTop: spacing.xs,

@@ -194,6 +194,16 @@ export function NotificationEventScreen() {
     </View>
   );
 
+  // An event with nothing to set beyond on/off: just when it fires.
+  const when = (
+    <View style={styles.section}>
+      {sectionLabel(t('notifications.cpiWhenTitle'))}
+      <View style={[...cardStyle, styles.block]}>
+        <Text style={[styles.description, rtlLabelStyle, { color: colors.textPrimary }]}>{t(`notifications.default.${event}`)}</Text>
+      </View>
+    </View>
+  );
+
   const cpi = (
     <>
       <View style={styles.section}>
@@ -246,8 +256,10 @@ export function NotificationEventScreen() {
           <Text style={[styles.hint, rtlLabelStyle, { color: colors.textSecondary }]}>{t('notifications.eventOffHint')}</Text>
         ) : isRuleEvent(event) ? (
           reminders
-        ) : (
+        ) : event === 'cpi_rent_change' ? (
           cpi
+        ) : (
+          when
         )}
       </ScrollView>
     </ScreenContainer>

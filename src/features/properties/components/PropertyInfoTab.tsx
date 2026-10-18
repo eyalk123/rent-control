@@ -20,7 +20,7 @@ import { createPropertyValuation, getPropertyById } from '@/src/features/propert
 import { PropertyValueDialog } from '@/src/features/properties/components/PropertyValueDialog';
 import { PropertyValueHistoryDialog } from '@/src/features/properties/components/PropertyValueHistoryDialog';
 import { formatPercent, formatWholeMoney } from '@/src/features/properties/utils/propertyReturns';
-import { Icon, StatBox, DetailRow, DetailSection, type IconName } from '@/src/shared/components/ui';
+import { Icon, StatBox, DetailRow, DetailSection, InfoTipText, type IconName } from '@/src/shared/components/ui';
 import { MortgageSection } from '@/src/features/properties/components/MortgageSection';
 import { capabilities } from '@/src/shared/utils/capabilities';
 
@@ -339,7 +339,7 @@ function PurchaseAndValueSection({
         {property.purchase_date ? (
           <DetailRow label={t('property.purchaseDate')} value={formatDate(property.purchase_date)} />
         ) : null}
-        <DetailRow label={t('property.currentValue')}>
+        <DetailRow label={t('property.currentValue')} info={t('property.info.currentValue')}>
           <View style={styles.valueCell}>
             <Text variant="bodyMedium" style={[styles.valueAmount, { color: colors.textPrimary }]}>
               {property.current_value != null ? formatMoney(property.current_value) : '–'}
@@ -353,13 +353,30 @@ function PurchaseAndValueSection({
         </DetailRow>
         {/* Neutral ink throughout: a yield or a change in value is a fact, not an alarm. */}
         {returns?.gross_yield != null && (
-          <DetailRow label={t('property.grossYield')} value={formatPercent(returns.gross_yield)} />
+          <DetailRow
+            label={t('property.grossYield')}
+            value={formatPercent(returns.gross_yield)}
+            info={
+              <>
+                <InfoTipText>{t('property.info.grossYield')}</InfoTipText>
+                <InfoTipText secondary>{t('property.info.grossYieldExample')}</InfoTipText>
+              </>
+            }
+          />
         )}
         {returns?.net_yield != null && (
-          <DetailRow label={t('property.netYield')} value={formatPercent(returns.net_yield)} />
+          <DetailRow label={t('property.netYield')} value={formatPercent(returns.net_yield)} info={t('property.info.netYield')} />
         )}
         {returns?.appreciation != null && returns.appreciation_pct != null && (
-          <DetailRow label={t('property.appreciation')}>
+          <DetailRow
+            label={t('property.appreciation')}
+            info={
+              <>
+                <InfoTipText>{t('property.info.appreciation')}</InfoTipText>
+                <InfoTipText secondary>{t('property.info.appreciationPerYear')}</InfoTipText>
+              </>
+            }
+          >
             <View style={styles.valueCell}>
               <Text variant="bodyMedium" style={[styles.valueAmount, { color: colors.textPrimary }]}>
                 {/* Isolated left-to-right, or a Hebrew line moves the sign and brackets to the far end. */}

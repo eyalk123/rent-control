@@ -15,7 +15,7 @@ import { localCopyOf, readsThroughSdk, storagePathOf } from '@/src/shared/utils/
 import { getTransactionById } from '@/src/features/transactions/api/transactions';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Transaction } from '@/src/shared/types';
-import { Icon, LoadingOverlay, EmptyState, ScreenContainer } from '@/src/shared/components/ui';
+import { Icon, InfoTip, LoadingOverlay, EmptyState, ScreenContainer } from '@/src/shared/components/ui';
 import { darkColors, lightColors, spacing, ICON_MD } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
 import { formatDateFull } from '@/src/shared/utils/dates';
@@ -35,11 +35,15 @@ function InfoRow({
   label,
   value,
   iconName,
+  info,
 }: {
   label: string;
   value: string;
   iconName: import('@/src/shared/components/ui').IconName;
+  /** Explains an easily misread field, behind an (i) beside the label. */
+  info?: string;
 }) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   return (
@@ -49,6 +53,7 @@ function InfoRow({
         <Text variant="bodyMedium" style={[styles.infoLabel, { color: colors.textSecondary }]}>
           {label}
         </Text>
+        {info ? <InfoTip label={t('common.aboutField', { label })}>{info}</InfoTip> : null}
       </View>
       <Text variant="bodyMedium" style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={3}>
         {value}
@@ -238,6 +243,7 @@ export function TransactionDetailScreen() {
               <InfoRow
                 label={t('transactions.monthForLabel')}
                 value={formatMonthFor(transaction.month_for)}
+                info={t('transactions.monthForInfo')}
                 iconName="calendar-clock"
               />
             </>

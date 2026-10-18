@@ -1,8 +1,10 @@
 import React from 'react';
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import { darkColors, lightColors, spacing, ICON_SM } from '@/src/core/theme';
 import { Icon, type IconName } from './Icon';
+import { InfoTip } from './InfoTip';
 
 interface DetailRowProps {
   label: string;
@@ -23,6 +25,8 @@ interface DetailRowProps {
   onPress?: () => void;
   style?: ViewStyle;
   accessibilityLabel?: string;
+  /** Explains a computed or easily misread field, behind an (i) beside the label. */
+  info?: React.ReactNode;
 }
 
 /**
@@ -39,7 +43,9 @@ export function DetailRow({
   onPress,
   style,
   accessibilityLabel,
+  info,
 }: DetailRowProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
@@ -55,6 +61,7 @@ export function DetailRow({
         >
           {label}
         </Text>
+        {info != null && <InfoTip label={t('common.aboutField', { label })}>{info}</InfoTip>}
       </View>
 
       {children ?? (

@@ -29,6 +29,7 @@ import {
 import { lightColors, darkColors, spacing } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { EndLeaseDialog } from '@/src/features/renters/components/EndLeaseDialog';
+import { ExerciseOptionDialog } from '@/src/features/renters/components/ExerciseOptionDialog';
 import { getRenterLifecycle, isOpenEnded, isTerminated } from '@/src/shared/utils/renterStatus';
 import { formatDateFull, parseISODate } from '@/src/shared/utils/dates';
 import { RenterInfoTab } from '@/src/features/renters/components/RenterInfoTab';
@@ -95,6 +96,7 @@ export function RenterDetailScreen() {
         ? { ...txTabState, section: 'revenue' }
         : txTabState;
   const [endLeaseOpen, setEndLeaseOpen] = useState(false);
+  const [exerciseOptionOpen, setExerciseOptionOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [lifecyclePending, setLifecyclePending] = useState(false);
   const [linkPending, setLinkPending] = useState(false);
@@ -424,7 +426,9 @@ export function RenterDetailScreen() {
 
         {/* Tab content */}
         <View ref={panelAnchorRef} collapsable={false} style={styles.tabContent}>
-          {shownTab === 'info' && <RenterInfoTab renter={renter} />}
+          {shownTab === 'info' && (
+            <RenterInfoTab renter={renter} onExerciseOption={() => setExerciseOptionOpen(true)} />
+          )}
           {shownTab === 'property' && (
             <RenterPropertyTab
               renter={renter}
@@ -447,6 +451,15 @@ export function RenterDetailScreen() {
         loading={lifecyclePending}
         onConfirm={handleEndLease}
         onDismiss={() => setEndLeaseOpen(false)}
+      />
+      <ExerciseOptionDialog
+        renter={exerciseOptionOpen ? renter : null}
+        onDismiss={() => setExerciseOptionOpen(false)}
+        onSaved={setRenter}
+        onChangeTerms={() => {
+          setExerciseOptionOpen(false);
+          handleExtend();
+        }}
       />
     </ScreenContainer>
   );

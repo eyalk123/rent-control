@@ -1,11 +1,11 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal, ScrollView, Dimensions } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { isRtlLanguage } from '@/src/core/i18n';
-import { darkColors, ICON_MD, ICON_SM, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
+import { darkColors, ICON_MD, ICON_SM, ICON_XS, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
@@ -20,12 +20,17 @@ import {
 } from '@/src/features/notifications/templates';
 import { openWhatsApp, toWhatsAppNumber } from '@/src/shared/utils/whatsapp';
 import type { CpiChangeStage, NotificationItem } from '@/src/features/notifications/types';
-import { useTransactionSummaryContext } from '@/src/context';
+import { useRenterContext, useTransactionSummaryContext } from '@/src/context';
+import { canExerciseOption } from '@/src/shared/utils/renterStatus';
+import { ExerciseOptionDialog } from '@/src/features/renters/components/ExerciseOptionDialog';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { useAlert, useOnReconnect } from '@/src/core/context';
 import { currentMonthKey, markRentPaid } from '@/src/features/transactions/utils/markRentPaid';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
+import { useOpenTabDetail } from '@/src/features/home/hooks/useOpenTabDetail';
+import { setLeaseYearAmount } from '@/src/features/renters/api/renters';
+import { CpiAmountSheet } from '@/src/features/notifications/components/CpiAmountSheet';
 
 const PREVIEW_LIMIT = 2;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -56,6 +61,15 @@ type AttentionItem = {
       old_amount: number;
       new_amount: number;
       effective_date: string;
+      /** Zero-based lease year the change is for; what Confirm / Edit amount write to. */
+      year_index: number | null;
+    }
+  | {
+      // The Bank of Israel moved the rate; about the owner, not a renter.
+      _type: 'rate';
+      old_prime: number;
+      new_prime: number;
+      effective_date: string;
     }
 );
 
@@ -74,6 +88,15 @@ function toAttentionItem(n: NotificationItem): AttentionItem {
     const days = n.data.days_until_expiry ?? 0;
     return { ...base, _type: 'expiring', days_until_expiry: days, lease_end_date: isoFromDaysOut(days) };
   }
+  if (n.type === 'mortgage_rate_change') {
+    return {
+      ...base,
+      _type: 'rate',
+      old_prime: n.data.old_prime ?? 0,
+      new_prime: n.data.new_prime ?? 0,
+      effective_date: n.data.effective_date ?? '',
+    };
+  }
   if (n.type === 'cpi_rent_change') {
     return {
       ...base,
@@ -82,13 +105,14 @@ function toAttentionItem(n: NotificationItem): AttentionItem {
       old_amount: n.data.old_amount ?? 0,
       new_amount: n.data.new_amount ?? 0,
       effective_date: n.data.effective_date ?? '',
+      year_index: n.data.year_index ?? null,
     };
   }
   return { ...base, _type: 'overdue', days_overdue: n.data.days_overdue ?? 0, monthly_amount: n.data.amount ?? 0 };
 }
 
 /** Flatten a row back into the shape the message builder works from. */
-function toMessageSource(item: AttentionItem): AlertMessageSource {
+function toMessageSource(item: Exclude<AttentionItem, { _type: 'rate' }>): AlertMessageSource {
   const who = {
     first_name: item.first_name,
     last_name: item.last_name,
@@ -139,6 +163,18 @@ function ActionPill({ label, bg, textColor, onPress }: ActionPillProps) {
   );
 }
 
+/** Names the alert type above the renter, as the row's heading. The icon alone did not
+ * say what a row was about, and neither did a status chip like "Estimate". Same wording as
+ * the notification settings list. Ink rather than the row's tint: the tint is already on
+ * the icon and chip, and mustard text measures ~2:1 on a white card. */
+function TypeLabel({ label, color }: { label: string; color: string }) {
+  return (
+    <Text style={[styles.typeLabel, { color }]} numberOfLines={1}>
+      {label}
+    </Text>
+  );
+}
+
 interface AttentionItemRowProps {
   item: AttentionItem;
   isLast: boolean;
@@ -152,11 +188,18 @@ interface AttentionItemRowProps {
   onNavigate: (path: string) => void;
   onMarkPaid: (item: AttentionItem) => void;
   onMessage: (item: AttentionItem) => void;
+  onConfirmCpi: (item: AttentionItem) => void;
+  onEditCpi: (item: AttentionItem) => void;
+  onExerciseOption: (renterId: number) => void;
   markPaidLoadingIds: Set<number>;
+  cpiSavingIds: Set<number>;
+  /** Renters whose lease still has an option year — their expiring row offers to exercise it. */
+  exercisableIds: Set<number>;
 }
 
 function AttentionItemRow({
-  item, isLast, colors, amberBg, primaryBg, neutralBg, waBg, waFg, onDismiss, onNavigate, onMarkPaid, onMessage, markPaidLoadingIds,
+  item, isLast, colors, amberBg, primaryBg, neutralBg, waBg, waFg, onDismiss, onNavigate, onMarkPaid, onMessage,
+  onConfirmCpi, onEditCpi, onExerciseOption, markPaidLoadingIds, cpiSavingIds, exercisableIds,
 }: AttentionItemRowProps) {
   const { t, i18n } = useTranslation();
   const name = `${item.first_name} ${item.last_name}`;
@@ -189,6 +232,7 @@ function AttentionItemRow({
             <Icon name="calendar" size={ICON_MD} color={colors.warning} />
           </View>
           <View style={styles.centerContent}>
+            <TypeLabel label={t('notifications.event.lease_expiring')} color={colors.textPrimary} />
             <View style={styles.topLine}>
               <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
                 {name}
@@ -213,11 +257,73 @@ function AttentionItemRow({
                 textColor={colors.textSecondary}
                 onPress={() => onDismiss(item.notifId)}
               />
+              {/* In place of Update lease, not beside it: the row keeps three pills, and
+                  Extend is still one tap away inside the dialog. */}
+              {exercisableIds.has(item.renter_id) ? (
+                <ActionPill
+                  label={t('renter.exerciseOption')}
+                  bg={primaryBg}
+                  textColor={colors.primary}
+                  onPress={() => onExerciseOption(item.renter_id)}
+                />
+              ) : (
+                <ActionPill
+                  label={t('home.actionUpdateLease')}
+                  bg={primaryBg}
+                  textColor={colors.primary}
+                  onPress={() => onNavigate(`/renters/extend/${item.renter_id}`)}
+                />
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+        {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
+      </View>
+    );
+  }
+
+  if (item._type === 'rate') {
+    // Opens the property, whose Mortgage section's "+" records the new payment; the list
+    // when several mortgages have prime.
+    const path = item.property_id ? `/properties/${item.property_id}` : '/properties';
+    const up = item.new_prime > item.old_prime;
+    return (
+      <View>
+        <TouchableOpacity
+          style={styles.itemRow}
+          onPress={() => onNavigate(path)}
+          activeOpacity={0.6}
+          accessibilityRole="button"
+        >
+          <View style={[styles.iconBadge, { backgroundColor: primaryBg }]}>
+            <Icon name="bank" size={ICON_MD} color={colors.primary} />
+          </View>
+          <View style={styles.centerContent}>
+            <TypeLabel label={t('notifications.event.mortgage_rate_change')} color={colors.textPrimary} />
+            <Text style={[styles.name, { color: colors.textPrimary }]}>
+              {t(up ? 'notifications.rateUp' : 'notifications.rateDown', { rate: item.new_prime })}
+            </Text>
+            <Text style={[styles.address, { color: colors.textSecondary }]}>
+              {t('notifications.rateWas', {
+                rate: item.old_prime,
+                date: item.effective_date ? formatLeaseDate(item.effective_date, i18n.language) : '',
+              })}
+            </Text>
+            <Text style={[styles.address, { color: colors.textSecondary }]}>
+              {t('notifications.rateNote')}
+            </Text>
+            <View style={styles.actionsRow}>
               <ActionPill
-                label={t('home.actionUpdateLease')}
+                label={t('home.actionIgnore')}
+                bg={neutralBg}
+                textColor={colors.textSecondary}
+                onPress={() => onDismiss(item.notifId)}
+              />
+              <ActionPill
+                label={t('notifications.rateUpdate')}
                 bg={primaryBg}
                 textColor={colors.primary}
-                onPress={() => onNavigate(`/renters/extend/${item.renter_id}`)}
+                onPress={() => onNavigate(path)}
               />
             </View>
           </View>
@@ -236,12 +342,20 @@ function AttentionItemRow({
             <Icon name="trending-up" size={ICON_MD} color={colors.primary} />
           </View>
           <View style={styles.centerContent}>
+            <TypeLabel label={t('notifications.event.cpi_rent_change')} color={colors.textPrimary} />
             <View style={styles.topLine}>
               <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
                 {name}
               </Text>
-              <View style={[styles.infoBadge, { backgroundColor: primaryBg }]}>
-                <Text style={[styles.infoBadgeText, { color: colors.primary }]}>
+              {/* Plain icon + text, not a filled chip: the primaryBg fill matched the action
+                  pills below and read as a button. Provisional is quieter than final. */}
+              <View style={styles.stageStatus}>
+                <Icon
+                  name={upcoming ? 'clock' : 'check'}
+                  size={ICON_XS}
+                  color={upcoming ? colors.textSecondary : colors.success}
+                />
+                <Text style={[styles.infoBadgeText, { color: upcoming ? colors.textSecondary : colors.textPrimary }]}>
                   {t(upcoming ? 'notifications.cpiBadgeUpcoming' : 'notifications.cpiBadgeChanged')}
                 </Text>
               </View>
@@ -257,21 +371,42 @@ function AttentionItemRow({
                 date: item.effective_date ? formatLeaseDate(item.effective_date, i18n.language) : '',
               })}
             </Text>
-            <View style={styles.actionsRow}>
-              {messagePill}
-              <ActionPill
-                label={t('home.actionIgnore')}
-                bg={neutralBg}
-                textColor={colors.textSecondary}
-                onPress={() => onDismiss(item.notifId)}
-              />
-              <ActionPill
-                label={t('notifications.cpiViewRenter')}
-                bg={primaryBg}
-                textColor={colors.primary}
-                onPress={() => onNavigate(`/renters/${item.renter_id}`)}
-              />
-            </View>
+            {/* A confirmed figure is one to act on: accept it, or set the amount actually
+                agreed (usually rounded). Ignore is not offered — Confirm already clears the
+                alert. The estimate keeps Ignore / View renter; there is nothing to agree yet. */}
+            {!upcoming && item.year_index !== null ? (
+              <View style={styles.actionsRow}>
+                {messagePill}
+                <ActionPill
+                  label={t('notifications.cpiEditAmount')}
+                  bg={primaryBg}
+                  textColor={colors.primary}
+                  onPress={() => onEditCpi(item)}
+                />
+                <ActionPill
+                  label={cpiSavingIds.has(item.notifId) ? t('home.actionSaving') : t('notifications.cpiConfirm')}
+                  bg={colors.revBg}
+                  textColor={colors.revFg}
+                  onPress={() => !cpiSavingIds.has(item.notifId) && onConfirmCpi(item)}
+                />
+              </View>
+            ) : (
+              <View style={styles.actionsRow}>
+                {messagePill}
+                <ActionPill
+                  label={t('home.actionIgnore')}
+                  bg={neutralBg}
+                  textColor={colors.textSecondary}
+                  onPress={() => onDismiss(item.notifId)}
+                />
+                <ActionPill
+                  label={t('notifications.cpiViewRenter')}
+                  bg={primaryBg}
+                  textColor={colors.primary}
+                  onPress={() => onNavigate(`/renters/${item.renter_id}`)}
+                />
+              </View>
+            )}
           </View>
         </TouchableOpacity>
         {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
@@ -286,6 +421,7 @@ function AttentionItemRow({
           <Icon name="alert-circle" size={ICON_MD} color={colors.expFg} />
         </View>
         <View style={styles.centerContent}>
+          <TypeLabel label={t('notifications.event.overdue')} color={colors.textPrimary} />
           <View style={styles.topLine}>
             <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
               {name}
@@ -328,7 +464,7 @@ export function NeedsAttentionSection() {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
-  const router = useRouter();
+  const openTabDetail = useOpenTabDetail();
   const insets = useSafeAreaInsets();
   const { appAlert } = useAlert();
   const { refresh: refreshSummary } = useTransactionSummaryContext();
@@ -339,7 +475,14 @@ export function NeedsAttentionSection() {
   const [loading, setLoading] = useState(true);
   const [notificationsOff, setNotificationsOff] = useState(false);
   const [markPaidLoadingIds, setMarkPaidLoadingIds] = useState<Set<number>>(new Set());
+  const [cpiSavingIds, setCpiSavingIds] = useState<Set<number>>(new Set());
+  // The confirmed CPI alert whose amount is being edited, or null while the sheet is shut.
+  const [cpiEditing, setCpiEditing] = useState<Extract<AttentionItem, { _type: 'cpi' }> | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  // The renter whose option year is being exercised, or null while the dialog is shut.
+  const [exercisingId, setExercisingId] = useState<number | null>(null);
+  // Already loaded app-wide, so deciding which pill an expiring row shows costs no request.
+  const { renters } = useRenterContext();
   const isFirstLoad = useRef(true);
 
   const fetchData = useCallback(async (silent = false) => {
@@ -374,7 +517,7 @@ export function NeedsAttentionSection() {
 
   const navigate = (path: string) => {
     setModalVisible(false);
-    router.push(path as never);
+    openTabDetail(path);
   };
 
   // Ignore -> dismiss on the server (clears the whole offset group), then refetch.
@@ -414,9 +557,59 @@ export function NeedsAttentionSection() {
     }
   }, [refreshSummary, refreshTransactions, appAlert, t]);
 
+  // Writes the agreed amount for the alert's lease year. The server re-derives the later
+  // years from it and dismisses the alert, so the row goes once it lands.
+  const saveCpiAmount = useCallback(async (item: AttentionItem, amount: number) => {
+    if (item._type !== 'cpi' || item.year_index === null) return;
+    await setLeaseYearAmount(item.renter_id, item.year_index, amount);
+    setItems((prev) => prev.filter((i) => i.notifId !== item.notifId));
+  }, []);
+
+  const handleConfirmCpi = useCallback(async (item: AttentionItem) => {
+    if (item._type !== 'cpi') return;
+    setCpiSavingIds((prev) => new Set(prev).add(item.notifId));
+    try {
+      await saveCpiAmount(item, item.new_amount);
+    } catch {
+      appAlert(t('error.title'), t('error.saveFailed'));
+    } finally {
+      setCpiSavingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.notifId);
+        return next;
+      });
+    }
+  }, [saveCpiAmount, appAlert, t]);
+
+  const handleEditCpi = useCallback((item: AttentionItem) => {
+    if (item._type !== 'cpi') return;
+    // One sheet at a time: the See All sheet steps aside, as it does for navigation.
+    setModalVisible(false);
+    setCpiEditing(item);
+  }, []);
+
+  const handleExerciseOption = useCallback((renterId: number) => {
+    // One sheet at a time: the See All sheet steps aside, as it does for the CPI edit.
+    setModalVisible(false);
+    setExercisingId(renterId);
+  }, []);
+  const exercisableIds = new Set(renters.filter(canExerciseOption).map((r) => r.id));
+
+  const handleSaveEditedCpi = useCallback(async (amount: number) => {
+    if (!cpiEditing) return;
+    try {
+      await saveCpiAmount(cpiEditing, amount);
+      setCpiEditing(null);
+    } catch (e) {
+      appAlert(t('error.title'), t('error.saveFailed'));
+      throw e;
+    }
+  }, [cpiEditing, saveCpiAmount, appAlert, t]);
+
   // Opens WhatsApp with the message typed but unsent — the owner reads it and presses
   // send. See src/shared/utils/whatsapp.ts.
   const handleMessage = useCallback((item: AttentionItem) => {
+    if (item._type === 'rate') return; // no renter to message
     openWhatsApp(
       item.phone,
       buildAlertMessage(toMessageSource(item), i18n.language, templates, t),
@@ -429,6 +622,7 @@ export function NeedsAttentionSection() {
   const allItems: AttentionItem[] = [
     ...expiring,
     ...items.filter((i) => i._type === 'cpi'),
+    ...items.filter((i) => i._type === 'rate'),
     ...items.filter((i) => i._type === 'overdue'),
   ];
 
@@ -444,7 +638,7 @@ export function NeedsAttentionSection() {
   const waFg = theme.dark ? '#5BD98A' : '#0B7A5E';
 
   const shimmer = useShimmer(loading);
-  const rowProps = { colors, amberBg, primaryBg, neutralBg, waBg, waFg, onDismiss: dismiss, onNavigate: navigate, onMarkPaid: handleMarkPaid, onMessage: handleMessage, markPaidLoadingIds };
+  const rowProps = { colors, amberBg, primaryBg, neutralBg, waBg, waFg, onDismiss: dismiss, onNavigate: navigate, onMarkPaid: handleMarkPaid, onMessage: handleMessage, onConfirmCpi: handleConfirmCpi, onEditCpi: handleEditCpi, onExerciseOption: handleExerciseOption, markPaidLoadingIds, cpiSavingIds, exercisableIds };
 
   // Label + a manage button that opens the notification rules page, shown in
   // every state so the rules are always reachable from Home.
@@ -630,6 +824,30 @@ export function NeedsAttentionSection() {
           </ScrollView>
         </View>
       </Modal>
+
+      <CpiAmountSheet
+        visible={cpiEditing !== null}
+        renterName={cpiEditing ? `${cpiEditing.first_name} ${cpiEditing.last_name}` : ''}
+        oldAmount={cpiEditing?.old_amount ?? 0}
+        calculatedAmount={cpiEditing?.new_amount ?? 0}
+        effectiveDate={
+          cpiEditing?.effective_date ? formatLeaseDate(cpiEditing.effective_date, i18n.language) : ''
+        }
+        onCancel={() => setCpiEditing(null)}
+        onSave={handleSaveEditedCpi}
+      />
+
+      <ExerciseOptionDialog
+        renter={renters.find((r) => r.id === exercisingId) ?? null}
+        onDismiss={() => setExercisingId(null)}
+        // The contract end moved past the alert's window; the refetch drops the row.
+        onSaved={() => fetchData(true)}
+        onChangeTerms={() => {
+          const id = exercisingId;
+          setExercisingId(null);
+          if (id != null) navigate(`/renters/extend/${id}`);
+        }}
+      />
     </>
   );
 }
@@ -671,9 +889,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.xs,
   },
+  typeLabel: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  // A step below the type label, so the row reads type first, then who.
   name: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     flex: 1,
   },
   address: {
@@ -687,6 +910,12 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 2,
+    flexShrink: 0,
+  },
+  stageStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     flexShrink: 0,
   },
   infoBadgeText: {

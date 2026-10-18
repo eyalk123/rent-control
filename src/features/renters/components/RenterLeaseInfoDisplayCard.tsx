@@ -109,6 +109,12 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
                       })`}
                     </Text>
                     {isProjected && <CpiChip style={styles.cpiChip} />}
+                    {/* Why this year doesn't follow the index like the ones around it. */}
+                    {year.set_by_owner && (
+                      <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
+                        {t('renter.leaseYearSetByOwner')}
+                      </Text>
+                    )}
                   </View>
                 </View>
               </View>

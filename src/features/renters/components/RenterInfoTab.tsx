@@ -15,14 +15,16 @@ import {
 import { RenterExtraContactsCard } from './RenterExtraContactsCard';
 import { RenterLeaseInfoDisplayCard } from './RenterLeaseInfoDisplayCard';
 import { RenterInsuranceCard } from './RenterInsuranceCard';
+import { OptionYearCard } from '@/src/features/renters/components/OptionYearCard';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { TourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 interface RenterInfoTabProps {
   renter: Renter;
+  onExerciseOption: () => void;
 }
 
-export function RenterInfoTab({ renter }: RenterInfoTabProps) {
+export function RenterInfoTab({ renter, onExerciseOption }: RenterInfoTabProps) {
   const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
@@ -95,6 +97,8 @@ export function RenterInfoTab({ renter }: RenterInfoTabProps) {
           secondaryColor={colors.textSecondary}
         />
       </View>
+
+      <OptionYearCard renter={renter} onExercise={onExerciseOption} />
 
       {renter.extra_contacts && renter.extra_contacts.length > 0 && (
         <RenterExtraContactsCard contacts={renter.extra_contacts} />

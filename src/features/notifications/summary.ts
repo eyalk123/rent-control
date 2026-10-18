@@ -7,6 +7,7 @@ export const EVENT_ICONS: Record<NotificationEvent, IconName> = {
   overdue: 'wallet',
   lease_expiring: 'calendar-clock',
   cpi_rent_change: 'trending-up',
+  mortgage_rate_change: 'bank',
 };
 
 export function ruleScheduleText(rule: NotificationRule, t: TFunction): string {
@@ -33,6 +34,7 @@ export function eventSummary(
   settings: NotificationSettings,
   t: TFunction,
 ): string {
+  if (event === 'mortgage_rate_change') return t('notifications.rateSummary');
   if (!isRuleEvent(event)) {
     const amount = settings.cpi_min_change_amount;
     const percent = settings.cpi_min_change_percent;

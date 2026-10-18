@@ -106,6 +106,8 @@ export const propertyFormSchema = z.object({
   mortgagePayment: z.string().transform((val) => (val ?? '').trim()),
   mortgageChargeDay: z.string().transform((val) => (val ?? '').trim()),
   mortgageEndDate: z.string().transform((val) => val ?? ''),
+  // Part of the mortgage is on the prime track — on unless turned off.
+  hasPrimeTrack: z.boolean(),
 }).superRefine((data, ctx) => {
   if (!data.hasMortgage) return;
   const payment = Number(data.mortgagePayment);
