@@ -415,6 +415,20 @@
     "additionalDetails": "Additional details",
     "removePhoto": "Remove photo",
     "choosePresetImage": "Choose an Image",
+    "houseImages": {
+      "apartment_on_pillars": "Building on pillars",
+      "jerusalem_stone_building": "Jerusalem stone",
+      "walk_up_apartment": "Walk-up",
+      "mid_rise_apartment": "Mid-rise",
+      "high_rise_condo": "Tower",
+      "garden_apartment": "Garden apartment",
+      "duplex": "Semi-detached",
+      "townhouse": "Townhouses",
+      "modern_minimalist": "Modern house",
+      "classic_suburban": "Classic house",
+      "cozy_bungalow": "Single-floor house",
+      "mixed_use_building": "Shop and homes"
+    },
     "tabs": {
       "info": "Info",
       "renters": "Renters",

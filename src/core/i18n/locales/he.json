@@ -416,6 +416,20 @@
     "additionalDetails": "פרטים נוספים",
     "removePhoto": "הסרת תמונה",
     "choosePresetImage": "בחירת תמונה",
+    "houseImages": {
+      "apartment_on_pillars": "בניין על עמודים",
+      "jerusalem_stone_building": "אבן ירושלמית",
+      "walk_up_apartment": "בניין נמוך",
+      "mid_rise_apartment": "בניין רב-קומות",
+      "high_rise_condo": "מגדל מגורים",
+      "garden_apartment": "דירת גן",
+      "duplex": "דו-משפחתי",
+      "townhouse": "בתים טוריים",
+      "modern_minimalist": "בית מודרני",
+      "classic_suburban": "בית קלאסי",
+      "cozy_bungalow": "בית חד-קומתי",
+      "mixed_use_building": "מסחר ומגורים"
+    },
     "tabs": {
       "info": "מידע",
       "renters": "דיירים",

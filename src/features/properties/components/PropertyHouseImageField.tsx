@@ -49,6 +49,8 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
 
   const tileSize =
     (screenWidth - spacing.lg * 2 - GRID_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
+  // Illustrations are drawn at 13:8; a tile that shape shows the whole building, uncropped.
+  const tileImageWidth = tileSize - styles.gridItem.borderWidth * 2;
 
   const handleSelect = (preset: HouseImagePreset) => {
     onChangeImageUrl(toImageUrlKey(preset.key));
@@ -90,22 +92,21 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
           styles.gridItem,
           {
             width: tileSize,
-            height: tileSize,
             borderColor: isSelected ? colors.primary : 'transparent',
           },
         ]}
       >
         <Image
           source={item.source}
-          style={styles.gridImage}
-          resizeMode="cover"
+          style={[styles.gridImage, { width: tileImageWidth, height: tileImageWidth * (8 / 13) }]}
+          resizeMode="contain"
         />
         <Text
           variant="labelSmall"
           numberOfLines={1}
           style={[styles.gridLabel, { color: colors.textPrimary }]}
         >
-          {item.label}
+          {t(`property.houseImages.${item.key}`)}
         </Text>
         {isSelected && (
           <View style={[styles.checkBadge, { backgroundColor: colors.primary }]}>
@@ -126,8 +127,8 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
         <View style={styles.previewContainer}>
           <Image
             source={selectedPreset.source}
-            style={styles.previewImage}
-            resizeMode="cover"
+            style={[styles.previewImage, styles.presetPreviewImage]}
+            resizeMode="contain"
           />
           <View style={styles.previewActions}>
             <Button
@@ -291,6 +292,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: spacing.sm,
   },
+  // Illustrations are drawn at 13:8; matching it shows the whole building, uncropped.
+  presetPreviewImage: {
+    height: undefined,
+    aspectRatio: 13 / 8,
+  },
   previewActions: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -343,8 +349,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   gridImage: {
-    width: '100%',
-    flex: 1,
     borderRadius: 7,
   },
   gridLabel: {
