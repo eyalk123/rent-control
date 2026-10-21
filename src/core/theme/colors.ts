@@ -181,3 +181,40 @@ export const darkColors = {
   avatarBorder: "#4F5E72",
   avatarText: "#EFEEEB",
 } as const;
+
+/**
+ * Item colors. Every property, renter and expense category stores one of these keys as its
+ * `color`, and keeps it on every screen: the dot by an address, the initials on an avatar, a
+ * category chip. They say *which* thing, never *how much* - amounts stay revFg/expFg, and no
+ * hue here sits near teal or rust.
+ *
+ * The order is the assignment order: a new item gets the least-used key, ties going to the
+ * earlier one. Stored as a key, not a hex value, so the shades can change without a migration.
+ *
+ * Every `fg` is at least 5:1 on white (light) and 5.3:1 on the dark card.
+ */
+export const ENTITY_COLOR_KEYS = ["sky", "rose", "olive", "indigo", "plum", "mustard"] as const;
+export type EntityColorKey = (typeof ENTITY_COLOR_KEYS)[number];
+
+export type EntityColor = { fg: string; bg: string };
+
+// Light: a soft tint behind, the strong shade on the mark.
+export const lightEntityColors: Record<EntityColorKey, EntityColor> = {
+  sky: { fg: "#2F6CA6", bg: "#E2EDF7" },
+  rose: { fg: "#AD3A6C", bg: "#F8E3EB" },
+  olive: { fg: "#5F7024", bg: "#ECEFD9" },
+  indigo: { fg: "#4F55B0", bg: "#E9E9F7" },
+  plum: { fg: "#86479A", bg: "#F1E6F4" },
+  mustard: { fg: "#94661A", bg: "#F6EAD2" },
+};
+
+// Dark: the fill stays neutral and only the mark takes the color. Tints over this charcoal
+// turn to mud for the same reason accentBg does.
+export const darkEntityColors: Record<EntityColorKey, EntityColor> = {
+  sky: { fg: "#80B5E4", bg: darkColors.surfaceElevated },
+  rose: { fg: "#EE9DBF", bg: darkColors.surfaceElevated },
+  olive: { fg: "#BCCB7C", bg: darkColors.surfaceElevated },
+  indigo: { fg: "#A5A9F0", bg: darkColors.surfaceElevated },
+  plum: { fg: "#D19CE2", bg: darkColors.surfaceElevated },
+  mustard: { fg: "#E8BD73", bg: darkColors.surfaceElevated },
+};

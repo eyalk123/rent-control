@@ -364,9 +364,9 @@ export const TOURS = {
     kind: 'page',
     steps: [
       { id: 'overview', anchor: null, placement: 'center' },
-      // Screen order: the property picker is the first field on this form and the category
-      // field sits four below it. These two were the other way round, so the tour jumped down
-      // the form and back up again.
+      // Screen order: the property picker sits under the amount and the category field right
+      // below it. These two were once the other way round, so the tour jumped down the form
+      // and back up again.
       { id: 'split', anchor: ANCHORS.expensePropertyPicker, placement: 'bottom', seed: { id: 'expense-split', opens: null } },
       { id: 'required', anchor: ANCHORS.expenseCategoryField, placement: 'bottom' },
     ],
@@ -417,8 +417,10 @@ export const TOURS = {
     kind: 'page',
     steps: [
       { id: 'overview', anchor: ANCHORS.supplierFormName, placement: 'bottom' },
+      // Screen order: Categories sits right under the name (it gives the supplier its color),
+      // and the bank account below it.
+      { id: 'categories', anchor: ANCHORS.supplierFormCategories, placement: 'bottom' },
       { id: 'bank', anchor: ANCHORS.supplierFormBank, placement: 'top' },
-      { id: 'categories', anchor: ANCHORS.supplierFormCategories, placement: 'top' },
     ],
   },
 

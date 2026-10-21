@@ -1,6 +1,7 @@
 export { FormCard } from "./FormCard";
 export { FormSectionCard } from "./FormSectionCard";
 export { FormRow } from "./FormRow";
+export { AmountHeroField } from "./AmountHeroField";
 export { FormSubheading } from "./FormSubheading";
 export { FormInput } from "./FormInput";
 export { FormField } from "./FormField";

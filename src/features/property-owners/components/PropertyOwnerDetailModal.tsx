@@ -5,13 +5,19 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { Button, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { ContactActionsRow, Icon } from '@/src/shared/components/ui';
+import { darkColors, lightColors, spacing, ICON_SM } from '@/src/core/theme';
+import { ColorDot, ContactActionsRow, Icon, InitialsTile } from '@/src/shared/components/ui';
+import { useRouter } from 'expo-router';
+import { useLanguageContext, usePropertyContext } from '@/src/context';
+import { PropertyThumb } from '@/src/features/properties/components/PropertyThumb';
+import { propertyTypeLabelKey } from '@/src/features/properties/constants/propertyTypeLabel';
+import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { capabilities } from '@/src/shared/utils/capabilities';
 import { propertyCountLabel } from '@/src/features/property-owners/api/propertyOwners';
 import type { PropertyOwner } from '@/src/shared/types';
@@ -37,6 +43,10 @@ export function PropertyOwnerDetailModal({
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const router = useRouter();
+  const { isRtl } = useLanguageContext();
+  const { properties } = usePropertyContext();
+  const ownerProperties = owner ? properties.filter((p) => p.property_owner_id === owner.id) : [];
 
   const panResponder = useRef(
     PanResponder.create({
@@ -70,19 +80,13 @@ export function PropertyOwnerDetailModal({
   const rowDirection = 'row';
   const textAlign = 'left';
 
-  const renderInfoRow = (label: string, value?: string | null) => {
-    if (!value || !value.trim()) return null;
-    return (
-      <View style={styles.infoRow}>
-        <Text style={[styles.infoLabel, { color: colors.textSecondary, textAlign }]}>
-          {label}
-        </Text>
-        <Text style={[styles.infoValue, { color: colors.textPrimary, textAlign }]}>
-          {value}
-        </Text>
-      </View>
-    );
-  };
+  // Label at the start, value at the end, hairlines between: the detail screens' rows.
+  const infoRows = [
+    { label: t('suppliers.phone'), value: owner?.phone },
+    { label: t('suppliers.email'), value: owner?.email },
+    { label: t(structured ? 'suppliers.bankAccount' : 'suppliers.paymentDetails'), value: bankDisplay },
+    { label: t('suppliers.notes'), value: owner?.notes },
+  ].filter((r): r is { label: string; value: string } => !!r.value && !!r.value.trim());
 
   return (
     <Modal
@@ -98,7 +102,7 @@ export function PropertyOwnerDetailModal({
           style={[
             styles.sheet,
             {
-              backgroundColor: colors.inputFilledBackground,
+              backgroundColor: colors.background,
               paddingBottom: insets.bottom + spacing.lg,
             },
           ]}
@@ -108,6 +112,13 @@ export function PropertyOwnerDetailModal({
           </View>
 
           <View style={[styles.header, { flexDirection: rowDirection }]}>
+            <InitialsTile
+              name={owner?.name ?? ''}
+              size={60}
+              radius={18}
+              backgroundColor={colors.primaryBg}
+              textColor={colors.primary}
+            />
             <View style={styles.titleWrapper}>
               <Text
                 variant="titleLarge"
@@ -124,6 +135,11 @@ export function PropertyOwnerDetailModal({
                   {t('suppliers.inactive', { defaultValue: 'Inactive' })}
                 </Text>
               )}
+              {owner ? (
+                <Text style={[styles.count, { color: colors.textSecondary, textAlign }]}>
+                  {propertyCountLabel(t, owner.property_count)}
+                </Text>
+              ) : null}
             </View>
             <Pressable onPress={onDismiss} hitSlop={8}>
               <Icon name="x" size={20} color={colors.textSecondary} />
@@ -135,25 +151,65 @@ export function PropertyOwnerDetailModal({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.bodyContent}
           >
-            {owner ? (
-              <Text
-                style={[styles.categories, { color: colors.textSecondary, textAlign }]}
-              >
-                {propertyCountLabel(t, owner.property_count)}
-              </Text>
-            ) : null}
-
-            {renderInfoRow(t('suppliers.phone'), owner?.phone)}
-            {renderInfoRow(t('suppliers.email'), owner?.email)}
-            {renderInfoRow(t(structured ? 'suppliers.bankAccount' : 'suppliers.paymentDetails'), bankDisplay)}
-            {renderInfoRow(t('suppliers.notes'), owner?.notes)}
-
             <ContactActionsRow
               phone={owner?.phone}
               email={owner?.email}
-              contentAlign="flex-start"
+              raised
               style={styles.contactRow}
             />
+
+            {infoRows.length > 0 ? (
+              <View style={[styles.infoCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
+                {infoRows.map((row, i) => (
+                  <View
+                    key={row.label}
+                    style={[
+                      styles.infoRow,
+                      i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.outline },
+                    ]}
+                  >
+                    <Text style={[styles.infoLabel, { color: colors.textSecondary, textAlign }]}>{row.label}</Text>
+                    <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={3}>
+                      {row.value}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {/* The owner's properties, each opening its own screen: what an owner is, in this app. */}
+            {ownerProperties.length > 0 ? (
+              <View style={styles.properties}>
+                <Text style={[styles.sectionLabel, { color: colors.textSecondary, textAlign }]}>
+                  {t('home.properties')}
+                </Text>
+                {ownerProperties.map((p) => (
+                  <TouchableOpacity
+                    key={p.id}
+                    onPress={() => {
+                      onDismiss();
+                      router.push(`/properties/${p.id}` as any);
+                    }}
+                    accessibilityRole="button"
+                    style={[styles.propertyCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}
+                  >
+                    <PropertyThumb property={p} width={56} height={42} />
+                    <View style={styles.propertyText}>
+                      <View style={styles.propertyTitleRow}>
+                        <ColorDot color={p.color} />
+                        <Text numberOfLines={1} style={[styles.propertyTitle, { color: colors.textPrimary }]}>
+                          {p.address}{formatFloorApartment(p, t)}
+                        </Text>
+                      </View>
+                      <Text numberOfLines={1} style={[styles.propertySub, { color: colors.textSecondary, textAlign }]}>
+                        {`${p.city} · ${t(propertyTypeLabelKey(p.type))}`}
+                      </Text>
+                    </View>
+                    <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={ICON_SM} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
           </ScrollView>
 
           <View style={styles.footer}>
@@ -212,10 +268,14 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   header: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: spacing.sm,
-    gap: spacing.sm,
+    paddingBottom: spacing.md,
+    gap: spacing.md,
+  },
+  count: {
+    fontSize: 14,
+    marginTop: 2,
   },
   titleWrapper: {
     flex: 1,
@@ -228,28 +288,70 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   body: {
-    maxHeight: 360,
+    maxHeight: 420,
   },
   bodyContent: {
     paddingBottom: spacing.sm,
   },
-  categories: {
-    fontSize: 14,
-    marginBottom: spacing.md,
+  infoCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.lg,
   },
   infoRow: {
-    marginBottom: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    minHeight: 48,
+    paddingVertical: spacing.sm,
   },
   infoLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginBottom: 2,
+    fontSize: 14,
   },
   infoValue: {
     fontSize: 15,
+    flexShrink: 1,
+    textAlign: 'right',
   },
   contactRow: {
-    marginTop: spacing.xs,
+    marginBottom: spacing.lg,
+  },
+  properties: {
+    gap: spacing.sm,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  propertyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.sm,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  propertyText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  propertyTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  propertyTitle: {
+    flexShrink: 1,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  propertySub: {
+    fontSize: 12,
   },
   footer: {
     paddingTop: spacing.sm,

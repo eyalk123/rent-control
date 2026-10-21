@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   AppFab,
   ContactActionsRow,
+  InitialsTile,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
@@ -34,10 +35,89 @@ import { updateSupplier } from '@/src/features/suppliers/api/suppliers';
 import { SupplierDetailModal } from '@/src/features/suppliers/components/SupplierDetailModal';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { useAlert, useOnReconnect } from '@/src/core/context';
-import type { Supplier } from '@/src/shared/types';
-import { spacing } from '@/src/core/theme';
+import type { ExpenseCategory, Supplier } from '@/src/shared/types';
+import { cardShadow, darkColors, lightColors, radii, spacing, useEntityColor } from '@/src/core/theme';
+import { CategoryTag } from '@/src/features/transactions/components/shared/CategoryTag';
+import { supplierColorKey } from '@/src/features/suppliers/utils/supplierColor';
 
 type ActiveSheet = 'name' | 'category' | null;
+
+/**
+ * One supplier: initials on its color (its first category's), how to reach it, its
+ * categories as colored chips, and call / message / email at the end.
+ */
+function SupplierRow({
+  supplier,
+  categories,
+  onPress,
+}: {
+  supplier: Supplier;
+  categories: ExpenseCategory[];
+  onPress: () => void;
+}) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const itemColor = useEntityColor(supplierColorKey(supplier, categories));
+  const contactLine = [supplier.phone?.trim(), supplier.email?.trim()].filter(Boolean).join(' · ');
+  const supplierCategories = (supplier.category_ids ?? [])
+    .map((id) => categories.find((c) => c.id === id))
+    .filter((c): c is ExpenseCategory => !!c);
+  const hasContact = !!(supplier.phone?.trim() || supplier.email?.trim());
+
+  return (
+    <View
+      style={[
+        styles.row,
+        { backgroundColor: theme.colors.surface, opacity: supplier.is_active ? 1 : 0.6 },
+      ]}
+    >
+      <TouchableOpacity activeOpacity={0.7} onPress={onPress} style={styles.rowMain}>
+        <InitialsTile
+          name={supplier.name}
+          size={44}
+          radius={13}
+          backgroundColor={itemColor.bg}
+          textColor={itemColor.fg}
+        />
+        <View style={styles.rowText}>
+          <View style={styles.rowContent}>
+            <Text variant="titleMedium" numberOfLines={1} style={styles.name}>
+              {supplier.name}
+            </Text>
+            {!supplier.is_active && (
+              <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
+                {t('suppliers.inactive', { defaultValue: 'Inactive' })}
+              </Text>
+            )}
+          </View>
+          {contactLine ? (
+            <Text variant="bodySmall" style={{ color: colors.textSecondary }} numberOfLines={1}>
+              {contactLine}
+            </Text>
+          ) : null}
+          {supplierCategories.length > 0 ? (
+            <View style={styles.tags}>
+              {supplierCategories.map((cat) => (
+                <CategoryTag key={cat.id} label={getCategoryDisplayName(cat, t)} color={cat.color} />
+              ))}
+            </View>
+          ) : null}
+        </View>
+      </TouchableOpacity>
+      {hasContact ? (
+        <ContactActionsRow
+          phone={supplier.phone}
+          email={supplier.email}
+          variant="compact"
+          raised
+          contentAlign="flex-end"
+          style={styles.rowActions}
+        />
+      ) : null}
+    </View>
+  );
+}
 
 export function SuppliersListScreen() {
   const { t } = useTranslation();
@@ -181,17 +261,6 @@ export function SuppliersListScreen() {
     setRefreshing(false);
   };
 
-  const getCategoryNames = (supplier: Supplier): string => {
-    const ids = supplier.category_ids ?? [];
-    return ids
-      .map((id) => {
-        const cat = categories.find((c) => c.id === id);
-        return cat ? getCategoryDisplayName(cat, t) : null;
-      })
-      .filter(Boolean)
-      .join(', ');
-  };
-
   if (loading && suppliers.length === 0) {
     return (
       <ScreenContainer>
@@ -266,69 +335,13 @@ export function SuppliersListScreen() {
             onAction={hasActiveFilters ? clearAllFilters : undefined}
           />
         }
-        renderItem={({ item }) => {
-          const hasContact =
-            !!(item.phone?.trim() || item.email?.trim());
-          return (
-            <View
-              style={[
-                styles.row,
-                {
-                  backgroundColor: theme.colors.surface,
-                  opacity: item.is_active ? 1 : 0.6,
-                },
-              ]}
-            >
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => handleSupplierPress(item)}
-                style={styles.rowMain}
-              >
-                <View style={styles.rowContent}>
-                  <Text variant="titleMedium" numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  {!item.is_active && (
-                    <Text
-                      variant="bodySmall"
-                      style={[styles.inactiveBadge, { color: theme.colors.error }]}
-                    >
-                      {t('suppliers.inactive', { defaultValue: 'Inactive' })}
-                    </Text>
-                  )}
-                </View>
-                {item.phone ? (
-                  <Text variant="bodySmall" style={styles.secondary}>
-                    {item.phone}
-                  </Text>
-                ) : null}
-                {item.email ? (
-                  <Text variant="bodySmall" style={styles.secondary} numberOfLines={1}>
-                    {item.email}
-                  </Text>
-                ) : null}
-                {item.category_ids && item.category_ids.length > 0 ? (
-                  <Text
-                    variant="bodySmall"
-                    style={styles.categories}
-                    numberOfLines={2}
-                  >
-                    {getCategoryNames(item)}
-                  </Text>
-                ) : null}
-              </TouchableOpacity>
-              {hasContact ? (
-                <ContactActionsRow
-                  phone={item.phone}
-                  email={item.email}
-                  variant="compact"
-                  contentAlign="flex-end"
-                  style={styles.rowActions}
-                />
-              ) : null}
-            </View>
-          );
-        }}
+        renderItem={({ item }) => (
+          <SupplierRow
+            supplier={item}
+            categories={categories}
+            onPress={() => handleSupplierPress(item)}
+          />
+        )}
         contentContainerStyle={[
           styles.list,
           { paddingBottom: 80 + insets.bottom },
@@ -367,7 +380,7 @@ export function SuppliersListScreen() {
       <SupplierDetailModal
         visible={selectedSupplier !== null}
         supplier={selectedSupplier}
-        categoryNames={selectedSupplier ? getCategoryNames(selectedSupplier) : ''}
+        categories={categories}
         onDismiss={() => setSelectedSupplier(null)}
         onEdit={handleEditSupplier}
         onDelete={handleDeleteSupplier}
@@ -401,18 +414,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: 80,
   },
+  // Borderless with the list screens' shadow, like the renter and property rows.
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     padding: spacing.md,
-    borderRadius: 12,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderRadius: radii.lg,
+    marginBottom: spacing.sm + 2,
+    ...cardShadow,
   },
   rowMain: {
     flex: 1,
     minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  rowText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 3,
+  },
+  name: {
+    flexShrink: 1,
+    fontWeight: '600',
+  },
+  tags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 2,
   },
   rowActions: {
     marginStart: spacing.sm,
@@ -423,16 +454,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  inactiveBadge: {
-    marginTop: 2,
-  },
-  secondary: {
-    marginTop: 4,
-    opacity: 0.8,
-  },
-  categories: {
-    marginTop: 4,
-    opacity: 0.7,
   },
 });

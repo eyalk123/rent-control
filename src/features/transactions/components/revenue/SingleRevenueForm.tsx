@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import {
+  AmountHeroField,
+  FormRow,
   FormScrollView,
-  FormNumericField,
   FormTextField,
   FormWheelDateField,
   FormMonthYearPickerField,
@@ -17,6 +18,9 @@ import { PaymentMethodField } from '@/src/shared/components/form';
 import type { RevenueFormValues } from '@/src/features/transactions/screens/types';
 import type { PaymentMethod } from '@/src/shared/types';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
+import { useTheme } from 'react-native-paper';
+import { darkColors, lightColors } from '@/src/core/theme';
+import { PropertyThumb } from '@/src/features/properties/components/PropertyThumb';
 
 type SingleRevenueFormProps = {
   control: Control<RevenueFormValues>;
@@ -33,7 +37,10 @@ export function SingleRevenueForm({
   contentContainerStyle,
 }: SingleRevenueFormProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
   const { properties } = useAccessibleProperties();
+  const selectedProperty = properties.find((p) => p.id === propertyId);
 
   const propertyData = useMemo(
     () =>
@@ -49,7 +56,16 @@ export function SingleRevenueForm({
       style={styles.scrollView}
       contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
     >
-      <FormSectionCard title={t('transactions.details', { defaultValue: 'Details' })}>
+      {/* Laid out like the expense form: no "Details" title, the amount first and large
+          under a "Money in" chip, then where it came from, then when. */}
+      <FormSectionCard>
+        <AmountHeroField
+          control={control}
+          name="amount"
+          label={t('transactions.amount', { defaultValue: 'Amount' })}
+          required
+          tone={{ text: t('transactions.moneyIn'), bg: colors.revBg, fg: colors.revFg }}
+        />
         <Controller
           control={control}
           name="propertyId"
@@ -62,6 +78,11 @@ export function SingleRevenueForm({
               label={t('transactions.property', { defaultValue: 'Property' })}
               error={errors?.propertyId}
               required
+              leading={
+                selectedProperty ? (
+                  <PropertyThumb property={selectedProperty} width={52} height={36} radius={6} iconSize={18} />
+                ) : undefined
+              }
             />
           )}
         />
@@ -78,26 +99,23 @@ export function SingleRevenueForm({
             />
           )}
         />
-        <FormNumericField
-          control={control}
-          name="amount"
-          label={t('transactions.amount', { defaultValue: 'Amount' })}
-          required
-        />
-        <FormMonthYearPickerField
-          control={control}
-          name="monthFor"
-          label={t('transactions.monthForLabel', { defaultValue: 'Month' })}
-          required
-          placeholder={t('transactions.monthForPlaceholder', { defaultValue: 'Month, Year' })}
-        />
-        <FormWheelDateField
-          control={control}
-          name="dateOfPayment"
-          label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
-          required
-          mode="full"
-        />
+        {/* The month it pays for and the day it was paid: two dates, one row. */}
+        <FormRow>
+          <FormMonthYearPickerField
+            control={control}
+            name="monthFor"
+            label={t('transactions.monthForLabel', { defaultValue: 'Month' })}
+            required
+            placeholder={t('transactions.monthForPlaceholder', { defaultValue: 'Month, Year' })}
+          />
+          <FormWheelDateField
+            control={control}
+            name="dateOfPayment"
+            label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
+            required
+            mode="full"
+          />
+        </FormRow>
         <Controller
           control={control}
           name="paymentMethod"

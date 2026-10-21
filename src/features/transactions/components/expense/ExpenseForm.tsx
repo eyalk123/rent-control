@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import {
+  AmountHeroField,
+  FormRow,
   FormScrollView,
   MultiSelectField,
-  FormNumericField,
   FormTextField,
   FormWheelDateField,
   FormSingleFileField,
@@ -13,8 +14,9 @@ import { FormSectionCard } from '@/src/shared/components/form/FormSectionCard';
 import { Controller, type Control, type UseFormSetValue, type FieldErrors } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useTheme } from 'react-native-paper';
+import { darkColors, lightColors } from '@/src/core/theme';
 import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
-import { RenterPicker } from '@/src/features/renters/components/RenterPicker';
 import { SupplierPicker } from '@/src/features/transactions/components/expense/SupplierPicker';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 
@@ -72,6 +74,8 @@ export function ExpenseForm({
 }: ExpenseFormProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
   const { properties } = useAccessibleProperties();
 
   // Requested here rather than from AddTransactionScreen: the screen also renders the
@@ -87,8 +91,6 @@ export function ExpenseForm({
     [properties, t],
   );
 
-  const renterPropertyId = propertyIds.length === 1 ? propertyIds[0] : null;
-  const renterDisabled = propertyIds.length > 1;
 
   return (
     <FormScrollView
@@ -104,7 +106,17 @@ export function ExpenseForm({
           onScanned={onScanned}
         />
       )}
-      <FormSectionCard title={t('transactions.details', { defaultValue: 'Details' })}>
+      {/* No "Details" title: the card is the whole form, and the screen says Expense. */}
+      <FormSectionCard>
+        {/* The amount leads, large: it is the one value every expense has and the one people
+            check twice. */}
+        <AmountHeroField
+          control={control}
+          name="amount"
+          label={t('transactions.amount', { defaultValue: 'Amount' })}
+          required
+          tone={{ text: t('transactions.moneyOut'), bg: colors.expBg, fg: colors.expFg }}
+        />
         {/* Multi-select, and the expense tour seeds why: several properties split one
             bill evenly between them. */}
         <TourAnchor id={ANCHORS.expensePropertyPicker}>
@@ -128,46 +140,6 @@ export function ExpenseForm({
           />
           {scanNotes?.propertyNote && <FieldReviewNotice source={scanNotes.propertyNote.source_text} />}
         </TourAnchor>
-        <Controller
-          control={control}
-          name="renterId"
-          render={({ field: { value, onChange } }) => (
-            <RenterPicker
-              propertyId={renterPropertyId}
-              value={renterDisabled ? null : value}
-              onChange={onChange}
-              label={t('transactions.renter', { defaultValue: 'Renter' })}
-              allowNone
-              disabled={renterDisabled}
-            />
-          )}
-        />
-        <FormNumericField
-          control={control}
-          name="amount"
-          label={t('transactions.amount', { defaultValue: 'Amount' })}
-          required
-        />
-        <FormWheelDateField
-          control={control}
-          name="dateOfPayment"
-          label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
-          mode="full"
-          required
-        />
-        <Controller
-          control={control}
-          name="paymentMethod"
-          render={({ field: { value, onChange } }) => (
-            <PaymentMethodField
-              value={value as PaymentMethod | ''}
-              onChange={onChange}
-              error={errors?.paymentMethod}
-              required
-              reviewName="paymentMethod"
-            />
-          )}
-        />
         <TourAnchor id={ANCHORS.expenseCategoryField}>
           <Controller
             control={control}
@@ -189,6 +161,30 @@ export function ExpenseForm({
           />
           {scanNotes?.categoryNote && <FieldReviewNotice source={scanNotes.categoryNote.source_text} />}
         </TourAnchor>
+        {/* Two short picks about the payment, side by side. */}
+        <FormRow>
+          <FormWheelDateField
+            control={control}
+            name="dateOfPayment"
+            label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
+            mode="full"
+            required
+          />
+          <Controller
+            control={control}
+            name="paymentMethod"
+            render={({ field: { value, onChange } }) => (
+              <PaymentMethodField
+                value={value as PaymentMethod | ''}
+                onChange={onChange}
+                error={errors?.paymentMethod}
+                required
+                reviewName="paymentMethod"
+                placeholder={t('common.select')}
+              />
+            )}
+          />
+        </FormRow>
         <Controller
           control={control}
           name="supplierId"

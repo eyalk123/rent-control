@@ -1,6 +1,15 @@
 export { lightTheme, darkTheme } from './theme';
 export { appFonts, MONO_FONT } from './fonts';
-export { lightColors, darkColors } from './colors';
+export {
+  lightColors,
+  darkColors,
+  ENTITY_COLOR_KEYS,
+  lightEntityColors,
+  darkEntityColors,
+  type EntityColor,
+  type EntityColorKey,
+} from './colors';
+export { isEntityColorKey, leastUsedEntityColor, useEntityColor } from './entityColors';
 export { spacing } from './spacing';
 export { radii, cardShadow } from './shape';
 export { ICON_XS, ICON_SM, ICON_MD, ICON_LG, ICON_HERO, type IconSize } from './icons';

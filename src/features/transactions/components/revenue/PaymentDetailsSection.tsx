@@ -3,7 +3,7 @@ import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { Control } from 'react-hook-form';
 import { darkColors, lightColors } from '@/src/core/theme';
-import { FormWheelDateField } from '@/src/shared/components/form';
+import { FormRow, FormWheelDateField } from '@/src/shared/components/form';
 import { PaymentMethodField } from '@/src/shared/components/form';
 import type { PaymentMethod } from '@/src/shared/types';
 
@@ -30,16 +30,20 @@ export function PaymentDetailsSection({
       >
         {t('transactions.bulkRevenue.paymentDetails', { defaultValue: 'Payment details' })}
       </Text>
-      <FormWheelDateField
-        control={control}
-        name="dateOfPayment"
-        label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
-        mode="full"
-      />
-      <PaymentMethodField
-        value={paymentMethod}
-        onChange={onPaymentMethodChange}
-      />
+      {/* Two short picks about the payment, side by side - as on the expense form. */}
+      <FormRow>
+        <FormWheelDateField
+          control={control}
+          name="dateOfPayment"
+          label={t('transactions.dateOfPayment', { defaultValue: 'Date of payment' })}
+          mode="full"
+        />
+        <PaymentMethodField
+          value={paymentMethod}
+          onChange={onPaymentMethodChange}
+          placeholder={t('common.select')}
+        />
+      </FormRow>
     </>
   );
 }

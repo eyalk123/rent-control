@@ -27,3 +27,7 @@ export { CpiChip } from './CpiChip';
 export { DetailTabBar, type DetailTab } from './DetailTabBar';
 export { DetailBackButton } from './DetailBackButton';
 export { headerExitLeft } from './HeaderExitButton';
+export { ColorDot } from './ColorDot';
+export { InitialsTile } from './InitialsTile';
+export { ColorPicker } from './ColorPicker';
+export { ColorBand, BandButton } from './ColorBand';

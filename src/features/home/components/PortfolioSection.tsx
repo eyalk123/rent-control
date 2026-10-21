@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { darkColors, ICON_SM, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
+import { darkColors, ICON_SM, lightColors, spacing, cardShadow, radii, useEntityColor } from '@/src/core/theme';
 import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
@@ -85,7 +85,9 @@ export function PortfolioSection() {
   const isProfit = monthlyPL > 0;
   const plSign = isProfit ? '+' : isBreakeven ? '' : '−';
 
-  const navyIconBg = theme.dark ? 'rgba(62,111,168,0.20)' : 'rgba(30,58,95,0.10)';
+  // The same section colors as the quick actions above.
+  const propertyColor = useEntityColor('sky');
+  const renterColor = useEntityColor('plum');
 
   if (loading) {
     return (
@@ -112,8 +114,8 @@ export function PortfolioSection() {
     <View style={styles.row}>
       <StatCard
         icon="home"
-        iconColor={colors.primary}
-        iconBg={navyIconBg}
+        iconColor={propertyColor.fg}
+        iconBg={propertyColor.bg}
         value={String(propertiesCount)}
         label={t('home.properties')}
         valueColor={colors.textPrimary}
@@ -123,8 +125,8 @@ export function PortfolioSection() {
       />
       <StatCard
         icon="users"
-        iconColor={colors.primary}
-        iconBg={navyIconBg}
+        iconColor={renterColor.fg}
+        iconBg={renterColor.bg}
         value={String(rentersCount)}
         label={t('home.renters')}
         valueColor={colors.textPrimary}

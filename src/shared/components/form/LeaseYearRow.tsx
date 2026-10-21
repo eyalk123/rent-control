@@ -85,6 +85,8 @@ type LeaseYearRowProps = {
   onRuleValueBlur?: () => void;
   /** Per-row validation message, e.g. a percent rule with no value. */
   error?: string;
+  /** A hairline above the row, separating it from the year before. */
+  divider?: boolean;
 };
 
 /**
@@ -105,6 +107,7 @@ function LeaseYearRowInner({
   projected = false,
   badge,
   rowDirection,
+  divider = false,
   ruleMode = "manual",
   onRuleChange,
   ruleValue = "",
@@ -132,15 +135,10 @@ function LeaseYearRowInner({
   }));
 
   return (
-    <View
-      style={
-        isCurrent
-          ? [styles.currentRow, theme.dark
-              ? { backgroundColor: colors.surfaceElevated, borderColor: colors.accent }
-              : { backgroundColor: colors.accent + "14", borderColor: "transparent" }]
-          : undefined
-      }
-    >
+    // No fill on the current year: the bold label and its "Now" chip already mark it, and the
+    // mustard wash read as a highlight competing with the renter's own color. Years are
+    // told apart by a hairline instead, as on the detail screen's lease card.
+    <View style={divider ? [styles.divider, { borderTopColor: colors.outline }] : undefined}>
     {/* Three columns: the year (with its Now / New tag under it), the money, and the row's
         actions. The amount and the custom-mode rule stack in the middle column, so they are
         always the same width and start at the same edge — whatever tags and buttons a given
@@ -276,7 +274,9 @@ export const LeaseYearRow = React.memo(LeaseYearRowInner);
 const LINE_HEIGHT = 48;
 
 const styles = StyleSheet.create({
-  currentRow: { borderRadius: 8, borderWidth: 1 },
+  divider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
   row: {
     alignItems: "flex-start",
     gap: spacing.sm,

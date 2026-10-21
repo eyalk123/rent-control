@@ -10,14 +10,18 @@ import {
 import { Button, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { ContactActionsRow, Icon } from '@/src/shared/components/ui';
-import type { Supplier } from '@/src/shared/types';
+import { darkColors, lightColors, spacing, useEntityColor } from '@/src/core/theme';
+import { ContactActionsRow, Icon, InitialsTile } from '@/src/shared/components/ui';
+import type { ExpenseCategory, Supplier } from '@/src/shared/types';
+import { CategoryTag } from '@/src/features/transactions/components/shared/CategoryTag';
+import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
+import { supplierColorKey } from '@/src/features/suppliers/utils/supplierColor';
 
 interface SupplierDetailModalProps {
   visible: boolean;
   supplier: Supplier | null;
-  categoryNames: string;
+  /** Every expense category: the supplier's own are picked out, and give it its color. */
+  categories: ExpenseCategory[];
   onDismiss: () => void;
   onEdit: (id: number) => void;
   onDelete: (supplier: Supplier) => void;
@@ -26,7 +30,7 @@ interface SupplierDetailModalProps {
 export function SupplierDetailModal({
   visible,
   supplier,
-  categoryNames,
+  categories,
   onDismiss,
   onEdit,
   onDelete,
@@ -35,6 +39,10 @@ export function SupplierDetailModal({
   const colors = theme.dark ? darkColors : lightColors;
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const itemColor = useEntityColor(supplier ? supplierColorKey(supplier, categories) : null);
+  const supplierCategories = (supplier?.category_ids ?? [])
+    .map((id) => categories.find((c) => c.id === id))
+    .filter((c): c is ExpenseCategory => !!c);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -65,19 +73,13 @@ export function SupplierDetailModal({
   const rowDirection = 'row';
   const textAlign = 'left';
 
-  const renderInfoRow = (label: string, value?: string | null) => {
-    if (!value || !value.trim()) return null;
-    return (
-      <View style={styles.infoRow}>
-        <Text style={[styles.infoLabel, { color: colors.textSecondary, textAlign }]}>
-          {label}
-        </Text>
-        <Text style={[styles.infoValue, { color: colors.textPrimary, textAlign }]}>
-          {value}
-        </Text>
-      </View>
-    );
-  };
+  // Label at the start, value at the end, hairlines between: the detail screens' rows.
+  const infoRows = [
+    { label: t('suppliers.phone'), value: supplier?.phone },
+    { label: t('suppliers.email'), value: supplier?.email },
+    { label: t('suppliers.bankAccount'), value: bankDisplay },
+    { label: t('suppliers.notes'), value: supplier?.notes },
+  ].filter((r): r is { label: string; value: string } => !!r.value && !!r.value.trim());
 
   return (
     <Modal
@@ -93,7 +95,7 @@ export function SupplierDetailModal({
           style={[
             styles.sheet,
             {
-              backgroundColor: colors.inputFilledBackground,
+              backgroundColor: colors.background,
               paddingBottom: insets.bottom + spacing.lg,
             },
           ]}
@@ -103,6 +105,13 @@ export function SupplierDetailModal({
           </View>
 
           <View style={[styles.header, { flexDirection: rowDirection }]}>
+            <InitialsTile
+              name={supplier?.name ?? ''}
+              size={60}
+              radius={18}
+              backgroundColor={itemColor.bg}
+              textColor={itemColor.fg}
+            />
             <View style={styles.titleWrapper}>
               <Text
                 variant="titleLarge"
@@ -119,6 +128,13 @@ export function SupplierDetailModal({
                   {t('suppliers.inactive', { defaultValue: 'Inactive' })}
                 </Text>
               )}
+              {supplierCategories.length > 0 ? (
+                <View style={styles.tags}>
+                  {supplierCategories.map((cat) => (
+                    <CategoryTag key={cat.id} label={getCategoryDisplayName(cat, t)} color={cat.color} />
+                  ))}
+                </View>
+              ) : null}
             </View>
             <Pressable onPress={onDismiss} hitSlop={8}>
               <Icon name="x" size={20} color={colors.textSecondary} />
@@ -130,25 +146,31 @@ export function SupplierDetailModal({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.bodyContent}
           >
-            {categoryNames.trim() ? (
-              <Text
-                style={[styles.categories, { color: colors.textSecondary, textAlign }]}
-              >
-                {categoryNames}
-              </Text>
-            ) : null}
-
-            {renderInfoRow(t('suppliers.phone'), supplier?.phone)}
-            {renderInfoRow(t('suppliers.email'), supplier?.email)}
-            {renderInfoRow(t('suppliers.bankAccount'), bankDisplay)}
-            {renderInfoRow(t('suppliers.notes'), supplier?.notes)}
-
             <ContactActionsRow
               phone={supplier?.phone}
               email={supplier?.email}
-              contentAlign="flex-start"
+              raised
               style={styles.contactRow}
             />
+
+            {infoRows.length > 0 ? (
+              <View style={[styles.infoCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
+                {infoRows.map((row, i) => (
+                  <View
+                    key={row.label}
+                    style={[
+                      styles.infoRow,
+                      i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.outline },
+                    ]}
+                  >
+                    <Text style={[styles.infoLabel, { color: colors.textSecondary, textAlign }]}>{row.label}</Text>
+                    <Text style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={3}>
+                      {row.value}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
           </ScrollView>
 
           <View style={styles.footer}>
@@ -198,10 +220,16 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   header: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: spacing.sm,
-    gap: spacing.sm,
+    paddingBottom: spacing.md,
+    gap: spacing.md,
+  },
+  tags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: spacing.xs,
   },
   titleWrapper: {
     flex: 1,
@@ -219,23 +247,29 @@ const styles = StyleSheet.create({
   bodyContent: {
     paddingBottom: spacing.sm,
   },
-  categories: {
-    fontSize: 14,
-    marginBottom: spacing.md,
+  infoCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.md,
   },
   infoRow: {
-    marginBottom: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    minHeight: 48,
+    paddingVertical: spacing.sm,
   },
   infoLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginBottom: 2,
+    fontSize: 14,
   },
   infoValue: {
     fontSize: 15,
+    flexShrink: 1,
+    textAlign: 'right',
   },
   contactRow: {
-    marginTop: spacing.xs,
+    marginBottom: spacing.lg,
   },
   footer: {
     paddingTop: spacing.sm,

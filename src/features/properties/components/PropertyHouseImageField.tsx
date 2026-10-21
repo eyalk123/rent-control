@@ -9,9 +9,9 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { ActivityIndicator, Button, IconButton, Text, useTheme } from 'react-native-paper';
-import { Icon } from '@/src/shared/components/ui';
+import { ColorPicker, Icon } from '@/src/shared/components/ui';
 import * as ImagePicker from 'expo-image-picker';
-import { spacing, lightColors, darkColors } from '@/src/core/theme';
+import { spacing, lightColors, darkColors, useEntityColor, type EntityColorKey } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { useStoredFileUri } from '@/src/shared/hooks/useStoredFile';
 import {
@@ -27,6 +27,9 @@ import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 type Props = {
   imageUrl: string | null;
   onChangeImageUrl: (url: string | null) => void;
+  /** The property's color: the thumbnail sits on it, and the swatches under it change it. */
+  color: string | null | undefined;
+  onChangeColor: (color: EntityColorKey) => void;
   t: TFunction;
   ownerId: string;
 };
@@ -34,10 +37,11 @@ type Props = {
 const NUM_COLUMNS = 3;
 const GRID_GAP = spacing.sm;
 
-export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId }: Props) {
+export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, color, onChangeColor, t, ownerId }: Props) {
   const theme = useTheme();
   const { appAlert } = useAlert();
   const colors = theme.dark ? darkColors : lightColors;
+  const itemColor = useEntityColor(color);
   const [modalVisible, setModalVisible] = useState(false);
   const { width: screenWidth } = useWindowDimensions();
   const { uploadFile, uploading } = useFirebaseUpload('properties', ownerId);
@@ -119,90 +123,42 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
 
   return (
     <View style={styles.wrapper}>
-      {uploading ? (
-        <View style={styles.loadingWrap}>
-          <ActivityIndicator size="small" />
-        </View>
-      ) : selectedPreset ? (
-        <View style={styles.previewContainer}>
-          <Image
-            source={selectedPreset.source}
-            style={[styles.previewImage, styles.presetPreviewImage]}
-            resizeMode="contain"
-          />
-          <View style={styles.previewActions}>
-            <Button
-              mode="outlined"
-              onPress={() => setModalVisible(true)}
-              style={styles.actionBtn}
-              icon="image-edit"
-              compact
-            >
-              {t('property.changeImage')}
-            </Button>
-            <Button
-              mode="outlined"
-              onPress={() => onChangeImageUrl(null)}
-              style={styles.actionBtn}
-              icon="close"
-              compact
-            >
-              {t('property.removePhoto')}
-            </Button>
-          </View>
-        </View>
-      ) : isCustomPhoto ? (
-        <View style={styles.previewContainer}>
-          <Image
-            source={customPhotoUri ? { uri: customPhotoUri } : undefined}
-            style={styles.previewImage}
-            resizeMode="cover"
-          />
-          <View style={styles.previewActions}>
-            <Button
-              mode="outlined"
-              onPress={() => setModalVisible(true)}
-              style={styles.actionBtn}
-              icon="image-edit"
-              compact
-            >
-              {t('property.changeImage')}
-            </Button>
-            <Button
-              mode="outlined"
-              onPress={() => onChangeImageUrl(null)}
-              style={styles.actionBtn}
-              icon="close"
-              compact
-            >
-              {t('property.removePhoto')}
-            </Button>
-          </View>
-        </View>
-      ) : (
-        <View style={styles.photoWrap}>
-          <Text style={[styles.photoLabel, { color: colors.textSecondary }]}>
-            {t('property.photo')}
+      {/* Picture and color as one tile: the thumbnail shows the picture on the property's
+          color, the way the list and the detail band will show it. Tapping it opens the
+          picker. The swatches sit under it, not beside it: six 44pt targets do not fit next
+          to the thumbnail on a 360dp phone. */}
+      <View style={styles.tileRow}>
+        <Pressable
+          onPress={() => setModalVisible(true)}
+          disabled={uploading}
+          accessibilityRole="button"
+          accessibilityLabel={imageUrl ? t('property.changeImage') : t('property.addAPhoto')}
+          style={[styles.thumb, { backgroundColor: itemColor.bg }]}
+        >
+          {uploading ? (
+            <ActivityIndicator size="small" />
+          ) : selectedPreset ? (
+            <Image source={selectedPreset.source} style={styles.thumbPreset} resizeMode="contain" />
+          ) : isCustomPhoto ? (
+            <Image
+              source={customPhotoUri ? { uri: customPhotoUri } : undefined}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
+          ) : (
+            <Icon name="image" size={22} color={itemColor.fg} />
+          )}
+        </Pressable>
+        <View style={styles.tileText}>
+          <Text style={[styles.tileLabel, { color: colors.fieldLabel }]}>
+            {t('property.pictureAndColor')}
           </Text>
-          <Pressable
-            onPress={() => setModalVisible(true)}
-            style={[
-              styles.dropzone,
-              {
-                backgroundColor: colors.inputFilledBackground,
-              },
-            ]}
-          >
-            <Icon name="image" size={22} color={colors.textSecondary} />
-            <Text style={[styles.dropzonePrimary, { color: colors.textPrimary }]}>
-              {t('property.addAPhoto')}
-            </Text>
-            <Text style={[styles.dropzoneHelper, { color: colors.textSecondary }]}>
-              {t('property.photoHelper')}
-            </Text>
-          </Pressable>
+          <Text style={[styles.tileHelper, { color: colors.textSecondary }]}>
+            {imageUrl ? t('property.tapToChangePicture') : t('property.tapToAddPicture')}
+          </Text>
         </View>
-      )}
+      </View>
+      <ColorPicker value={color} onChange={onChangeColor} />
 
       <Modal
         visible={modalVisible}
@@ -224,15 +180,32 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
               />
             </View>
 
-            <Button
-              mode="outlined"
-              icon="image-plus"
-              onPress={handleUploadFromGallery}
-              style={styles.galleryButton}
-              compact
-            >
-              {t('documents.uploadFromGallery')}
-            </Button>
+            <View style={styles.modalActions}>
+              <Button
+                mode="outlined"
+                icon="image-plus"
+                onPress={handleUploadFromGallery}
+                style={styles.modalAction}
+                compact
+              >
+                {t('documents.uploadFromGallery')}
+              </Button>
+              {/* Removing lives here since the form shows the picture as a small tile. */}
+              {imageUrl ? (
+                <Button
+                  mode="outlined"
+                  icon="close"
+                  onPress={() => {
+                    onChangeImageUrl(null);
+                    setModalVisible(false);
+                  }}
+                  style={styles.modalAction}
+                  compact
+                >
+                  {t('property.removePhoto')}
+                </Button>
+              ) : null}
+            </View>
             <FlatList
               data={HOUSE_IMAGE_PRESETS}
               keyExtractor={(item) => item.key}
@@ -252,58 +225,42 @@ export function PropertyHouseImageField({ imageUrl, onChangeImageUrl, t, ownerId
 const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
-    alignItems: 'center',
-  },
-  photoWrap: {
-    width: '100%',
     marginBottom: spacing.md,
   },
-  photoLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: 4,
+  tileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.xs,
   },
-  dropzone: {
-    width: '100%',
-    height: 88,
+  thumb: {
+    width: 72,
+    height: 56,
     borderRadius: 12,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(26,45,74,0.18)',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
   },
-  dropzonePrimary: {
-    fontSize: 13,
-    fontWeight: '600',
+  // Illustrations stand on the tile's bottom edge, as they do on the detail band.
+  thumbPreset: {
+    position: 'absolute',
+    bottom: 0,
+    width: 70,
+    height: 70 * (8 / 13),
   },
-  dropzoneHelper: {
-    fontSize: 11,
-    fontWeight: '400',
+  tileText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
   },
-  previewContainer: {
-    marginBottom: spacing.md,
-    width: '100%',
+  tileLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'left',
   },
-  previewImage: {
-    width: '100%',
-    height: 180,
-    borderRadius: 12,
-    marginBottom: spacing.sm,
-  },
-  // Illustrations are drawn at 13:8; matching it shows the whole building, uncropped.
-  presetPreviewImage: {
-    height: undefined,
-    aspectRatio: 13 / 8,
-  },
-  previewActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    flexWrap: 'wrap',
-  },
-  actionBtn: {
-    alignSelf: 'flex-start',
+  tileHelper: {
+    fontSize: 12,
+    textAlign: 'left',
   },
   modalOverlay: {
     flex: 1,
@@ -323,16 +280,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
   },
-  loadingWrap: {
-    marginBottom: spacing.md,
-    height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-  },
-  galleryButton: {
+  modalActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
+  },
+  modalAction: {
     borderRadius: 8,
   },
   gridContainer: {

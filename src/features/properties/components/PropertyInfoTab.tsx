@@ -8,11 +8,14 @@ import {
   getCurrentMonthlyRent,
   type Property,
   type PropertyValuationInput,
+  type Renter,
   type Transaction,
 } from '@/src/shared/types';
 import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
 import { effectiveDate } from '@/src/features/transactions/utils/aggregate';
-import { lightColors, darkColors, spacing, ICON_SM } from '@/src/core/theme';
+import { lightColors, darkColors, spacing, ICON_SM, useEntityColor } from '@/src/core/theme';
+import { useRouter } from 'expo-router';
+import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { formatDate, formatMoney } from '@/src/shared/utils/money';
 import { useAlert } from '@/src/core/context';
 import { getApiErrorMessage } from '@/src/core/api/client';
@@ -20,7 +23,7 @@ import { createPropertyValuation, getPropertyById } from '@/src/features/propert
 import { PropertyValueDialog } from '@/src/features/properties/components/PropertyValueDialog';
 import { PropertyValueHistoryDialog } from '@/src/features/properties/components/PropertyValueHistoryDialog';
 import { formatPercent, formatWholeMoney } from '@/src/features/properties/utils/propertyReturns';
-import { Icon, StatBox, DetailRow, DetailSection, InfoTipText, type IconName } from '@/src/shared/components/ui';
+import { Icon, StatBox, DetailRow, DetailSection, InfoTipText, SectionLabel, type IconName } from '@/src/shared/components/ui';
 import { MortgageSection } from '@/src/features/properties/components/MortgageSection';
 import { capabilities } from '@/src/shared/utils/capabilities';
 
@@ -33,27 +36,63 @@ interface PropertyInfoTabProps {
   onPropertyChange: (property: Property) => void;
 }
 
-function ExpandableNotesRow({
-  label,
-  value,
-  iconColor,
-  secondaryColor,
-}: {
-  label: string;
-  value: string;
-  iconColor: string;
-  secondaryColor: string;
-}) {
+/**
+ * Who lives here, as tiles in each renter's own color - the same mark the renter screen and
+ * the Renters list use, so a face here is recognisable there. Tapping one opens the renter.
+ */
+function RentersHereSection({ renters }: { renters: Renter[] }) {
+  const { t } = useTranslation();
+  if (renters.length === 0) return null;
+  return (
+    <View style={styles.rentersHere}>
+      <SectionLabel title={t('property.rentersHere')} />
+      <View style={styles.renterTiles}>
+        {renters.map((r) => (
+          <RenterTile key={r.id} renter={r} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function RenterTile({ renter }: { renter: Renter }) {
+  const router = useRouter();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const itemColor = useEntityColor(renter.color);
+  const name = `${renter.first_name} ${renter.last_name}`.trim();
+  return (
+    <TouchableOpacity
+      onPress={() => router.push(`/renters/${renter.id}` as any)}
+      accessibilityRole="button"
+      accessibilityLabel={name}
+      style={[styles.renterTile, { backgroundColor: colors.surface, borderColor: colors.outline }]}
+    >
+      <RenterAvatar
+        renter={renter}
+        size={36}
+        radius={10}
+        backgroundColor={itemColor.bg}
+        textColor={itemColor.fg}
+      />
+      <View style={styles.renterTileText}>
+        <Text variant="bodyMedium" numberOfLines={1} style={[styles.renterName, { color: colors.textPrimary }]}>
+          {name}
+        </Text>
+        <Text variant="labelSmall" numberOfLines={1} style={{ color: colors.textSecondary }}>
+          {formatMoney(getCurrentMonthlyRent(renter))}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// The section above names it, so the row is just the text.
+function ExpandableNotesRow({ value, toggleColor }: { value: string; toggleColor: string }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = React.useState(false);
   return (
     <View style={styles.notesRow}>
-      <View style={styles.iconRowLeft}>
-        <Icon name="file-text" size={ICON_SM} color={iconColor} />
-        <Text variant="bodyMedium" style={{ color: secondaryColor }}>
-          {label}
-        </Text>
-      </View>
       <Text
         variant="bodyMedium"
         numberOfLines={expanded ? undefined : 2}
@@ -62,7 +101,7 @@ function ExpandableNotesRow({
         {value}
       </Text>
       <TouchableOpacity onPress={() => setExpanded((v) => !v)}>
-        <Text variant="labelSmall" style={[styles.notesToggle, { color: iconColor }]}>
+        <Text variant="labelSmall" style={[styles.notesToggle, { color: toggleColor }]}>
           {expanded ? t('common.showLess') : t('common.showMore')}
         </Text>
       </TouchableOpacity>
@@ -134,14 +173,15 @@ export function PropertyInfoTab({
     {
       key: 'revenue',
       icon: 'arrow-up-right' as IconName,
-      value: money(revTotal),
+      // Isolated left-to-right, or Hebrew moves the sign to the far end of the figure.
+      value: transactionsLoading ? '–' : `⁦+${formatMoney(revTotal)}⁩`,
       label: t('property.totalRevenue', { year: currentYear }),
       color: transactionsLoading ? undefined : colors.revFg,
     },
     {
       key: 'expenses',
       icon: 'arrow-down-right' as IconName,
-      value: money(expTotal),
+      value: transactionsLoading ? '–' : `⁦−${formatMoney(expTotal)}⁩`,
       label: t('property.totalExpenses', { year: currentYear }),
       color: transactionsLoading ? undefined : colors.expFg,
     },
@@ -159,6 +199,15 @@ export function PropertyInfoTab({
     });
   }
 
+  const currentRenters = React.useMemo(() => getCurrentRenters(property.renters), [property.renters]);
+  const [metersOpen, setMetersOpen] = React.useState(false);
+  const meters = [
+    { label: t('property.electricityMeterNumber'), value: property.electricity_meter_number },
+    { label: t('property.electricityAccountNumber'), value: property.electricity_account_number },
+    { label: t('property.waterMeterNumber'), value: property.water_meter_number },
+    { label: t('property.waterAccountNumber'), value: property.water_account_number },
+  ].filter((m): m is { label: string; value: string } => m.value != null && m.value !== '');
+
   const tileRows = tiles.reduce<(typeof tiles)[]>((rows, tile, i) => {
     if (i % 2 === 0) rows.push([tile]);
     else rows[rows.length - 1].push(tile);
@@ -170,9 +219,10 @@ export function PropertyInfoTab({
       {tileRows.map((row, i) => (
         <View key={i} style={styles.statsRow}>
           {row.map((tile) => (
+            // No icon since the color redesign: the colored figure and its label carry it,
+            // and four glyphs over four numbers were the busiest thing on the screen.
             <StatBox
               key={tile.key}
-              icon={tile.icon}
               value={tile.value}
               label={tile.label}
               backgroundColor={colors.inputBackground}
@@ -187,7 +237,9 @@ export function PropertyInfoTab({
         </View>
       ))}
 
-      <DetailSection title={t('property.basicInfo')}>
+      <RentersHereSection renters={currentRenters} />
+
+      <DetailSection title={t('property.sectionProperty')}>
         <DetailRow
           label={t('property.surfaceArea')}
           value={formatArea(property.sq_ft)}
@@ -220,13 +272,7 @@ export function PropertyInfoTab({
         />
       )}
 
-      <DetailSection title={t('property.details')}>
-        {Array.isArray(property.parking_numbers) && property.parking_numbers.length > 0 && (
-          <DetailRow
-            label={t('property.parkingNumbers')}
-            value={property.parking_numbers.join(', ')}
-          />
-        )}
+      <DetailSection title={t('property.billsAndFees')}>
         {property.property_tax != null && (
           <DetailRow
             label={t('property.propertyTax')}
@@ -239,39 +285,40 @@ export function PropertyInfoTab({
             value={formatMoney(property.house_committee)}
           />
         )}
-        {property.electricity_meter_number != null && property.electricity_meter_number !== '' && (
+        {Array.isArray(property.parking_numbers) && property.parking_numbers.length > 0 && (
           <DetailRow
-            label={t('property.electricityMeterNumber')}
-            value={property.electricity_meter_number}
+            label={t('property.parkingNumbers')}
+            value={property.parking_numbers.join(', ')}
           />
         )}
-        {property.electricity_account_number != null && property.electricity_account_number !== '' && (
+        {meters.length > 0 && (
           <DetailRow
-            label={t('property.electricityAccountNumber')}
-            value={property.electricity_account_number}
-          />
+            label={t('property.metersAndAccounts')}
+            onPress={() => setMetersOpen((v) => !v)}
+            accessibilityLabel={`${t('property.metersAndAccounts')}, ${t('property.metersSummary')}`}
+          >
+            <View style={styles.metersCell}>
+              <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
+                {t('property.metersSummary')}
+              </Text>
+              <Icon
+                name={metersOpen ? 'chevron-up' : 'chevron-down'}
+                size={ICON_SM}
+                color={colors.textSecondary}
+              />
+            </View>
+          </DetailRow>
         )}
-        {property.water_meter_number != null && property.water_meter_number !== '' && (
-          <DetailRow
-            label={t('property.waterMeterNumber')}
-            value={property.water_meter_number}
-          />
-        )}
-        {property.water_account_number != null && property.water_account_number !== '' && (
-          <DetailRow
-            label={t('property.waterAccountNumber')}
-            value={property.water_account_number}
-          />
-        )}
-        {property.inventory_notes != null && property.inventory_notes !== '' && (
-          <ExpandableNotesRow
-            label={t('property.inventoryNotes')}
-            value={property.inventory_notes}
-            iconColor={colors.textSecondary}
-            secondaryColor={colors.textSecondary}
-          />
-        )}
+        {/* Four long numbers that are rarely read twice: folded until asked for. */}
+        {metersOpen &&
+          meters.map((m) => <DetailRow key={m.label} label={m.label} value={m.value} />)}
       </DetailSection>
+
+      {property.inventory_notes != null && property.inventory_notes !== '' && (
+        <DetailSection title={t('property.inventoryNotes')}>
+          <ExpandableNotesRow value={property.inventory_notes} toggleColor={colors.primary} />
+        </DetailSection>
+      )}
     </ScrollView>
   );
 }
@@ -445,11 +492,36 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  iconRowLeft: {
+  metersCell: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.xs,
+  },
+  rentersHere: {
+    marginBottom: spacing.lg,
+  },
+  renterTiles: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
-    flexShrink: 1,
+  },
+  // Two to a row; a lone renter takes the full width.
+  renterTile: {
+    flexGrow: 1,
+    flexBasis: '45%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: spacing.sm,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  renterTileText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  renterName: {
+    fontWeight: '500',
   },
   notesRow: {
     paddingHorizontal: spacing.lg,

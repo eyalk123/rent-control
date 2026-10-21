@@ -3,9 +3,8 @@ import {
   StyleSheet,
   View,
   Image,
-  useWindowDimensions,
 } from 'react-native';
-import { ActivityIndicator, IconButton, Text, useTheme } from 'react-native-paper';
+import { Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -19,14 +18,16 @@ import {
   isPropertyLockedError,
 } from '@/src/features/subscription/components/LockedPropertyState';
 import {
+  BandButton,
+  ColorBand,
+  ColorDot,
   Icon,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
   DetailTabBar,
-  DetailBackButton,
 } from '@/src/shared/components/ui';
-import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { lightColors, darkColors, spacing, useEntityColor } from '@/src/core/theme';
 import { PropertyInfoTab } from '@/src/features/properties/components/PropertyInfoTab';
 import { PropertyRentersTab } from '@/src/features/properties/components/PropertyRentersTab';
 import { PropertyTransactionsTab } from '@/src/features/properties/components/PropertyTransactionsTab';
@@ -38,6 +39,8 @@ import { PropertyDocumentsTab } from '@/src/features/properties/components/Prope
 import { useTransactionsList } from '@/src/features/transactions/hooks/useTransactions';
 import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
+import { propertyTypeLabelKey } from '@/src/features/properties/constants/propertyTypeLabel';
+import { parseImageUrlKey } from '@/src/features/properties/constants/houseImagePresets';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 import { useTour, useTourStep } from '@/src/features/onboarding/TourController';
@@ -52,7 +55,6 @@ export function PropertyDetailScreen() {
   const colors = theme.dark ? darkColors : lightColors;
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { width } = useWindowDimensions();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -114,8 +116,9 @@ export function PropertyDetailScreen() {
   // The gate keeps this screen mounted, so lifting it would otherwise leave the failed load.
   useOnReconnect(loadProperty);
 
-  // Above the early returns: it is a hook.
+  // Above the early returns: they are hooks.
   const imageSource = usePropertyImageSource(property?.image_url);
+  const itemColor = useEntityColor(property?.color);
 
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -134,27 +137,9 @@ export function PropertyDetailScreen() {
     }
   };
 
-  // Mirrors the edit button on the opposite corner: a filled circle over a photo, where a
-  // plain glyph would be illegible, and a plain glyph otherwise.
-  const renderShareButton = (overPhoto: boolean) => {
-    const glyphColor = overPhoto ? colors.onPrimary : colors.textPrimary;
-    return (
-      <IconButton
-        icon={() =>
-          sharing ? (
-            <ActivityIndicator size={18} color={glyphColor} />
-          ) : (
-            <Icon name="share" size={22} color={glyphColor} />
-          )
-        }
-        size={22}
-        style={[styles.shareIcon, overPhoto && { backgroundColor: colors.primary }]}
-        onPress={handleShareSheet}
-        disabled={sharing}
-        accessibilityLabel={t('property.renterSheet')}
-      />
-    );
-  };
+  // A photo the owner uploaded fills the band; a drawn preset is a whole building and is
+  // shown whole.
+  const isPhoto = !!imageSource && !(property?.image_url && parseImageUrlKey(property.image_url));
 
   if (loading) {
     return (
@@ -187,73 +172,55 @@ export function PropertyDetailScreen() {
   return (
     <ScreenContainer edges={['top', 'left', 'right']}>
       <View style={styles.container}>
-        {/* Header: image + address + edit */}
+        {/* Header: a band in the property's color holding its picture, the way the renter
+            screen holds the renter's initials. A drawn preset stands on the band's bottom
+            edge; an uploaded photo fills it; with neither, the type icon sits in the middle. */}
         <View>
-          {/* With a photo this is a hero. Without one it used to stay 200px tall and hold a
-              grey glyph floating in empty space, which read as a broken image.
-              It now shows a type medallion in the same slot the renter screen gives the
-              avatar, so both detail screens open on an identity mark rather than a void. The
-              edit button sits where the renter's does, and keeps its filled circle only over
-              a photo, where a plain glyph would be illegible. */}
-          <DetailBackButton
+          <ColorBand
+            color={property.color}
             fallbackHref="/properties"
-            top={spacing.xs}
-            color={colors.textPrimary}
-          />
-          {imageSource ? (
-            <View style={[styles.imageWrapper, { width }]}>
+            height={168}
+            align={imageSource && !isPhoto ? 'bottom' : 'center'}
+            actions={
+              <>
+                <BandButton
+                  icon="share"
+                  onPress={handleShareSheet}
+                  busy={sharing}
+                  accessibilityLabel={t('property.renterSheet')}
+                />
+                <BandButton
+                  icon="pencil"
+                  onPress={handleEdit}
+                  accessibilityLabel={t('property.editProperty')}
+                />
+              </>
+            }
+          >
+            {imageSource ? (
               <Image
                 source={imageSource}
-                style={[styles.image, { width }]}
-                resizeMode="cover"
+                style={isPhoto ? StyleSheet.absoluteFill : styles.illustration}
+                resizeMode={isPhoto ? 'cover' : 'contain'}
+                accessibilityIgnoresInvertColors
               />
-              <IconButton
-                icon={() => (
-                  <Icon
-                    name="pencil"
-                    size={22}
-                    color={colors.onPrimary}
-                  />
-                )}
-                size={22}
-                style={[styles.editIcon, { backgroundColor: colors.primary }]}
-                onPress={handleEdit}
-                accessibilityLabel={t('property.editProperty')}
-              />
-              {renderShareButton(true)}
-            </View>
-          ) : (
-            <View
-              style={[styles.medallionSection, { width }]}
-            >
-              <View style={[styles.medallion, { backgroundColor: colors.primary }]}>
-                <Icon
-                  name={getPropertyTypeIcon(property.type)}
-                  size={36}
-                  color={colors.onPrimary}
-                />
+            ) : (
+              <View style={[styles.medallion, { backgroundColor: colors.surface }]}>
+                <Icon name={getPropertyTypeIcon(property.type)} size={36} color={itemColor.fg} />
               </View>
-              <IconButton
-                icon={() => (
-                  <Icon
-                    name="pencil"
-                    size={22}
-                    color={colors.textPrimary}
-                  />
-                )}
-                size={22}
-                style={styles.editIcon}
-                onPress={handleEdit}
-                accessibilityLabel={t('property.editProperty')}
-              />
-              {renderShareButton(false)}
-            </View>
-          )}
+            )}
+          </ColorBand>
 
-          <View style={styles.addressRow}>
-            <Text variant="titleLarge" style={[styles.addressText, { color: colors.textPrimary }]}>
-              {property.address}{formatFloorApartment(property, t)}, {property.city}
+          <View style={styles.titleBlock}>
+            <Text variant="headlineSmall" style={[styles.addressText, { color: colors.textPrimary }]}>
+              {property.address}{formatFloorApartment(property, t)}
             </Text>
+            <View style={styles.subtitleRow}>
+              <ColorDot color={property.color} size={9} />
+              <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
+                {property.city} · {t(propertyTypeLabelKey(property.type))}
+              </Text>
+            </View>
           </View>
 
           {/* Tab bar */}
@@ -306,21 +273,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  imageWrapper: {
-    alignSelf: 'stretch',
-    position: 'relative',
-  },
-  image: {
-    height: 200,
-  },
-  // No photo: the medallion slot. Mirrors the renter screen's avatar section - centred mark,
-  // actions absolutely positioned around it - so the two detail screens share a silhouette.
-  medallionSection: {
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
-    position: 'relative',
+  // As tall as the band, so the building rises between the round buttons instead of
+  // starting below them: the art's own transparent headroom (about a tenth of its height)
+  // lands level with the buttons' top. Drawn at 13:8 like the art, so `contain` leaves no
+  // letterbox and the base stands on the band's bottom edge.
+  illustration: {
+    height: 168,
+    width: 168 * (13 / 8),
   },
   medallion: {
     width: 80,
@@ -329,26 +288,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  editIcon: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    left: spacing.sm,
-    margin: 0,
-  },
-  shareIcon: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    right: spacing.sm,
-    margin: 0,
-  },
-  addressRow: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+  titleBlock: {
+    paddingHorizontal: spacing.lg + spacing.xs,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.xs,
+    gap: spacing.xs,
   },
+  // Start-aligned, not centred: under a full-width band a centred title floated.
   addressText: {
     fontWeight: '700',
-    textAlign: 'center',
+    textAlign: 'left',
+  },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   tabContent: {
     flex: 1,

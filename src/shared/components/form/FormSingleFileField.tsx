@@ -10,6 +10,7 @@ import { useAlert } from '@/src/core/context';
 import { useFirebaseUpload } from '@/src/shared/hooks/useFirebaseUpload';
 import { useOpenStoredFile, useStoredFileUri } from '@/src/shared/hooks/useStoredFile';
 import { Icon } from '@/src/shared/components/ui';
+import { FormField } from './FormField';
 import { fileNameFromUrl } from '@/src/shared/utils/fileName';
 
 type EntityType = 'properties' | 'renters' | 'transactions';
@@ -96,13 +97,13 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
   };
 
   if (accept === 'image') {
+    // Labelled and boxed like every other field: the label through FormField, and an empty
+    // state the height and corner of an input with a dashed edge, where it used to be an
+    // 88pt filled panel that looked like no other control in the form.
     return (
-      <View style={styles.container}>
-        <Text style={[styles.photoLabel, { color: colors.textSecondary }]}>
-          {label}
-        </Text>
+      <FormField label={label}>
         {uploading ? (
-          <View style={styles.loadingWrap}>
+          <View style={[styles.photoBox, { borderColor: colors.inputBorder }]}>
             <ActivityIndicator size="small" />
           </View>
         ) : url ? (
@@ -120,18 +121,17 @@ function FormSingleFileFieldInner<TFieldValues extends FieldValues>({
         ) : (
           <Pressable
             onPress={handlePick}
-            style={[styles.dropzone, { backgroundColor: colors.inputFilledBackground }]}
+            accessibilityRole="button"
+            accessibilityLabel={`${label}, ${t('property.addAPhoto')}`}
+            style={[styles.photoBox, { borderColor: colors.inputBorder }]}
           >
-            <Icon name="image" size={22} color={colors.textSecondary} />
-            <Text style={[styles.dropzonePrimary, { color: colors.textPrimary }]}>
+            <Icon name="camera" size={20} color={colors.textSecondary} />
+            <Text style={[styles.photoBoxText, { color: colors.textPrimary }]}>
               {t('property.addAPhoto')}
-            </Text>
-            <Text style={[styles.dropzoneHelper, { color: colors.textSecondary }]}>
-              {t('documents.uploadFromGallery')}
             </Text>
           </Pressable>
         )}
-      </View>
+      </FormField>
     );
   }
 
@@ -194,21 +194,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
     fontWeight: '500',
   },
-  photoLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
   loadingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-  },
-  loadingWrap: {
-    height: 88,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 12,
   },
   uploadingText: {
     marginLeft: spacing.xs,
@@ -220,24 +209,20 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: 8,
   },
-  dropzone: {
-    width: '100%',
-    height: 88,
-    borderRadius: 12,
-    borderWidth: 1.5,
+  // An input's box (fieldSurface: 48pt, radius 4), dashed to say "nothing here yet".
+  photoBox: {
+    minHeight: 48,
+    borderRadius: 4,
+    borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: 'rgba(26,45,74,0.18)',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: spacing.sm,
+    paddingHorizontal: 14,
   },
-  dropzonePrimary: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  dropzoneHelper: {
-    fontSize: 11,
-    fontWeight: '400',
+  photoBoxText: {
+    fontSize: 16,
   },
   previewImage: {
     width: '100%',

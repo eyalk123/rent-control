@@ -288,16 +288,16 @@ export function AddTransactionScreen() {
   );
 
   const EXPENSE_FIELD_ORDER = [
-    'propertyIds',
     'amount',
+    'propertyIds',
+    'categoryIds',
     'dateOfPayment',
     'paymentMethod',
-    'categoryIds',
   ] as const;
 
   const REVENUE_FIELD_ORDER = [
-    'propertyId',
     'amount',
+    'propertyId',
     'monthFor',
     'dateOfPayment',
   ] as const;

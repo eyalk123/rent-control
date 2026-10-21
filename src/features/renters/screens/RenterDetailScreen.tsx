@@ -1,11 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, IconButton, Menu, Text, useTheme } from 'react-native-paper';
+import { Button, Menu, Text, useTheme } from 'react-native-paper';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   getRenterById,
   terminateLease,
@@ -20,13 +19,15 @@ import {
 import type { Renter } from '@/src/shared/types';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import {
+  BandButton,
+  ColorBand,
+  ColorDot,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
   DetailTabBar,
-  DetailBackButton,
 } from '@/src/shared/components/ui';
-import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { lightColors, darkColors, spacing, useEntityColor } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { EndLeaseDialog } from '@/src/features/renters/components/EndLeaseDialog';
 import { ExerciseOptionDialog } from '@/src/features/renters/components/ExerciseOptionDialog';
@@ -57,11 +58,12 @@ export function RenterDetailScreen() {
   useTour('renter-detail');
   const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const colors = theme.dark ? darkColors : lightColors;
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [renter, setRenter] = useState<Renter | null>(null);
+  // Above the early returns: it is a hook.
+  const itemColor = useEntityColor(renter?.color);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // A renter on a property over the plan's limit is refused like the property itself.
@@ -220,120 +222,94 @@ export function RenterDetailScreen() {
   const canExtend = !terminated;
 
   return (
-    <ScreenContainer edges={['left', 'right']}>
+    <ScreenContainer edges={['top', 'left', 'right']}>
       <View style={styles.container}>
-        {/* Header: avatar + name + edit */}
+        {/* Header: the same color band the property screen opens on, in the renter's color,
+            holding their initials where the property holds its picture. */}
         <View>
-          <View
-            style={[
-              styles.avatarSection,
-              { paddingTop: insets.top + spacing.sm },
-            ]}
+          <ColorBand
+            color={renter.color}
+            fallbackHref="/renters"
+            height={170}
+            align="center"
+            actions={
+              <>
+                {/* Edit stays on an ended lease, since a past tenancy's record can still need
+                    correcting - and so does Extend, unless the lease was terminated. */}
+                {canExtend && (
+                  <TourAnchor id={ANCHORS.renterDetailExtend}>
+                    <BandButton
+                      icon="calendar-plus"
+                      onPress={handleExtend}
+                      accessibilityLabel={t('renter.extendLease')}
+                    />
+                  </TourAnchor>
+                )}
+                <TourAnchor id={ANCHORS.renterDetailEdit}>
+                  <BandButton
+                    icon="pencil"
+                    onPress={handleEdit}
+                    accessibilityLabel={t('renter.editRenter')}
+                  />
+                </TourAnchor>
+                {/* End lease lives behind the overflow rather than beside Extend: as two
+                    icon buttons, calendar-plus and calendar-remove read as a pair, and the
+                    menu gives End lease the text label an icon cannot have. Not styled
+                    destructive, for the reason the web hero notes: dressing it like Delete
+                    pushes people into rewriting the lease term by hand instead. */}
+                {!ended && (
+                  <Menu
+                    visible={moreOpen}
+                    onDismiss={() => setMoreOpen(false)}
+                    // Drops from under the button rather than over it.
+                    anchorPosition="bottom"
+                    anchor={
+                      <TourAnchor id={ANCHORS.renterDetailMore}>
+                        <BandButton
+                          icon="more-vertical"
+                          onPress={() => setMoreOpen(true)}
+                          accessibilityLabel={t('common.moreActions')}
+                        />
+                      </TourAnchor>
+                    }
+                  >
+                    <Menu.Item
+                      leadingIcon="calendar-remove"
+                      onPress={() => {
+                        setMoreOpen(false);
+                        setEndLeaseOpen(true);
+                      }}
+                      title={t('renter.endLease')}
+                    />
+                  </Menu>
+                )}
+              </>
+            }
           >
-            <DetailBackButton
-              fallbackHref="/renters"
-              top={insets.top + spacing.xs}
-              color={colors.textPrimary}
-            />
             <RenterAvatar
               renter={renter}
-              size={80}
-              backgroundColor={colors.primary}
-              textColor="#FFF"
+              size={96}
+              radius={28}
+              backgroundColor={colors.surface}
+              textColor={itemColor.fg}
+              style={styles.avatar}
             />
-            {/* Absolutely positioned, so the positioning moves to the anchor wrapper for
-                the same reason Extend and End below do — see the note there. */}
-            <TourAnchor id={ANCHORS.renterDetailEdit} style={styles.editIcon}>
-              <IconButton
-                icon="pencil"
-                iconColor={colors.textPrimary}
-                size={22}
-                style={styles.iconButtonReset}
-                onPress={handleEdit}
-                accessibilityLabel={t('renter.editRenter')}
-              />
-            </TourAnchor>
-            {/* Edit stays on an ended lease, since a past tenancy's record can still need
-                correcting - and so does Extend, unless the lease was terminated. */}
-            {/* The absolute positioning moves to the anchor wrapper: a wrapper View around
-                an absolutely-positioned child would become its containing block and drag
-                the button back into the flow. */}
-            {/* Extend normally sits inboard of the overflow, but the overflow is only
-                rendered while the lease is live. On an ended lease it kept the 44px offset
-                and left exactly one button of empty space at the edge, so it takes the
-                edge position itself when there is no overflow beside it. */}
-            {canExtend && (
-              <TourAnchor
-                id={ANCHORS.renterDetailExtend}
-                style={ended ? styles.extendIconAlone : styles.extendIcon}
-              >
-                <IconButton
-                  icon="calendar-plus"
-                  iconColor={colors.textPrimary}
-                  size={22}
-                  style={styles.iconButtonReset}
-                  onPress={handleExtend}
-                  accessibilityLabel={t('renter.extendLease')}
-                />
-              </TourAnchor>
-            )}
-            {/* End lease lives behind the overflow rather than beside Extend. As two filled
-                circles they were `calendar-plus` next to `calendar-remove` at 20px - the same
-                colour, size and icon family, differing by a few pixels - so a routine action
-                and a lifecycle one read as a pair. The menu gives End lease the text label an
-                icon-only button cannot have, and leaves Extend the only lease button up here.
-                Not styled destructive, for the reason the web hero notes: dressing it like
-                Delete pushes people into rewriting the lease term by hand instead. */}
-            {!ended && (
-              <View style={styles.moreIcon}>
-                <Menu
-                  visible={moreOpen}
-                  onDismiss={() => setMoreOpen(false)}
-                  // Drops from under the button rather than over it: the default `top`
-                  // covers the header controls it was opened from.
-                  anchorPosition="bottom"
-                  anchor={
-                    /* The absolute positioning sits on the View *outside* Menu: Menu wraps its
-                       anchor in a plain View and measures that to place the surface, so an
-                       absolutely-positioned child would collapse it and misplace the menu. */
-                    <TourAnchor id={ANCHORS.renterDetailMore}>
-                      <IconButton
-                        icon="dots-vertical"
-                        iconColor={colors.textPrimary}
-                        size={22}
-                        style={styles.iconButtonReset}
-                        onPress={() => setMoreOpen(true)}
-                        accessibilityLabel={t('common.moreActions')}
-                      />
-                    </TourAnchor>
-                  }
-                >
-                  <Menu.Item
-                    leadingIcon="calendar-remove"
-                    onPress={() => {
-                      setMoreOpen(false);
-                      setEndLeaseOpen(true);
-                    }}
-                    title={t('renter.endLease')}
-                  />
-                </Menu>
-              </View>
-            )}
-          </View>
+          </ColorBand>
 
           <View style={styles.nameRow}>
             <Text
-              variant="titleLarge"
+              variant="headlineSmall"
               style={[styles.nameText, { color: colors.textPrimary }]}
             >
               {renter.first_name} {renter.last_name}
             </Text>
-            <Text
-              variant="bodyMedium"
-              style={{ color: colors.textSecondary, textAlign: 'center' }}
-            >
-              {renter.property ? `${renter.property.address}${formatFloorApartment(renter.property, t)}` : t('renter.unassigned')}
-            </Text>
+            <View style={styles.subtitleRow}>
+              {/* The dot is the property's color, not the renter's: it marks where they live. */}
+              {renter.property ? <ColorDot color={renter.property.color} size={9} /> : null}
+              <Text variant="bodyMedium" style={{ color: colors.textSecondary }}>
+                {renter.property ? `${renter.property.address}${formatFloorApartment(renter.property, t)}` : t('renter.unassigned')}
+              </Text>
+            </View>
           </View>
 
           {/* Two treatments, split by whether there is anything to act on.
@@ -482,68 +458,40 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   statusChipRow: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.lg + spacing.xs,
     marginTop: spacing.xs,
   },
   // Shrinks to its text rather than stretching, so there is no empty half to explain.
   statusChip: {
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 999,
   },
-  // The overflow terminates the row at the physical edge and Extend sits inboard of it,
-  // which is where a `dots-vertical` is looked for. Physical (not logical) positioning,
-  // so the header controls keep the same arrangement under RTL.
-  moreIcon: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    right: spacing.sm,
-  },
   container: {
     flex: 1,
   },
-  avatarSection: {
-    alignItems: 'center',
-    paddingBottom: spacing.md,
-    position: 'relative',
+  // Sits a little low in the band, clear of the round buttons along its top.
+  avatar: {
+    marginTop: spacing.md,
   },
-  editIcon: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    left: spacing.sm,
-  },
-  extendIcon: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    right: spacing.sm + 44,
-  },
-  // Same slot the overflow would have occupied, used when the overflow is absent.
-  extendIconAlone: {
-    position: 'absolute',
-    bottom: spacing.sm,
-    right: spacing.sm,
-  },
-  // IconButton ships its own margin; the anchor wrapper now owns the placement.
-  //
-  // No filled circle: edit, extend and the overflow used to be three navy discs, which with
-  // the avatar put four of them in the top third of the screen and gave routine header
-  // actions more weight than anything in the content below. They are plain glyphs on the
-  // header surface now, which is what native header actions look like.
-  iconButtonReset: {
-    margin: 0,
-  },
+  // Start-aligned, like the property screen's title under its band.
   nameRow: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.lg + spacing.xs,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.xs,
-    alignItems: 'center',
+    gap: spacing.xs,
   },
   nameText: {
     fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: spacing.xs,
+    textAlign: 'left',
+  },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   tabContent: {
     flex: 1,

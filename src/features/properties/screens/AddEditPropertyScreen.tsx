@@ -13,7 +13,7 @@ import { PropertyScanConflicts } from "@/src/features/properties/components/Prop
 import { consumePropertyPrefill } from "@/src/features/document-scan/handoff";
 import { FieldReviewProvider } from "@/src/shared/components/form/FieldReviewContext";
 import type { Property } from "@/src/shared/types";
-import { spacing } from "@/src/core/theme";
+import { leastUsedEntityColor, spacing } from "@/src/core/theme";
 import { useAlert } from "@/src/core/context";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
@@ -34,7 +34,7 @@ export function AddEditPropertyScreen() {
   const { appAlert } = useAlert();
   const { id, fromScan } = useLocalSearchParams<{ id?: string; fromScan?: string }>();
   const router = useRouter();
-  const { refreshProperties } = usePropertyContext();
+  const { properties, refreshProperties } = usePropertyContext();
   const isEdit = Boolean(id);
   const { owners, loaded: ownersLoaded, refreshOwners } = usePropertyOwnersList();
 
@@ -59,6 +59,8 @@ export function AddEditPropertyScreen() {
     isFetching,
     imageUri,
     setImageUri,
+    color,
+    setColor,
     ownerId,
     existingFiles,
     deletedFileIds,
@@ -78,6 +80,7 @@ export function AddEditPropertyScreen() {
     prefill: scan?.property,
     logId: scan?.logId,
     provenance: scan?.propertyProvenance,
+    suggestedColor: isEdit ? null : leastUsedEntityColor(properties.map((p) => p.color)),
     onSuccess: (savedProp) => {
       if (scan) {
         // Scan flow (create or attach-to-existing): the renters were already extracted —
@@ -195,6 +198,8 @@ export function AddEditPropertyScreen() {
                 t={t}
                 imageUri={imageUri}
                 setImageUri={setImageUri}
+                color={color}
+                setColor={setColor}
                 ownerId={ownerId}
                 addressEvidence={scan?.addressEvidence}
                 owners={owners}

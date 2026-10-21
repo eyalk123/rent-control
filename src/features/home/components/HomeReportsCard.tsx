@@ -9,7 +9,7 @@ import Plus from 'lucide-react-native/icons/plus';
 import Receipt from 'lucide-react-native/icons/receipt';
 import Share2 from 'lucide-react-native/icons/share-2';
 
-import { darkColors, lightColors, cardShadow, radii } from '@/src/core/theme';
+import { darkColors, lightColors, cardShadow, radii, useEntityColor } from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
 import { formatDateShort } from '@/src/shared/utils/dates';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
@@ -30,6 +30,9 @@ export function HomeReportsCard() {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  // Reports' section color on Home (MOBILE-DESIGN.md §2), for the empty state. A saved report
+  // keeps the income / expense colors, which say what kind of report it is.
+  const reportsColor = useEntityColor('indigo');
   const router = useRouter();
   const { isRtl } = useLanguageContext();
 
@@ -88,10 +91,10 @@ export function HomeReportsCard() {
   const isExpenseLog = lastReport?.report_type === 'expense_log';
   const iconBg = lastReport
     ? (isExpenseLog ? colors.expBg : colors.revBg)
-    : (theme.dark ? 'rgba(62,111,168,0.12)' : 'rgba(22,41,74,0.07)');
+    : reportsColor.bg;
   const iconColor = lastReport
     ? (isExpenseLog ? colors.expFg : colors.revFg)
-    : colors.primary;
+    : reportsColor.fg;
   const IconComp = isExpenseLog ? Receipt : FileBarChart2;
 
   const reportName = lastReport

@@ -11,7 +11,8 @@ type TextVariant =
   | 'labelLarge' | 'labelMedium' | 'labelSmall';
 
 interface StatBoxProps {
-  icon: IconName;
+  /** Optional: the money tiles on the detail screens dropped theirs in the color redesign. */
+  icon?: IconName;
   value: string;
   label: string;
   backgroundColor: string;
@@ -33,7 +34,7 @@ export function StatBox({
 }: StatBoxProps) {
   return (
     <View style={[styles.statBox, { backgroundColor }]}>
-      <Icon name={icon} size={24} color={iconColor} />
+      {icon ? <Icon name={icon} size={24} color={iconColor} /> : null}
       <Text variant={valueVariant} style={[styles.statValue, { color: textColor }]}>
         {value}
       </Text>

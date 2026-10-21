@@ -72,6 +72,6 @@ export async function deletePropertyOwner(id: number): Promise<void> {
  *  JSON format, which does not read `_one`/`_other`. */
 export function propertyCountLabel(t: TFunction, count: number): string {
   return count === 1
-    ? t('propertyOwners.propertyCountOne')
+    ? t('propertyOwners.propertyCountOne', { count })
     : t('propertyOwners.propertyCountMany', { count });
 }

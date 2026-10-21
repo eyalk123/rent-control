@@ -15,6 +15,7 @@ import {
   LeaseTermBuilder,
   FormWheelDateField,
   FormSingleFileField,
+  FormRow,
 } from "@/src/shared/components/form";
 
 type RenterLeaseInfoCardProps<TFieldValues extends FieldValues> = {
@@ -78,16 +79,48 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
       </View>
 
       {/* Day, type and frequency as one group — the tour's point is about the three
-          together, and the day in particular is what "overdue" is counted from. */}
+          together, and the day in particular is what "overdue" is counted from.
+          Day and frequency share a row: both are short picks. The method's labels run
+          longer, so it keeps the full width. */}
       <TourAnchor id={ANCHORS.renterFormPayment}>
-      <View style={styles.inputWrap}>
-        <FormWheelDateField
-          control={control}
-          name={"paymentDate" as any}
-          label={t("renter.dateOfPayment")}
-          mode="dayOfMonth"
-        />
-      </View>
+      <FormRow>
+        <View style={styles.inputWrap}>
+          <FormWheelDateField
+            control={control}
+            name={"paymentDate" as any}
+            label={t("renter.dateOfPayment")}
+            mode="dayOfMonth"
+          />
+        </View>
+        <View style={styles.inputWrap}>
+          <FormDropdownOptions
+            control={control}
+            name={"paymentFrequency" as any}
+            label={t("renter.paymentFrequency", { defaultValue: "Payment frequency" })}
+            // Half a row has no room for "Select payment frequency"; the label already says it.
+            placeholder={t("common.select")}
+            options={[
+              { value: "monthly", label: t("renter.frequencyMonthly") },
+              { value: "quarterly", label: t("renter.frequencyQuarterly") },
+              { value: "yearly", label: t("renter.frequencyYearly") },
+            ]}
+            sorted={false}
+          />
+        </View>
+      </FormRow>
+      {/* The lease on file says something this picker cannot express. Naming it beats an
+          empty field the user has no way to account for — and the save refuses until they
+          choose, rather than silently clearing what the lease actually said. Under the row
+          rather than inside its half, where the sentence would wrap to a column. */}
+      {unsupportedFrequency != null ? (
+        <HelperText type="error" visible style={styles.helperText}>
+          {t("renter.unsupportedFrequency", {
+            count: unsupportedFrequency,
+            defaultValue:
+              "The lease says {{count}} payments a year. The app supports monthly, quarterly or yearly; pick one.",
+          })}
+        </HelperText>
+      ) : null}
 
       <View style={styles.inputWrap}>
         <FormDropdownOptions
@@ -97,32 +130,6 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           options={getPaymentMethodOptions(t)}
           sorted={false}
         />
-      </View>
-
-      <View style={styles.inputWrap}>
-        <FormDropdownOptions
-          control={control}
-          name={"paymentFrequency" as any}
-          label={t("renter.paymentFrequency", { defaultValue: "Payment frequency" })}
-          options={[
-            { value: "monthly", label: t("renter.frequencyMonthly") },
-            { value: "quarterly", label: t("renter.frequencyQuarterly") },
-            { value: "yearly", label: t("renter.frequencyYearly") },
-          ]}
-          sorted={false}
-        />
-        {/* The lease on file says something this picker cannot express. Naming it beats an
-            empty field the user has no way to account for — and the save refuses until they
-            choose, rather than silently clearing what the lease actually said. */}
-        {unsupportedFrequency != null ? (
-          <HelperText type="error" visible>
-            {t("renter.unsupportedFrequency", {
-              count: unsupportedFrequency,
-              defaultValue:
-                "The lease says {{count}} payments a year. The app supports monthly, quarterly or yearly; pick one.",
-            })}
-          </HelperText>
-        ) : null}
       </View>
       </TourAnchor>
 
@@ -153,11 +160,14 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
       </View>
       )}
 
+      {/* The security and what it is worth, read as one fact. */}
+      <FormRow>
       <View style={styles.inputWrap}>
         <FormDropdownOptions
           control={control}
           name={"insuranceType" as any}
           label={t("renter.insuranceType")}
+          placeholder={t("common.select")}
           // No "none" entry — the field is already optional, so blank *is* "no security".
           options={[
             {
@@ -180,6 +190,7 @@ function RenterLeaseInfoCardInner<TFieldValues extends FieldValues>({
           keyboardType="decimal-pad"
         />
       </View>
+      </FormRow>
 
       <View style={styles.inputWrap}>
         <FormSingleFileField

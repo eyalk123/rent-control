@@ -25,6 +25,7 @@ export interface PropertyBrief {
   floor?: number | null;
   apartment?: string | null;
   image_url: string | null;
+  color?: string | null;
 }
 
 // Property - matches backend
@@ -38,6 +39,8 @@ export interface Property {
   /** Square **metres**, despite the name — the column predates the unit work. */
   sq_ft: number | null;
   image_url: string | null;
+  /** Item color key (ENTITY_COLOR_KEYS); null only on rows predating colors. */
+  color?: string | null;
   number_of_rooms?: number | null;
   parking_numbers?: string[] | null;
   electricity_meter_number?: string | null;
@@ -190,6 +193,8 @@ export interface Renter extends LeaseTermIntent {
   extra_contacts?: ExtraContact[] | null;
   full_contract_url?: string | null;
   id_image_url?: string | null;
+  /** Item color key (ENTITY_COLOR_KEYS); null only on rows predating colors. */
+  color?: string | null;
 }
 
 /**
@@ -356,6 +361,10 @@ export interface Transaction {
   receipt_image_url: string | null;
   // Denormalized display fields
   property_name: string;
+  /** The property's item color, for the dot beside the address. */
+  property_color?: string | null;
+  /** The first category's item color, for its chip. */
+  category_color?: string | null;
   renter_name: string | null;
   category_name: string | null;
   supplier_name: string | null;
@@ -392,6 +401,8 @@ export interface ExpenseCategory {
   name?: string;
   is_active: boolean;
   sort_order: number;
+  /** Item color key; null only on rows predating colors. */
+  color?: string | null;
 }
 
 export interface ExpenseCategoryCreate {
@@ -483,6 +494,8 @@ export interface PropertyCreate {
   /** Square metres. Optional since the API stopped requiring it. */
   sq_ft?: number | null;
   image_url?: string | null;
+  /** One of ENTITY_COLOR_KEYS. Omit and the server picks the least-used one. */
+  color?: string;
   number_of_rooms?: number | null;
   parking_numbers?: string[] | null;
   electricity_meter_number?: string | null;
@@ -522,6 +535,8 @@ export interface PropertyUpdate {
   type?: PropertyType;
   sq_ft?: number | null;
   image_url?: string | null;
+  /** One of ENTITY_COLOR_KEYS. Omit to leave unchanged; it can't be cleared. */
+  color?: string;
   number_of_rooms?: number | null;
   parking_numbers?: string[] | null;
   electricity_meter_number?: string | null;
@@ -575,6 +590,8 @@ export interface RenterCreate extends LeaseTermIntent {
   extra_contacts?: ExtraContact[] | null;
   full_contract_url?: string | null;
   id_image_url?: string | null;
+  /** One of ENTITY_COLOR_KEYS. Omit and the server picks the least-used one. */
+  color?: string;
 }
 
 // Update payload (PATCH /renters/{id}) - all fields optional
@@ -599,6 +616,8 @@ export interface RenterUpdate extends LeaseTermIntent {
   extra_contacts?: ExtraContact[] | null;
   full_contract_url?: string | null;
   id_image_url?: string | null;
+  /** One of ENTITY_COLOR_KEYS. Omit to leave unchanged; it can't be cleared. */
+  color?: string;
 }
 
 // API response wrapper (if backend returns { data: T })

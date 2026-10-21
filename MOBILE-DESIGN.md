@@ -55,7 +55,9 @@ How to use it:
 
 | Rule | Detail |
 |---|---|
-| One accent | Mustard. It is the only non-semantic brand color. Do not introduce a second. |
+| One accent | Mustard. It is the only *brand* accent. The item colors below mark things, not the brand; do not add a second accent beyond them. |
+| Item colors | Every property, renter and expense category stores one of six keys (`ENTITY_COLOR_KEYS`) and keeps it on every screen. Read the shades through `useEntityColor(color)`; it falls back to the neutral avatar colors for items with none. Light mode: tint behind, strong shade on the mark. Dark mode: neutral fill, color on the mark only. A color is always paired with a name or address, so six colors repeating is fine. Never color an amount with one. Components: `ColorDot`, `ColorPicker`. |
+| Section colors | Home's quick actions and counters may carry a per-section color from the same six. Only there: never on a list row or detail screen, where the color means "this item". |
 | Money is semantic | Revenue uses `revFg`/`revBg`, expense uses `expFg`/`expBg`. Never plain text colors for amounts. |
 | No gradients | The app has none. Keep it that way unless there is a compositional reason. |
 | Light elevation is untinted | MD3's stock light elevation tints surfaces purple. `theme.ts` overrides every level to `surface`. Do not revert this. |
@@ -795,3 +797,73 @@ appeared on the same screen before; the tiles put "23,500 monthly" next to "4,10
 Dividing by 12 lands exactly on the seeded transaction amounts (19,800/12 = 1,650 = Emily Davis's
 rent payments), which confirms the intent. All eight leases converted, rounded to the nearest 25.
 
+### 2026-10-20 — Item colors: the app gets more color
+
+Reviews said the app felt "too clean, like a bank". The fix agreed after a round of mockups
+(artifact "RentVance color palette", plan in `../docs/colorful-redesign-plan.md`) is **color per
+item**, not per section: every property, renter and expense category gets one of six supporting
+colors and keeps it everywhere it appears.
+
+| Choice | Why |
+|---|---|
+| Six colors, not more | Past six, two of them sit close enough to confuse as an 8px dot, or drift toward the money colors. Most owners have fewer than six properties, and the name always sits beside the color. |
+| Stored on the record as a key | The owner can change it, it is the same on web and mobile, and the shades can be retuned without a migration. A color derived from the id could not be changed and collided often. |
+| Least-used on create, not random | The first six items always differ; random gave neighbours the same color. |
+| Dark mode keeps the fill neutral | Same reason as `accentBg`: tints over the charcoal go muddy. |
+| Changed in the edit form, never by tapping an avatar | Avoids accidental recoloring. |
+| Section colors stay on Home only | The owner liked them; restricted to Home's quick actions and counters so a list row's color always means the item. |
+
+Phase 1 (this entry) adds the tokens, `useEntityColor`, `ColorDot` and `ColorPicker`, with no
+visible change. Lists, detail screens and forms follow.
+
+### 2026-10-21 — Detail screens open on a color band
+
+Property and renter detail now share one header, `ColorBand`: a band in the item's color
+(neutral in dark mode) holding the property's picture or the renter's initials, with round
+surface-colored buttons for back and the screen's actions. A drawn preset stands whole on the
+band; an uploaded photo fills it. Titles moved from centred to start-aligned, with the
+property's color dot beside the subtitle on both screens, so a renter screen points at its
+property the way the property screen points at its renters ("Renters here" tiles, "Lives at"
+card). The money tiles lost their icons; income and expense totals carry their sign instead.
+Meter and account numbers fold into one row. Transaction detail gets a property card and the
+category as a chip in its color; its rows dropped their leading icons.
+
+### 2026-10-21 — Forms carry the item's color
+
+The property and renter forms are where an item gets its color, so they show it first. Add
+property opens on a "Picture and color" tile: the picture on its color, tap to change it, with
+the six swatches underneath (under, not beside: six 44pt targets do not fit next to the
+thumbnail on a 360dp phone). Property types are chips, and the chosen chip wears the property's
+color. Add renter shows the initials on the renter's color beside "Choose from contacts", and
+the swatches sit under the name pair. A new item starts on the least-used color, the rule the
+server applies, and the form sends it so what was shown is what is stored.
+
+Short fields pair up with `FormRow`, which now stacks at large text. Dropdown placeholders stay
+on one line so a pair keeps one height, and half-width dropdowns use a plain "Select". The
+expense form leads with the amount, large and centred (`AmountHeroField`). Chosen categories show
+as chips in their colors, and each row in the category list has its dot. The property picker
+shows the property's thumbnail (`PropertyThumb`, also used by "Lives at" and the transaction's
+property card). Meter numbers fold behind one row in the property form, as on the detail screen.
+
+### 2026-10-21 — Home sections get their colors
+
+Home's quick actions used to share one mustard tint. Each section now has its own color from
+the item palette: property sky, renter plum, transaction mustard, suppliers olive. The property
+and renter counters match their quick actions, and the empty Reports card is indigo. These
+section colors stay on Home: anywhere else, a color marks an item. In dark mode the tile stays
+neutral and only the glyph takes the color, as with items.
+
+### 2026-10-21 — Review round, revenue, suppliers and owners
+
+After comparing the built screens with the mockups: the money forms lost their "Details" title and
+lead with the amount under a "Money out" / "Money in" chip; photo and extra-contact fields use an
+input-sized dashed box instead of a filled panel; the lease timeline separates years with hairlines
+instead of a fill on the current one; the property picture fills a shorter band and rises between
+its buttons. Revenue gained the expense form's shape: a total of the ticked renters on Add revenue,
+renter rows with initials on their color, and a renter card plus an "Expected" row on the detail.
+
+Suppliers and owners have no stored color. A supplier wears its first category's color, so a
+plumber matches his Maintenance chip; an owner sits on the neutral navy tint and shows their
+properties' dots, so color keeps meaning "an item". Both use `InitialsTile`, raised contact
+buttons (36pt drawn, 44pt touched; the elevated shade in dark mode, where a shadow does not show),
+and the shared form header.

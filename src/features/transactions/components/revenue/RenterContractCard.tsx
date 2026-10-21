@@ -2,8 +2,10 @@ import React from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Checkbox, Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import { darkColors, lightColors, spacing, useEntityColor } from '@/src/core/theme';
 import type { Renter } from '@/src/shared/types';
+import { formatMoney } from '@/src/shared/utils/money';
+import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
 type RenterContractCardProps = {
@@ -40,8 +42,12 @@ export function RenterContractCard({
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
 
-  const checkboxWidth = 38;
+  const itemColor = useEntityColor(renter.color);
+  const amountNumber = Number(amount);
 
+  // One row, like a renter row elsewhere: initials on the renter's color, the name with what
+  // the period will write under it, the amount, and the checkbox at the end. Picking the
+  // amount by hand stays: "Override" turns the amount into an input, "Auto" goes back.
   return (
     <View
       ref={anchor ? anchorRef : undefined}
@@ -51,124 +57,123 @@ export function RenterContractCard({
         { backgroundColor: colors.surface, borderColor: colors.outline },
       ]}
     >
-      {/* Top row: checkbox + name */}
-      <View style={styles.topRow}>
+      <View style={styles.row}>
+        <RenterAvatar
+          renter={renter}
+          size={38}
+          radius={11}
+          backgroundColor={itemColor.bg}
+          textColor={itemColor.fg}
+        />
+        <View style={styles.text}>
+          <Text
+            variant="bodyLarge"
+            style={[styles.name, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
+            {renter.first_name} {renter.last_name}
+          </Text>
+          <View style={styles.subRow}>
+            {/* A non-monthly lease, or one that misses the period, says what the save will
+                actually do, rather than letting it quietly differ from the period picker. */}
+            <Text variant="bodySmall" style={[styles.sub, { color: colors.textSecondary }]}>
+              {cadenceNote ??
+                (overridden
+                  ? t('transactions.amount', { defaultValue: 'Amount' })
+                  : t('transactions.bulkRevenue.perContract', { defaultValue: 'Per contract' }))}
+            </Text>
+            {checked ? (
+              <TouchableOpacity
+                onPress={onToggleOverride}
+                hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+                style={[styles.chip, { borderColor: overridden ? colors.outline : colors.primary }]}
+              >
+                <Text variant="labelSmall" style={{ color: overridden ? colors.textSecondary : colors.primary }}>
+                  {overridden
+                    ? t('transactions.bulkRevenue.auto', { defaultValue: 'Auto' })
+                    : t('transactions.bulkRevenue.override', { defaultValue: 'Override' })}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
+        {checked && overridden ? (
+          <TextInput
+            style={[
+              styles.amountInput,
+              {
+                color: colors.textPrimary,
+                borderColor: colors.inputBorder,
+              },
+            ]}
+            value={amount}
+            onChangeText={onAmountChange}
+            keyboardType="numeric"
+            inputAccessoryViewButtonLabel={t("common.keyboardDone")}
+            selectTextOnFocus
+          />
+        ) : amountNumber > 0 ? (
+          <Text style={[styles.amount, { color: colors.textPrimary }]}>{formatMoney(amountNumber)}</Text>
+        ) : null}
         <Checkbox.Android
           status={checked ? 'checked' : 'unchecked'}
           onPress={onToggle}
         />
-        <Text
-          variant="bodyLarge"
-          style={[styles.name, { color: colors.textPrimary }]}
-          numberOfLines={1}
-        >
-          {renter.first_name} {renter.last_name}
-        </Text>
-        {!checked && (
-          <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
-            {t('transactions.bulkRevenue.perContract', { defaultValue: 'Per contract' })}
-          </Text>
-        )}
       </View>
-
-      {/* A non-monthly lease is the one case where what gets written is not simply "the
-          months you picked", so it says what it will do rather than letting the save quietly
-          differ from the period picker. */}
-      {cadenceNote ? (
-        <Text
-          variant="bodySmall"
-          style={[styles.cadenceNote, { color: colors.textSecondary, paddingLeft: checkboxWidth + spacing.sm }]}
-        >
-          {cadenceNote}
-        </Text>
-      ) : null}
-
-      {/* Second row: amount controls, indented under name */}
-      {checked && (
-        <View style={[styles.amountRow, { paddingLeft: checkboxWidth + spacing.sm }]}>
-          {overridden ? (
-            <>
-              <TextInput
-                style={[
-                  styles.amountInput,
-                  {
-                    color: colors.textPrimary,
-                    borderColor: colors.outline,
-                    backgroundColor: colors.inputFilledBackground,
-                  },
-                ]}
-                value={amount}
-                onChangeText={onAmountChange}
-                keyboardType="numeric"
-                inputAccessoryViewButtonLabel={t("common.keyboardDone")}
-                selectTextOnFocus
-              />
-              <TouchableOpacity onPress={onToggleOverride} style={[styles.chip, { borderColor: colors.outline }]}>
-                <Text variant="labelSmall" style={{ color: colors.textSecondary }}>
-                  {t('transactions.bulkRevenue.auto', { defaultValue: 'Auto' })}
-                </Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <Text variant="bodySmall" style={[styles.perContractLabel, { color: colors.textSecondary }]}>
-                {t('transactions.bulkRevenue.perContract', { defaultValue: 'Per contract' })}
-              </Text>
-              <TouchableOpacity onPress={onToggleOverride} style={[styles.chip, { borderColor: colors.primary }]}>
-                <Text variant="labelSmall" style={{ color: colors.primary }}>
-                  {t('transactions.bulkRevenue.override', { defaultValue: 'Override' })}
-                </Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  cadenceNote: {
-    marginTop: 2,
-  },
   card: {
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     marginBottom: spacing.xs,
-    paddingHorizontal: spacing.md,
+    paddingStart: spacing.sm + 2,
+    paddingEnd: spacing.xs,
     paddingVertical: spacing.sm,
   },
-  topRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  text: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
   },
   name: {
-    flex: 1,
     fontWeight: '500',
+    textAlign: 'left',
   },
-  amountRow: {
+  subRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: spacing.sm,
-    marginTop: spacing.xs,
   },
-  perContractLabel: {
-    fontStyle: 'italic',
-    flex: 1,
+  sub: {
+    flexShrink: 1,
+    textAlign: 'left',
+  },
+  amount: {
+    fontSize: 15,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
   },
   amountInput: {
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: 4,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    minWidth: 80,
+    paddingVertical: 6,
+    minWidth: 84,
     textAlign: 'right',
     fontSize: 16,
   },
   chip: {
     paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderRadius: 20,
     borderWidth: 1,
   },

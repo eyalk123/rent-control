@@ -23,6 +23,8 @@ import Briefcase from "lucide-react-native/icons/briefcase";
 import Building2 from "lucide-react-native/icons/building-2";
 import Calendar from "lucide-react-native/icons/calendar";
 import CalendarClock from "lucide-react-native/icons/calendar-clock";
+import CalendarPlus from "lucide-react-native/icons/calendar-plus";
+import EllipsisVertical from "lucide-react-native/icons/ellipsis-vertical";
 import Camera from "lucide-react-native/icons/camera";
 import Car from "lucide-react-native/icons/car";
 import Check from "lucide-react-native/icons/check";
@@ -105,6 +107,7 @@ const REGISTRY = {
   building: Building2,
   calendar: Calendar,
   "calendar-clock": CalendarClock,
+  "calendar-plus": CalendarPlus,
   camera: Camera,
   car: Car,
   check: Check,
@@ -138,6 +141,7 @@ const REGISTRY = {
   "minus-circle": MinusCircle,
   moon: Moon,
   more: MoreHorizontal,
+  "more-vertical": EllipsisVertical,
   pencil: Pencil,
   phone: Phone,
   plus: Plus,

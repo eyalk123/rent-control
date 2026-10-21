@@ -12,7 +12,7 @@ import { ScanPropertyNotice } from "@/src/features/document-scan/components/Scan
 import { consumeRenterPrefill, setScanHandoff } from "@/src/features/document-scan/handoff";
 import { addressesMatch } from "@/src/features/document-scan/matchProperty";
 import { FieldReviewProvider } from "@/src/shared/components/form/FieldReviewContext";
-import { spacing } from "@/src/core/theme";
+import { leastUsedEntityColor, spacing } from "@/src/core/theme";
 import { useAlert } from "@/src/core/context";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
@@ -46,7 +46,8 @@ export function AddEditRenterScreen() {
   }>();
   const router = useRouter();
   const theme = useTheme();
-  const { refreshRenters } = useRenterContext();
+  const { renters: allRenters, refreshRenters } = useRenterContext();
+  const suggestedColor = leastUsedEntityColor(allRenters.map((r) => r.color));
   const isEdit = Boolean(id);
   const navigation = useNavigation();
   // Flipped to true right before an intentional (post-save / flow-pivot) navigation so the
@@ -85,6 +86,7 @@ export function AddEditRenterScreen() {
     pendingFullContract: scan?.file ?? null,
     logId: scan?.logId,
     provenance: current?.provenance,
+    suggestedColor,
   });
 
   const { formState, control, trigger, setValue } = formMethods;
@@ -274,6 +276,7 @@ export function AddEditRenterScreen() {
                 isEdit={isEdit}
                 onPickFromContacts={handlePickFromContacts}
                 onPickExtraContact={handlePickExtraContact}
+                suggestedColor={suggestedColor}
               />
             </>
           )}

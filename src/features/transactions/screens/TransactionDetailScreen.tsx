@@ -15,9 +15,13 @@ import { localCopyOf, readsThroughSdk, storagePathOf } from '@/src/shared/utils/
 import { getTransactionById } from '@/src/features/transactions/api/transactions';
 import { getApiErrorMessage } from '@/src/core/api/client';
 import type { Transaction } from '@/src/shared/types';
-import { Icon, InfoTip, LoadingOverlay, EmptyState, ScreenContainer } from '@/src/shared/components/ui';
-import { darkColors, lightColors, spacing, ICON_MD } from '@/src/core/theme';
-import { useLanguageContext } from '@/src/context';
+import { ColorDot, Icon, InfoTip, LoadingOverlay, EmptyState, ScreenContainer } from '@/src/shared/components/ui';
+import { darkColors, lightColors, spacing, ICON_MD, ICON_SM, useEntityColor } from '@/src/core/theme';
+import { usePropertyContext } from '@/src/features/properties/context/PropertyContext';
+import { PropertyThumb } from '@/src/features/properties/components/PropertyThumb';
+import { propertyTypeLabelKey } from '@/src/features/properties/constants/propertyTypeLabel';
+import { useLanguageContext, useRenterContext } from '@/src/context';
+import { getLeaseEndDate } from '@/src/shared/types';
 import { formatDateFull } from '@/src/shared/utils/dates';
 import { formatMoney } from '@/src/shared/utils/money';
 import { monthYearLabel } from '@/src/features/transactions/utils/aggregate';
@@ -34,31 +38,139 @@ async function receiptLocalUri(value: string, filename: string): Promise<string>
 function InfoRow({
   label,
   value,
-  iconName,
   info,
+  children,
 }: {
   label: string;
-  value: string;
-  iconName: import('@/src/shared/components/ui').IconName;
+  value?: string;
   /** Explains an easily misread field, behind an (i) beside the label. */
   info?: string;
+  /** Custom value content, e.g. the category chip. Takes precedence over `value`. */
+  children?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const { isRtl } = useLanguageContext();
   return (
     <View style={styles.infoRow}>
+      {/* No leading icon since the color redesign: the labels already say what each row is. */}
       <View style={styles.infoRowLeft}>
-        <Icon name={iconName} size={18} color={colors.textSecondary} />
         <Text variant="bodyMedium" style={[styles.infoLabel, { color: colors.textSecondary }]}>
           {label}
         </Text>
         {info ? <InfoTip label={t('common.aboutField', { label })}>{info}</InfoTip> : null}
       </View>
-      <Text variant="bodyMedium" style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={3}>
-        {value}
-      </Text>
+      {children ?? (
+        <Text variant="bodyMedium" style={[styles.infoValue, { color: colors.textPrimary }]} numberOfLines={3}>
+          {/* A value that opens with a number ("15 Mar 2026 · Bit") would otherwise be laid
+              out left to right in Hebrew, its parts read in reverse: Android takes a line's
+              direction from its first strong character. The mark makes it start RTL. */}
+          {isRtl && value ? `\u200F${value}` : value}
+        </Text>
+      )}
     </View>
+  );
+}
+
+/**
+ * The property the money belongs to, as a card in its color that opens it - the same card
+ * the renter screen uses for "Lives at".
+ */
+function PropertyCardLink({ transaction }: { transaction: Transaction }) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const { isRtl } = useLanguageContext();
+  const { properties } = usePropertyContext();
+  const property = properties.find((p) => p.id === transaction.property_id);
+  const detail = property ? `${property.city} · ${t(propertyTypeLabelKey(property.type))}` : null;
+
+  return (
+    <TouchableOpacity
+      disabled={transaction.property_id == null}
+      onPress={() => router.push(`/properties/${transaction.property_id}` as any)}
+      accessibilityRole="button"
+      accessibilityLabel={transaction.property_name}
+      style={[styles.propertyCard, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}
+    >
+      <PropertyThumb
+        property={property ? { ...property, color: transaction.property_color ?? property.color } : null}
+        width={64}
+        height={48}
+        radius={10}
+        iconSize={22}
+      />
+      <View style={styles.propertyText}>
+        <View style={styles.propertyTitleRow}>
+          <ColorDot color={transaction.property_color ?? property?.color} />
+          <Text variant="bodyLarge" numberOfLines={1} style={[styles.propertyTitle, { color: colors.textPrimary }]}>
+            {property?.address ?? transaction.property_name}
+          </Text>
+        </View>
+        {detail ? (
+          <Text variant="labelSmall" numberOfLines={1} style={{ color: colors.textSecondary }}>
+            {detail}
+          </Text>
+        ) : null}
+      </View>
+      {transaction.property_id != null ? (
+        <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={ICON_SM} color={colors.textSecondary} />
+      ) : null}
+    </TouchableOpacity>
+  );
+}
+
+/**
+ * Who paid, as a card in the renter's color that opens them - the revenue counterpart of the
+ * property card above it. Falls back to the stored name, without a link, when the renter is
+ * no longer in the list.
+ */
+function RenterCardLink({ transaction }: { transaction: Transaction }) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const { isRtl, language } = useLanguageContext();
+  const { renters } = useRenterContext();
+  const renter = renters.find((r) => r.id === transaction.renter_id);
+  const itemColor = useEntityColor(renter?.color);
+  const name = renter ? `${renter.first_name} ${renter.last_name}` : transaction.renter_name ?? '';
+  const initials = name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
+  const leaseEnd = renter ? getLeaseEndDate(renter) : null;
+
+  return (
+    <TouchableOpacity
+      disabled={!renter}
+      onPress={() => router.push(`/renters/${transaction.renter_id}` as any)}
+      accessibilityRole="button"
+      accessibilityLabel={name}
+      style={[styles.propertyCard, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}
+    >
+      <View style={[styles.renterThumb, { backgroundColor: itemColor.bg }]}>
+        <Text style={[styles.renterInitials, { color: itemColor.fg }]}>{initials}</Text>
+      </View>
+      <View style={styles.propertyText}>
+        <Text variant="bodyLarge" numberOfLines={1} style={[styles.propertyTitle, { color: colors.textPrimary }]}>
+          {name}
+        </Text>
+        {leaseEnd ? (
+          <Text variant="labelSmall" numberOfLines={1} style={{ color: colors.textSecondary }}>
+            {t('renter.leaseEnd', { date: formatDateFull(leaseEnd, language) })}
+          </Text>
+        ) : null}
+      </View>
+      {renter ? (
+        <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={ICON_SM} color={colors.textSecondary} />
+      ) : null}
+    </TouchableOpacity>
   );
 }
 
@@ -120,6 +232,7 @@ export function TransactionDetailScreen() {
     router.push(`/transactions/edit/${transaction.id}` as any);
   }, [transaction, router]);
 
+  const categoryColor = useEntityColor(transaction?.category_color);
   const isRevenue = transaction?.type === 'revenue';
   const amountColor = isRevenue ? colors.revFg : colors.expFg;
   const amountBg = isRevenue ? colors.revBg : colors.expBg;
@@ -211,51 +324,50 @@ export function TransactionDetailScreen() {
           </Text>
         </View>
 
+        <PropertyCardLink transaction={transaction} />
+        {transaction.renter_id != null || transaction.renter_name ? (
+          <RenterCardLink transaction={transaction} />
+        ) : null}
+
         {/* Detail card */}
         <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: colors.outline }]}>
-          <InfoRow
-            label={t('transactions.property')}
-            value={transaction.property_name}
-            iconName="building"
-          />
-          <Divider style={{ marginVertical: spacing.xs }} />
-
-          <InfoRow
-            label={t('transactions.dateOfPayment')}
-            value={formatPaymentDate(transaction.date_of_payment)}
-            iconName="calendar"
-          />
-
-          {transaction.payment_method ? (
-            <>
-              <Divider style={{ marginVertical: spacing.xs }} />
-              <InfoRow
-                label={t('transactions.paymentMethod')}
-                value={paymentMethodLabel(transaction.payment_method)}
-                iconName="credit-card"
-              />
-            </>
-          ) : null}
-
+          {/* The month a rent pays for leads, as on the revenue form; "For month" says what
+              it is without the tip the bare "Month" needed. */}
           {isRevenue && transaction.month_for ? (
             <>
-              <Divider style={{ marginVertical: spacing.xs }} />
               <InfoRow
-                label={t('transactions.monthForLabel')}
+                label={t('transactions.forMonth')}
                 value={formatMonthFor(transaction.month_for)}
-                info={t('transactions.monthForInfo')}
-                iconName="calendar-clock"
               />
+              <Divider style={{ marginVertical: spacing.xs }} />
             </>
           ) : null}
 
-          {transaction.renter_name ? (
+          {/* Date and method on one line: two short facts about the same event. */}
+          <InfoRow
+            label={t('transactions.paid')}
+            value={
+              transaction.payment_method
+                ? `${formatPaymentDate(transaction.date_of_payment)} · ${paymentMethodLabel(transaction.payment_method)}`
+                : formatPaymentDate(transaction.date_of_payment)
+            }
+          />
+
+          {/* What the lease asked for against what came in. Calm either way: a shortfall is
+              stated, not flagged. */}
+          {isRevenue && transaction.expected_amount != null ? (
             <>
               <Divider style={{ marginVertical: spacing.xs }} />
               <InfoRow
-                label={t('transactions.renter')}
-                value={transaction.renter_name}
-                iconName="user"
+                label={t('transactions.expected')}
+                value={
+                  transaction.amount >= transaction.expected_amount
+                    ? t('transactions.expectedPaidInFull', { amount: formatMoney(transaction.expected_amount) })
+                    : t('transactions.expectedShort', {
+                        amount: formatMoney(transaction.expected_amount),
+                        diff: formatMoney(transaction.expected_amount - transaction.amount),
+                      })
+                }
               />
             </>
           ) : null}
@@ -263,11 +375,14 @@ export function TransactionDetailScreen() {
           {!isRevenue && transaction.category_name ? (
             <>
               <Divider style={{ marginVertical: spacing.xs }} />
-              <InfoRow
-                label={t('transactions.category')}
-                value={t(`expenseCategories.${transaction.category_name.toLowerCase()}`, { defaultValue: transaction.category_name })}
-                iconName="hash"
-              />
+              <InfoRow label={t('transactions.category')}>
+                {/* The category's own color, the same chip it wears in the expense form. */}
+                <View style={[styles.categoryChip, { backgroundColor: categoryColor.bg }]}>
+                  <Text variant="labelLarge" style={{ color: categoryColor.fg }} numberOfLines={1}>
+                    {t(`expenseCategories.${transaction.category_name.toLowerCase()}`, { defaultValue: transaction.category_name })}
+                  </Text>
+                </View>
+              </InfoRow>
             </>
           ) : null}
 
@@ -277,7 +392,6 @@ export function TransactionDetailScreen() {
               <InfoRow
                 label={t('transactions.supplier')}
                 value={transaction.supplier_name}
-                iconName="store"
               />
             </>
           ) : null}
@@ -288,7 +402,6 @@ export function TransactionDetailScreen() {
               <InfoRow
                 label={t('transactions.notes')}
                 value={transaction.notes}
-                iconName="file-text"
               />
             </>
           ) : null}
@@ -356,6 +469,46 @@ export function TransactionDetailScreen() {
 }
 
 const styles = StyleSheet.create({
+  renterThumb: {
+    width: 64,
+    height: 48,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  renterInitials: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  propertyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  propertyText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  propertyTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  propertyTitle: {
+    flexShrink: 1,
+    fontWeight: '600',
+  },
+  categoryChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    flexShrink: 1,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

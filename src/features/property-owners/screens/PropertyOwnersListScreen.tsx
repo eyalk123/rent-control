@@ -9,7 +9,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguageContext, usePropertyContext } from '@/src/context';
 import {
   AppFab,
+  ColorDot,
   ContactActionsRow,
+  Icon,
+  InitialsTile,
   LoadingOverlay,
   EmptyState,
   ScreenContainer,
@@ -24,10 +27,85 @@ import { PropertyOwnerDetailModal } from '@/src/features/property-owners/compone
 import { getApiErrorMessage } from '@/src/core/api/client';
 import { useAlert, useOnReconnect } from '@/src/core/context';
 import type { PropertyOwner } from '@/src/shared/types';
-import { spacing } from '@/src/core/theme';
+import { cardShadow, darkColors, lightColors, radii, spacing, ICON_SM } from '@/src/core/theme';
 
 /** The people who own the properties — the Suppliers list's layout, reached from the
  *  Properties tab. */
+/**
+ * One owner: initials on the neutral navy tint (owners have no color of their own), and their
+ * properties' color dots beside the count - the color here always means a property.
+ */
+function OwnerRow({
+  owner,
+  propertyColors,
+  onPress,
+}: {
+  owner: PropertyOwner;
+  propertyColors: (string | null)[];
+  onPress: () => void;
+}) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const { isRtl } = useLanguageContext();
+  const contactLine = [owner.phone?.trim(), owner.email?.trim()].filter(Boolean).join(' · ');
+  const hasContact = !!(owner.phone?.trim() || owner.email?.trim());
+
+  return (
+    <View
+      style={[styles.row, { backgroundColor: theme.colors.surface, opacity: owner.is_active ? 1 : 0.6 }]}
+    >
+      <TouchableOpacity activeOpacity={0.7} onPress={onPress} style={styles.rowMain}>
+        <InitialsTile
+          name={owner.name}
+          size={44}
+          radius={13}
+          backgroundColor={colors.primaryBg}
+          textColor={colors.primary}
+        />
+        <View style={styles.rowText}>
+          <View style={styles.rowContent}>
+            <Text variant="titleMedium" numberOfLines={1} style={styles.rowName}>
+              {owner.name}
+            </Text>
+            {!owner.is_active && (
+              <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
+                {t('suppliers.inactive')}
+              </Text>
+            )}
+          </View>
+          <View style={styles.countRow}>
+            {propertyColors.slice(0, 6).map((c, i) => (
+              <ColorDot key={i} color={c} />
+            ))}
+            <Text variant="bodySmall" style={{ color: colors.textSecondary }}>
+              {propertyCountLabel(t, owner.property_count)}
+            </Text>
+          </View>
+          {contactLine ? (
+            <Text variant="bodySmall" style={{ color: colors.textSecondary }} numberOfLines={1}>
+              {contactLine}
+            </Text>
+          ) : null}
+        </View>
+        {hasContact ? null : (
+          <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={ICON_SM} color={colors.textSecondary} />
+        )}
+      </TouchableOpacity>
+      {hasContact ? (
+        <ContactActionsRow
+          phone={owner.phone}
+          email={owner.email}
+          variant="compact"
+          raised
+          contentAlign="flex-end"
+          style={styles.rowActions}
+        />
+      ) : null}
+    </View>
+  );
+}
+
 export function PropertyOwnersListScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -37,7 +115,7 @@ export function PropertyOwnersListScreen() {
   const { appAlert } = useAlert();
   const { owners, loading, error, refreshOwners, retryLoad } = usePropertyOwnersList();
   // A rename or delete here shows on the property cards, which read the owner's name.
-  const { refreshProperties } = usePropertyContext();
+  const { properties, refreshProperties } = usePropertyContext();
   const [refreshing, setRefreshing] = useState(false);
   const [nameFilter, setNameFilter] = useState<number | null>(null);
   const [nameSheetOpen, setNameSheetOpen] = useState(false);
@@ -170,56 +248,15 @@ export function PropertyOwnersListScreen() {
         ListEmptyComponent={
           <EmptyState message={t('propertyOwners.empty')} icon="user" />
         }
-        renderItem={({ item }) => {
-          const hasContact = !!(item.phone?.trim() || item.email?.trim());
-          return (
-            <View
-              style={[
-                styles.row,
-                { backgroundColor: theme.colors.surface, opacity: item.is_active ? 1 : 0.6 },
-              ]}
-            >
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => handleOwnerPress(item)}
-                style={styles.rowMain}
-              >
-                <View style={styles.rowContent}>
-                  <Text variant="titleMedium" numberOfLines={1} style={styles.rowName}>
-                    {item.name}
-                  </Text>
-                  {!item.is_active && (
-                    <Text variant="bodySmall" style={{ color: theme.colors.error }}>
-                      {t('suppliers.inactive')}
-                    </Text>
-                  )}
-                </View>
-                <Text variant="bodySmall" style={styles.secondary}>
-                  {propertyCountLabel(t, item.property_count)}
-                </Text>
-                {item.phone ? (
-                  <Text variant="bodySmall" style={styles.secondary}>
-                    {item.phone}
-                  </Text>
-                ) : null}
-                {item.email ? (
-                  <Text variant="bodySmall" style={styles.secondary} numberOfLines={1}>
-                    {item.email}
-                  </Text>
-                ) : null}
-              </TouchableOpacity>
-              {hasContact ? (
-                <ContactActionsRow
-                  phone={item.phone}
-                  email={item.email}
-                  variant="compact"
-                  contentAlign="flex-end"
-                  style={styles.rowActions}
-                />
-              ) : null}
-            </View>
-          );
-        }}
+        renderItem={({ item }) => (
+          <OwnerRow
+            owner={item}
+            propertyColors={properties
+              .filter((p) => p.property_owner_id === item.id)
+              .map((p) => p.color ?? null)}
+            onPress={() => handleOwnerPress(item)}
+          />
+        )}
         contentContainerStyle={[styles.list, { paddingBottom: 80 + insets.bottom }]}
         refreshControl={
           <RefreshControl
@@ -278,18 +315,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: 80,
   },
+  // Borderless with the list screens' shadow, like the renter and property rows.
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     padding: spacing.md,
-    borderRadius: 12,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderRadius: radii.lg,
+    marginBottom: spacing.sm + 2,
+    ...cardShadow,
   },
   rowMain: {
     flex: 1,
     minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  rowText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 3,
+  },
+  countRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   rowActions: {
     marginStart: spacing.sm,
@@ -303,9 +353,6 @@ const styles = StyleSheet.create({
   },
   rowName: {
     flexShrink: 1,
-  },
-  secondary: {
-    marginTop: 4,
-    opacity: 0.8,
+    fontWeight: '600',
   },
 });

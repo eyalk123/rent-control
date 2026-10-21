@@ -6,6 +6,7 @@ import { getCurrentMonthlyRent, type Property, type Renter } from '@/src/shared/
 import { paymentIntervalMonths } from '@/src/features/transactions/utils/rentSchedule';
 import { RenterContractCard } from './RenterContractCard';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
+import { PropertyThumb } from '@/src/features/properties/components/PropertyThumb';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
 import { useTourAnchor } from '@/src/features/onboarding/AnchorRegistry';
 
@@ -100,9 +101,9 @@ export function RenterSelectionSection({
           {filteredGroups.map((group) => (
             <View key={group.property.id} style={styles.propertyGroup}>
               <View style={styles.propertyHeaderRow}>
-                <View
-                  style={[styles.propertyAccent, { backgroundColor: colors.sectionAccent }]}
-                />
+                {/* The property's own picture on its color, where a mustard bar used to mark
+                    every group the same. */}
+                <PropertyThumb property={group.property} width={36} height={26} radius={6} iconSize={14} />
                 <Text
                   variant="titleMedium"
                   style={[styles.propertyHeaderText, { color: colors.textPrimary }]}
@@ -172,13 +173,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.sm + 2,
   },
-  propertyAccent: {
-    width: 4,
-    height: 22,
-    borderRadius: 2,
-  },
   propertyHeaderText: {
     fontWeight: '700',
     flex: 1,
+    fontSize: 15,
   },
 });

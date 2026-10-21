@@ -4,7 +4,7 @@ import { useAlert } from "@/src/core/context";
 import { useContactPicker } from "@/src/features/renters/hooks/useContactPicker";
 import { PropertyOwnerForm } from "@/src/features/property-owners/components/PropertyOwnerForm";
 import { usePropertyOwnerForm } from "@/src/features/property-owners/hooks/usePropertyOwnerForm";
-import { Icon, LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
+import { FormHeader, Icon, LoadingOverlay, ScreenContainer } from "@/src/shared/components/ui";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import React from "react";
@@ -126,27 +126,15 @@ export function AddEditPropertyOwnerScreen() {
   return (
     <ScreenContainer>
       <View style={styles.wrapper}>
-        <View
-          // Plain "row": native RTL already puts the back chevron at the right edge in Hebrew
-          // (see FormHeader).
-          style={[styles.header, { flexDirection: "row" }]}
-        >
-          <TouchableOpacity
-            onPress={handleHeaderBack}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityLabel={t("common.back")}
-            accessibilityRole="button"
-          >
-            <Icon
-              name={isRtl ? "chevron-right" : "chevron-left"}
-              size={24}
-              color={colors.textSecondary}
-            />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            {isEdit ? t("propertyOwners.editTitle") : t("propertyOwners.addTitle")}
-          </Text>
-          <View style={styles.headerSpacer} />
+        {/* The header the property, renter and transaction forms wear: back, then a
+            start-aligned title. */}
+        <View style={styles.headerWrap}>
+          <FormHeader
+            title={
+              isEdit ? t("propertyOwners.editTitle") : t("propertyOwners.addTitle")
+            }
+            onBack={handleHeaderBack}
+          />
         </View>
         <FormScrollView
           style={styles.scrollView}
@@ -190,6 +178,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     textAlign: "center",
+  },
+  headerWrap: {
+    paddingHorizontal: spacing.formPaddingHorizontal,
   },
   headerSpacer: {
     width: 32,

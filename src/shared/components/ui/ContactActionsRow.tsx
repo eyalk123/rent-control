@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { lightColors, darkColors, spacing, cardShadow } from '@/src/core/theme';
 import { openWhatsApp } from '@/src/shared/utils/whatsapp';
 import { Icon, type IconName } from './Icon';
 
@@ -19,6 +19,11 @@ export type ContactActionsRowProps = {
   variant?: 'default' | 'compact';
   /** Row `justifyContent` for the action circles */
   contentAlign?: 'center' | 'flex-start' | 'flex-end';
+  /**
+   * Surface-colored circles with a soft shadow instead of the navy tint. The renter screen
+   * uses it so the actions sit apart from the colored band and tiles around them.
+   */
+  raised?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -29,6 +34,7 @@ type CircleProps = {
   iconColor: string;
   onPress: () => void;
   variant: 'default' | 'compact';
+  raised: boolean;
 };
 
 function ContactActionCircle({
@@ -38,6 +44,7 @@ function ContactActionCircle({
   iconColor,
   onPress,
   variant,
+  raised,
 }: CircleProps) {
   const isCompact = variant === 'compact';
   const size = isCompact ? 36 : 48;
@@ -46,7 +53,13 @@ function ContactActionCircle({
   if (isCompact) {
     return (
       <TouchableOpacity
-        style={[styles.compactCircle, { backgroundColor, width: size, height: size, borderRadius: size / 2 }]}
+        style={[
+          styles.compactCircle,
+          { backgroundColor, width: size, height: size, borderRadius: size / 2 },
+          raised && cardShadow,
+        ]}
+        // 36pt drawn, 44pt touched (MOBILE-DESIGN.md: 44 is a hard floor).
+        hitSlop={4}
         onPress={onPress}
         activeOpacity={0.7}
         accessibilityRole="button"
@@ -65,7 +78,13 @@ function ContactActionCircle({
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <View style={[styles.actionCircle, { backgroundColor, width: size, height: size, borderRadius: size / 2 }]}>
+      <View
+        style={[
+          styles.actionCircle,
+          { backgroundColor, width: size, height: size, borderRadius: size / 2 },
+          raised && cardShadow,
+        ]}
+      >
         <Icon name={icon} size={iconSize} color={iconColor} />
       </View>
       <Text variant="labelSmall" style={styles.actionLabel} numberOfLines={1}>
@@ -80,6 +99,7 @@ export function ContactActionsRow({
   email,
   variant = 'default',
   contentAlign = 'center',
+  raised = false,
   style,
 }: ContactActionsRowProps) {
   const { t } = useTranslation();
@@ -105,7 +125,13 @@ export function ContactActionsRow({
   // The glyph is `textPrimary`, not `primary`: against the 12% tint over the dark surface,
   // `primary` measures 2.97:1, just under the 3:1 floor for a non-text control. `textPrimary`
   // clears it in both modes (light 10:1, dark 12:1).
-  const circleBg = colors.primary + '1F';
+  // Raised circles sit on cards as well as on the page. In dark mode a card is `surface`
+  // already and a shadow does not show, so the circle takes the elevated shade to stay visible.
+  const circleBg = raised
+    ? theme.dark
+      ? darkColors.surfaceElevated
+      : colors.surface
+    : colors.primary + '1F';
   const circleFg = colors.textPrimary;
 
   return (
@@ -124,6 +150,7 @@ export function ContactActionsRow({
           iconColor={circleFg}
           onPress={() => Linking.openURL(`tel:${phoneTrim}`)}
           variant={variant}
+          raised={raised}
         />
       ) : null}
       {hasPhone ? (
@@ -137,6 +164,7 @@ export function ContactActionsRow({
           // specific to say.
           onPress={() => openWhatsApp(phoneTrim)}
           variant={variant}
+          raised={raised}
         />
       ) : null}
       {hasEmail ? (
@@ -147,6 +175,7 @@ export function ContactActionsRow({
           iconColor={circleFg}
           onPress={() => Linking.openURL(`mailto:${emailTrim}`)}
           variant={variant}
+          raised={raised}
         />
       ) : null}
     </View>

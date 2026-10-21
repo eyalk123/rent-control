@@ -8,7 +8,7 @@ import { getLeaseEndDate } from '@/src/shared/types';
 import { getEffectiveLeaseEnd, getRenterLifecycle, isOpenEnded } from '@/src/shared/utils/renterStatus';
 import { formatDateFull, getLeaseUrgency } from '@/src/shared/utils/dates';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
-import { lightColors, darkColors } from '@/src/core/theme';
+import { lightColors, darkColors, useEntityColor } from '@/src/core/theme';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
 
 interface RenterCardProps {
@@ -23,6 +23,7 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
   const { t, i18n: { language } } = useTranslation();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
+  const itemColor = useEntityColor(renter.color);
 
   // The badge used to be hard-coded green "Active" for every renter, including leases
   // that ran out years ago. It follows the lifecycle now.
@@ -68,8 +69,8 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
         renter={renter}
         size={52}
         radius={12}
-        backgroundColor={colors.primaryBg}
-        textColor={colors.primary}
+        backgroundColor={itemColor.bg}
+        textColor={itemColor.fg}
       />
       <View style={styles.info}>
         <Text variant="titleSmall" style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>

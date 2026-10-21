@@ -3,6 +3,8 @@ import { type StyleProp, type ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useRenterContext } from "@/src/context";
 import { DropdownField } from "@/src/shared/components/form";
+import { useEntityColor } from "@/src/core/theme";
+import { RenterAvatar } from "@/src/features/renters/components/RenterAvatar";
 
 interface RenterPickerProps {
   propertyId: number | null;
@@ -43,6 +45,10 @@ export function RenterPicker({
       : items;
   }, [allowNone, propertyId, renters, t]);
 
+  // The chosen renter's initials on their color, as the property picker shows its picture.
+  const selected = value != null ? renters.find((r) => r.id === value) : undefined;
+  const selectedColor = useEntityColor(selected?.color);
+
   return (
     <DropdownField
       searchable
@@ -55,6 +61,17 @@ export function RenterPicker({
       error={error}
       inputStyle={inputStyle}
       disabled={disabled}
+      leading={
+        selected ? (
+          <RenterAvatar
+            renter={selected}
+            size={36}
+            radius={10}
+            backgroundColor={selectedColor.bg}
+            textColor={selectedColor.fg}
+          />
+        ) : undefined
+      }
     />
   );
 }

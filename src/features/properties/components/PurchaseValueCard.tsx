@@ -6,6 +6,7 @@ import type { TFunction } from "i18next";
 import {
   FormSectionCard,
   FormNumericField,
+  FormRow,
   FormWheelDateField,
 } from "@/src/shared/components/form";
 import { currencySymbol, formatDate, formatMoney } from "@/src/shared/utils/money";
@@ -44,30 +45,35 @@ function PurchaseValueCardInner<TFieldValues extends FieldValues>({
 
   return (
     <FormSectionCard title={t("property.valueSection")}>
-      <FormNumericField
-        control={control}
-        name={"purchasePrice" as any}
-        label={`${t("property.purchasePrice")} (${currencySymbol()})`}
-        keyboardType="decimal-pad"
-      />
-      <FormWheelDateField
-        control={control}
-        name={"purchaseDate" as any}
-        label={t("property.purchaseDate")}
-        mode="full"
-        minYear={1950}
-        maxYear={new Date().getFullYear()}
-      />
-      {purchaseDate.value ? (
-        <Button
-          mode="text"
-          compact
-          onPress={() => purchaseDate.onChange("")}
-          style={styles.clearDate}
-        >
-          {t("common.remove")}
-        </Button>
-      ) : null}
+      {/* The price and the date are one fact - the purchase - so they share a row. */}
+      <FormRow>
+        <FormNumericField
+          control={control}
+          name={"purchasePrice" as any}
+          label={`${t("property.purchasePrice")} (${currencySymbol()})`}
+          keyboardType="decimal-pad"
+        />
+        <View>
+          <FormWheelDateField
+            control={control}
+            name={"purchaseDate" as any}
+            label={t("property.purchaseDate")}
+            mode="full"
+            minYear={1950}
+            maxYear={new Date().getFullYear()}
+          />
+          {purchaseDate.value ? (
+            <Button
+              mode="text"
+              compact
+              onPress={() => purchaseDate.onChange("")}
+              style={styles.clearDate}
+            >
+              {t("common.remove")}
+            </Button>
+          ) : null}
+        </View>
+      </FormRow>
 
       <View style={styles.valueBlock}>
         <Text variant="labelMedium" style={{ color: colors.textPrimary }}>

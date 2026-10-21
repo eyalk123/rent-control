@@ -1,7 +1,7 @@
 import { useLanguageContext, useRtlInputStyle } from '@/src/core/context';
 import { getApiErrorMessage } from '@/src/core/api/client';
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
-import { Icon } from '@/src/shared/components/ui';
+import { darkColors, lightColors, spacing, useEntityColor } from '@/src/core/theme';
+import { ColorDot, Icon } from '@/src/shared/components/ui';
 import { createExpenseCategory } from '@/src/features/transactions/api/transactions';
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
 import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
@@ -74,6 +74,7 @@ export function CategoryMultiPickerField({
       categories.map((cat) => ({
         label: getCategoryDisplayName(cat, t),
         value: String(cat.id),
+        color: cat.color ?? null,
       })),
       language,
     ),
@@ -86,7 +87,7 @@ export function CategoryMultiPickerField({
     () => sortOptions(
       categories
         .filter((cat) => stringValue.includes(String(cat.id)))
-        .map((cat) => ({ id: cat.id, label: getCategoryDisplayName(cat, t) })),
+        .map((cat) => ({ id: cat.id, label: getCategoryDisplayName(cat, t), color: cat.color ?? null })),
       language,
     ),
     [categories, stringValue, t, language],
@@ -130,7 +131,7 @@ export function CategoryMultiPickerField({
   };
 
   const renderItem = useCallback(
-    (item: { label: string; value: string }, selected?: boolean) => (
+    (item: { label: string; value: string; color: string | null }, selected?: boolean) => (
       <View
         accessibilityState={{ selected: !!selected }}
         style={[
@@ -141,6 +142,8 @@ export function CategoryMultiPickerField({
           { backgroundColor: selected ? 'transparent' : colors.surface },
         ]}
       >
+        {/* Each category's own color, as on its chip once chosen. */}
+        <ColorDot color={item.color} size={10} />
         <Text
           style={[
             styles.itemText,
@@ -235,15 +238,12 @@ export function CategoryMultiPickerField({
           nestedScrollEnabled
         >
           {selectedCategories.map((cat) => (
-            <Chip
+            <CategoryChip
               key={String(cat.id)}
-              mode="outlined"
+              label={cat.label}
+              color={cat.color}
               onClose={() => handleUnselect(cat.id)}
-              style={styles.chip}
-              textStyle={{ color: colors.textPrimary }}
-            >
-              {cat.label}
-            </Chip>
+            />
           ))}
         </ScrollView>
       ) : null}
@@ -341,6 +341,30 @@ export function CategoryMultiPickerField({
 const CHIP_ROW_HEIGHT = 36;
 const CHIP_GAP = 6;
 const MAX_CHIP_ROWS = 3;
+
+/** A chosen category, in its own color - the same chip the transaction screen shows it as. */
+function CategoryChip({
+  label,
+  color,
+  onClose,
+}: {
+  label: string;
+  color: string | null;
+  onClose: () => void;
+}) {
+  const { fg, bg } = useEntityColor(color);
+  return (
+    <Chip
+      mode="outlined"
+      onClose={onClose}
+      closeIcon={({ size }) => <Icon name="x" size={size} color={fg} />}
+      style={[styles.chip, { backgroundColor: bg, borderColor: fg }]}
+      textStyle={{ color: fg, fontWeight: '600' }}
+    >
+      {label}
+    </Chip>
+  );
+}
 
 const styles = StyleSheet.create({
   errorText: {

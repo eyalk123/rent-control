@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, Divider } from 'react-native-paper';
+import { Button, Divider, Text, useTheme } from 'react-native-paper';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { FormScrollView, FormSectionCard } from '@/src/shared/components/form';
-import { spacing } from '@/src/core/theme';
+import { darkColors, lightColors, MAX_TIGHT_FONT_SCALE, spacing } from '@/src/core/theme';
 import { useAlert, useLanguageContext } from '@/src/core/context';
 import { sortLabels } from '@/src/shared/utils/sortOptions';
-import { formatMoney } from '@/src/shared/utils/money';
+import { currencyIsPrefix, currencySymbol, formatMoney, formatNumber } from '@/src/shared/utils/money';
 import { useRenterContext } from '@/src/context';
 import { useAccessibleProperties } from '@/src/features/properties/context/PropertyContext';
 import {
@@ -60,6 +60,8 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
   const { properties } = useAccessibleProperties();
   const { renters } = useRenterContext();
   const { language } = useLanguageContext();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
 
   // The bulk form is where the scope and per-contract anchors live, so it asks. Arriving
   // from the `bulk-rent` seed adds the callback line on the first step.
@@ -352,10 +354,54 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
 
   const submitDisabled = submitting || selection.checkedIds.size === 0;
 
+  // What the save will write, summed the way handleSubmit writes it: each checked renter's due
+  // months in the period, at the contract rent or at the amount typed over it.
+  const total = allRenters
+    .filter((r) => selection.checkedIds.has(r.id))
+    .reduce((sum, r) => {
+      const months = dueMonthsWithin(r, periodMonthsFor(r));
+      if (selection.overriddenIds.has(r.id)) {
+        return sum + months.length * (Number(selection.amounts.get(r.id)) || 0);
+      }
+      const interval = paymentIntervalMonths(r.number_of_payments);
+      return sum + months.reduce((s, m) => s + getRentForMonth(r, m) * interval, 0);
+    }, 0);
+
   return (
     <View style={styles.container}>
       <FormScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <FormSectionCard title={t('transactions.details', { defaultValue: 'Details' })}>
+        {/* No "Details" title: the card is the whole form. It opens on what the save adds up
+            to, under the same "Money in" chip the single revenue form wears. */}
+        <FormSectionCard>
+          <View style={styles.hero}>
+            <View style={[styles.tone, { backgroundColor: colors.revBg }]}>
+              <Text style={[styles.toneText, { color: colors.revFg }]}>
+                {t('transactions.moneyIn')}
+              </Text>
+            </View>
+            <View style={styles.heroRow}>
+              {currencyIsPrefix() ? (
+                <Text style={[styles.heroSymbol, { color: colors.placeholder }]} maxFontSizeMultiplier={MAX_TIGHT_FONT_SCALE}>
+                  {currencySymbol()}
+                </Text>
+              ) : null}
+              <Text
+                style={[styles.heroAmount, { color: total > 0 ? colors.textPrimary : colors.placeholder }]}
+                maxFontSizeMultiplier={MAX_TIGHT_FONT_SCALE}
+              >
+                {formatNumber(total)}
+              </Text>
+              {currencyIsPrefix() ? null : (
+                <Text style={[styles.heroSymbol, { color: colors.placeholder }]} maxFontSizeMultiplier={MAX_TIGHT_FONT_SCALE}>
+                  {currencySymbol()}
+                </Text>
+              )}
+            </View>
+            <Text style={[styles.heroCaption, { color: colors.textSecondary }]}>
+              {t('transactions.bulkRevenue.totalCaption')}
+            </Text>
+          </View>
+
           <BulkRevenueOwnerFilter
             ownerOptions={ownerOptions}
             ownerFilter={ownerFilter}
@@ -426,6 +472,40 @@ export function BulkRevenueForm({ onSuccess, onDirtyChange }: BulkRevenueFormPro
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  hero: {
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingTop: spacing.xs,
+    marginBottom: spacing.lg,
+  },
+  tone: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  toneText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  // Digits and symbol read left to right in both languages.
+  heroRow: {
+    direction: 'ltr',
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.xs,
+  },
+  heroSymbol: {
+    fontSize: 26,
+    fontWeight: '500',
+  },
+  heroAmount: {
+    fontSize: 40,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  heroCaption: {
+    fontSize: 13,
   },
   scroll: {
     flex: 1,

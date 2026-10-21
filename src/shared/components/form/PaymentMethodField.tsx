@@ -11,6 +11,8 @@ type PaymentMethodFieldProps = {
   required?: boolean;
   /** RHF field name, set only when this field should take part in document-scan review. */
   reviewName?: string;
+  /** A shorter prompt for a half-width field, whose label already names it. */
+  placeholder?: string;
 };
 
 /**
@@ -31,6 +33,7 @@ export function PaymentMethodField({
   error,
   required,
   reviewName,
+  placeholder,
 }: PaymentMethodFieldProps) {
   const { t } = useTranslation();
   const options = React.useMemo(() => getPaymentMethodOptions(t), [t]);
@@ -41,7 +44,7 @@ export function PaymentMethodField({
       value={value || null}
       onChange={onChange}
       label={t('transactions.paymentMethod')}
-      placeholder={t('transactions.selectPaymentMethod')}
+      placeholder={placeholder ?? t('transactions.selectPaymentMethod')}
       required={required}
       error={error ?? undefined}
       reviewName={reviewName}

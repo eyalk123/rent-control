@@ -112,6 +112,8 @@ export const renterFormSchema = z.object({
   extraContacts: z.array(extraContactSchema).optional(),
   fullContractUrl: z.string().nullable().optional(),
   idImageUrl: z.string().nullable().optional(),
+  /** Null until picked: a new renter shows, and saves, the suggested color in its place. */
+  color: z.string().nullable().optional(),
 });
 
 export type RenterFormValues = z.infer<typeof renterFormSchema>;

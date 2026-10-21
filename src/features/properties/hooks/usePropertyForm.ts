@@ -49,6 +49,12 @@ type UsePropertyFormParams = {
   /** Audit-log id + per-field provenance, to record what the user changed on submit. */
   logId?: number;
   provenance?: ProvenanceItem[];
+  /**
+   * The color a new property starts on until the user picks one: the least-used of the
+   * account's colors, the same rule the server would apply. Sent with the save, so the color
+   * the form showed is the color stored.
+   */
+  suggestedColor?: string | null;
 };
 
 const EMPTY_PROPERTY_FORM: PropertyFormValues = {
@@ -162,11 +168,15 @@ export function usePropertyForm({
   prefill,
   logId,
   provenance,
+  suggestedColor,
 }: UsePropertyFormParams) {
   const isEdit = Boolean(id);
   const { user } = useAppAuth();
   const { appAlert } = useAlert();
   const [imageUri, setImageUri] = React.useState<string | null>(null);
+  // Held beside the picture rather than as a form field, the way the picture is.
+  const [color, setColor] = React.useState<string | null>(null);
+  const shownColor = color ?? suggestedColor ?? null;
   const [isFetching, setIsFetching] = React.useState<boolean>(isEdit);
   const [existingFiles, setExistingFiles] = React.useState<PropertyFile[]>([]);
   const [deletedFileIds, setDeletedFileIds] = React.useState<number[]>([]);
@@ -227,6 +237,7 @@ export function usePropertyForm({
         }
         setConflictChoices({});
         setImageUri(prop.image_url ?? null);
+        setColor(prop.color ?? null);
         setHadMortgage(!!prop.mortgage);
         setStoredValue(
           prop.current_value != null
@@ -253,6 +264,7 @@ export function usePropertyForm({
       type: values.type,
       sq_ft: values.sqFt ? Number(values.sqFt) : null,
       image_url: imageUri,
+      ...(shownColor ? { color: shownColor } : {}),
       number_of_rooms: toOptionalNumber(values.numberOfRooms),
       water_meter_number: values.waterMeterNumber || null,
       water_account_number: values.waterAccountNumber || null,
@@ -312,6 +324,7 @@ export function usePropertyForm({
       await refreshProperties();
       reset({ ...propertyToFormValues(savedProp), pendingFiles: [] });
       setImageUri(savedProp.image_url ?? null);
+      setColor(savedProp.color ?? null);
       setExistingFiles([]);
       setDeletedFileIds([]);
       setPendingValuation(null);
@@ -347,6 +360,8 @@ export function usePropertyForm({
     isFetching,
     imageUri,
     setImageUri,
+    color: shownColor,
+    setColor,
     ownerId: user?.uid ?? '',
     existingFiles,
     deletedFileIds,

@@ -4,7 +4,8 @@ import { StyleSheet, View, ViewStyle } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 
 type FormSectionCardProps = {
-  title: string;
+  /** Left out where the card is the whole form and the screen title already names it. */
+  title?: string;
   subtitle?: string;
   children: React.ReactNode;
   containerStyle?: ViewStyle;
@@ -32,19 +33,21 @@ export function FormSectionCard({
       ]}
     >
       <View style={styles.cardContent}>
-        <View style={styles.titleBlock}>
-          <Text
-            style={[styles.sectionHeader, { color: colors.textPrimary }]}
-            numberOfLines={1}
-          >
-            {title}
-          </Text>
-          {subtitle ? (
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              {subtitle}
+        {title ? (
+          <View style={styles.titleBlock}>
+            <Text
+              style={[styles.sectionHeader, { color: colors.textPrimary }]}
+              numberOfLines={1}
+            >
+              {title}
             </Text>
-          ) : null}
-        </View>
+            {subtitle ? (
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+                {subtitle}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
 
         {children}
       </View>

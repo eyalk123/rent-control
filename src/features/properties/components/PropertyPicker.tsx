@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAccessibleProperties } from "@/src/features/properties/context/PropertyContext";
 import { DropdownField } from "@/src/shared/components/form";
 import { formatFloorApartment } from "@/src/shared/utils/propertyAddress";
+import { PropertyThumb } from "@/src/features/properties/components/PropertyThumb";
 
 interface PropertyPickerProps {
   value: number | null;
@@ -35,6 +36,8 @@ export function PropertyPicker({
     ],
     [properties, t],
   );
+  // The chosen property's picture on its color, so the field shows which home it is at a glance.
+  const selected = value != null ? properties.find((p) => p.id === value) : undefined;
 
   return (
     <DropdownField
@@ -47,6 +50,7 @@ export function PropertyPicker({
       placeholder={t("renter.unassigned")}
       error={error}
       inputStyle={inputStyle}
+      leading={selected ? <PropertyThumb property={selected} width={52} height={36} radius={6} iconSize={18} /> : undefined}
     />
   );
 }

@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { darkColors, ICON_MD, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
+import { darkColors, ICON_MD, lightColors, spacing, cardShadow, radii, useEntityColor } from '@/src/core/theme';
 import { Icon, type IconName } from '@/src/shared/components/ui/Icon';
 
 interface ActionButton {
@@ -22,7 +22,13 @@ export function QuickActionsSection() {
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
 
-  const accentBg = colors.accentBg;
+  // Each section keeps one color on Home: the same one marks its counter below. Borrowed from
+  // the item palette, and used for sections on Home only, so anywhere else a color means an
+  // item (MOBILE-DESIGN.md §2).
+  const propertyColor = useEntityColor('sky');
+  const renterColor = useEntityColor('plum');
+  const transactionColor = useEntityColor('mustard');
+  const supplierColor = useEntityColor('olive');
 
   // Fixed LTR order regardless of language: property, renter, transaction, supplier
   const actions: ActionButton[] = [
@@ -30,32 +36,32 @@ export function QuickActionsSection() {
       key: 'property',
       labelKey: 'home.addProperty',
       icon: 'home',
-      iconColor: colors.accent,
-      iconBg: accentBg,
+      iconColor: propertyColor.fg,
+      iconBg: propertyColor.bg,
       onPress: () => router.push('/properties/add'),
     },
     {
       key: 'renter',
       labelKey: 'home.addRenter',
       icon: 'user',
-      iconColor: colors.accent,
-      iconBg: accentBg,
+      iconColor: renterColor.fg,
+      iconBg: renterColor.bg,
       onPress: () => router.push('/renters/add'),
     },
     {
       key: 'transaction',
       labelKey: 'home.addTransaction',
       icon: 'arrow-right-left',
-      iconColor: colors.accent,
-      iconBg: accentBg,
+      iconColor: transactionColor.fg,
+      iconBg: transactionColor.bg,
       onPress: () => router.push('/transactions/add'),
     },
     {
       key: 'suppliers',
       labelKey: 'home.suppliers',
       icon: 'store',
-      iconColor: colors.accent,
-      iconBg: accentBg,
+      iconColor: supplierColor.fg,
+      iconBg: supplierColor.bg,
       showBadge: false,
       onPress: () => router.push('/transactions/suppliers' as any),
     },

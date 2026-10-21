@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { spacing } from "@/src/core/theme";
+import { spacing, useIsLargeText } from "@/src/core/theme";
 
 /**
  * Two fields side by side.
@@ -11,8 +11,12 @@ import { spacing } from "@/src/core/theme";
  *
  * Children share the row evenly; `flexBasis: 0` keeps the split even regardless of label
  * length. Each child keeps its own bottom margin from FormField, so the row needs none.
+ *
+ * At a large text setting the pair stacks: half a 360dp screen cannot hold a scaled label.
  */
 export function FormRow({ children }: { children: React.ReactNode }) {
+  const isLargeText = useIsLargeText();
+  if (isLargeText) return <>{children}</>;
   return (
     <View style={styles.row}>
       {React.Children.map(children, (child) =>

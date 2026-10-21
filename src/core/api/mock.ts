@@ -26,6 +26,7 @@ import type {
 } from '@/src/shared/types';
 import { getCurrentMonthlyRent, getLeaseEndDate, getRentForMonth } from '@/src/shared/types';
 import { toISODate } from '@/src/shared/utils/dates';
+import { leastUsedEntityColor } from '@/src/core/theme';
 import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
 import { countMockReceiptScan, getSubscriptionMock } from '@/src/features/subscription/api/subscriptionMock';
 import type { ReceiptExtraction } from '@/src/features/document-scan/types';
@@ -46,6 +47,7 @@ function toPropertyBrief(p: Property): PropertyBrief {
     floor: p.floor,
     apartment: p.apartment,
     image_url: p.image_url,
+    color: p.color,
   };
 }
 
@@ -62,7 +64,7 @@ const seedProperties: Property[] = [
     zip_code: '78701',
     type: 'house',
     sq_ft: 2200,
-    image_url: null,
+    image_url: 'rc-house:classic_suburban',
     number_of_rooms: 5,
     parking_numbers: ['A-12', 'B-34'],
     electricity_meter_number: 'EM-001',
@@ -561,9 +563,27 @@ function generateHistory(months: number, startId: number): Transaction[] {
   return out;
 }
 
-let mockProperties: Property[] = [...seedProperties];
-let mockRenters: Renter[] = [...seedRenters];
-let mockExpenseCategories: ExpenseCategory[] = [...seedExpenseCategories];
+// Colored the way the server's migration colors existing rows: in id order, least-used first;
+// built-in categories from the server's fixed map.
+function withColors<T extends { color?: string | null }>(items: T[]): T[] {
+  const out: T[] = [];
+  for (const item of items) out.push({ ...item, color: leastUsedEntityColor(out.map((o) => o.color)) });
+  return out;
+}
+const BUILT_IN_CATEGORY_COLORS: Record<string, string> = {
+  maintenance: 'rose',
+  electricity: 'olive',
+  water: 'indigo',
+  repairs: 'mustard',
+  other: 'mustard',
+};
+
+let mockProperties: Property[] = withColors(seedProperties);
+let mockRenters: Renter[] = withColors(seedRenters);
+let mockExpenseCategories: ExpenseCategory[] = seedExpenseCategories.map((c) => ({
+  ...c,
+  color: (c.key && BUILT_IN_CATEGORY_COLORS[c.key]) ?? null,
+}));
 let mockSuppliers: Supplier[] = [...seedSuppliers];
 let mockTransactions: Transaction[] = [...seedTransactions, ...generateHistory(18, 1000)];
 let mockPropertyFiles: PropertyFile[] = [
@@ -971,6 +991,7 @@ export const mockPropertiesApi = {
       type: (data.type ?? 'apartment') as Property['type'],
       sq_ft: data.sq_ft ?? 0,
       image_url: data.image_url ?? null,
+      color: data.color ?? leastUsedEntityColor(mockProperties.map((x) => x.color)),
       number_of_rooms: data.number_of_rooms ?? null,
       parking_numbers: data.parking_numbers ?? null,
       electricity_meter_number: data.electricity_meter_number ?? null,
@@ -1090,6 +1111,7 @@ export const mockRentersApi = {
       property: null,
       contact_id: (data as RenterCreate).contact_id ?? (data as Renter).contact_id ?? null,
       extra_contacts: (data as RenterCreate).extra_contacts ?? (data as Renter).extra_contacts ?? null,
+      color: data.color ?? leastUsedEntityColor(mockRenters.map((x) => x.color)),
     };
     mockRenters.push(newRenter);
     return mockRentersApi.getRenterById(newRenter.id);
@@ -1167,6 +1189,7 @@ export const mockExpenseCategoriesApi = {
       name: data.name,
       is_active: true,
       sort_order: mockExpenseCategories.length,
+      color: leastUsedEntityColor(mockExpenseCategories.map((x) => x.color)),
     };
     mockExpenseCategories.push(newCat);
     return { ...newCat };
@@ -1228,7 +1251,16 @@ export const mockTransactionsApi = {
     // Honour limit/offset. Without this the mock handed back every row on the first
     // request, so `hasMore` went false immediately and the preview build could not
     // reproduce anything that only happens while paging.
-    const sorted = sortLikeServer(list);
+    const colorOf = new Map(mockProperties.map((p) => [p.id, p.color ?? null]));
+    const categoryColorOf = new Map(mockExpenseCategories.map((c) => [c.id, c.color ?? null]));
+    const sorted = sortLikeServer(list).map((t) => {
+      const categoryId = t.category_ids?.[0] ?? t.category_id;
+      return {
+        ...t,
+        property_color: t.property_id != null ? colorOf.get(t.property_id) ?? null : null,
+        category_color: categoryId != null ? categoryColorOf.get(categoryId) ?? null : null,
+      };
+    });
     if (params.limit == null && params.offset == null) return sorted;
     await delay(MOCK_LATENCY_MS);
     const offset = params.offset ?? 0;

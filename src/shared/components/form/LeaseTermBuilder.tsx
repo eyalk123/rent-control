@@ -390,6 +390,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
                           }
                           error={ruleError}
                           rowDirection={rowDirection}
+                          divider={index > 0}
                         />
                       );
                     }}
@@ -413,6 +414,7 @@ function LeaseTermBuilderInner<TFieldValues extends FieldValues>({
                     isCurrent={isCurrentLeaseYear(leaseStart, modelRows, index)}
                     projected={isCpiProjected}
                     rowDirection={rowDirection}
+                    divider={index > 0}
                     onAmountBlur={escMode === "cpi" ? undefined : amountField.onBlur}
                     onAmountChange={
                       escMode === "cpi"

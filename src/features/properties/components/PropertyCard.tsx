@@ -4,10 +4,11 @@ import { Button, Checkbox, Text, useTheme } from 'react-native-paper';
 import { Icon, ListCard, StatusPill } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
-import { lightColors, darkColors } from '@/src/core/theme';
+import { lightColors, darkColors, useEntityColor } from '@/src/core/theme';
 import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
 import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
+import { parseImageUrlKey } from '@/src/features/properties/constants/houseImagePresets';
 import { propertyTypeLabelKey } from '@/src/features/properties/constants/propertyTypeLabel';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { LockedBadge } from '@/src/features/subscription/components/LockedBadge';
@@ -31,6 +32,11 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
   // the property as its history, which is why counting the list marked it occupied forever.
   const isOccupied = property.hasRenters ?? currentRenters.length > 0;
   const imageSource = usePropertyImageSource(property.image_url);
+  // The property's own color: the tint behind its picture or icon, the shade on the icon.
+  const itemColor = useEntityColor(property.color);
+  // A drawn preset is a whole building on a transparent ground, so it is fitted rather than
+  // cropped; an uploaded photo still fills the tile.
+  const isPreset = property.image_url ? parseImageUrlKey(property.image_url) != null : false;
   const floorApartment = formatFloorApartment(property, t, false);
   const typeLabel = t(propertyTypeLabelKey(property.type));
   // No ZIP code here: it is on the detail screen, and on a list row it was the part that
@@ -59,10 +65,16 @@ export const PropertyCard = React.memo(function PropertyCard({ property, onPress
         />
       )}
       {imageSource ? (
-        <Image source={imageSource} style={styles.thumbnail} resizeMode="cover" />
+        <View style={[styles.thumbnail, { backgroundColor: itemColor.bg }]}>
+          <Image
+            source={imageSource}
+            style={isPreset ? styles.presetImage : styles.thumbnail}
+            resizeMode={isPreset ? 'contain' : 'cover'}
+          />
+        </View>
       ) : (
-        <View style={[styles.thumbnail, styles.iconBox, { backgroundColor: colors.primaryBg }]}>
-          <Icon name={getPropertyTypeIcon(property.type)} size={24} color={colors.primary} />
+        <View style={[styles.thumbnail, styles.iconBox, { backgroundColor: itemColor.bg }]}>
+          <Icon name={getPropertyTypeIcon(property.type)} size={24} color={itemColor.fg} />
         </View>
       )}
       <View style={styles.info}>
@@ -192,6 +204,12 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 12,
+    overflow: 'hidden',
+  },
+  presetImage: {
+    width: 52,
+    height: 52,
+    transform: [{ scale: 1.15 }],
   },
   iconBox: {
     justifyContent: 'center',

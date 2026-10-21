@@ -69,6 +69,12 @@ type UseRenterFormParams = {
   /** Audit-log id + per-field provenance, to record what the user changed on submit. */
   logId?: number;
   provenance?: ProvenanceItem[];
+  /**
+   * The color a new renter gets unless one is picked: the least-used of the account's, the
+   * rule the server applies. Sent with the create, so the color the form showed is the one
+   * stored.
+   */
+  suggestedColor?: string | null;
 };
 
 export function useRenterForm({
@@ -83,6 +89,7 @@ export function useRenterForm({
   pendingFullContract = null,
   logId,
   provenance,
+  suggestedColor = null,
 }: UseRenterFormParams) {
   // The renter being edited: an explicit route id (plain edit) or the existing renter a scanned
   // duplicate matched. `isDuplicateScan` also overlays the scan values onto that renter.
@@ -145,6 +152,7 @@ export function useRenterForm({
       extraContacts: [],
       fullContractUrl: null,
       idImageUrl: null,
+      color: null,
       ...(pf ?? {}),
     }),
     [initialPropertyId],
@@ -288,6 +296,7 @@ export function useRenterForm({
           })),
           fullContractUrl: renter.full_contract_url ?? null,
           idImageUrl: renter.id_image_url ?? null,
+          color: renter.color ?? null,
         };
         // Duplicate scan entry: overlay scan values onto the existing renter — fill the fields it
         // left blank silently, and surface the ones that differ for the user to keep or replace.
@@ -421,6 +430,7 @@ export function useRenterForm({
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
       full_contract_url: resolvedFullContractUrl,
       id_image_url: values.idImageUrl ?? null,
+      ...((values.color ?? suggestedColor) ? { color: (values.color ?? suggestedColor)! } : {}),
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {
       baseCreate.number_of_payments = numPayments;
@@ -463,6 +473,8 @@ export function useRenterForm({
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
       full_contract_url: resolvedFullContractUrl,
       id_image_url: values.idImageUrl ?? null,
+      // A color can be changed but never cleared, so an empty one is left out.
+      ...(values.color ? { color: values.color } : {}),
     };
 
     try {

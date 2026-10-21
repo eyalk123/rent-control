@@ -50,6 +50,11 @@ interface DropdownFieldProps<T extends string | number | null> {
    * from the user's own data, which can grow long; fixed short lists leave it off.
    */
   searchable?: boolean;
+  /**
+   * Drawn before the chosen value, inside the field: the property picker's thumbnail. The
+   * field tightens its padding around it so it keeps the standard 48pt height.
+   */
+  leading?: React.ReactNode;
 }
 
 export function DropdownField<T extends string | number | null>({
@@ -65,6 +70,7 @@ export function DropdownField<T extends string | number | null>({
   reviewName,
   sorted = true,
   searchable = false,
+  leading,
 }: DropdownFieldProps<T>) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -134,6 +140,7 @@ export function DropdownField<T extends string | number | null>({
   // flatlist". The label replaces the field's visible text, so the chosen value goes in too.
   const a11yName = label ?? resolvedPlaceholder;
   const selectedLabel = items.find((item) => item.value === value)?.label;
+  const chevron = <Icon name="chevron-down" size={20} color={colors.placeholder} />;
 
   return (
     <FormField
@@ -157,18 +164,25 @@ export function DropdownField<T extends string | number | null>({
         autoScroll={false}
         {...dropdownPlacement}
         {...search.props}
+        // The library draws the placeholder and the chosen value in one Text. A placeholder
+        // stays on one line, so a half-width field in a FormRow keeps the row's height; a
+        // long chosen value (an address) may still wrap.
+        selectedTextProps={selectedLabel ? undefined : { numberOfLines: 1 }}
         activeColor={colors.inputFilledBackground}
-        renderRightIcon={isRtl ? () => null : undefined}
-        renderLeftIcon={
+        // Under forced RTL the library's left slot lands on the right, the reading start. The
+        // chevron normally takes it; with a leading element that takes it instead and the
+        // chevron moves to the other slot.
+        renderRightIcon={
           isRtl
-            ? () => (
-                <Icon
-                  name="chevron-down"
-                  size={20}
-                  color={colors.placeholder}
-                />
-              )
+            ? () => (leading ? chevron : null)
             : undefined
+        }
+        renderLeftIcon={
+          leading
+            ? () => <View style={styles.leading}>{leading}</View>
+            : isRtl
+              ? () => chevron
+              : undefined
         }
         placeholderStyle={[
           styles.placeholder,
@@ -187,7 +201,7 @@ export function DropdownField<T extends string | number | null>({
           },
         ]}
         itemTextStyle={[rtlInputStyle, { color: colors.textPrimary }]}
-        style={surface}
+        style={[surface, leading ? styles.withLeading : null]}
         containerStyle={[
           styles.dropdownContainer,
           {
@@ -230,5 +244,12 @@ const styles = StyleSheet.create({
   itemText: {
     flex: 1,
     fontSize: 16,
+  },
+  leading: {
+    marginEnd: 10,
+  },
+  withLeading: {
+    paddingVertical: 5,
+    paddingStart: 5,
   },
 });

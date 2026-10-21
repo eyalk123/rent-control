@@ -2,6 +2,7 @@
  * A single transaction row card.
  *
  * - Leading 36×36 tile (revenue ↑ / expense ↓ icon, tinted)
+ * - Property address with the property's color dot.
  * - Right side: signed amount + date.
  *
  * Borderless, on the same surface as the Properties and Renters rows. There used to be a
@@ -26,7 +27,7 @@ import {
   spacing,
   useIsLargeText,
 } from '@/src/core/theme';
-import { Icon } from '@/src/shared/components/ui';
+import { ColorDot, Icon } from '@/src/shared/components/ui';
 import { formatMoney } from '@/src/shared/utils/money';
 import type { Transaction } from '@/src/shared/types';
 import { fmtTxDate } from '@/src/features/transactions/utils/aggregate';
@@ -100,12 +101,17 @@ export const TransactionRow = React.memo(function TransactionRow({
         )}
 
         <View style={styles.center}>
-          <Text
-            style={[styles.title, { color: colors.textPrimary }]}
-            numberOfLines={isLargeText ? 2 : 1}
-          >
-            {transaction.property_name}
-          </Text>
+          <View style={styles.titleRow}>
+            {transaction.property_id != null ? (
+              <ColorDot color={transaction.property_color} style={styles.dot} />
+            ) : null}
+            <Text
+              style={[styles.title, { color: colors.textPrimary }]}
+              numberOfLines={isLargeText ? 2 : 1}
+            >
+              {transaction.property_name}
+            </Text>
+          </View>
           {subtitle ? (
             <Text
               style={[styles.subtitle, { color: colors.textSecondary }]}
@@ -150,7 +156,18 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  // Centred on the first line, not the block, when large text wraps the address.
+  dot: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+  },
   title: {
+    flexShrink: 1,
     fontSize: 14,
     fontWeight: '600',
   },

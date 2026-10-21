@@ -14,9 +14,15 @@ import { isOpenEnded } from '@/src/shared/utils/renterStatus';
 interface RenterLeaseInfoDisplayCardProps {
   renter: Renter;
   paymentTypeLabel: (type: string) => string;
+  /** Fill behind the current lease year: the renter's own tint on the renter screen. */
+  currentYearColor?: string;
 }
 
-export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterLeaseInfoDisplayCardProps) {
+export function RenterLeaseInfoDisplayCard({
+  renter,
+  paymentTypeLabel,
+  currentYearColor,
+}: RenterLeaseInfoDisplayCardProps) {
   // Named, not numbered: "4" meant nothing on a screen whose own form offers
   // Monthly / Quarterly / Yearly. An unsupported stored value still shows itself
   // ("6 per year") rather than rendering blank.
@@ -72,7 +78,7 @@ export function RenterLeaseInfoDisplayCard({ renter, paymentTypeLabel }: RenterL
                     // The active period is marked by weight and a faint tint rather than by
                     // a 30%-opacity fill with amber text. That fill read as "disabled", and
                     // the amber was a hardcoded hex that failed contrast on white.
-                    isCurrent && { backgroundColor: colors.primary + '0F' },
+                    isCurrent && { backgroundColor: currentYearColor ?? colors.primary + '0F' },
                   ]}
                 >
                   <Text
