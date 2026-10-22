@@ -24,6 +24,11 @@ export interface FilterOption {
   pinned?: boolean;
   /** A glyph shown in a tile before the label - the property type, a person, an owner. */
   icon?: IconName;
+  /** Drawn before the label in place of `icon`: the item's own mark in its color - a property
+   *  picture, a renter's initials, a category dot. See FilterMarks. */
+  leading?: React.ReactNode;
+  /** A quieter second line - the city and type, the renter's property. Search matches it too. */
+  sublabel?: string;
 }
 
 /** Below this many options the list is faster to read than to search. */
@@ -91,9 +96,10 @@ export function FilterBottomSheet({
   // enough that scanning it stops being instant.
   const showSearch = sorted.length >= SEARCH_THRESHOLD;
 
-  const filtered = showSearch && search.trim()
+  const query = search.toLowerCase().trim();
+  const filtered = showSearch && query
     ? sorted.filter((o) =>
-        o.label.toLowerCase().includes(search.toLowerCase().trim()),
+        o.label.toLowerCase().includes(query) || !!o.sublabel?.toLowerCase().includes(query),
       )
     : sorted;
 
@@ -187,6 +193,15 @@ export function FilterBottomSheet({
                   )}
                 />
               }
+              right={
+                search ? (
+                  <TextInput.Icon
+                    icon={() => <Icon name="x" size={16} color={colors.textSecondary} />}
+                    onPress={() => setSearch('')}
+                    accessibilityLabel={t('filters.clearSearch')}
+                  />
+                ) : undefined
+              }
               // Filled, no resting outline, to match the chips that opened this sheet. The
               // outline comes back on focus so the field still shows it has the keyboard.
               style={[styles.searchInput, { backgroundColor: colors.controlFill }]}
@@ -206,6 +221,13 @@ export function FilterBottomSheet({
             style={styles.list}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              query ? (
+                <Text style={[styles.empty, { color: colors.textSecondary }]}>
+                  {t('filters.noMatches', { query: search.trim() })}
+                </Text>
+              ) : null
+            }
             renderItem={({ item }) => {
               const active = item.id === selectedId;
               return (
@@ -217,7 +239,9 @@ export function FilterBottomSheet({
                   style={[styles.row, active && { backgroundColor: colors.primaryBg }]}
                 >
                   <View style={styles.rowInner}>
-                    {item.icon ? (
+                    {item.leading ? (
+                      item.leading
+                    ) : item.icon ? (
                       <View
                         style={[
                           styles.rowIcon,
@@ -227,18 +251,25 @@ export function FilterBottomSheet({
                         <Icon name={item.icon} size={16} color={colors.primary} />
                       </View>
                     ) : null}
-                    <Text
-                      numberOfLines={1}
-                      style={[
-                        styles.rowLabel,
-                        {
-                          color: colors.textPrimary,
-                          fontWeight: active ? '600' : '400',
-                        },
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
+                    <View style={styles.rowText}>
+                      <Text
+                        numberOfLines={1}
+                        style={[
+                          styles.rowLabel,
+                          {
+                            color: colors.textPrimary,
+                            fontWeight: active ? '600' : '400',
+                          },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                      {item.sublabel ? (
+                        <Text numberOfLines={1} style={[styles.rowSublabel, { color: colors.textSecondary }]}>
+                          {item.sublabel}
+                        </Text>
+                      ) : null}
+                    </View>
                     {active && (
                       <View style={styles.check}>
                         <Icon name="check" size={18} color={colors.primary} />
@@ -341,10 +372,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   // Content-sized rather than flex: 1. A flexed Text on Android aligns by its own script, so
-  // an English address in the Hebrew layout would jump to the wrong edge.
-  rowLabel: {
+  // an English address in the Hebrew layout would jump to the wrong edge. The column lines
+  // its lines up on the start edge instead.
+  rowText: {
     flexShrink: 1,
+    alignItems: 'flex-start',
+    gap: 1,
+  },
+  rowLabel: {
     fontSize: 15,
+  },
+  rowSublabel: {
+    fontSize: 13,
+  },
+  empty: {
+    textAlign: 'center',
+    fontSize: 14,
+    paddingVertical: spacing.lg,
   },
   check: {
     marginStart: 'auto',

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Icon, type IconName } from '@/src/shared/components/ui';
 import { useLanguageContext } from '@/src/context';
-import { darkColors, ICON_MD, ICON_SM, lightColors, spacing } from '@/src/core/theme';
+import { cardShadow, darkColors, ICON_MD, ICON_SM, lightColors, radii, spacing } from '@/src/core/theme';
 import { useAgentChat } from '../context/AgentChatContext';
 
 /**
@@ -15,10 +15,10 @@ import { useAgentChat } from '../context/AgentChatContext';
  * step by convention alone. A missing key now shows up as a visible `agent.starters.…`
  * string instead.
  */
-const STARTERS: { key: string; icon: IconName }[] = [
-  { key: 'overdue', icon: 'alert-circle' },
-  { key: 'earnings', icon: 'trending-up' },
-  { key: 'leaseEnd', icon: 'calendar' },
+const STARTERS: { key: string; icon: IconName; tone: 'exp' | 'rev' | 'lease' }[] = [
+  { key: 'overdue', icon: 'alert-circle', tone: 'exp' },
+  { key: 'earnings', icon: 'trending-up', tone: 'rev' },
+  { key: 'leaseEnd', icon: 'calendar', tone: 'lease' },
 ];
 
 /** Empty-conversation state: a hint + localized quick questions that send on tap. */
@@ -29,7 +29,13 @@ export function StarterPrompts() {
   const { isRtl } = useLanguageContext();
   const { send } = useAgentChat();
   const router = useRouter();
-  const accentBg = colors.accentBg;
+  // Each question in the colors its subject wears elsewhere: overdue rent as on Home's
+  // Rent due alert, earnings in the income green, leases in the lease-expiring amber.
+  const tones = {
+    exp: { fg: colors.expFg, bg: colors.expBg },
+    rev: { fg: colors.revFg, bg: colors.revBg },
+    lease: { fg: colors.warning, bg: colors.accentBg },
+  };
 
   return (
     <ScrollView
@@ -57,7 +63,7 @@ export function StarterPrompts() {
       </Text>
 
       <View style={styles.list}>
-        {STARTERS.map(({ key, icon }) => {
+        {STARTERS.map(({ key, icon, tone }) => {
           const prompt = t(`agent.starters.${key}`);
           return (
             <TouchableOpacity
@@ -67,11 +73,11 @@ export function StarterPrompts() {
               onPress={() => void send(prompt)}
               style={[
                 styles.card,
-                { backgroundColor: theme.colors.surface, borderColor: colors.outline },
+                { backgroundColor: theme.colors.surface },
               ]}
             >
-              <View style={[styles.iconWrap, { backgroundColor: accentBg }]}>
-                <Icon name={icon} size={ICON_MD} color={colors.accent} />
+              <View style={[styles.iconWrap, { backgroundColor: tones[tone].bg }]}>
+                <Icon name={icon} size={ICON_MD} color={tones[tone].fg} />
               </View>
               <Text style={[styles.prompt, { color: colors.textPrimary }]}>{prompt}</Text>
               <View style={{ transform: [{ scaleX: isRtl ? -1 : 1 }] }}>
@@ -146,9 +152,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: radii.lg,
     padding: spacing.md,
+    ...cardShadow,
   },
   iconWrap: {
     width: 40,

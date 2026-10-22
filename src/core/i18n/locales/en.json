@@ -384,6 +384,9 @@
     "renters": "Renters",
     "noRenters": "No renters assigned",
     "currentTenants": "Current tenants",
+    "renterSince": "Since {{date}}",
+    "renterEnded": "Ended {{date}}",
+    "rentPerMonth": "{{amount}} / month",
     "lease": "Lease",
     "editProperty": "Edit Property",
     "renterSheet": "Info sheet for renter",
@@ -671,6 +674,8 @@
     "type": "Type",
     "clear": "Clear filter",
     "searchIn": "Search {{name}}...",
+    "noMatches": "Nothing matches \"{{query}}\"",
+    "clearSearch": "Clear search",
     "clearAll": "Clear all",
     "clearOne": "Clear {{name}} filter"
   },

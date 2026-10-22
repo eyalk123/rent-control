@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { ownerFilterOption } from '@/src/shared/utils/filterOptions';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguageContext, usePropertyContext } from '@/src/context';
 import {
@@ -131,8 +132,8 @@ export function PropertyOwnersListScreen() {
   useOnReconnect(() => refreshOwners());
 
   const nameOptions = useMemo<FilterOption[]>(
-    () => owners.map((o) => ({ id: o.id, label: o.name })),
-    [owners],
+    () => owners.map((o) => ownerFilterOption(o.id, o.name, o.property_count, t)),
+    [owners, t],
   );
 
   const filteredOwners = useMemo(

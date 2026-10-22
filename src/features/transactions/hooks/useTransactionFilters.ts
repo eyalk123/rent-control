@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { usePropertyContext, useLanguageContext } from '@/src/context';
+import { usePropertyContext, useLanguageContext, useRenterContext } from '@/src/context';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
 import { useExpenseCategories, useSuppliers } from '@/src/features/transactions/hooks/useTransactions';
 import { getCategoryDisplayName } from '@/src/features/transactions/utils/categoryUtils';
@@ -12,6 +12,14 @@ import {
 import type { FilterChip } from '@/src/features/transactions/components/list/FilterChipsBar';
 import type { FilterOption } from '@/src/features/transactions/components/list/FilterBottomSheet';
 import type { TransactionTypeFilter } from '@/src/features/transactions/components/list/TypeFilterChips';
+import { supplierColorKey } from '@/src/features/suppliers/utils/supplierColor';
+import {
+  categoryFilterOption,
+  ownerFilterOption,
+  propertyFilterOption,
+  renterFilterOption,
+  supplierFilterOption,
+} from '@/src/shared/utils/filterOptions';
 
 export type ActiveSheet = 'property' | 'renter' | 'owner' | 'category' | 'supplier' | null;
 
@@ -27,6 +35,7 @@ export function useTransactionFilters() {
     setSupplierFilter,
   } = usePaginatedTransactionContext();
   const { properties } = usePropertyContext();
+  const { renters } = useRenterContext();
   const { categories } = useExpenseCategories();
   const { suppliers } = useSuppliers({ includeInactive: true });
 
@@ -39,13 +48,18 @@ export function useTransactionFilters() {
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
   const [typeFilter, setTypeFilter] = useState<TransactionTypeFilter>('all');
 
+  // Built from the property when it is loaded, for its picture and color; from the row
+  // otherwise (a property since deleted keeps its name and nothing else).
   const propertyOptions = useMemo<FilterOption[]>(() => {
     const seen = new Map<number, string>();
     for (const tx of transactions) {
       if (!seen.has(tx.property_id)) seen.set(tx.property_id, tx.property_name);
     }
-    return [...seen.entries()].map(([id, label]) => ({ id, label }));
-  }, [transactions]);
+    return [...seen.entries()].map(([id, label]) => {
+      const property = properties.find((p) => p.id === id);
+      return property ? propertyFilterOption(property, t) : { id, label };
+    });
+  }, [transactions, properties, t]);
 
   const renterOptions = useMemo<FilterOption[]>(() => {
     const seen = new Map<number, string>();
@@ -54,45 +68,52 @@ export function useTransactionFilters() {
         seen.set(tx.renter_id, tx.renter_name);
       }
     }
-    return [...seen.entries()].map(([id, label]) => ({ id, label }));
-  }, [transactions]);
+    return [...seen.entries()].map(([id, label]) => {
+      const renter = renters.find((r) => r.id === id);
+      return renter ? renterFilterOption(renter, t) : { id, label };
+    });
+  }, [transactions, renters, t]);
 
   const ownerOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Set<string>();
+    const counts = new Map<string, number>();
     for (const p of properties) {
       const o = (p.property_owner ?? '').trim();
-      if (o) seen.add(o);
+      if (o) counts.set(o, (counts.get(o) ?? 0) + 1);
     }
-    return [...seen].map((o) => ({ id: o, label: o }));
-  }, [properties]);
+    return [...counts].map(([o, count]) => ownerFilterOption(o, o, count, t));
+  }, [properties, t]);
 
   // Every category and supplier the account has, not only those on the pages loaded so
   // far - the server does the filtering, so a match need not be on screen yet. Ones seen
   // on loaded rows are added too, which covers a category that has since been deactivated.
   const categoryOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Map<number, string>();
-    for (const c of categories) seen.set(c.id, getCategoryDisplayName(c, t));
+    const seen = new Map<number, FilterOption>();
+    for (const c of categories) seen.set(c.id, categoryFilterOption(c.id, getCategoryDisplayName(c, t), c.color));
     for (const tx of transactions) {
       if (tx.category_id !== null && tx.category_name && !seen.has(tx.category_id)) {
         seen.set(
           tx.category_id,
-          t(`expenseCategories.${tx.category_name}`, { defaultValue: tx.category_name }),
+          categoryFilterOption(
+            tx.category_id,
+            t(`expenseCategories.${tx.category_name}`, { defaultValue: tx.category_name }),
+            tx.category_color,
+          ),
         );
       }
     }
-    return [...seen.entries()].map(([id, label]) => ({ id, label }));
+    return [...seen.values()];
   }, [categories, transactions, t]);
 
   const supplierOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Map<number, string>();
-    for (const s of suppliers) seen.set(s.id, s.name);
+    const seen = new Map<number, FilterOption>();
+    for (const s of suppliers) seen.set(s.id, supplierFilterOption(s.id, s.name, supplierColorKey(s, categories)));
     for (const tx of transactions) {
       if (tx.supplier_id !== null && tx.supplier_name && !seen.has(tx.supplier_id)) {
-        seen.set(tx.supplier_id, tx.supplier_name);
+        seen.set(tx.supplier_id, supplierFilterOption(tx.supplier_id, tx.supplier_name, null));
       }
     }
-    return [...seen.entries()].map(([id, label]) => ({ id, label }));
-  }, [suppliers, transactions]);
+    return [...seen.values()];
+  }, [suppliers, categories, transactions]);
 
   const ownerByPropertyId = useMemo(() => {
     const m = new Map<number, string>();

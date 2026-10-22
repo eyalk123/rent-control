@@ -5,8 +5,9 @@ import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { isRtlLanguage } from '@/src/core/i18n';
-import { darkColors, ICON_MD, ICON_SM, ICON_XS, lightColors, spacing, cardShadow, radii } from '@/src/core/theme';
+import { darkColors, ICON_MD, ICON_SM, ICON_XS, lightColors, spacing, cardShadow, radii, useEntityColor } from '@/src/core/theme';
 import { Icon } from '@/src/shared/components/ui/Icon';
+import { ColorDot } from '@/src/shared/components/ui/ColorDot';
 import { SkeletonBlock } from '@/src/shared/components/ui/SkeletonBlock';
 import { useShimmer } from '@/src/shared/hooks/useShimmer';
 import { formatMoney } from '@/src/shared/utils/money';
@@ -20,7 +21,9 @@ import {
 } from '@/src/features/notifications/templates';
 import { openWhatsApp, toWhatsAppNumber } from '@/src/shared/utils/whatsapp';
 import type { CpiChangeStage, NotificationItem } from '@/src/features/notifications/types';
-import { useRenterContext, useTransactionSummaryContext } from '@/src/context';
+import { usePropertyContext, useRenterContext, useTransactionSummaryContext } from '@/src/context';
+import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
+import type { Renter } from '@/src/shared/types';
 import { canExerciseOption } from '@/src/shared/utils/renterStatus';
 import { ExerciseOptionDialog } from '@/src/features/renters/components/ExerciseOptionDialog';
 import { usePaginatedTransactionContext } from '@/src/features/transactions/context/PaginatedTransactionContext';
@@ -175,6 +178,34 @@ function TypeLabel({ label, color }: { label: string; color: string }) {
   );
 }
 
+/** The renter's name with their avatar in their color, as on the Renters list. */
+function RenterName({ name, renter, color }: { name: string; renter: Renter | undefined; color: string }) {
+  const tint = useEntityColor(renter?.color);
+  return (
+    <View style={styles.nameLine}>
+      {renter && (
+        <RenterAvatar renter={renter} size={20} radius={6} backgroundColor={tint.bg} textColor={tint.fg} />
+      )}
+      <Text style={[styles.name, { color }]} numberOfLines={1}>
+        {name}
+      </Text>
+    </View>
+  );
+}
+
+/** The address behind its property's color dot, as in the Transactions list. */
+function AddressLine({ address, propertyColor, color }: { address: string; propertyColor: string | null | undefined; color: string }) {
+  if (!address) return null;
+  return (
+    <View style={styles.addressLine}>
+      <ColorDot color={propertyColor} />
+      <Text style={[styles.address, styles.addressText, { color }]} numberOfLines={1}>
+        {address}
+      </Text>
+    </View>
+  );
+}
+
 interface AttentionItemRowProps {
   item: AttentionItem;
   isLast: boolean;
@@ -195,15 +226,21 @@ interface AttentionItemRowProps {
   cpiSavingIds: Set<number>;
   /** Renters whose lease still has an option year — their expiring row offers to exercise it. */
   exercisableIds: Set<number>;
+  rentersById: Map<number, Renter>;
+  propertyColors: Map<number, string | null | undefined>;
+  dividerColor: string;
 }
 
 function AttentionItemRow({
   item, isLast, colors, amberBg, primaryBg, neutralBg, waBg, waFg, onDismiss, onNavigate, onMarkPaid, onMessage,
   onConfirmCpi, onEditCpi, onExerciseOption, markPaidLoadingIds, cpiSavingIds, exercisableIds,
+  rentersById, propertyColors, dividerColor,
 }: AttentionItemRowProps) {
   const { t, i18n } = useTranslation();
   const name = `${item.first_name} ${item.last_name}`;
   const address = item.property_address ?? '';
+  const renter = rentersById.get(item.renter_id);
+  const propertyColor = item.property_id != null ? propertyColors.get(item.property_id) : undefined;
   // The whole row opens the renter. The pills are touchables of their own, so a press on
   // one is claimed by the pill and never reaches the row.
   const rowPress = {
@@ -234,18 +271,14 @@ function AttentionItemRow({
           <View style={styles.centerContent}>
             <TypeLabel label={t('notifications.event.lease_expiring')} color={colors.textPrimary} />
             <View style={styles.topLine}>
-              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-                {name}
-              </Text>
+              <RenterName name={name} renter={renter} color={colors.textPrimary} />
               <View style={[styles.infoBadge, { backgroundColor: amberBg }]}>
                 <Text style={[styles.infoBadgeText, { color: colors.warning }]}>
                   {t(item.days_until_expiry === 1 ? 'home.expiresIn' : 'home.expiresInPlural', { count: item.days_until_expiry })}
                 </Text>
               </View>
             </View>
-            <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
-              {address}
-            </Text>
+            <AddressLine address={address} propertyColor={propertyColor} color={colors.textSecondary} />
             <Text style={[styles.subInfo, { color: colors.textSecondary }]}>
               {t('home.expiresLabel', { date: formatLeaseDate(item.lease_end_date, i18n.language) })}
             </Text>
@@ -277,7 +310,7 @@ function AttentionItemRow({
             </View>
           </View>
         </TouchableOpacity>
-        {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
+        {!isLast && <View style={[styles.divider, { backgroundColor: dividerColor }]} />}
       </View>
     );
   }
@@ -328,7 +361,7 @@ function AttentionItemRow({
             </View>
           </View>
         </TouchableOpacity>
-        {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
+        {!isLast && <View style={[styles.divider, { backgroundColor: dividerColor }]} />}
       </View>
     );
   }
@@ -344,9 +377,7 @@ function AttentionItemRow({
           <View style={styles.centerContent}>
             <TypeLabel label={t('notifications.event.cpi_rent_change')} color={colors.textPrimary} />
             <View style={styles.topLine}>
-              <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-                {name}
-              </Text>
+              <RenterName name={name} renter={renter} color={colors.textPrimary} />
               {/* Plain icon + text, not a filled chip: the primaryBg fill matched the action
                   pills below and read as a button. Provisional is quieter than final. */}
               <View style={styles.stageStatus}>
@@ -360,9 +391,7 @@ function AttentionItemRow({
                 </Text>
               </View>
             </View>
-            <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
-              {address}
-            </Text>
+            <AddressLine address={address} propertyColor={propertyColor} color={colors.textSecondary} />
             <Text style={[styles.subInfo, { color: colors.textPrimary }]}>
               {formatMoney(item.old_amount)} {isRtlLanguage(i18n.language) ? '←' : '→'} {formatMoney(item.new_amount)}
             </Text>
@@ -409,7 +438,7 @@ function AttentionItemRow({
             )}
           </View>
         </TouchableOpacity>
-        {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
+        {!isLast && <View style={[styles.divider, { backgroundColor: dividerColor }]} />}
       </View>
     );
   }
@@ -423,18 +452,14 @@ function AttentionItemRow({
         <View style={styles.centerContent}>
           <TypeLabel label={t('notifications.event.overdue')} color={colors.textPrimary} />
           <View style={styles.topLine}>
-            <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
-              {name}
-            </Text>
+            <RenterName name={name} renter={renter} color={colors.textPrimary} />
             <View style={[styles.infoBadge, { backgroundColor: colors.expBg }]}>
               <Text style={[styles.infoBadgeText, { color: colors.expFg }]}>
                 {t(item.days_overdue === 1 ? 'home.daysOverdue' : 'home.daysOverduePlural', { count: item.days_overdue })}
               </Text>
             </View>
           </View>
-          <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
-            {address}
-          </Text>
+          <AddressLine address={address} propertyColor={propertyColor} color={colors.textSecondary} />
           <Text style={[styles.subInfo, { color: colors.textPrimary }]}>
             {formatMoney(item.monthly_amount)}
           </Text>
@@ -455,7 +480,7 @@ function AttentionItemRow({
           </View>
         </View>
       </TouchableOpacity>
-      {!isLast && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
+      {!isLast && <View style={[styles.divider, { backgroundColor: dividerColor }]} />}
     </View>
   );
 }
@@ -483,6 +508,7 @@ export function NeedsAttentionSection() {
   const [exercisingId, setExercisingId] = useState<number | null>(null);
   // Already loaded app-wide, so deciding which pill an expiring row shows costs no request.
   const { renters } = useRenterContext();
+  const { properties } = usePropertyContext();
   const isFirstLoad = useRef(true);
 
   const fetchData = useCallback(async (silent = false) => {
@@ -594,6 +620,11 @@ export function NeedsAttentionSection() {
     setExercisingId(renterId);
   }, []);
   const exercisableIds = new Set(renters.filter(canExerciseOption).map((r) => r.id));
+  const rentersById = new Map(renters.map((r) => [r.id, r]));
+  const propertyColors = new Map(properties.map((p) => [p.id, p.color]));
+  // Darker than `outline`: each row carries three to five lines and a row of pills, and at
+  // the 0.10 outline the rows ran together.
+  const dividerColor = theme.dark ? 'rgba(239,238,235,0.20)' : 'rgba(26,45,74,0.18)';
 
   const handleSaveEditedCpi = useCallback(async (amount: number) => {
     if (!cpiEditing) return;
@@ -638,7 +669,7 @@ export function NeedsAttentionSection() {
   const waFg = theme.dark ? '#5BD98A' : '#0B7A5E';
 
   const shimmer = useShimmer(loading);
-  const rowProps = { colors, amberBg, primaryBg, neutralBg, waBg, waFg, onDismiss: dismiss, onNavigate: navigate, onMarkPaid: handleMarkPaid, onMessage: handleMessage, onConfirmCpi: handleConfirmCpi, onEditCpi: handleEditCpi, onExerciseOption: handleExerciseOption, markPaidLoadingIds, cpiSavingIds, exercisableIds };
+  const rowProps = { colors, amberBg, primaryBg, neutralBg, waBg, waFg, onDismiss: dismiss, onNavigate: navigate, onMarkPaid: handleMarkPaid, onMessage: handleMessage, onConfirmCpi: handleConfirmCpi, onEditCpi: handleEditCpi, onExerciseOption: handleExerciseOption, markPaidLoadingIds, cpiSavingIds, exercisableIds, rentersById, propertyColors, dividerColor };
 
   // Label + a manage button that opens the notification rules page, shown in
   // every state so the rules are always reachable from Home.
@@ -671,7 +702,7 @@ export function NeedsAttentionSection() {
         <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         {[0, 1].map((i) => (
           <View key={i}>
-            {i > 0 && <View style={[styles.divider, { backgroundColor: colors.outline }]} />}
+            {i > 0 && <View style={[styles.divider, { backgroundColor: dividerColor }]} />}
             <View style={styles.itemRow}>
               <SkeletonBlock opacity={shimmer} width={40} height={40} borderRadius={11} />
               <View style={[styles.centerContent, { gap: 6 }]}>
@@ -777,7 +808,7 @@ export function NeedsAttentionSection() {
 
         {hasMore && (
           <>
-            <View style={[styles.divider, { backgroundColor: colors.outline }]} />
+            <View style={[styles.divider, { backgroundColor: dividerColor }]} />
             <View style={styles.seeAllRow}>
               <TouchableOpacity onPress={() => setModalVisible(true)} activeOpacity={0.7}>
                 <Text style={[styles.seeAllText, { color: colors.primary }]}>
@@ -893,11 +924,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
+  nameLine: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+  },
   // A step below the type label, so the row reads type first, then who.
   name: {
     fontSize: 13,
     fontWeight: '600',
-    flex: 1,
+    flexShrink: 1,
+  },
+  addressLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  addressText: {
+    flexShrink: 1,
   },
   address: {
     fontSize: 12,
@@ -938,7 +984,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   divider: {
-    height: StyleSheet.hairlineWidth,
+    height: 1,
     marginHorizontal: -spacing.md,
   },
   seeAllRow: {

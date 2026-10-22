@@ -6,9 +6,20 @@ import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { darkColors, lightColors, spacing } from '@/src/core/theme';
+import {
+  cardShadow,
+  darkColors,
+  darkEntityColors,
+  ICON_XS,
+  isEntityColorKey,
+  lightColors,
+  lightEntityColors,
+  radii,
+  spacing,
+} from '@/src/core/theme';
 import { useLanguageContext } from '@/src/context';
-import { AppFab, EmptyState, LtrSection } from '@/src/shared/components/ui';
+import { AppFab, EmptyState, Icon, LtrSection } from '@/src/shared/components/ui';
+import { CategoryTag } from '@/src/features/transactions/components/shared/CategoryTag';
 import { formatMoney } from '@/src/shared/utils/money';
 import { fmtTxDate } from '@/src/features/transactions/utils/aggregate';
 import { useExpenseCategories } from '@/src/features/transactions/hooks/useTransactions';
@@ -114,6 +125,35 @@ export function ExpensePanel({
     [expenses, stackCategories, categories, t],
   );
 
+  // Each category in its own color - the one on its chips and on supplier rows - so the
+  // chart and the rest of the app agree. Six colors are shared by every category, so two
+  // in one chart can match: the lower-ranked one is drawn lighter. A category without a
+  // color (an old row) keeps the chart's own palette, and "Other" stays neutral.
+  const entityPalette = theme.dark ? darkEntityColors : lightEntityColors;
+  const { colorKeyByLabel, segmentColor } = useMemo(() => {
+    const keys = new Map<string, string>();
+    for (const tx of expenses) {
+      const label = expenseCategoryLabel(tx, categories, t);
+      if (keys.has(label)) continue;
+      const id = tx.category_ids?.[0] ?? tx.category_id;
+      const key = (id != null ? categories.find((c) => c.id === id)?.color : null) ?? tx.category_color;
+      if (key) keys.set(label, key);
+    }
+    const used = new Set<string>();
+    const out = new Map<string, { color: string; opacity: number }>();
+    categoryTotals.forEach((cat, index) => {
+      const key = keys.get(cat.id);
+      if (key && isEntityColorKey(key)) {
+        out.set(cat.id, { color: entityPalette[key].fg, opacity: used.has(key) ? 0.5 : 1 });
+        used.add(key);
+      } else {
+        out.set(cat.id, { color: categoryColor(index, cat.id, colors.textSecondary), opacity: 1 });
+      }
+    });
+    return { colorKeyByLabel: keys, segmentColor: out };
+  }, [expenses, categories, categoryTotals, entityPalette, colors.textSecondary, t]);
+  const colorOf = (id: string) => segmentColor.get(id) ?? { color: colors.textSecondary, opacity: 1 };
+
   const total = expenses.reduce((sum, tx) => sum + tx.amount, 0);
   const monthsWithSpend = stacks.filter((s) => s.total > 0).length;
   const maxMonth = stacks.reduce((max, s) => Math.max(max, s.total), 0) || 1;
@@ -216,16 +256,17 @@ export function ExpensePanel({
                 >
                   <View style={styles.barArea}>
                     <View style={styles.stack}>
-                      {stackCategories.map((cat, index) => {
+                      {stackCategories.map((cat) => {
                         const value = stack.byCategory[cat.id] ?? 0;
                         if (value <= 0) return null;
+                        const seg = colorOf(cat.id);
                         return (
                           <View
                             key={cat.id}
                             style={{
                               height: Math.max(MIN_SEGMENT, (value / maxMonth) * BAR_AREA_HEIGHT),
-                              backgroundColor: categoryColor(index, cat.id, colors.textSecondary),
-                              opacity: dimmed ? 0.25 : 0.9,
+                              backgroundColor: seg.color,
+                              opacity: seg.opacity * (dimmed ? 0.25 : 0.9),
                             }}
                           />
                         );
@@ -243,8 +284,9 @@ export function ExpensePanel({
 
         {/* Category breakdown */}
         <View style={{ gap: spacing.xs }}>
-          {categoryTotals.map((cat, index) => {
+          {categoryTotals.map((cat) => {
             const active = selectedCategory === cat.id;
+            const seg = colorOf(cat.id);
             return (
               <Pressable
                 key={cat.id}
@@ -254,7 +296,7 @@ export function ExpensePanel({
                 style={[styles.catRow, active && { backgroundColor: colors.subtleOutline }]}
               >
                 <View
-                  style={[styles.swatch, { backgroundColor: categoryColor(index, cat.id, colors.textSecondary) }]}
+                  style={[styles.swatch, { backgroundColor: seg.color, opacity: seg.opacity }]}
                 />
                 <Text style={[styles.catLabel, { color: colors.textPrimary }]} numberOfLines={1}>
                   {cat.label}
@@ -264,7 +306,8 @@ export function ExpensePanel({
                     style={{
                       width: `${Math.max(cat.share * 100, 2)}%`,
                       height: '100%',
-                      backgroundColor: categoryColor(index, cat.id, colors.textSecondary),
+                      backgroundColor: seg.color,
+                      opacity: seg.opacity,
                       borderRadius: 999,
                     }}
                   />
@@ -289,21 +332,35 @@ export function ExpensePanel({
           </Pressable>
         ) : null}
 
-        {visible.map((tx) => (
-          <Pressable
-            key={tx.id}
-            onPress={() => router.push(transactionHref(tx.id) as never)}
-            style={[styles.txCard, { backgroundColor: colors.expBg, borderColor: colors.outline }]}
-          >
-            <View style={styles.txHeader}>
-              <Text style={[styles.txTitle, { color: colors.textPrimary }]} numberOfLines={1}>
-                {tx.supplier_name || expenseCategoryLabel(tx, categories, t)}
+        {/* White cards like the Transactions list, with the category as a chip in its color.
+            They were filled with the expense tint, a heavy block of copper per row. */}
+        {visible.map((tx) => {
+          const label = expenseCategoryLabel(tx, categories, t);
+          return (
+            <Pressable
+              key={tx.id}
+              onPress={() => router.push(transactionHref(tx.id) as never)}
+              accessibilityRole="button"
+              style={[styles.txCard, { backgroundColor: theme.colors.surface }]}
+            >
+              <View style={[styles.txIcon, { backgroundColor: colors.expBg }]}>
+                <Icon name="arrow-down-right" size={ICON_XS} color={colors.expFg} />
+              </View>
+              <View style={styles.txBody}>
+                <Text style={[styles.txTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+                  {tx.supplier_name || label}
+                </Text>
+                <View style={styles.txMetaRow}>
+                  <CategoryTag label={label} color={colorKeyByLabel.get(label)} />
+                  <Text style={[styles.txMeta, { color: colors.textSecondary }]}>{fmtTxDate(tx, locale)}</Text>
+                </View>
+              </View>
+              <Text style={[styles.txAmount, { color: colors.expFg }]}>
+                {`\u202A\u2212${formatMoney(tx.amount)}\u202C`}
               </Text>
-              <Text style={[styles.txAmount, { color: colors.expFg }]}>{formatMoney(tx.amount)}</Text>
-            </View>
-            <Text style={[styles.txMeta, { color: colors.textSecondary }]}>{fmtTxDate(tx, locale)}</Text>
-          </Pressable>
-        ))}
+            </Pressable>
+          );
+        })}
       </ScrollView>
       {onAddExpense ? (
         <AppFab
@@ -444,27 +501,42 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   txCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  txHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    ...cardShadow,
+  },
+  txIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  txBody: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
   },
   txTitle: {
-    flex: 1,
     fontSize: 14,
     fontWeight: '600',
   },
+  txMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  // The number never yields; the title truncates instead (see TransactionRow).
   txAmount: {
+    flexShrink: 0,
     fontSize: 15,
     fontWeight: '700',
+    fontVariant: ['tabular-nums'],
   },
   txMeta: {
     fontSize: 12,
-    marginTop: 2,
   },
 });

@@ -39,6 +39,7 @@ import type { ExpenseCategory, Supplier } from '@/src/shared/types';
 import { cardShadow, darkColors, lightColors, radii, spacing, useEntityColor } from '@/src/core/theme';
 import { CategoryTag } from '@/src/features/transactions/components/shared/CategoryTag';
 import { supplierColorKey } from '@/src/features/suppliers/utils/supplierColor';
+import { categoryFilterOption, supplierFilterOption } from '@/src/shared/utils/filterOptions';
 
 type ActiveSheet = 'name' | 'category' | null;
 
@@ -151,8 +152,8 @@ export function SuppliersListScreen() {
   useOnReconnect(() => refreshSuppliers());
 
   const nameOptions = useMemo<FilterOption[]>(
-    () => suppliers.map((s) => ({ id: s.id, label: s.name })),
-    [suppliers],
+    () => suppliers.map((s) => supplierFilterOption(s.id, s.name, supplierColorKey(s, categories))),
+    [suppliers, categories],
   );
 
   const categoryOptions = useMemo<FilterOption[]>(() => {
@@ -164,7 +165,7 @@ export function SuppliersListScreen() {
         const cat = categories.find((c) => c.id === id);
         if (!cat) continue;
         seen.add(id);
-        opts.push({ id, label: getCategoryDisplayName(cat, t) });
+        opts.push(categoryFilterOption(id, getCategoryDisplayName(cat, t), cat.color));
       }
     }
     return opts;

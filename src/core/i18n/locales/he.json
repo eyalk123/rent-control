@@ -385,6 +385,9 @@
     "renters": "דיירים",
     "noRenters": "אין דיירים משויכים",
     "currentTenants": "שוכרים נוכחיים",
+    "renterSince": "מאז {{date}}",
+    "renterEnded": "הסתיים ב-{{date}}",
+    "rentPerMonth": "{{amount}} לחודש",
     "lease": "שכירות",
     "editProperty": "עריכת נכס",
     "renterSheet": "דף מידע לשוכר",
@@ -674,6 +677,8 @@
     "type": "סוג",
     "clear": "נקה סינון",
     "searchIn": "חיפוש {{name}}...",
+    "noMatches": "אין תוצאות עבור \"{{query}}\"",
+    "clearSearch": "ניקוי החיפוש",
     "clearAll": "נקה הכל",
     "clearOne": "נקה סינון {{name}}"
   },

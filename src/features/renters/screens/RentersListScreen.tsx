@@ -25,8 +25,7 @@ import { RenterCard } from '@/src/features/renters/components/RenterCard';
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { deleteRenter } from '@/src/features/renters/api/renters';
 import { getEffectiveLeaseEnd, getRenterLifecycle } from '@/src/shared/utils/renterStatus';
-import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
-import { formatPropertyAddress } from '@/src/shared/utils/propertyAddress';
+import { ownerFilterOption, propertyFilterOption, renterFilterOption } from '@/src/shared/utils/filterOptions';
 import { spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
@@ -87,7 +86,7 @@ export function RentersListScreen() {
     for (const r of renters) {
       if (r.property && !seen.has(r.property.id)) {
         seen.add(r.property.id);
-        opts.push({ id: r.property.id, label: formatPropertyAddress(r.property, t), icon: getPropertyTypeIcon(r.property.type) });
+        opts.push(propertyFilterOption(r.property, t));
       }
     }
     return opts;
@@ -96,22 +95,18 @@ export function RentersListScreen() {
   }, [renters, t]);
 
   const renterOptions = useMemo<FilterOption[]>(
-    () => renters.map((r) => ({ id: r.id, label: `${r.first_name} ${r.last_name}`, icon: 'user' })),
-    [renters],
+    () => renters.map((r) => renterFilterOption(r, t)),
+    [renters, t],
   );
 
   const ownerOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Set<string>();
-    const opts: FilterOption[] = [];
+    const counts = new Map<string, number>();
     for (const p of properties) {
       const o = p.property_owner?.trim();
-      if (o && !seen.has(o)) {
-        seen.add(o);
-        opts.push({ id: o, label: o, icon: 'briefcase' });
-      }
+      if (o) counts.set(o, (counts.get(o) ?? 0) + 1);
     }
-    return opts;
-  }, [properties]);
+    return [...counts].map(([o, count]) => ownerFilterOption(o, o, count, t));
+  }, [properties, t]);
 
   const filteredRenters = useMemo(() => {
     let list = renters.filter((renter) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking, ScrollView, StyleSheet, View } from 'react-native';
-import { IconButton, List, SegmentedButtons, Switch, Text, useTheme } from 'react-native-paper';
+import { IconButton, SegmentedButtons, Switch, Text, TouchableRipple, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -11,9 +11,9 @@ import { useCountry } from '@/src/features/country/CountryContext';
 import { useAlert } from '@/src/core/context';
 import { restartAppForRTL, type SupportedLanguage } from '@/src/core/i18n';
 import { ScreenContainer, LtrSection } from '@/src/shared/components/ui';
-import { Icon } from '@/src/shared/components/ui';
+import { Icon, type IconName } from '@/src/shared/components/ui';
 import { DevProfiler } from '@/src/shared/components/dev/DevProfiler';
-import { spacing } from '@/src/core/theme';
+import { cardShadow, darkColors, lightColors, radii, spacing, useEntityColor, type EntityColor } from '@/src/core/theme';
 import { AccountPreviewCard } from '../components/AccountPreviewCard';
 import { TOURS_ENABLED } from '@/src/features/onboarding/flags';
 import { useTourState } from '@/src/features/onboarding/TourStateContext';
@@ -28,6 +28,92 @@ function openLicenses() {
   WebBrowser.openBrowserAsync(LICENSES_URL).catch(() => Linking.openURL(LICENSES_URL).catch(() => {}));
 }
 
+function useSettingsColors() {
+  const theme = useTheme();
+  return theme.dark ? darkColors : lightColors;
+}
+
+/** The small uppercase heading above a group, as on Home. */
+function SectionLabel({ label, style }: { label: string; style?: object }) {
+  const colors = useSettingsColors();
+  const rtlLabelStyle = useRtlLabelStyle();
+  return (
+    <Text style={[styles.sectionLabel, { color: colors.textSecondary }, rtlLabelStyle, style]}>
+      {label.toUpperCase()}
+    </Text>
+  );
+}
+
+/** A card of rows under one heading. */
+function SettingsGroup({ label, children }: { label?: string; children: React.ReactNode }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.group}>
+      {label ? <SectionLabel label={label} /> : null}
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>{children}</View>
+    </View>
+  );
+}
+
+/**
+ * One row: the icon on its group's tint, the title and an optional line under it, and a
+ * trailing control. Without `right` a tappable row ends in a chevron; `right={null}` leaves
+ * the end empty (an action, not a page).
+ */
+function SettingsRow({
+  icon,
+  tint,
+  title,
+  titleColor,
+  description,
+  right,
+  onPress,
+  last = false,
+}: {
+  icon: IconName;
+  tint: EntityColor;
+  title: string;
+  titleColor?: string;
+  description?: string;
+  right?: React.ReactNode;
+  onPress?: () => void;
+  last?: boolean;
+}) {
+  const colors = useSettingsColors();
+  const { isRtl } = useLanguageContext();
+  const trailing =
+    right !== undefined ? right : onPress ? (
+      <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={18} color={colors.textSecondary} />
+    ) : null;
+  const content = (
+    <View style={styles.row}>
+      <View style={[styles.rowIcon, { backgroundColor: tint.bg }]}>
+        <Icon name={icon} size={18} color={tint.fg} />
+      </View>
+      <View
+        style={[
+          styles.rowBody,
+          !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.outline },
+        ]}
+      >
+        <View style={styles.rowText}>
+          <Text style={[styles.rowTitle, { color: titleColor ?? colors.textPrimary }]}>{title}</Text>
+          {description ? (
+            <Text style={[styles.rowDescription, { color: colors.textSecondary }]}>{description}</Text>
+          ) : null}
+        </View>
+        {trailing}
+      </View>
+    </View>
+  );
+  if (!onPress) return content;
+  return (
+    <TouchableRipple onPress={onPress} accessibilityRole="button">
+      {content}
+    </TouchableRipple>
+  );
+}
+
 export const SettingsScreen = React.memo(function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -38,6 +124,13 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
   const { unregisterDevice } = useNotifications();
   const rtlLabelStyle = useRtlLabelStyle();
   const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  // One color per group, from the same six as properties and renters.
+  const sky = useEntityColor('sky');
+  const plum = useEntityColor('plum');
+  const olive = useEntityColor('olive');
+  const mustard = useEntityColor('mustard');
+  const indigo = useEntityColor('indigo');
 
   const { appAlert } = useAlert();
   const tourState = useTourState();
@@ -121,13 +214,7 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
           <AccountPreviewCard />
         </DevProfiler>
 
-        {/* 2. Move the Theme title OUTSIDE of LtrSection so it respects the global RTL layout */}
-        <Text
-          variant="titleMedium"
-          style={[styles.sectionTitle, styles.themeTitle, rtlLabelStyle]}
-        >
-          {t('settings.theme')}
-        </Text>
+        <SectionLabel label={t('settings.theme')} style={styles.themeTitle} />
 
         {/* Keep LtrSection ONLY on the SegmentedButtons to preserve their order */}
         <DevProfiler id="SegmentedButtons">
@@ -147,153 +234,121 @@ export const SettingsScreen = React.memo(function SettingsScreen() {
         </LtrSection>
         </DevProfiler>
 
-        <Text
-          variant="titleMedium"
-          style={[styles.sectionTitle, rtlLabelStyle]}
-        >
-          {t('settings.language')}
-        </Text>
-        <List.Section>
-          <List.Item
+        <SettingsGroup label={t('settings.language')}>
+          <SettingsRow
+            icon="languages"
+            tint={sky}
             title={t('settings.languageEn')}
-            left={(props) => <Icon name="languages" size={20} color={props.color} style={props.style} />}
-            right={(props) =>
-              language === 'en' ? (
-                <Icon name="check" size={20} color={props.color} style={props.style} />
-              ) : null
-            }
+            right={language === 'en' ? <Icon name="check" size={20} color={colors.primary} /> : null}
             onPress={() => handleLanguage('en')}
-            style={styles.listItem}
           />
-          <List.Item
+          <SettingsRow
+            icon="languages"
+            tint={sky}
             title={t('settings.languageHe')}
-            left={(props) => <Icon name="languages" size={20} color={props.color} style={props.style} />}
-            right={(props) =>
-              language === 'he' ? (
-                <Icon name="check" size={20} color={props.color} style={props.style} />
-              ) : null
-            }
+            right={language === 'he' ? <Icon name="check" size={20} color={colors.primary} /> : null}
             onPress={() => handleLanguage('he')}
-            style={styles.listItem}
+            last
           />
-        </List.Section>
+        </SettingsGroup>
 
         {/* Hidden entirely when the master switch is off (flags.ts): with no tours in the
             build there is nothing to replay and nothing to turn off, and offering the
             controls anyway would advertise a feature this build does not have. */}
         {TOURS_ENABLED && tourState && (
-          <>
-            <Text
-              variant="titleMedium"
-              style={[styles.sectionTitle, rtlLabelStyle]}
-            >
-              {t('onboarding.ui.sectionTitle')}
-            </Text>
-            <List.Section>
-              <List.Item
-                title={t('onboarding.ui.replayTitle')}
-                description={t('onboarding.ui.replayBody')}
-                left={(props) => <Icon name="sparkles" size={20} color={props.color} />}
-                onPress={handleResetTours}
-                style={styles.listItem}
-              />
-              <List.Item
-                title={t('onboarding.ui.disable')}
-                left={(props) => <Icon name="eye-off" size={20} color={props.color} />}
-                right={() => (
-                  <Switch
-                    value={tourState.state.toursDisabled}
-                    onValueChange={(v) => tourState.setToursDisabled(v)}
-                    accessibilityLabel={t('onboarding.ui.disable')}
-                  />
-                )}
-                style={styles.listItem}
-              />
-            </List.Section>
-          </>
+          <SettingsGroup label={t('onboarding.ui.sectionTitle')}>
+            <SettingsRow
+              icon="sparkles"
+              tint={plum}
+              title={t('onboarding.ui.replayTitle')}
+              description={t('onboarding.ui.replayBody')}
+              onPress={handleResetTours}
+            />
+            <SettingsRow
+              icon="eye-off"
+              tint={plum}
+              title={t('onboarding.ui.disable')}
+              right={
+                <Switch
+                  value={tourState.state.toursDisabled}
+                  onValueChange={(v) => tourState.setToursDisabled(v)}
+                  accessibilityLabel={t('onboarding.ui.disable')}
+                />
+              }
+              last
+            />
+          </SettingsGroup>
         )}
 
-        <Text
-          variant="titleMedium"
-          style={[styles.sectionTitle, rtlLabelStyle]}
-        >
-          {t('feedback.sectionTitle')}
-        </Text>
-        <List.Section>
-          <List.Item
+        <SettingsGroup label={t('feedback.sectionTitle')}>
+          <SettingsRow
+            icon="message-circle"
+            tint={olive}
             title={t('feedback.rowLabel')}
             description={t('feedback.rowHint')}
-            left={(props) => <Icon name="message-circle" size={20} color={props.color} />}
             onPress={() => router.push('/settings/feedback' as any)}
-            style={styles.listItem}
+            last
           />
-        </List.Section>
+        </SettingsGroup>
 
-        <Text
-          variant="titleMedium"
-          style={[styles.sectionTitle, rtlLabelStyle]}
-        >
-          {t('subscription.settings.title')}
-        </Text>
-        <List.Section>
-          <List.Item
+        <SettingsGroup label={t('subscription.settings.title')}>
+          <SettingsRow
+            icon="wallet"
+            tint={mustard}
             title={t('subscription.settings.rowLabel')}
             description={t('subscription.settings.rowHint')}
-            left={(props) => <Icon name="wallet" size={20} color={props.color} />}
             onPress={() => router.push('/settings/plan' as any)}
-            style={styles.listItem}
+            last
           />
-        </List.Section>
+        </SettingsGroup>
 
-        <Text
-          variant="titleMedium"
-          style={[styles.sectionTitle, rtlLabelStyle]}
-        >
-          {t('legal.sectionTitle')}
-        </Text>
-        <List.Section>
-          <List.Item
+        <SettingsGroup label={t('legal.sectionTitle')}>
+          <SettingsRow
+            icon="shield"
+            tint={indigo}
             title={t('legal.privacyPolicy')}
-            left={(props) => <Icon name="shield" size={20} color={props.color} />}
             onPress={() => router.push('/settings/legal/privacy' as any)}
-            style={styles.listItem}
           />
-          <List.Item
+          <SettingsRow
+            icon="file-text"
+            tint={indigo}
             title={t('legal.termsOfService')}
-            left={(props) => <Icon name="file-text" size={20} color={props.color} />}
             onPress={() => router.push('/settings/legal/terms' as any)}
-            style={styles.listItem}
           />
-          <List.Item
+          <SettingsRow
+            icon="eye"
+            tint={indigo}
             title={t('legal.accessibility')}
-            left={(props) => <Icon name="eye" size={20} color={props.color} />}
             onPress={() => router.push('/settings/legal/accessibility' as any)}
-            style={styles.listItem}
           />
-          <List.Item
+          <SettingsRow
+            icon="file-text"
+            tint={indigo}
             title={t('legal.openSourceLicenses')}
-            left={(props) => <Icon name="file-text" size={20} color={props.color} />}
-            right={(props) => <Icon name="external-link" size={16} color={props.color} />}
+            right={<Icon name="external-link" size={16} color={colors.textSecondary} />}
             onPress={openLicenses}
-            style={styles.listItem}
+            last
           />
-        </List.Section>
+        </SettingsGroup>
 
-        <List.Section>
-          <List.Item
+        <SettingsGroup>
+          <SettingsRow
+            icon="door-open"
+            tint={{ fg: colors.primary, bg: colors.primaryBg }}
             title={t('settings.signOut')}
-            left={(props) => <Icon name="door-open" size={20} color={props.color} style={props.style} />}
+            right={null}
             onPress={handleSignOut}
-            style={styles.listItem}
           />
-          <List.Item
+          <SettingsRow
+            icon="trash"
+            tint={{ fg: theme.colors.error, bg: colors.expBg }}
             title={t('settings.deleteAccount')}
-            titleStyle={{ color: theme.colors.error }}
-            left={(props) => <Icon name="trash" size={20} color={theme.colors.error} style={props.style} />}
+            titleColor={theme.colors.error}
+            right={null}
             onPress={() => router.push('/settings/delete-account' as any)}
-            style={styles.listItem}
+            last
           />
-        </List.Section>
+        </SettingsGroup>
       </ScrollView>
     </ScreenContainer>
   );
@@ -316,17 +371,57 @@ const styles = StyleSheet.create({
   themeTitle: {
     marginTop: spacing.xl,
   },
-  sectionTitle: {
-    marginHorizontal: spacing.lg,
+  sectionLabel: {
+    marginHorizontal: spacing.lg + 4,
     marginBottom: spacing.sm,
-    fontWeight: '900',
-    // alignSelf: 'stretch' has been removed! Your helper handles alignment elegantly.
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   segmented: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.lg,
   },
-  listItem: {
-    paddingHorizontal: spacing.lg,
+  group: {
+    marginBottom: spacing.lg,
+  },
+  card: {
+    marginHorizontal: spacing.lg,
+    borderRadius: radii.lg,
+    ...cardShadow,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingStart: spacing.md,
+  },
+  rowIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // The divider runs under the text only, from the icon's edge to the card's.
+  rowBody: {
+    flex: 1,
+    minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm + 2,
+    paddingEnd: spacing.md,
+  },
+  rowText: {
+    flex: 1,
+    alignItems: 'flex-start',
+    gap: 2,
+  },
+  rowTitle: {
+    fontSize: 16,
+  },
+  rowDescription: {
+    fontSize: 13,
   },
 });

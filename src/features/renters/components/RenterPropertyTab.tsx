@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Button, Card, Text, useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { PropertyBrief, Renter } from '@/src/shared/types';
-import { Icon, EmptyState } from '@/src/shared/components/ui';
+import { ColorDot, Icon, EmptyState } from '@/src/shared/components/ui';
 import { PropertyPicker } from '@/src/features/properties/components/PropertyPicker';
-import { lightColors, darkColors, spacing } from '@/src/core/theme';
-import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
-import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
+import { cardShadow, lightColors, darkColors, ICON_SM, radii, spacing } from '@/src/core/theme';
+import { PropertyThumb } from '@/src/features/properties/components/PropertyThumb';
 import { propertyTypeLabelKey } from '@/src/features/properties/constants/propertyTypeLabel';
 import { formatFloorApartment } from '@/src/shared/utils/propertyAddress';
 import { useLanguageContext } from '@/src/context';
@@ -22,6 +21,10 @@ interface RenterPropertyTabProps {
   linkPending?: boolean;
 }
 
+/**
+ * The renter's property as a card in its own color - the picture on its tint and its dot -
+ * like the property card on a transaction and "Lives at" on the Info tab.
+ */
 function PropertyCard({
   property,
   colors,
@@ -33,60 +36,33 @@ function PropertyCard({
 }) {
   const { t } = useTranslation();
   const { isRtl } = useLanguageContext();
-  const typeLabel = t(propertyTypeLabelKey(property.type));
-  const imageSource = usePropertyImageSource(property.image_url);
+  const theme = useTheme();
   const floorApartment = formatFloorApartment(property, t, false);
+  const detail = [floorApartment, property.city, t(propertyTypeLabelKey(property.type))]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
-      <Card style={styles.card} mode="outlined">
-        <Card.Content style={styles.cardContent}>
-          {imageSource ? (
-            <Image source={imageSource} style={styles.thumbnail} resizeMode="cover" />
-          ) : (
-            <View style={[styles.thumbnailPlaceholder, { backgroundColor: colors.inputBackground }]}>
-              <Icon
-                name={getPropertyTypeIcon(property.type)}
-                size={24}
-                color={colors.primary}
-              />
-            </View>
-          )}
-          <View style={styles.info}>
-            <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
-              {property.address}
-            </Text>
-            {floorApartment !== '' && (
-              <Text
-                variant="bodySmall"
-                style={[styles.detail, { color: colors.textSecondary }]}
-                numberOfLines={1}
-              >
-                {floorApartment}
-              </Text>
-            )}
-            <Text
-              variant="bodySmall"
-              style={{ color: colors.textSecondary }}
-              numberOfLines={1}
-            >
-              {property.city}
-            </Text>
-          </View>
-          <View style={styles.rightSection}>
-            <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-              <Text variant="labelSmall" style={[styles.badgeText, { color: colors.onPrimary }]}>
-                {typeLabel}
-              </Text>
-            </View>
-            <Icon
-              name={isRtl ? "chevron-left" : "chevron-right"}
-              size={24}
-              color={colors.textSecondary}
-            />
-          </View>
-        </Card.Content>
-      </Card>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={property.address}
+      style={[styles.card, { backgroundColor: theme.colors.surface }]}
+    >
+      <PropertyThumb property={property} width={64} height={48} radius={10} iconSize={22} />
+      <View style={styles.info}>
+        <View style={styles.titleRow}>
+          <ColorDot color={property.color} />
+          <Text variant="bodyLarge" style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+            {property.address}
+          </Text>
+        </View>
+        <Text variant="labelSmall" style={{ color: colors.textSecondary }} numberOfLines={1}>
+          {detail}
+        </Text>
+      </View>
+      <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={ICON_SM} color={colors.textSecondary} />
     </TouchableOpacity>
   );
 }
@@ -113,7 +89,7 @@ export function RenterPropertyTab({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Card style={styles.card} mode="outlined">
+          <Card style={styles.linkCard} mode="outlined">
             <Card.Content style={styles.linkContent}>
               <Text variant="titleSmall">{t('renter.linkProperty')}</Text>
               <PropertyPicker
@@ -184,13 +160,16 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   card: {
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
+    gap: spacing.md,
+    padding: spacing.sm,
+    borderRadius: radii.lg,
+    ...cardShadow,
+  },
+  linkCard: {
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   linkContent: {
     padding: spacing.md,
@@ -201,40 +180,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: spacing.sm,
   },
-  thumbnail: {
-    width: 72,
-    height: 72,
-    borderRadius: 8,
-    marginEnd: spacing.md,
-  },
-  thumbnailPlaceholder: {
-    width: 72,
-    height: 72,
-    borderRadius: 8,
-    marginEnd: spacing.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   info: {
     flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   name: {
+    flexShrink: 1,
     fontWeight: '600',
-    marginBottom: 2,
-  },
-  detail: {
-    marginBottom: 2,
-  },
-  rightSection: {
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  badgeText: {
-    fontSize: 11,
   },
 });

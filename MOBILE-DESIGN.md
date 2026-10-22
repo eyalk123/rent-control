@@ -867,3 +867,17 @@ plumber matches his Maintenance chip; an owner sits on the neutral navy tint and
 properties' dots, so color keeps meaning "an item". Both use `InitialsTile`, raised contact
 buttons (36pt drawn, 44pt touched; the elevated shade in dark mode, where a shadow does not show),
 and the shared form header.
+
+### 2026-10-22 — The remaining screens: filters, alerts, settings, chat, detail tabs
+
+Filter sheets show each option's own mark: a property's picture on its color, a renter's or
+supplier's initials in theirs, an owner's navy tile, a category's dot. A second line names the
+city and type, or where the renter lives, and the search (shown from eight options) matches it
+too, clears from an x, and says when nothing matches. Needs attention puts the renter's avatar and
+the property's dot on each row, with a darker divider between rows that run four or five lines.
+Settings groups its rows into cards with an icon tile per group, from the same six colors.
+Notification settings and the assistant's suggested questions borrow the alert colors (rent due
+in the expense color, leases in amber, income in green), and the assistant's source chips wear
+the renter's or property's color. On the detail tabs, tenants and the renter's property match
+their list cards, and the expense chart draws each category in its own color; two categories that
+share one of the six are told apart by the lower-ranked one being lighter.

@@ -1,17 +1,78 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Button, Card, Text, useTheme } from 'react-native-paper';
+import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { Property, Renter } from '@/src/shared/types';
-import { getCurrentMonthlyRent } from '@/src/shared/types';
+import { getCurrentMonthlyRent, getLeaseEndDate } from '@/src/shared/types';
 import { billedCadenceLabel } from '@/src/shared/utils/cadence';
-import { getRenterLifecycle } from '@/src/shared/utils/renterStatus';
-import { EmptyState, Icon } from '@/src/shared/components/ui';
+import { getEffectiveLeaseEnd, getRenterLifecycle } from '@/src/shared/utils/renterStatus';
+import { formatDateFull, parseISODate } from '@/src/shared/utils/dates';
+import { EmptyState, Icon, StatusPill } from '@/src/shared/components/ui';
 import { RenterAvatar } from '@/src/features/renters/components/RenterAvatar';
-import { lightColors, darkColors, spacing } from '@/src/core/theme';
+import { cardShadow, lightColors, darkColors, radii, spacing, useEntityColor } from '@/src/core/theme';
 import { formatMoney } from '@/src/shared/utils/money';
 import { useLanguageContext } from '@/src/context';
+
+/** A tenant on the property, in their color, as on the Renters list. */
+function RenterRow({ renter, onPress }: { renter: Renter; onPress: () => void }) {
+  const { t } = useTranslation();
+  const { isRtl, language } = useLanguageContext();
+  const theme = useTheme();
+  const colors = theme.dark ? darkColors : lightColors;
+  const tint = useEntityColor(renter.color);
+  const ended = getRenterLifecycle(renter) === 'ended';
+  const cadence = billedCadenceLabel(renter, t);
+  const start = renter.lease_start ? parseISODate(renter.lease_start) : null;
+  const end = getEffectiveLeaseEnd(renter) ?? getLeaseEndDate(renter);
+  // When they came, or when they left: a date, not "Lease: 2025-07-22".
+  const dateLine = ended
+    ? end
+      ? t('property.renterEnded', { date: formatDateFull(end, language) })
+      : null
+    : start
+      ? t('property.renterSince', { date: formatDateFull(start, language) })
+      : null;
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      accessibilityRole="button"
+      style={[styles.card, { backgroundColor: theme.colors.surface }]}
+    >
+      <RenterAvatar renter={renter} size={44} radius={13} backgroundColor={tint.bg} textColor={tint.fg} />
+      <View style={styles.info}>
+        <Text variant="titleSmall" style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+          {renter.first_name} {renter.last_name}
+        </Text>
+        <Text variant="bodySmall" style={{ color: colors.textSecondary }} numberOfLines={1}>
+          {/* The rent is stored monthly, so that is what is shown — but the "/month"
+              suffix used to be hardcoded, which told a quarterly tenant's landlord
+              they were collecting monthly. Name the real cadence instead. */}
+          {t('property.rentPerMonth', { amount: formatMoney(getCurrentMonthlyRent(renter)) })}
+          {cadence ? ` (${cadence})` : ''}
+        </Text>
+        {dateLine ? (
+          <Text variant="bodySmall" style={{ color: colors.textSecondary }} numberOfLines={1}>
+            {dateLine}
+          </Text>
+        ) : null}
+      </View>
+      {/* Was hard-coded green "Active" for every renter, including leases that ran out
+          years ago. A soft pill now, as on the Renters list. */}
+      {/* Wrapped: StatusPill pins itself to the top of a row; here it centres on the card. */}
+      <View>
+        <StatusPill
+          label={t(ended ? 'renter.status.ended' : 'renter.status.active')}
+          backgroundColor={ended ? colors.controlFill : colors.revBg}
+          color={ended ? colors.textSecondary : colors.revFg}
+        />
+      </View>
+      <Icon name={isRtl ? 'chevron-left' : 'chevron-right'} size={18} color={colors.textSecondary} />
+    </TouchableOpacity>
+  );
+}
 
 interface PropertyRentersTabProps {
   property: Property;
@@ -19,7 +80,6 @@ interface PropertyRentersTabProps {
 
 export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
   const { t } = useTranslation();
-  const { isRtl } = useLanguageContext();
   const theme = useTheme();
   const colors = theme.dark ? darkColors : lightColors;
   const router = useRouter();
@@ -50,65 +110,9 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
     );
   }
 
-  const renderRenter = (renter: Renter) => {
-    const ended = getRenterLifecycle(renter) === 'ended';
-    return (
-      <TouchableOpacity
-        key={renter.id}
-        activeOpacity={0.7}
-        onPress={() => router.push(`/renters/${renter.id}` as any)}
-      >
-        <Card style={styles.card} mode="outlined">
-          <Card.Content style={styles.cardContent}>
-            <RenterAvatar renter={renter} size={44} style={styles.avatar} />
-            <View style={styles.info}>
-              <Text variant="titleSmall" style={styles.name} numberOfLines={1}>
-                {renter.first_name} {renter.last_name}
-              </Text>
-              <Text
-                variant="bodySmall"
-                style={{ color: colors.textSecondary }}
-                numberOfLines={1}
-              >
-                {/* The rent is stored monthly, so that is what is shown — but the "/month"
-                    suffix used to be hardcoded, which told a quarterly tenant's landlord
-                    they were collecting monthly. Name the real cadence instead. */}
-                {t('renter.monthlyRent')}: {formatMoney(getCurrentMonthlyRent(renter))}/
-                {t('renter.frequencyMonthly').toLowerCase()}
-                {billedCadenceLabel(renter, t) ? ` (${billedCadenceLabel(renter, t)})` : ''}
-              </Text>
-              <Text
-                variant="bodySmall"
-                style={{ color: colors.textSecondary }}
-                numberOfLines={1}
-              >
-                {t('property.lease')}: {renter.lease_start}
-              </Text>
-            </View>
-            <View style={styles.rightSection}>
-              {/* Was hard-coded green "Active" for every renter, including leases that
-                  ran out years ago. */}
-              <View
-                style={[
-                  styles.badge,
-                  { backgroundColor: ended ? colors.textSecondary : colors.success },
-                ]}
-              >
-                <Text variant="labelSmall" style={[styles.badgeText, { color: colors.onPrimary }]}>
-                  {t(ended ? 'renter.status.ended' : 'renter.status.active')}
-                </Text>
-              </View>
-              <Icon
-                name={isRtl ? "chevron-left" : "chevron-right"}
-                size={24}
-                color={colors.textSecondary}
-              />
-            </View>
-          </Card.Content>
-        </Card>
-      </TouchableOpacity>
-    );
-  };
+  const renderRenter = (renter: Renter) => (
+    <RenterRow key={renter.id} renter={renter} onPress={() => router.push(`/renters/${renter.id}` as any)} />
+  );
 
   return (
     <ScrollView
@@ -117,29 +121,29 @@ export function PropertyRentersTab({ property }: PropertyRentersTabProps) {
     >
       {/* Headings only earn their space once there is more than one group. */}
       {current.length > 0 && previous.length > 0 && (
-        <Text variant="labelLarge" style={[styles.sectionHeading, { color: colors.textSecondary }]}>
-          {t('property.currentTenants')}
+        <Text style={[styles.sectionHeading, { color: colors.textSecondary }]}>
+          {t('property.currentTenants').toUpperCase()}
         </Text>
       )}
       {current.map(renderRenter)}
 
       {previous.length > 0 && (
-        <Text variant="labelLarge" style={[styles.sectionHeading, { color: colors.textSecondary }]}>
-          {t('renter.previousTenants')}
+        <Text style={[styles.sectionHeading, { color: colors.textSecondary }]}>
+          {t('renter.previousTenants').toUpperCase()}
         </Text>
       )}
       {previous.map(renderRenter)}
 
       {/* Under the list rather than floating over it: a property holds a handful of
           tenants at most, so the button stays in reach without a FAB covering a card. */}
-      <Button
-        mode="outlined"
-        icon="plus"
+      <Pressable
         onPress={addRenter}
-        style={styles.addButton}
+        accessibilityRole="button"
+        style={[styles.addBox, { borderColor: colors.inputBorder }]}
       >
-        {t('property.addRenterNow')}
-      </Button>
+        <Icon name="plus" size={18} color={colors.primary} />
+        <Text style={[styles.addText, { color: colors.primary }]}>{t('property.addRenterNow')}</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -155,43 +159,44 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
   },
+  // Small capitals, as the other detail-tab headings.
   sectionHeading: {
-    marginBottom: spacing.xs,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
     marginTop: spacing.sm,
   },
   card: {
-    marginBottom: spacing.sm,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.md,
     padding: spacing.md,
-  },
-  avatar: {
-    marginEnd: spacing.md,
+    marginBottom: spacing.sm,
+    borderRadius: radii.lg,
+    ...cardShadow,
   },
   info: {
     flex: 1,
+    gap: 2,
   },
   name: {
     fontWeight: '600',
-    marginBottom: 2,
   },
-  rightSection: {
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  badgeText: {
-    fontSize: 11,
-  },
-  addButton: {
+  // Dashed like the other "add" boxes, rather than a full outlined button.
+  addBox: {
+    minHeight: 52,
     marginTop: spacing.sm,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  addText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

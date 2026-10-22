@@ -89,9 +89,22 @@ export function NotificationsSettingsScreen() {
     <Text style={[styles.sectionHint, rtlLabelStyle, { alignSelf: 'stretch', color: colors.textSecondary }]}>{text}</Text>
   );
 
-  const iconBubble = (name: IconName, dim = false) => (
-    <View style={[styles.iconBubble, { backgroundColor: colors.primaryBg, opacity: dim ? 0.5 : 1 }]}>
-      <Icon name={name} size={ICON_SM} color={colors.primary} />
+  // Each alert in the colors its rows wear in Home's Needs attention list, so the two screens
+  // read as one feature: rent due in the expense color, lease expiring in amber, the rate
+  // changes in navy. WhatsApp keeps its own green, as on the Message pill.
+  const eventTint: Record<NotificationEvent, { fg: string; bg: string }> = {
+    overdue: { fg: colors.expFg, bg: colors.expBg },
+    lease_expiring: { fg: colors.warning, bg: colors.accentBg },
+    cpi_rent_change: { fg: colors.primary, bg: colors.primaryBg },
+    mortgage_rate_change: { fg: colors.primary, bg: colors.primaryBg },
+  };
+  const whatsAppTint = theme.dark
+    ? { fg: '#5BD98A', bg: 'rgba(37,211,102,0.20)' }
+    : { fg: '#0B7A5E', bg: 'rgba(37,211,102,0.16)' };
+
+  const iconBubble = (name: IconName, tint: { fg: string; bg: string }, dim = false) => (
+    <View style={[styles.iconBubble, { backgroundColor: tint.bg, opacity: dim ? 0.5 : 1 }]}>
+      <Icon name={name} size={ICON_SM} color={tint.fg} />
     </View>
   );
 
@@ -145,7 +158,7 @@ export function NotificationsSettingsScreen() {
                       accessibilityRole="button"
                       accessibilityLabel={title}
                     >
-                      {iconBubble(EVENT_ICONS[event], muted)}
+                      {iconBubble(EVENT_ICONS[event], eventTint[event], muted)}
                       <View style={styles.rowText}>
                         <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>{title}</Text>
                         <Text style={[styles.rowHint, rtlLabelStyle, { color: colors.textSecondary }]} numberOfLines={2}>
@@ -179,7 +192,7 @@ export function NotificationsSettingsScreen() {
               onPress={() => router.push('/notifications/templates' as never)}
               accessibilityRole="button"
             >
-              {iconBubble('message-circle')}
+              {iconBubble('message-circle', whatsAppTint)}
               <View style={styles.rowText}>
                 <Text style={[styles.rowTitle, rtlLabelStyle, { color: colors.textPrimary }]}>
                   {t('notifications.messagesRow')}

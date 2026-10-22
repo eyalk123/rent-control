@@ -29,8 +29,7 @@ import { OverLimitNotice } from '@/src/features/subscription/components/OverLimi
 import { SettingsGearButton } from '@/src/shared/components/ui/SettingsGearButton';
 import { PropertyOwnersHeaderButton } from '@/src/features/property-owners/components/PropertyOwnersHeaderButton';
 import { deleteProperty } from '@/src/features/properties/api/properties';
-import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
-import { formatPropertyAddress } from '@/src/shared/utils/propertyAddress';
+import { ownerFilterOption, propertyFilterOption, renterFilterOption } from '@/src/shared/utils/filterOptions';
 import { spacing, MAX_CHROME_FONT_SCALE } from '@/src/core/theme';
 import { useAlert } from '@/src/core/context';
 import { ANCHORS } from '@/src/features/onboarding/anchors';
@@ -77,7 +76,7 @@ export function PropertiesListScreen() {
   // Floor/apartment included: two flats in one building share an address, and without
   // the unit the two rows are the same word twice.
   const propertyOptions = useMemo<FilterOption[]>(
-    () => properties.map((p) => ({ id: p.id, label: formatPropertyAddress(p, t), icon: getPropertyTypeIcon(p.type) })),
+    () => properties.map((p) => propertyFilterOption(p, t)),
     [properties, t],
   );
 
@@ -85,22 +84,18 @@ export function PropertiesListScreen() {
     () =>
       renters
         .filter((r) => r.property_id != null)
-        .map((r) => ({ id: r.id, label: `${r.first_name} ${r.last_name}`, icon: 'user' })),
-    [renters],
+        .map((r) => renterFilterOption(r, t)),
+    [renters, t],
   );
 
   const ownerOptions = useMemo<FilterOption[]>(() => {
-    const seen = new Set<string>();
-    const opts: FilterOption[] = [];
+    const counts = new Map<string, number>();
     for (const p of properties) {
       const o = p.property_owner?.trim();
-      if (o && !seen.has(o)) {
-        seen.add(o);
-        opts.push({ id: o, label: o, icon: 'briefcase' });
-      }
+      if (o) counts.set(o, (counts.get(o) ?? 0) + 1);
     }
-    return opts;
-  }, [properties]);
+    return [...counts].map(([o, count]) => ownerFilterOption(o, o, count, t));
+  }, [properties, t]);
 
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {

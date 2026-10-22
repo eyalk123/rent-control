@@ -29,5 +29,6 @@ export { DetailBackButton } from './DetailBackButton';
 export { headerExitLeft } from './HeaderExitButton';
 export { ColorDot } from './ColorDot';
 export { InitialsTile } from './InitialsTile';
+export { InitialsMark, DotMark } from './FilterMarks';
 export { ColorPicker } from './ColorPicker';
 export { ColorBand, BandButton } from './ColorBand';
