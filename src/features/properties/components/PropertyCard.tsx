@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, Image } from 'react-native';
-import { Button, Checkbox, Text, useTheme } from 'react-native-paper';
+import { Pressable, StyleSheet, View, Image } from 'react-native';
+import { Checkbox, Text, useTheme } from 'react-native-paper';
 import { Icon, ListCard, StatusPill } from '@/src/shared/components/ui';
 import { useTranslation } from 'react-i18next';
 import type { Property } from '@/src/shared/types';
-import { lightColors, darkColors, useEntityColor } from '@/src/core/theme';
+import { lightColors, darkColors, radii, useEntityColor } from '@/src/core/theme';
 import { getCurrentRenters } from '@/src/shared/utils/renterStatus';
 import { usePropertyImageSource } from '@/src/features/properties/hooks/usePropertyImageSource';
 import { getPropertyTypeIcon } from '@/src/features/properties/constants/propertyTypeIcons';
@@ -180,12 +180,31 @@ export const LockedPropertyCard = React.memo(function LockedPropertyCard({
         </View>
         {!isSelectMode && (
           <View style={styles.lockedActions}>
-            <Button mode="contained" compact onPress={onUpgrade}>
-              {t('subscription.lockedCard.upgrade')}
-            </Button>
-            <Button mode="outlined" compact textColor={colors.error} onPress={() => onDelete(property.id)}>
-              {t('subscription.lockedCard.delete')}
-            </Button>
+            {/* The soft pill the Property owners and Suppliers buttons use, not Paper's filled
+                and outlined buttons, which stood taller and louder than anything else on the list. */}
+            <Pressable
+              accessibilityRole="button"
+              onPress={onUpgrade}
+              hitSlop={6}
+              style={({ pressed }) => [
+                styles.lockedAction,
+                { backgroundColor: colors.primaryBg, opacity: pressed ? 0.7 : 1 },
+              ]}
+            >
+              <Text style={[styles.lockedActionLabel, { color: colors.textPrimary }]}>
+                {t('subscription.lockedCard.upgrade')}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => onDelete(property.id)}
+              hitSlop={6}
+              style={({ pressed }) => [styles.lockedAction, { opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Text style={[styles.lockedActionLabel, { color: colors.error }]}>
+                {t('subscription.lockedCard.delete')}
+              </Text>
+            </Pressable>
           </View>
         )}
       </View>
@@ -199,6 +218,16 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     marginTop: 6,
+  },
+  lockedAction: {
+    minHeight: 36,
+    paddingHorizontal: 12,
+    borderRadius: radii.pill,
+    justifyContent: 'center',
+  },
+  lockedActionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   thumbnail: {
     width: 52,
