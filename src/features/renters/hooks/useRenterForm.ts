@@ -430,6 +430,8 @@ export function useRenterForm({
       extra_contacts: extra_contacts.length > 0 ? extra_contacts : null,
       full_contract_url: resolvedFullContractUrl,
       id_image_url: values.idImageUrl ?? null,
+      suppress_expiry_alerts: values.suppressExpiryAlerts || values.openEnded,
+      open_ended: values.openEnded,
       ...((values.color ?? suggestedColor) ? { color: (values.color ?? suggestedColor)! } : {}),
     };
     if (numPayments != null && !Number.isNaN(numPayments)) {

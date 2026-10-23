@@ -29,6 +29,7 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     insurance_type,
     insurance_amount,
     contact_id,
+    extra_contacts,
     full_contract_url,
     id_image_url,
     contract_term_years,
@@ -38,6 +39,9 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
     base_rent,
     rent_escalation_mode,
     rent_escalation_value,
+    suppress_expiry_alerts,
+    open_ended,
+    color,
   } = data;
   const out: RenterCreate = {
     property_id: property_id ?? null,
@@ -61,8 +65,12 @@ function sanitizeRenterCreate(data: RenterCreate): RenterCreate {
   if (insurance_type !== undefined) out.insurance_type = insurance_type;
   if (insurance_amount !== undefined) out.insurance_amount = insurance_amount;
   if (contact_id !== undefined) out.contact_id = contact_id ?? null;
+  if (extra_contacts !== undefined) out.extra_contacts = extra_contacts;
   if (full_contract_url !== undefined) out.full_contract_url = full_contract_url;
   if (id_image_url !== undefined) out.id_image_url = id_image_url;
+  if (suppress_expiry_alerts !== undefined) out.suppress_expiry_alerts = suppress_expiry_alerts;
+  if (open_ended !== undefined) out.open_ended = open_ended;
+  if (color !== undefined) out.color = color;
   return out;
 }
 
@@ -81,6 +89,7 @@ function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
     'insurance_type',
     'insurance_amount',
     'contact_id',
+    'extra_contacts',
     'full_contract_url',
     'id_image_url',
     'contract_term_years',
@@ -90,6 +99,9 @@ function sanitizeRenterUpdate(data: RenterUpdate): Record<string, unknown> {
     'base_rent',
     'rent_escalation_mode',
     'rent_escalation_value',
+    'suppress_expiry_alerts',
+    'open_ended',
+    'color',
   ];
   const out: Record<string, unknown> = {};
   for (const key of allowed) {

@@ -76,6 +76,7 @@ function sanitizePropertyCreate(data: PropertyCreate): PropertyCreate {
   if (data.purchase_date !== undefined) out.purchase_date = data.purchase_date;
   if (data.valuation !== undefined) out.valuation = data.valuation;
   if (data.mortgage !== undefined) out.mortgage = data.mortgage;
+  if (data.color !== undefined) out.color = data.color;
   return out;
 }
 
@@ -108,6 +109,7 @@ function sanitizePropertyUpdate(data: PropertyUpdate): Record<string, unknown> {
     'purchase_date',
     'valuation',
     'mortgage',
+    'color',
   ];
   const out: Record<string, unknown> = {};
   for (const key of allowed) {

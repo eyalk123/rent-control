@@ -107,6 +107,9 @@ export const RenterCard = React.memo(function RenterCard({ renter, onPress, onLo
           <Text
             variant="labelLarge"
             style={[styles.leaseEndValue, { color: leaseEndColor }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
           >
             {leaseEndValue}
           </Text>

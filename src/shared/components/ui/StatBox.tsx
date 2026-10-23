@@ -35,7 +35,15 @@ export function StatBox({
   return (
     <View style={[styles.statBox, { backgroundColor }]}>
       {icon ? <Icon name={icon} size={24} color={iconColor} /> : null}
-      <Text variant={valueVariant} style={[styles.statValue, { color: textColor }]}>
+      {/* One line always: a date like "15 Sep 2026" is wider than a third of a narrow phone,
+          and broken over two lines it reads as two values. It shrinks to fit instead. */}
+      <Text
+        variant={valueVariant}
+        style={[styles.statValue, { color: textColor }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+      >
         {value}
       </Text>
       {/* Two lines, not one: three equal columns cannot hold "Number of payments" on a

@@ -230,8 +230,8 @@ export function RenterDetailScreen() {
           <ColorBand
             color={renter.color}
             fallbackHref="/renters"
-            height={170}
-            align="center"
+            height={184}
+            align="bottom"
             actions={
               <>
                 {/* Edit stays on an ended lease, since a past tenancy's record can still need
@@ -474,8 +474,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // Sits a little low in the band, clear of the round buttons along its top.
+  // Bottom-anchored so its top (184 - 16 - 96 = 72) clears the action buttons, which end at
+  // 56. Centred, it rose into them on narrow phones, where three buttons reach past the middle.
   avatar: {
-    marginTop: spacing.md,
+    marginBottom: spacing.lg,
   },
   // Start-aligned, like the property screen's title under its band.
   nameRow: {
